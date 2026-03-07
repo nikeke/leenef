@@ -1,0 +1,54 @@
+"""Decoder solvers for NEF layers — map activities → targets."""
+
+import torch
+from torch import Tensor
+
+
+def lstsq(activities: Tensor, targets: Tensor) -> Tensor:
+    """Solve D such that activities @ D ≈ targets via torch.linalg.lstsq.
+
+    Args:
+        activities: (N, n_neurons)
+        targets:    (N, d_out)
+    Returns:
+        decoders:   (n_neurons, d_out)
+    """
+    result = torch.linalg.lstsq(activities, targets)
+    return result.solution
+
+
+def tikhonov(activities: Tensor, targets: Tensor, alpha: float = 1e-4) -> Tensor:
+    """Tikhonov-regularised least-squares (L2 penalty on decoder norms).
+
+    Solves: (A^T A + alpha * I) D = A^T targets
+    """
+    A = activities
+    n_neurons = A.shape[1]
+    ATA = A.T @ A
+    ATA.diagonal().add_(alpha)
+    return torch.linalg.solve(ATA, A.T @ targets)
+
+
+def normal_equations(activities: Tensor, targets: Tensor,
+                     alpha: float = 1e-4) -> Tensor:
+    """L2-regularised normal equations via Cholesky — fast for large N, moderate n_neurons."""
+    A = activities
+    ATA = A.T @ A
+    # Scale regularisation to the matrix norm for numerical stability
+    reg = alpha * torch.trace(ATA) / ATA.shape[0]
+    ATA.diagonal().add_(reg.clamp(min=alpha))
+    L = torch.linalg.cholesky(ATA)
+    return torch.cholesky_solve(A.T @ targets, L)
+
+
+SOLVERS = {
+    "lstsq": lstsq,
+    "tikhonov": tikhonov,
+    "cholesky": normal_equations,
+}
+
+
+def solve_decoders(activities: Tensor, targets: Tensor,
+                   method: str = "tikhonov", **kwargs) -> Tensor:
+    """Solve for decoders using a named method."""
+    return SOLVERS[method](activities, targets, **kwargs)
