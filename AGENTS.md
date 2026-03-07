@@ -22,11 +22,18 @@ supervised learning using rate-based neurons on top of PyTorch.
 
 A **NEF layer** has three stages:
 
-1. **Encode** — random input weights (encoders) project the input into a
-   high-dimensional neuron space: `a = activation(gain * (x @ E^T) + bias)`.
-2. **Activate** — a nonlinear activation models the neuron firing rate.
+1. **Encode** — random unit encoders project the input into a
+   high-dimensional neuron space: `a = activation(gain * ((x − d) · e))`
+   where *e* is a random direction and *d* is a reference point
+   (center) sampled from training data.
+2. **Activate** — a nonlinear activation (default: `abs`) models the
+   neuron firing rate.
 3. **Decode** — output weights (decoders) map activities to the target:
    `y = a @ D`.
+
+Biases are derived from centers: `bias = −gain · (d · e)`.  Default
+configuration: **abs** activation, **hypersphere** encoders, **data-driven
+biases** via `centers=x_train`.
 
 The key insight: **encoders are random and fixed; decoders are solved
 analytically** via regularised least-squares (`layer.fit(x, targets)`).

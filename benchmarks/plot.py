@@ -10,52 +10,44 @@ OUT = Path(__file__).resolve().parent.parent / "docs"
 OUT.mkdir(exist_ok=True)
 
 # ---------------------------------------------------------------------------
-# Data (from benchmark runs)
+# Data (from benchmark runs — abs + hypersphere + data-driven biases)
 # ---------------------------------------------------------------------------
 
 NEURONS = [500, 1000, 2000, 5000]
 
-# Single-layer: neuron scaling (ReLU + hypersphere)
+# Single-layer: neuron scaling
 SCALE = {
-    "MNIST":         [88.4, 89.9, 92.1, 94.2],
-    "Fashion-MNIST": [80.6, 82.0, 83.3, 84.5],
-    "CIFAR-10":      [40.8, 42.8, 44.8, 46.7],
+    "MNIST":         [92.0, 94.1, 95.5, 96.9],
+    "Fashion-MNIST": [82.8, 84.4, 86.1, 87.7],
+    "CIFAR-10":      [43.9, 45.3, 48.5, 50.4],
 }
 
-# Single-layer: encoder × activation (2000 neurons, test accuracy)
+# Bias effect (2000 neurons, abs activation): encoder × random/data bias
 ENCODERS = ["hypersphere", "gaussian", "sparse"]
-ACTIVATIONS_SL = ["relu", "softplus", "abs", "lif_rate"]
-MNIST_SL = {
-    "relu":     [91.8, 95.6, 95.6],
-    "softplus": [87.7, 95.9, 95.7],
-    "abs":      [92.8, 96.0, 95.8],
-    "lif_rate": [91.3, 95.5, 95.3],
-}
-FASHION_SL = {
-    "relu":     [83.2, 85.8, 85.6],
-    "softplus": [81.4, 85.9, 85.6],
-    "abs":      [84.0, 85.9, 86.0],
-    "lif_rate": [83.0, 85.8, 85.5],
+BIAS_EFFECT = {
+    "MNIST":         {"random": [92.8, 95.8, 95.8], "data": [95.5, 95.5, 95.7]},
+    "Fashion-MNIST": {"random": [83.8, 86.1, 86.2], "data": [86.1, 86.1, 86.2]},
+    "CIFAR-10":      {"random": [45.2, 47.4, 47.2], "data": [48.5, 48.5, 48.7]},
 }
 
-# Multi-layer: strategy comparison (gaussian, ReLU)
+# Multi-layer: strategy comparison
 STRATEGIES = ["Linear", "NEFLayer", "Greedy", "Hybrid", "E2E", "MLP"]
 MULTI = {
-    "MNIST":         [85.4, 95.7, 95.4, 96.0, 98.0, 98.4],
-    "Fashion-MNIST": [80.6, 85.9, 85.8, 86.0, 88.3, 89.6],
-    "CIFAR-10":      [20.2, 46.6, 46.1, 48.0, 43.7, 53.4],
+    "MNIST":         [85.3, 95.5, 94.0, 97.2, 98.4, 98.4],
+    "Fashion-MNIST": [81.0, 86.1, 84.0, 87.9, 90.2, 89.6],
+    "CIFAR-10":      [39.6, 48.5, 45.1, 45.9, 58.5, 53.4],
 }
 MULTI_TIME = {
-    "MNIST":         [1, 2, 3, 64, 247, 87],
-    "Fashion-MNIST": [2, 2, 3, 66, 250, 89],
+    "MNIST":         [1, 2, 3, 69, 251, 87],
+    "Fashion-MNIST": [2, 2, 3, 70, 255, 89],
     "CIFAR-10":      [16, 3, 3, 72, 331, 150],
 }
 
-# Multi-layer: activation effect (hybrid, gaussian)
-ACTIVATIONS_ML = ["relu", "softplus", "abs", "lif_rate"]
+# Multi-layer: activation effect (hybrid, hypersphere + data biases)
+ACTIVATIONS_ML = ["abs", "relu", "lif_rate", "softplus"]
 HYBRID_ACT = {
-    "MNIST":         [96.0, 96.2, 95.8, 93.6],
-    "Fashion-MNIST": [86.0, 86.5, 86.2, 83.7],
+    "MNIST":         [97.2, 96.6, 92.3, 90.8],
+    "Fashion-MNIST": [87.9, 87.2, 83.7, 82.4],
 }
 
 
@@ -65,7 +57,8 @@ def plot_neuron_scaling():
         ax.plot(NEURONS, accs, "o-", label=ds, linewidth=2, markersize=6)
     ax.set_xlabel("Number of neurons")
     ax.set_ylabel("Test accuracy (%)")
-    ax.set_title("Single-layer NEF: scaling with neuron count")
+    ax.set_title("Single-layer NEF: scaling with neuron count\n"
+                 "(abs + hypersphere + data biases)")
     ax.legend()
     ax.grid(True, alpha=0.3)
     ax.set_xscale("log")
@@ -77,49 +70,51 @@ def plot_neuron_scaling():
     print(f"  → {OUT / 'neuron_scaling.png'}")
 
 
-def plot_encoder_activation_heatmap():
-    fig, axes = plt.subplots(1, 2, figsize=(10, 4))
-    for ax, (title, data) in zip(axes, [("MNIST", MNIST_SL),
-                                         ("Fashion-MNIST", FASHION_SL)]):
-        matrix = np.array([data[a] for a in ACTIVATIONS_SL])
-        im = ax.imshow(matrix, cmap="YlGn", aspect="auto",
-                        vmin=matrix.min() - 1, vmax=matrix.max() + 0.5)
-        ax.set_xticks(range(len(ENCODERS)))
+def plot_bias_effect():
+    fig, axes = plt.subplots(1, 3, figsize=(14, 4.5))
+    x = np.arange(len(ENCODERS))
+    width = 0.35
+    for ax, (ds, data) in zip(axes, BIAS_EFFECT.items()):
+        ax.bar(x - width / 2, data["random"], width, label="Random bias",
+               color="#7faedb")
+        ax.bar(x + width / 2, data["data"], width, label="Data bias",
+               color="#2d6da3")
+        ax.set_xticks(x)
         ax.set_xticklabels(ENCODERS)
-        ax.set_yticks(range(len(ACTIVATIONS_SL)))
-        ax.set_yticklabels(ACTIVATIONS_SL)
-        ax.set_title(title)
-        for i in range(len(ACTIVATIONS_SL)):
-            for j in range(len(ENCODERS)):
-                ax.text(j, i, f"{matrix[i, j]:.1f}%",
-                        ha="center", va="center", fontsize=10,
-                        color="white" if matrix[i, j] > 93 else "black")
-        fig.colorbar(im, ax=ax, shrink=0.8)
-    fig.suptitle("Single-layer: encoder × activation (2000 neurons, test %)",
+        ax.set_title(ds)
+        ax.set_ylabel("Test accuracy (%)")
+        ax.legend(fontsize=9)
+        ax.grid(True, alpha=0.3, axis="y")
+        lo = min(min(data["random"]), min(data["data"]))
+        ax.set_ylim(lo - 2, max(max(data["random"]), max(data["data"])) + 1.5)
+        for i, (r, d) in enumerate(zip(data["random"], data["data"])):
+            ax.text(i - width / 2, r + 0.2, f"{r:.1f}", ha="center",
+                    fontsize=8)
+            ax.text(i + width / 2, d + 0.2, f"{d:.1f}", ha="center",
+                    fontsize=8)
+    fig.suptitle("Effect of data-driven biases (2000 neurons, abs activation)",
                  fontsize=12, y=1.02)
     fig.tight_layout()
-    fig.savefig(OUT / "encoder_activation.png", dpi=150, bbox_inches="tight")
+    fig.savefig(OUT / "bias_effect.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
-    print(f"  → {OUT / 'encoder_activation.png'}")
+    print(f"  → {OUT / 'bias_effect.png'}")
 
 
 def plot_strategy_comparison():
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 
-    # Accuracy
     ax = axes[0]
     x = np.arange(len(STRATEGIES))
     width = 0.25
     for i, (ds, accs) in enumerate(MULTI.items()):
         ax.bar(x + i * width, accs, width, label=ds)
     ax.set_ylabel("Test accuracy (%)")
-    ax.set_title("Multi-layer: strategy comparison")
+    ax.set_title("Strategy comparison\n(abs + hypersphere + data biases)")
     ax.set_xticks(x + width)
     ax.set_xticklabels(STRATEGIES, rotation=30, ha="right")
     ax.legend()
     ax.grid(True, alpha=0.3, axis="y")
 
-    # Time vs accuracy (MNIST)
     ax = axes[1]
     for ds in ["MNIST", "Fashion-MNIST"]:
         ax.scatter(MULTI_TIME[ds], MULTI[ds], s=80, zorder=3)
@@ -146,12 +141,13 @@ def plot_activation_multilayer():
     for i, (ds, accs) in enumerate(HYBRID_ACT.items()):
         ax.bar(x + i * width, accs, width, label=ds)
     ax.set_ylabel("Test accuracy (%)")
-    ax.set_title("Multi-layer hybrid: activation effect (gaussian encoders)")
+    ax.set_title("Hybrid multi-layer: activation effect\n"
+                 "(hypersphere + data biases)")
     ax.set_xticks(x + width / 2)
     ax.set_xticklabels(ACTIVATIONS_ML)
     ax.legend()
     ax.grid(True, alpha=0.3, axis="y")
-    ax.set_ylim(80, 98)
+    ax.set_ylim(78, 99)
     fig.tight_layout()
     fig.savefig(OUT / "activation_multilayer.png", dpi=150)
     plt.close(fig)
@@ -161,7 +157,7 @@ def plot_activation_multilayer():
 if __name__ == "__main__":
     print("Generating plots...")
     plot_neuron_scaling()
-    plot_encoder_activation_heatmap()
+    plot_bias_effect()
     plot_strategy_comparison()
     plot_activation_multilayer()
     print("Done.")

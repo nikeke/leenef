@@ -82,11 +82,12 @@ def mse(pred: Tensor, targets: Tensor) -> float:
 def run_nef_classification(
     dataset_name: str,
     n_neurons: int = 2000,
-    activation: str = "relu",
+    activation: str = "abs",
     encoder_strategy: str = "hypersphere",
     solver: str = "tikhonov",
     solver_kwargs: dict | None = None,
     data_root: str = "./data",
+    use_centers: bool = True,
 ) -> BenchmarkResult:
     """Run a single NEF classification benchmark."""
     solver_kwargs = solver_kwargs or {"alpha": 1e-2}
@@ -96,8 +97,10 @@ def run_nef_classification(
     n_classes = int(y_train.max().item()) + 1
     targets = one_hot(y_train, n_classes)
 
+    centers = x_train if use_centers else None
     layer = NEFLayer(x_train.shape[1], n_neurons, n_classes,
-                     activation=activation, encoder_strategy=encoder_strategy)
+                     activation=activation, encoder_strategy=encoder_strategy,
+                     centers=centers)
 
     t0 = time.perf_counter()
     layer.fit(x_train, targets, solver=solver, **solver_kwargs)
@@ -120,18 +123,21 @@ def run_nef_classification(
 def run_nef_regression(
     dataset_name: str = "california",
     n_neurons: int = 2000,
-    activation: str = "relu",
+    activation: str = "abs",
     encoder_strategy: str = "hypersphere",
     solver: str = "tikhonov",
     solver_kwargs: dict | None = None,
+    use_centers: bool = True,
 ) -> BenchmarkResult:
     """Run a single NEF regression benchmark."""
     solver_kwargs = solver_kwargs or {"alpha": 1e-2}
 
     (x_train, y_train), (x_test, y_test) = load_regression_dataset(dataset_name)
 
+    centers = x_train if use_centers else None
     layer = NEFLayer(x_train.shape[1], n_neurons, y_train.shape[1],
-                     activation=activation, encoder_strategy=encoder_strategy)
+                     activation=activation, encoder_strategy=encoder_strategy,
+                     centers=centers)
 
     t0 = time.perf_counter()
     layer.fit(x_train, y_train, solver=solver, **solver_kwargs)
@@ -162,7 +168,7 @@ def run_linear_baseline(
     targets = one_hot(y_train, n_classes)
 
     t0 = time.perf_counter()
-    D = torch.linalg.lstsq(x_train, targets).solution
+    D = torch.linalg.pinv(x_train) @ targets
     fit_time = time.perf_counter() - t0
 
     with torch.no_grad():
@@ -184,8 +190,8 @@ def run_nef_multi(
     strategy: str = "greedy",
     hidden_neurons: list[int] | None = None,
     output_neurons: int = 2000,
-    activation: str = "relu",
-    encoder_strategy: str = "gaussian",
+    activation: str = "abs",
+    encoder_strategy: str = "hypersphere",
     solver: str = "tikhonov",
     solver_kwargs: dict | None = None,
     hybrid_iters: int = 10,
@@ -194,6 +200,7 @@ def run_nef_multi(
     e2e_lr: float = 3e-3,
     e2e_batch: int = 256,
     data_root: str = "./data",
+    use_centers: bool = True,
 ) -> BenchmarkResult:
     """Run a multi-layer NEFNetwork benchmark."""
     hidden_neurons = hidden_neurons or [1000]
@@ -204,11 +211,13 @@ def run_nef_multi(
     n_classes = int(y_train.max().item()) + 1
     targets = one_hot(y_train, n_classes)
 
+    centers = x_train if use_centers else None
     net = NEFNetwork(x_train.shape[1], n_classes,
                      hidden_neurons=hidden_neurons,
                      output_neurons=output_neurons,
                      activation=activation,
-                     encoder_strategy=encoder_strategy)
+                     encoder_strategy=encoder_strategy,
+                     centers=centers)
 
     t0 = time.perf_counter()
     if strategy == "greedy":
@@ -317,10 +326,12 @@ if __name__ == "__main__":
                         help="Classification datasets to benchmark")
     parser.add_argument("--neurons", type=int, nargs="+", default=[2000],
                         help="Number of neurons (single-layer)")
-    parser.add_argument("--activation", default="relu")
+    parser.add_argument("--activation", default="abs")
     parser.add_argument("--encoder", default="hypersphere")
     parser.add_argument("--solver", default="tikhonov")
     parser.add_argument("--alpha", type=float, default=1e-2)
+    parser.add_argument("--no-centers", action="store_true",
+                        help="Disable data-driven biases (use random biases)")
     parser.add_argument("--regression", action="store_true",
                         help="Also run California Housing regression")
     parser.add_argument("--multi", action="store_true",
@@ -331,6 +342,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     results = []
+    use_centers = not args.no_centers
     for ds in args.datasets:
         # Linear baseline
         print(f"Running linear baseline on {ds}...")
@@ -343,6 +355,7 @@ if __name__ == "__main__":
                 encoder_strategy=args.encoder, solver=args.solver,
                 solver_kwargs={"alpha": args.alpha},
                 data_root=args.data_root,
+                use_centers=use_centers,
             ))
 
         if args.multi:
@@ -357,6 +370,7 @@ if __name__ == "__main__":
                     solver=args.solver,
                     solver_kwargs={"alpha": args.alpha},
                     data_root=args.data_root,
+                    use_centers=use_centers,
                 ))
 
         if args.mlp:
@@ -370,6 +384,7 @@ if __name__ == "__main__":
                 "california", n_neurons=n, activation=args.activation,
                 encoder_strategy=args.encoder, solver=args.solver,
                 solver_kwargs={"alpha": args.alpha},
+                use_centers=use_centers,
             ))
 
     print()

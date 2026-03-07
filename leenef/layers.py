@@ -18,7 +18,7 @@ class NEFLayer(nn.Module):
     """
 
     def __init__(self, d_in: int, n_neurons: int, d_out: int,
-                 activation: str = "relu",
+                 activation: str = "abs",
                  encoder_strategy: str = "hypersphere",
                  trainable_encoders: bool = False,
                  gain: float = 1.0,

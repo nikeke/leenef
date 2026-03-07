@@ -1,33 +1,44 @@
 # leenef
 
-Supervised learning experiments with Eliasmith's Neural Engineering Framework
-(NEF), using rate-based neurons on PyTorch.
+Supervised learning with Eliasmith's Neural Engineering Framework (NEF),
+using rate-based neurons on PyTorch.
 
 ## Overview
 
-Instead of training neural network weights with gradient descent, NEF
-computes optimal output weights (decoders) analytically via regularised
-least-squares.  Input weights (encoders) are random and fixed.  This is
-equivalent to a random-feature model derived from neuroscience principles.
+A standard neural network trains all weights with gradient descent.  NEF
+takes a different approach: input weights (encoders) are random and fixed,
+and output weights (decoders) are solved analytically via regularised
+least-squares.  No gradient descent, no epochs, no learning rate — a single
+layer trains in under 2 seconds.
 
-The library provides `NEFLayer` for single-layer models and `NEFNetwork`
-for multi-layer models, both plugging into standard PyTorch workflows:
+Each neuron computes:
+
+```
+activity = |gain · ((x − d) · e)|
+```
+
+where **e** is a random unit vector (encoder direction), **d** is a
+reference point sampled from training data (center), and **gain** is a
+positive constant.  The neuron measures how the input deviates from a known
+reference along a random direction — an unsigned distance, since the
+absolute value responds to deviations in either direction.
+
+Biases are derived from centers as `bias = −gain · (d · e)`, so there is no
+separate bias distribution to tune.  Encoders are unit vectors on the
+hypersphere; centers are sampled from training data.
 
 ```python
 from leenef.layers import NEFLayer
 from leenef.networks import NEFNetwork
 
-# Single layer — analytic solve, no epochs, no optimizer
-layer = NEFLayer(d_in=784, n_neurons=2000, d_out=10)
+# Single layer — analytic solve, no gradient descent
+layer = NEFLayer(d_in=784, n_neurons=2000, d_out=10, centers=x_train)
 layer.fit(x_train, y_train)
 predictions = layer(x_test)
 
-# Data-driven biases — place neurons around training examples
-layer = NEFLayer(d_in=784, n_neurons=2000, d_out=10, centers=x_train)
-layer.fit(x_train, y_train)
-
 # Multi-layer — three training strategies
-net = NEFNetwork(d_in=784, d_out=10, hidden_neurons=[1000], output_neurons=2000)
+net = NEFNetwork(d_in=784, d_out=10, hidden_neurons=[1000],
+                 output_neurons=2000, centers=x_train)
 net.fit_greedy(x, targets)        # random hidden, analytic output
 net.fit_hybrid(x, targets)        # analytic decoders + gradient encoders
 net.fit_end_to_end(x, targets)    # full SGD with NEF initialisation
@@ -52,166 +63,165 @@ pytest -k test_fit_identity -q             # single test
 
 ## Benchmarks
 
-Run the benchmark suite:
+> All timings are from a CPU-only setup (AMD Ryzen 5 PRO 5650U, no GPU).
+
+Default configuration: **abs** activation, **hypersphere** encoders,
+**data-driven biases** (`centers=x_train`), Tikhonov solver (α = 0.01).
 
 ```bash
 python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
        --neurons 500 1000 2000 5000 --regression
 python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
-       --neurons 2000 --multi --mlp --encoder gaussian
+       --neurons 2000 --multi --mlp
 ```
 
-### Single-layer results (2000 neurons, Tikhonov solver, α = 0.01)
+### Single-layer results
 
-> All timings are from a CPU-only setup (AMD Ryzen 5 PRO 5650U, no GPU).
+#### Scaling with neuron count
 
-#### Scaling with neuron count (ReLU + hypersphere)
+| Dataset       |  500   | 1000   | 2000   | 5000   |
+|---------------|--------|--------|--------|--------|
+| MNIST         | 92.0%  | 94.1%  | 95.5%  | 96.9%  |
+| Fashion-MNIST | 82.8%  | 84.4%  | 86.1%  | 87.7%  |
+| CIFAR-10      | 43.9%  | 45.3%  | 48.5%  | 50.4%  |
 
-| Dataset        |  500   | 1000   | 2000   | 5000   |
-|----------------|--------|--------|--------|--------|
-| MNIST          | 88.4%  | 89.9%  | 92.1%  | 94.2%  |
-| Fashion-MNIST  | 80.6%  | 82.0%  | 83.3%  | 84.5%  |
-| CIFAR-10       | 40.8%  | 42.8%  | 44.8%  | 46.7%  |
+At 2000 neurons, MNIST reaches 95.5% in ~2 seconds — within 3% of a
+fully-trained MLP that takes 40× longer.  Performance scales monotonically
+with neuron count; fit time is under 12 seconds for 5000 neurons on 60k
+samples (CPU).
 
-#### Encoder × activation (2000 neurons, test accuracy)
+#### Why data-driven biases matter (2000 neurons, abs activation)
 
-|              | hypersphere | gaussian | sparse |
-|--------------|-------------|----------|--------|
-| **MNIST**    |             |          |        |
-| relu         | 91.8%       | 95.6%    | 95.6%  |
-| softplus     | 87.7%       | 95.9%    | 95.7%  |
-| abs          | 92.8%       | **96.0%**| 95.8%  |
-| lif_rate     | 91.3%       | 95.5%    | 95.3%  |
-| **Fashion**  |             |          |        |
-| relu         | 83.2%       | 85.8%    | 85.6%  |
-| softplus     | 81.4%       | 85.9%    | 85.6%  |
-| abs          | 84.0%       | 85.9%    | **86.0%**|
-| lif_rate     | 83.0%       | 85.8%    | 85.5%  |
+|               | hyper  | + data | gauss  | + data | sparse | + data |
+|---------------|--------|--------|--------|--------|--------|--------|
+| MNIST         | 92.8%  |**95.5%**| 95.8% | 95.5%  | 95.8%  | 95.7%  |
+| Fashion-MNIST | 83.8%  |**86.1%**| 86.1% | 86.1%  | 86.2%  | 86.2%  |
+| CIFAR-10      | 45.2%  |**48.5%**| 47.4% | 48.5%  | 47.2%  | 48.7%  |
+
+Without data-driven biases, hypersphere encoders lag Gaussian and sparse by
+3–8%.  Data-driven biases **close the entire gap**.  The advantage of
+Gaussian encoders was their varying norms creating an implicit distribution
+of activation thresholds — data-driven biases make this explicit.  With
+data biases, all encoder types converge to the same accuracy; the encoder
+direction distribution no longer matters, only having enough random
+directions does.
+
+This is why the default uses hypersphere encoders (clean unit vectors,
+principled random directions) plus data-driven biases (optimal threshold
+placement) — rather than relying on Gaussian norms as an accidental proxy.
+
+#### Activation comparison (2000 neurons, hypersphere, data biases)
+
+| Activation | MNIST  | Fashion | CIFAR-10 |
+|------------|--------|---------|----------|
+| abs        |**95.5%**|**86.1%**|**48.5%**|
+| relu       | 95.2%  | 85.8%   | 48.5%   |
+| softplus   | 88.9%  | 81.7%   | 42.7%   |
+| lif_rate   | 67.3%  | 76.5%   | 30.0%   |
+
+Data-driven biases amplify the effect of activation choice.  With random
+biases (not shown), all four activations cluster within ~1% of each other.
+With data biases, neurons have more structured activation patterns with
+sharper boundaries.  The abs and ReLU activations handle this well, but
+softplus loses 7% on MNIST and lif_rate loses 28%.
+
+The abs activation is a natural fit for the distance interpretation: each
+neuron computes `|gain · ((x − d) · e)|`, responding to deviations in
+either direction.  This doubles representational capacity compared to
+ReLU, which discards one half of the encoding space.
 
 #### Regression — California Housing (MSE, normalised targets)
 
 | Neurons | Train MSE | Test MSE |
 |---------|-----------|----------|
-| 500     | 0.270     | 0.287    |
-| 1000    | 0.262     | 0.250    |
-| 2000    | 0.246     | 0.240    |
-| 5000    | 0.226     | 0.228    |
+| 500     | 0.262     | 0.255    |
+| 1000    | 0.248     | 0.243    |
+| 2000    | 0.232     | 0.234    |
+| 5000    | 0.210     | 0.223    |
 
-**Key findings:**
-- Encoder distribution has far more impact than activation function.
-  Gaussian and sparse encoders outperform hypersphere by 3–8%.
-- `abs` (absolute value) is a surprisingly effective activation — it
-  doubles representational capacity by responding to both sides of
-  each neuron's preferred direction (96.0% MNIST, 86.0% Fashion).
-- Performance scales monotonically with neuron count.
-- CIFAR-10 is limited (~47%) by the single-layer architecture on 3072-d input.
-- Fit time is under 12s for 5000 neurons on 60k samples (CPU).
+### Multi-layer results (hidden=[1000], output=2000)
 
-#### Data-driven biases (2000 neurons, abs activation)
+| Model           | MNIST  | Fashion | CIFAR-10 | Time (MNIST) |
+|-----------------|--------|---------|----------|--------------|
+| Linear baseline | 85.3%  | 81.0%   | 39.6%    |     1s       |
+| NEFLayer        | 95.5%  | 86.1%   | 48.5%    |     2s       |
+| NEFNet-greedy   | 94.0%  | 84.0%   | 45.1%    |     3s       |
+| NEFNet-hybrid   | 97.2%  | 87.9%   | 45.9%    |    69s       |
+| NEFNet-e2e      |**98.4%**|**90.2%**|**58.5%** |   251s       |
+| MLP (2×1000)    | 98.4%  | 89.6%   | 53.4%    |    87s       |
 
-Each neuron's bias can be derived from a training sample *d* so that
-the neuron computes `activation(gain * ((x − d) · e))` — measuring how the
-input deviates from a reference point along the encoder direction.
-With `centers=x_train`, biases are precomputed as `−gain * (d · e)`.
+End-to-end with cross-entropy loss and cosine LR schedule **surpasses the
+MLP baseline on CIFAR-10** (58.5% vs 53.4%).  Data-driven bias
+initialisation provides a much better starting point for SGD, dramatically
+reducing the overfitting that plagued earlier runs (where E2E scored only
+43.7% on CIFAR-10 with random biases).
 
-|              | hypersphere |  + data bias | gaussian | + data bias |
-|--------------|-------------|--------------|----------|-------------|
-| MNIST        | 92.8%       | **95.5%**    | 95.8%    | 95.5%       |
-| Fashion-MNIST| 83.8%       | **86.1%**    | 86.1%    | 86.1%       |
-| CIFAR-10     | 45.2%       | **48.5%**    | 47.4%    | **48.5%**   |
+Greedy multi-layer is actually *worse* than single-layer — stacking a
+random nonlinear transform without learned features hurts rather than helps.
+Hybrid gains ~1.7% on MNIST by learning useful encoder orientations via
+gradient updates.
 
-Data-driven biases **close the entire gap** between hypersphere and
-Gaussian encoders.  The advantage of Gaussian encoders was largely due
-to their varying norms creating an implicit distribution of activation
-thresholds; data-driven biases make this explicit.  The effect is
-strongest on CIFAR-10 (+3.2%) and negligible for Gaussian encoders
-on MNIST/Fashion (already well-covered by random biases).
+#### Activation effect on multi-layer hybrid
 
-### Multi-layer results (gaussian encoders, ReLU, hidden=[1000], output=2000)
+| Activation | MNIST  | Fashion |
+|------------|--------|---------|
+| abs        |**97.2%**|**87.9%**|
+| relu       | 96.6%  | 87.2%   |
+| lif_rate   | 92.3%  | 83.7%   |
+| softplus   | 90.8%  | 82.4%   |
 
-| Model            | MNIST  | Fashion | CIFAR-10 | Time (MNIST) |
-|------------------|--------|---------|----------|--------------|
-| Linear baseline  |  85.4% |  80.6%  |  20.2%   |     1s       |
-| NEFLayer         |  95.7% |  85.9%  |  46.6%   |     2s       |
-| NEFNet-greedy    |  95.4% |  85.8%  |  46.1%   |     3s       |
-| NEFNet-hybrid    |  96.0% |  86.0%  |  48.0%   |    64s       |
-| NEFNet-e2e       |**98.0%**|**88.3%**|  43.7%   |   247s       |
-| MLP (2×1000)     |**98.4%**|**89.6%**|**53.4%** |    87s       |
-
-#### Activation effect on multi-layer (hybrid, gaussian encoders)
-
-|              | MNIST  | Fashion |
-|--------------|--------|---------|
-| relu         | 96.0%  | 86.0%   |
-| softplus     |**96.2%**|**86.5%**|
-| abs          | 95.8%  | 86.2%   |
-| lif_rate     | 93.6%  | 83.7%   |
-
-**Key findings:**
-- **End-to-end** with cross-entropy loss + cosine LR schedule reaches
-  98.0% MNIST / 88.3% Fashion — nearly matching the MLP baseline.
-  Overfits on CIFAR-10 (75% train, 44% test) — needs regularisation.
-- **Hybrid** is the best pure-NEF strategy, gaining ~0.3–1.0% over
-  single-layer by learning encoder orientations via gradient updates.
-- **Greedy** multi-layer doesn't improve over single-layer — an extra
-  random nonlinear transform doesn't add useful features.
-- **Activation choice** matters more for multi-layer than single-layer:
-  softplus is best for hybrid, while lif_rate falls behind (-2.3%
-  on MNIST).  The smooth gradient of softplus likely helps the
-  hybrid encoder updates.
-- **Single-layer NEF** offers the best speed–accuracy trade-off:
-  95.7% MNIST in 2s vs 98.4% MLP in 87s.
+With data-driven biases, abs is the best activation for hybrid training.
+This reverses an earlier finding where softplus was best with random
+biases — the sharp distance structure created by data-driven biases
+benefits from an activation that preserves it.
 
 ## Visualisations
 
 Generate plots with `python benchmarks/plot.py` (requires matplotlib).
 
 ![Neuron scaling](docs/neuron_scaling.png)
-![Encoder × activation heatmap](docs/encoder_activation.png)
+![Data-driven bias effect](docs/bias_effect.png)
 ![Strategy comparison and speed–accuracy trade-off](docs/strategy_comparison.png)
 ![Activation effect on multi-layer hybrid](docs/activation_multilayer.png)
 
 ## Conclusions
 
-1. **Single-layer NEF is remarkably effective for its simplicity.**
-   With 2000 Gaussian-encoded neurons and an analytic solve taking ~2 seconds,
-   it reaches 96% on MNIST and 86% on Fashion-MNIST — within 2–3% of a
-   fully-trained MLP that takes 40× longer.
+1. **Data-driven biases are the key design choice.**  Rewriting the encoding
+   as `|gain · ((x − d) · e)|` reveals each neuron measures unsigned
+   deviation from a reference point *d* along direction *e*.  Sampling *d*
+   from training data closes the entire 3–8% gap between encoder types and
+   makes the encoder direction distribution irrelevant — only having enough
+   random directions matters.
 
-2. **Encoder distribution dominates activation choice** for single-layer
-   models.  Switching from hypersphere to Gaussian encoders gains 3–8%,
-   while the best vs worst activation differs by only ~1% (given a good
-   encoder).  The non-monotonic `abs` activation slightly outperforms
-   standard choices by responding to both sides of each neuron's
-   preferred direction.
+2. **Single-layer NEF is remarkably effective for its simplicity.**  With
+   2000 neurons and a 2-second analytic solve, it reaches 95.5% on MNIST
+   and 86.1% on Fashion-MNIST — within 3% of a fully-trained MLP that
+   takes 40× longer.
 
-3. **Data-driven biases explain the encoder gap.**  Rewriting the encoding
-   as `activation(gain * ((x − d) · e))` reveals that each neuron
-   measures deviation from a reference point *d* along direction *e*.
-   Sampling *d* from training data makes hypersphere encoders match
-   Gaussian — the entire 3–8% advantage of Gaussian was its varying
-   norms creating an implicit activation-threshold distribution, not
-   better directions.
+3. **The abs activation is a natural fit.**  Computing an unsigned distance
+   along the encoder direction doubles representational capacity by
+   responding to deviations in either direction.  With data-driven biases,
+   abs is the best activation for both single-layer and multi-layer models.
 
-4. **The hybrid multi-layer strategy works**, but the gains are modest
-   (~0.5%).  Alternating analytic decoder solves with gradient encoder
-   updates lets the network learn useful encoder orientations without
-   full backprop overhead.
+4. **Activation sensitivity is controlled by bias structure.**  With random
+   biases, all activations perform within ~1%.  Data-driven biases create
+   sharper activation patterns that reward sharp-threshold activations
+   (abs, ReLU) and punish smooth ones (softplus −7%, lif_rate −28% on
+   MNIST).
 
-5. **End-to-end SGD with NEF initialisation** closes most of the gap
-   to a standard MLP (98.0% vs 98.4% on MNIST), confirming that NEF
-   provides a strong weight initialisation.  However, it loses its speed
-   advantage and overfits on harder datasets without additional
-   regularisation.
+5. **End-to-end SGD with NEF initialisation surpasses a standard MLP.**  On
+   CIFAR-10, E2E reaches 58.5% vs 53.4% for MLP.  Data-driven bias
+   initialisation provides a materially better starting point for gradient
+   descent, turning a deficit into an advantage.
 
-6. **Activation choice matters more for multi-layer than single-layer.**
-   Smooth activations (softplus) help gradient-based encoder updates;
-   the biologically-inspired LIF rate curve hurts by ~2% due to its
-   hard threshold creating gradient dead zones.
+6. **CIFAR-10 exposes single-layer limits** on high-dimensional inputs
+   (3072-d).  The single-layer ceiling is ~50%, but multi-layer E2E breaks
+   through to 58.5%.
 
-7. **CIFAR-10 exposes the limits** of a single random-feature layer on
-   high-dimensional inputs (3072-d).  More neurons help, but the ceiling
-   is ~48% without learned features or convolutional structure.
+7. **Greedy multi-layer hurts; hybrid helps modestly.**  An extra random
+   nonlinear transform without learned features is worse than single-layer.
+   Hybrid gains ~1.7% by learning encoder orientations, but the best
+   results come from full end-to-end training.
 
 ## Components
 
