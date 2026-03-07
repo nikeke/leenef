@@ -59,6 +59,8 @@ python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
 
 ### Single-layer results (2000 neurons, Tikhonov solver, α = 0.01)
 
+> All timings are from a CPU-only setup (AMD Ryzen 5 PRO 5650U, no GPU).
+
 #### Scaling with neuron count (ReLU + hypersphere)
 
 | Dataset        |  500   | 1000   | 2000   | 5000   |
@@ -190,3 +192,25 @@ Generate plots with `python benchmarks/plot.py` (requires matplotlib).
 | `leenef/networks.py` | `NEFNetwork(nn.Module)` — multi-layer with greedy/hybrid/e2e |
 | `benchmarks/run.py` | Benchmark harness with single-layer, multi-layer, and MLP baselines |
 | `benchmarks/plot.py` | Visualisation script (generates `docs/*.png`) |
+
+## References
+
+- C. Eliasmith & C. H. Anderson, *Neural Engineering: Computation,
+  Representation, and Dynamics in Neurobiological Systems*, MIT Press, 2003.
+  [MIT Press](https://mitpress.mit.edu/9780262550604/)
+- C. Eliasmith, "A unified approach to building and controlling spiking
+  attractor networks", *Neural Computation* 17(6), 2005.
+  [doi:10.1162/0899766053429390](https://doi.org/10.1162/0899766053429390)
+- G.-B. Huang, Q.-Y. Zhu & C.-K. Siew, "Extreme learning machine: Theory
+  and applications", *Neurocomputing* 70(1–3), 2006.
+  [doi:10.1016/j.neucom.2005.12.126](https://doi.org/10.1016/j.neucom.2005.12.126)
+  — the closely related random-feature approach from the ML side.
+- A. Rahimi & B. Recht, "Random Features for Large-Scale Kernel Machines",
+  *NeurIPS*, 2007.
+  [paper](https://papers.nips.cc/paper/2007/hash/013a006f03dbc5392effeb8f18fda755-Abstract.html)
+
+**Datasets:**
+- [MNIST](http://yann.lecun.com/exdb/mnist/) — Y. LeCun et al., 1998.
+- [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) — H. Xiao et al., 2017.
+- [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) — A. Krizhevsky, 2009.
+- [California Housing](https://scikit-learn.org/stable/datasets/real_world.html#california-housing-dataset) — R. K. Pace & R. Barry, 1997 (via scikit-learn).
