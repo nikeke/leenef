@@ -2,7 +2,7 @@
 
 import torch
 import pytest
-from leenef.encoders import make_encoders, uniform_hypersphere, gaussian, sparse, data_sample, data_diff
+from leenef.encoders import make_encoders, uniform_hypersphere, gaussian, sparse
 from leenef.activations import make_activation, LIFRate
 from leenef.solvers import solve_decoders, lstsq, tikhonov, normal_equations
 from leenef.layers import NEFLayer
@@ -29,28 +29,6 @@ class TestEncoders:
         frac_zero = (e == 0).float().mean().item()
         # Should be roughly 90% zero (with some variance)
         assert 0.85 < frac_zero < 0.95
-
-    def test_data_sample_shape_and_norm(self):
-        x = torch.randn(500, 20)
-        e = data_sample(100, 20, data=x)
-        assert e.shape == (100, 20)
-        norms = e.norm(dim=1)
-        assert torch.allclose(norms, torch.ones(100), atol=1e-4)
-
-    def test_data_sample_centering(self):
-        x = torch.ones(200, 10) + torch.randn(200, 10) * 0.1
-        e_centered = data_sample(100, 10, data=x, center=True, noise=0.0)
-        e_raw = data_sample(100, 10, data=x, center=False, noise=0.0)
-        # Centered encoders should have near-zero mean projection
-        assert e_centered.mean(0).abs().mean() < e_raw.mean(0).abs().mean()
-
-    def test_data_diff_shape_and_norm(self):
-        x = torch.randn(500, 20)
-        e = data_diff(100, 20, data=x)
-        assert e.shape == (100, 20)
-        norms = e.norm(dim=1)
-        # Most vectors are unit norm; occasional same-index pairs yield ~0
-        assert (torch.abs(norms - 1.0) < 1e-3).float().mean() > 0.95
 
     def test_rng_reproducibility(self):
         g1 = torch.Generator().manual_seed(42)

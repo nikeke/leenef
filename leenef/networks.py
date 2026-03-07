@@ -27,7 +27,6 @@ class NEFNetwork(nn.Module):
                  encoder_strategy: str = "gaussian",
                  gain: float = 1.0,
                  rng: torch.Generator | None = None,
-                 encoder_kwargs: dict | None = None,
                  **act_kwargs):
         super().__init__()
         self.hidden = nn.ModuleList()
@@ -37,14 +36,12 @@ class NEFNetwork(nn.Module):
             self.hidden.append(NEFLayer(
                 prev_dim, n, 1,
                 activation=activation, encoder_strategy=encoder_strategy,
-                trainable_encoders=True, gain=gain, rng=rng,
-                encoder_kwargs=encoder_kwargs, **act_kwargs))
+                trainable_encoders=True, gain=gain, rng=rng, **act_kwargs))
             prev_dim = n
         self.output = NEFLayer(
             prev_dim, output_neurons, d_out,
             activation=activation, encoder_strategy=encoder_strategy,
-            trainable_encoders=True, gain=gain, rng=rng,
-            encoder_kwargs=encoder_kwargs, **act_kwargs)
+            trainable_encoders=True, gain=gain, rng=rng, **act_kwargs)
 
     def forward(self, x: Tensor) -> Tensor:
         for layer in self.hidden:
