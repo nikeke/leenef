@@ -32,9 +32,16 @@ The key insight: **encoders are random and fixed; decoders are solved
 analytically** via regularised least-squares (`layer.fit(x, targets)`).
 This avoids gradient-based training for a single layer entirely.
 
-For multi-layer networks (planned), encoders can optionally be unfrozen
-(`trainable_encoders=True`) and trained with backprop while decoders are
-re-solved analytically after each encoder update.
+For multi-layer networks (`NEFNetwork` in `networks.py`), hidden layers
+use encode-only (activities as inter-layer representation) and only the
+output layer decodes.  Three training strategies are supported:
+
+- **Greedy** (`fit_greedy`) — random hidden encoders, analytic output
+  decoders.  Fastest, no gradient computation.
+- **Hybrid** (`fit_hybrid`) — alternate analytic decoder solves with
+  gradient updates to all encoders/biases.
+- **End-to-end** (`fit_end_to_end`) — standard SGD on all parameters,
+  initialised via a greedy NEF solve.
 
 ### Module roles
 
@@ -46,6 +53,8 @@ re-solved analytically after each encoder update.
   Use `solve_decoders(A, targets, method=...)`.
 - `layers.py` — `NEFLayer(nn.Module)` ties them together.
   `forward()` runs the full pipeline; `fit()` solves decoders analytically.
+- `networks.py` — `NEFNetwork(nn.Module)` stacks NEFLayers with the three
+  training strategies above.
 
 ## Conventions
 
