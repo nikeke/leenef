@@ -73,11 +73,13 @@ python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
 |--------------|-------------|----------|--------|
 | **MNIST**    |             |          |        |
 | relu         | 91.8%       | 95.6%    | 95.6%  |
-| softplus     | 87.7%       | **95.9%**| 95.7%  |
+| softplus     | 87.7%       | 95.9%    | 95.7%  |
+| abs          | 92.8%       | **96.0%**| 95.8%  |
 | lif_rate     | 91.3%       | 95.5%    | 95.3%  |
 | **Fashion**  |             |          |        |
 | relu         | 83.2%       | 85.8%    | 85.6%  |
-| softplus     | 81.4%       | **85.9%**| 85.6%  |
+| softplus     | 81.4%       | 85.9%    | 85.6%  |
+| abs          | 84.0%       | 85.9%    | **86.0%**|
 | lif_rate     | 83.0%       | 85.8%    | 85.5%  |
 
 #### Regression — California Housing (MSE, normalised targets)
@@ -92,7 +94,9 @@ python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
 **Key findings:**
 - Encoder distribution has far more impact than activation function.
   Gaussian and sparse encoders outperform hypersphere by 3–8%.
-- Softplus + gaussian is the best overall combination (~95.9% MNIST).
+- `abs` (absolute value) is a surprisingly effective activation — it
+  doubles representational capacity by responding to both sides of
+  each neuron's preferred direction (96.0% MNIST, 86.0% Fashion).
 - Performance scales monotonically with neuron count.
 - CIFAR-10 is limited (~47%) by the single-layer architecture on 3072-d input.
 - Fit time is under 12s for 5000 neurons on 60k samples (CPU).
@@ -101,22 +105,36 @@ python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
 
 | Model            | MNIST  | Fashion | CIFAR-10 | Time (MNIST) |
 |------------------|--------|---------|----------|--------------|
-| Linear baseline  |  85.4% |  25.5%  |  14.4%   |     4s       |
-| NEFLayer         |  95.8% |  85.7%  |  46.8%   |     2s       |
-| NEFNet-greedy    |  95.4% |  85.3%  |  46.1%   |     3s       |
-| NEFNet-hybrid    |**96.0%**|**86.5%**|**47.9%** |    64s       |
-| NEFNet-e2e       |  93.1% |  83.2%  |  33.4%   |   145s       |
-| MLP (2×1000)     |**98.2%**|**89.9%**|**53.0%** |    86s       |
+| Linear baseline  |  85.4% |  80.6%  |  20.2%   |     1s       |
+| NEFLayer         |  95.7% |  85.9%  |  46.6%   |     2s       |
+| NEFNet-greedy    |  95.4% |  85.8%  |  46.1%   |     3s       |
+| NEFNet-hybrid    |  96.0% |  86.0%  |  48.0%   |    64s       |
+| NEFNet-e2e       |**98.0%**|**88.3%**|  43.7%   |   247s       |
+| MLP (2×1000)     |**98.4%**|**89.6%**|**53.4%** |    87s       |
+
+#### Activation effect on multi-layer (hybrid, gaussian encoders)
+
+|              | MNIST  | Fashion |
+|--------------|--------|---------|
+| relu         | 96.0%  | 86.0%   |
+| softplus     |**96.2%**|**86.5%**|
+| abs          | 95.8%  | 86.2%   |
+| lif_rate     | 93.6%  | 83.7%   |
 
 **Key findings:**
-- **Hybrid** is the best NEF strategy, gaining ~0.3–1.0% over single-layer
-  by learning encoder orientations via gradient updates.
+- **End-to-end** with cross-entropy loss + cosine LR schedule reaches
+  98.0% MNIST / 88.3% Fashion — nearly matching the MLP baseline.
+  Overfits on CIFAR-10 (75% train, 44% test) — needs regularisation.
+- **Hybrid** is the best pure-NEF strategy, gaining ~0.3–1.0% over
+  single-layer by learning encoder orientations via gradient updates.
 - **Greedy** multi-layer doesn't improve over single-layer — an extra
   random nonlinear transform doesn't add useful features.
-- **End-to-end** SGD with NEF init underperforms, likely due to MSE loss
-  being suboptimal for classification and insufficient training epochs.
+- **Activation choice** matters more for multi-layer than single-layer:
+  softplus is best for hybrid, while lif_rate falls behind (-2.3%
+  on MNIST).  The smooth gradient of softplus likely helps the
+  hybrid encoder updates.
 - **Single-layer NEF** offers the best speed–accuracy trade-off:
-  95.8% MNIST in 2s vs 98.2% MLP in 86s.
+  95.7% MNIST in 2s vs 98.4% MLP in 87s.
 
 ## Components
 

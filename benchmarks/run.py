@@ -190,8 +190,8 @@ def run_nef_multi(
     solver_kwargs: dict | None = None,
     hybrid_iters: int = 10,
     hybrid_lr: float = 1e-3,
-    e2e_epochs: int = 30,
-    e2e_lr: float = 1e-3,
+    e2e_epochs: int = 50,
+    e2e_lr: float = 3e-3,
     e2e_batch: int = 256,
     data_root: str = "./data",
 ) -> BenchmarkResult:
@@ -218,7 +218,7 @@ def run_nef_multi(
                        lr=hybrid_lr, solver=solver, **solver_kwargs)
     elif strategy == "e2e":
         net.fit_end_to_end(x_train, targets, n_epochs=e2e_epochs,
-                           lr=e2e_lr, batch_size=e2e_batch)
+                           lr=e2e_lr, batch_size=e2e_batch, loss="ce")
     fit_time = time.perf_counter() - t0
 
     with torch.no_grad():

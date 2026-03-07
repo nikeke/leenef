@@ -105,24 +105,41 @@ class NEFNetwork(nn.Module):
 
     def fit_end_to_end(self, x: Tensor, targets: Tensor,
                        n_epochs: int = 50, lr: float = 1e-3,
-                       batch_size: int = 256) -> None:
-        """Standard SGD on all parameters, initialised via greedy NEF solve."""
+                       batch_size: int = 256,
+                       loss: str = "mse") -> None:
+        """Standard SGD on all parameters, initialised via greedy NEF solve.
+
+        Args:
+            loss: ``"mse"`` for regression / one-hot targets, or ``"ce"``
+                  for cross-entropy (targets should be one-hot; converted
+                  to class indices internally).
+        """
         self.fit_greedy(x, targets)
         self.output.decoders.requires_grad_(True)
 
         optimizer = torch.optim.Adam(
             [p for p in self.parameters() if p.requires_grad], lr=lr)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=n_epochs)
 
-        dataset = torch.utils.data.TensorDataset(x, targets)
+        if loss == "ce":
+            loss_fn = nn.CrossEntropyLoss()
+            train_targets = targets.argmax(dim=1)
+        else:
+            loss_fn = nn.MSELoss()
+            train_targets = targets
+
+        dataset = torch.utils.data.TensorDataset(x, train_targets)
         loader = torch.utils.data.DataLoader(
             dataset, batch_size=batch_size, shuffle=True)
 
         for _ in range(n_epochs):
             for xb, yb in loader:
                 pred = self.forward(xb)
-                loss = (pred - yb).pow(2).mean()
+                l = loss_fn(pred, yb)
                 optimizer.zero_grad()
-                loss.backward()
+                l.backward()
                 optimizer.step()
+            scheduler.step()
 
         self.output.decoders.requires_grad_(False)
