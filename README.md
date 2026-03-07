@@ -136,6 +136,49 @@ python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
 - **Single-layer NEF** offers the best speed–accuracy trade-off:
   95.7% MNIST in 2s vs 98.4% MLP in 87s.
 
+## Visualisations
+
+Generate plots with `python benchmarks/plot.py` (requires matplotlib).
+
+![Neuron scaling](docs/neuron_scaling.png)
+![Encoder × activation heatmap](docs/encoder_activation.png)
+![Strategy comparison and speed–accuracy trade-off](docs/strategy_comparison.png)
+![Activation effect on multi-layer hybrid](docs/activation_multilayer.png)
+
+## Conclusions
+
+1. **Single-layer NEF is remarkably effective for its simplicity.**
+   With 2000 Gaussian-encoded neurons and an analytic solve taking ~2 seconds,
+   it reaches 96% on MNIST and 86% on Fashion-MNIST — within 2–3% of a
+   fully-trained MLP that takes 40× longer.
+
+2. **Encoder distribution dominates activation choice** for single-layer
+   models.  Switching from hypersphere to Gaussian encoders gains 3–8%,
+   while the best vs worst activation differs by only ~1% (given a good
+   encoder).  The non-monotonic `abs` activation slightly outperforms
+   standard choices by responding to both sides of each neuron's
+   preferred direction.
+
+3. **The hybrid multi-layer strategy works**, but the gains are modest
+   (~0.5%).  Alternating analytic decoder solves with gradient encoder
+   updates lets the network learn useful encoder orientations without
+   full backprop overhead.
+
+4. **End-to-end SGD with NEF initialisation** closes most of the gap
+   to a standard MLP (98.0% vs 98.4% on MNIST), confirming that NEF
+   provides a strong weight initialisation.  However, it loses its speed
+   advantage and overfits on harder datasets without additional
+   regularisation.
+
+5. **Activation choice matters more for multi-layer than single-layer.**
+   Smooth activations (softplus) help gradient-based encoder updates;
+   the biologically-inspired LIF rate curve hurts by ~2% due to its
+   hard threshold creating gradient dead zones.
+
+6. **CIFAR-10 exposes the limits** of a single random-feature layer on
+   high-dimensional inputs (3072-d).  More neurons help, but the ceiling
+   is ~47% without learned features or convolutional structure.
+
 ## Components
 
 | Module | Purpose |
@@ -146,3 +189,4 @@ python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
 | `leenef/layers.py` | `NEFLayer(nn.Module)` — encode → activate → decode |
 | `leenef/networks.py` | `NEFNetwork(nn.Module)` — multi-layer with greedy/hybrid/e2e |
 | `benchmarks/run.py` | Benchmark harness with single-layer, multi-layer, and MLP baselines |
+| `benchmarks/plot.py` | Visualisation script (generates `docs/*.png`) |
