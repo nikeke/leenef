@@ -1,4 +1,4 @@
-"""Benchmark harness for NEF single-layer experiments."""
+"""Benchmark harness for NEF single-layer and multi-layer experiments."""
 
 import time
 import torch
@@ -7,6 +7,7 @@ from torch import Tensor
 from dataclasses import dataclass
 
 from leenef.layers import NEFLayer
+from leenef.networks import NEFNetwork
 
 
 @dataclass
@@ -178,6 +179,118 @@ def run_linear_baseline(
     )
 
 
+def run_nef_multi(
+    dataset_name: str,
+    strategy: str = "greedy",
+    hidden_neurons: list[int] | None = None,
+    output_neurons: int = 2000,
+    activation: str = "relu",
+    encoder_strategy: str = "gaussian",
+    solver: str = "tikhonov",
+    solver_kwargs: dict | None = None,
+    hybrid_iters: int = 10,
+    hybrid_lr: float = 1e-3,
+    e2e_epochs: int = 30,
+    e2e_lr: float = 1e-3,
+    e2e_batch: int = 256,
+    data_root: str = "./data",
+) -> BenchmarkResult:
+    """Run a multi-layer NEFNetwork benchmark."""
+    hidden_neurons = hidden_neurons or [1000]
+    solver_kwargs = solver_kwargs or {"alpha": 1e-2}
+
+    (x_train, y_train), (x_test, y_test) = load_vision_dataset(
+        dataset_name, root=data_root)
+    n_classes = int(y_train.max().item()) + 1
+    targets = one_hot(y_train, n_classes)
+
+    net = NEFNetwork(x_train.shape[1], n_classes,
+                     hidden_neurons=hidden_neurons,
+                     output_neurons=output_neurons,
+                     activation=activation,
+                     encoder_strategy=encoder_strategy)
+
+    t0 = time.perf_counter()
+    if strategy == "greedy":
+        net.fit_greedy(x_train, targets, solver=solver, **solver_kwargs)
+    elif strategy == "hybrid":
+        net.fit_hybrid(x_train, targets, n_iters=hybrid_iters,
+                       lr=hybrid_lr, solver=solver, **solver_kwargs)
+    elif strategy == "e2e":
+        net.fit_end_to_end(x_train, targets, n_epochs=e2e_epochs,
+                           lr=e2e_lr, batch_size=e2e_batch)
+    fit_time = time.perf_counter() - t0
+
+    with torch.no_grad():
+        train_acc = classification_accuracy(net(x_train), y_train)
+        test_acc = classification_accuracy(net(x_test), y_test)
+
+    n_total = sum(hidden_neurons) + output_neurons
+    return BenchmarkResult(
+        name=f"NEFNet-{strategy}", dataset=dataset_name,
+        n_neurons=n_total,
+        activation=activation, encoder_strategy=encoder_strategy,
+        solver=solver, solver_kwargs=solver_kwargs,
+        metric_name="accuracy",
+        train_metric=train_acc, test_metric=test_acc,
+        fit_time=fit_time,
+    )
+
+
+def run_mlp_baseline(
+    dataset_name: str,
+    hidden_sizes: list[int] | None = None,
+    n_epochs: int = 30,
+    lr: float = 1e-3,
+    batch_size: int = 256,
+    data_root: str = "./data",
+) -> BenchmarkResult:
+    """Train a standard MLP via SGD as a comparison baseline."""
+    hidden_sizes = hidden_sizes or [1000, 1000]
+
+    (x_train, y_train), (x_test, y_test) = load_vision_dataset(
+        dataset_name, root=data_root)
+    n_classes = int(y_train.max().item()) + 1
+
+    layers = []
+    prev = x_train.shape[1]
+    for h in hidden_sizes:
+        layers += [nn.Linear(prev, h), nn.ReLU()]
+        prev = h
+    layers.append(nn.Linear(prev, n_classes))
+    model = nn.Sequential(*layers)
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    loss_fn = nn.CrossEntropyLoss()
+    dataset = torch.utils.data.TensorDataset(x_train, y_train)
+    loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+                                         shuffle=True)
+
+    t0 = time.perf_counter()
+    for _ in range(n_epochs):
+        for xb, yb in loader:
+            pred = model(xb)
+            loss = loss_fn(pred, yb)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+    fit_time = time.perf_counter() - t0
+
+    with torch.no_grad():
+        train_acc = classification_accuracy(model(x_train), y_train)
+        test_acc = classification_accuracy(model(x_test), y_test)
+
+    return BenchmarkResult(
+        name="MLP", dataset=dataset_name,
+        n_neurons=sum(hidden_sizes),
+        activation="relu", encoder_strategy="learned",
+        solver="adam", solver_kwargs={"lr": lr, "epochs": n_epochs},
+        metric_name="accuracy",
+        train_metric=train_acc, test_metric=test_acc,
+        fit_time=fit_time,
+    )
+
+
 def format_results(results: list[BenchmarkResult]) -> str:
     """Format results as an aligned text table."""
     lines = []
@@ -203,13 +316,17 @@ if __name__ == "__main__":
                         default=["mnist", "fashion_mnist", "cifar10"],
                         help="Classification datasets to benchmark")
     parser.add_argument("--neurons", type=int, nargs="+", default=[2000],
-                        help="Number of neurons")
+                        help="Number of neurons (single-layer)")
     parser.add_argument("--activation", default="relu")
     parser.add_argument("--encoder", default="hypersphere")
     parser.add_argument("--solver", default="tikhonov")
     parser.add_argument("--alpha", type=float, default=1e-2)
     parser.add_argument("--regression", action="store_true",
                         help="Also run California Housing regression")
+    parser.add_argument("--multi", action="store_true",
+                        help="Run multi-layer benchmarks")
+    parser.add_argument("--mlp", action="store_true",
+                        help="Run MLP baseline")
     parser.add_argument("--data-root", default="./data")
     args = parser.parse_args()
 
@@ -218,7 +335,7 @@ if __name__ == "__main__":
         # Linear baseline
         print(f"Running linear baseline on {ds}...")
         results.append(run_linear_baseline(ds, data_root=args.data_root))
-        # NEF with each neuron count
+        # NEF single-layer with each neuron count
         for n in args.neurons:
             print(f"Running NEF ({n} neurons) on {ds}...")
             results.append(run_nef_classification(
@@ -227,6 +344,24 @@ if __name__ == "__main__":
                 solver_kwargs={"alpha": args.alpha},
                 data_root=args.data_root,
             ))
+
+        if args.multi:
+            for strat in ["greedy", "hybrid", "e2e"]:
+                print(f"Running NEFNet-{strat} on {ds}...")
+                results.append(run_nef_multi(
+                    ds, strategy=strat,
+                    hidden_neurons=[1000],
+                    output_neurons=2000,
+                    activation=args.activation,
+                    encoder_strategy=args.encoder,
+                    solver=args.solver,
+                    solver_kwargs={"alpha": args.alpha},
+                    data_root=args.data_root,
+                ))
+
+        if args.mlp:
+            print(f"Running MLP baseline on {ds}...")
+            results.append(run_mlp_baseline(ds, data_root=args.data_root))
 
     if args.regression:
         print("Running NEF regression on California Housing...")
