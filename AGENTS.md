@@ -47,6 +47,9 @@ output layer decodes.  Three training strategies are supported:
 
 - `encoders.py` — encoder generation strategies, each registered in
   `ENCODER_STRATEGIES` dict.  Use `make_encoders(n, dim, strategy=...)`.
+  Random strategies: `hypersphere`, `gaussian`, `sparse`.
+  Data-driven strategies: `data` (centered data samples) and `data_diff`
+  (pairwise difference vectors) — both accept `data=` via `encoder_kwargs`.
 - `activations.py` — rate neuron models, registered in `ACTIVATIONS` dict.
   Use `make_activation(name, ...)`.
 - `solvers.py` — decoder solvers, registered in `SOLVERS` dict.

@@ -71,18 +71,17 @@ python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
 
 #### Encoder × activation (2000 neurons, test accuracy)
 
-|              | hypersphere | gaussian | sparse |
-|--------------|-------------|----------|--------|
-| **MNIST**    |             |          |        |
-| relu         | 91.8%       | 95.6%    | 95.6%  |
-| softplus     | 87.7%       | 95.9%    | 95.7%  |
-| abs          | 92.8%       | **96.0%**| 95.8%  |
-| lif_rate     | 91.3%       | 95.5%    | 95.3%  |
-| **Fashion**  |             |          |        |
-| relu         | 83.2%       | 85.8%    | 85.6%  |
-| softplus     | 81.4%       | 85.9%    | 85.6%  |
-| abs          | 84.0%       | 85.9%    | **86.0%**|
-| lif_rate     | 83.0%       | 85.8%    | 85.5%  |
+|              | hypersphere | gaussian | sparse | data   | data\_diff |
+|--------------|-------------|----------|--------|--------|-----------|
+| **MNIST**    |             |          |        |        |           |
+| relu         | 91.9%       | 95.5%    | 95.6%  | 96.0%  | 96.1%     |
+| abs          | 92.8%       | 95.8%    | 95.8%  | 96.4%  |**96.5%**  |
+| **Fashion**  |             |          |        |        |           |
+| relu         | 83.4%       | 85.8%    | 85.6%  | 81.8%  | 81.9%     |
+| abs          | 83.8%       |**86.1%** | 86.0%  | 81.9%  | 82.1%     |
+| **CIFAR-10** |             |          |        |        |           |
+| relu         | 44.3%       | 46.9%    | —      | 42.4%  | 41.8%     |
+| abs          | 45.2%       |**47.4%** | —      | 42.7%  | 42.6%     |
 
 #### Regression — California Housing (MSE, normalised targets)
 
@@ -98,7 +97,13 @@ python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
   Gaussian and sparse encoders outperform hypersphere by 3–8%.
 - `abs` (absolute value) is a surprisingly effective activation — it
   doubles representational capacity by responding to both sides of
-  each neuron's preferred direction (96.0% MNIST, 86.0% Fashion).
+  each neuron's preferred direction (96.5% MNIST with data\_diff).
+- **Data-driven encoders** (sampled from centered training data, or
+  pairwise difference vectors) are best on MNIST (96.5%), but
+  underperform gaussian on Fashion-MNIST and CIFAR-10.  The strategy
+  works when the data distribution is simple enough that samples from
+  it make good encoder directions; for more complex distributions,
+  random Gaussian encoders provide better input-space coverage.
 - Performance scales monotonically with neuron count.
 - CIFAR-10 is limited (~47%) by the single-layer architecture on 3072-d input.
 - Fit time is under 12s for 5000 neurons on 60k samples (CPU).
@@ -159,7 +164,11 @@ Generate plots with `python benchmarks/plot.py` (requires matplotlib).
    while the best vs worst activation differs by only ~1% (given a good
    encoder).  The non-monotonic `abs` activation slightly outperforms
    standard choices by responding to both sides of each neuron's
-   preferred direction.
+   preferred direction.  **Data-driven encoders** (training samples or
+   pairwise difference vectors, centered and normalised) are the best
+   strategy for MNIST (96.5%) but lose to random Gaussian on harder
+   datasets — the approach works when the data manifold is simple enough
+   that samples from it create diverse encoder directions.
 
 3. **The hybrid multi-layer strategy works**, but the gains are modest
    (~0.5%).  Alternating analytic decoder solves with gradient encoder
@@ -185,7 +194,7 @@ Generate plots with `python benchmarks/plot.py` (requires matplotlib).
 
 | Module | Purpose |
 |--------|---------|
-| `leenef/encoders.py` | Random encoder generation (hypersphere, Gaussian, sparse) |
+| `leenef/encoders.py` | Random and data-driven encoder generation (hypersphere, Gaussian, sparse, data, data\_diff) |
 | `leenef/activations.py` | Rate-based neuron models (ReLU, softplus, LIF rate, abs) |
 | `leenef/solvers.py` | Decoder solvers (lstsq, Tikhonov, Cholesky) |
 | `leenef/layers.py` | `NEFLayer(nn.Module)` — encode → activate → decode |

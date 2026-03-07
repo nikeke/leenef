@@ -23,6 +23,7 @@ class NEFLayer(nn.Module):
                  trainable_encoders: bool = False,
                  gain: float = 1.0,
                  rng: torch.Generator | None = None,
+                 encoder_kwargs: dict | None = None,
                  **act_kwargs):
         super().__init__()
         self.d_in = d_in
@@ -30,7 +31,9 @@ class NEFLayer(nn.Module):
         self.d_out = d_out
 
         # Encoders and bias
-        enc = make_encoders(n_neurons, d_in, strategy=encoder_strategy, rng=rng)
+        enc_kw = encoder_kwargs or {}
+        enc = make_encoders(n_neurons, d_in, strategy=encoder_strategy,
+                            rng=rng, **enc_kw)
         bias = torch.randn(n_neurons, generator=rng)
         if trainable_encoders:
             self.encoders = nn.Parameter(enc)
