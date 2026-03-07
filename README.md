@@ -27,6 +27,9 @@ Biases are derived from centers as `bias = −gain · (d · e)`, so there is no
 separate bias distribution to tune.  Encoders are unit vectors on the
 hypersphere; centers are sampled from training data.
 
+The library provides `NEFLayer` for single-layer models and `NEFNetwork`
+for multi-layer models, both plugging into standard PyTorch workflows:
+
 ```python
 from leenef.layers import NEFLayer
 from leenef.networks import NEFNetwork
@@ -39,10 +42,20 @@ predictions = layer(x_test)
 # Multi-layer — three training strategies
 net = NEFNetwork(d_in=784, d_out=10, hidden_neurons=[1000],
                  output_neurons=2000, centers=x_train)
-net.fit_greedy(x, targets)        # random hidden, analytic output
-net.fit_hybrid(x, targets)        # analytic decoders + gradient encoders
-net.fit_end_to_end(x, targets)    # full SGD with NEF initialisation
+net.fit_greedy(x, targets)
+net.fit_hybrid(x, targets)
+net.fit_end_to_end(x, targets)
 ```
+
+In a multi-layer `NEFNetwork`, hidden layers encode only (their neuron
+activities become the next layer's input) and only the output layer decodes.
+Three training strategies are available.  **Greedy** solves each layer
+independently with random encoders and analytic decoders — no gradient
+computation at all.  **Hybrid** alternates analytic decoder solves with
+gradient updates to encoder weights, learning useful encoder orientations
+without full backprop.  **End-to-end** runs standard SGD on all parameters,
+initialised from a greedy NEF solve, using NEF as an initialisation
+strategy rather than a training method.
 
 ## Setup
 
@@ -139,6 +152,9 @@ ReLU, which discards one half of the encoding space.
 | 2000    | 0.232     | 0.234    |
 | 5000    | 0.210     | 0.223    |
 
+More neurons improve accuracy with diminishing returns.  At 2000 neurons
+the model generalises well, with test MSE within 1% of training MSE.
+
 ### Multi-layer results (hidden=[1000], output=2000)
 
 | Model           | MNIST  | Fashion | CIFAR-10 | Time (MNIST) |
@@ -222,6 +238,21 @@ Generate plots with `python benchmarks/plot.py` (requires matplotlib).
    nonlinear transform without learned features is worse than single-layer.
    Hybrid gains ~1.7% by learning encoder orientations, but the best
    results come from full end-to-end training.
+
+## Related work
+
+A single NEF layer — random input weights, nonlinear activation, analytic
+output weights — is architecturally identical to an Extreme Learning Machine
+(ELM; Huang et al., 2006).  Both are instances of the random features
+framework (Rahimi & Recht, 2007), which shows that random projections
+followed by a nonlinearity approximate kernel functions, with the number of
+random features controlling approximation quality.  NEF arrives at the same
+architecture from neuroscience principles: encoders model neuron preferred
+directions, the activation models firing rates, and decoders recover the
+represented signal.  The data-driven bias interpretation developed here —
+each neuron measures deviation from a training sample — adds a connection
+to radial basis function networks, where each basis function is centred on
+a data point.
 
 ## Components
 
