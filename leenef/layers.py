@@ -23,15 +23,25 @@ class NEFLayer(nn.Module):
                  trainable_encoders: bool = False,
                  gain: float = 1.0,
                  rng: torch.Generator | None = None,
+                 centers: Tensor | None = None,
                  **act_kwargs):
         super().__init__()
         self.d_in = d_in
         self.n_neurons = n_neurons
         self.d_out = d_out
 
-        # Encoders and bias
+        # Encoders
         enc = make_encoders(n_neurons, d_in, strategy=encoder_strategy, rng=rng)
-        bias = torch.randn(n_neurons, generator=rng)
+
+        # Biases — data-driven or random
+        if centers is not None:
+            # bias = -gain * (d_i · e_i) so encode() computes
+            # activation(gain * ((x - d_i) · e_i))
+            idx = torch.randint(len(centers), (n_neurons,), generator=rng)
+            bias = -gain * (centers[idx].float() * enc).sum(dim=1)
+        else:
+            bias = torch.randn(n_neurons, generator=rng)
+
         if trainable_encoders:
             self.encoders = nn.Parameter(enc)
             self.bias = nn.Parameter(bias)

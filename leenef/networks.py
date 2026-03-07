@@ -27,21 +27,27 @@ class NEFNetwork(nn.Module):
                  encoder_strategy: str = "gaussian",
                  gain: float = 1.0,
                  rng: torch.Generator | None = None,
+                 centers: Tensor | None = None,
                  **act_kwargs):
         super().__init__()
         self.hidden = nn.ModuleList()
         prev_dim = d_in
-        for n in hidden_neurons:
-            # Hidden layers: d_out=1 since decoders are unused in forward
+        for i, n in enumerate(hidden_neurons):
+            # Only the first layer uses data-driven centers
+            layer_centers = centers if i == 0 else None
             self.hidden.append(NEFLayer(
                 prev_dim, n, 1,
                 activation=activation, encoder_strategy=encoder_strategy,
-                trainable_encoders=True, gain=gain, rng=rng, **act_kwargs))
+                trainable_encoders=True, gain=gain, rng=rng,
+                centers=layer_centers, **act_kwargs))
             prev_dim = n
+        # Output layer uses centers only when there are no hidden layers
+        out_centers = centers if len(hidden_neurons) == 0 else None
         self.output = NEFLayer(
             prev_dim, output_neurons, d_out,
             activation=activation, encoder_strategy=encoder_strategy,
-            trainable_encoders=True, gain=gain, rng=rng, **act_kwargs)
+            trainable_encoders=True, gain=gain, rng=rng,
+            centers=out_centers, **act_kwargs)
 
     def forward(self, x: Tensor) -> Tensor:
         for layer in self.hidden:

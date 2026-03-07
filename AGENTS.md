@@ -53,6 +53,8 @@ output layer decodes.  Three training strategies are supported:
   Use `solve_decoders(A, targets, method=...)`.
 - `layers.py` — `NEFLayer(nn.Module)` ties them together.
   `forward()` runs the full pipeline; `fit()` solves decoders analytically.
+  Accepts optional `centers=` training data to derive data-driven biases
+  (`bias = -gain * (d · e)`), placing each neuron around a training sample.
 - `networks.py` — `NEFNetwork(nn.Module)` stacks NEFLayers with the three
   training strategies above.
 

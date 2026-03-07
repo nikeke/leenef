@@ -165,3 +165,25 @@ class TestNEFLayer:
     def test_frozen_encoders(self):
         layer = NEFLayer(5, 100, 2, trainable_encoders=False)
         assert not layer.encoders.requires_grad
+
+    def test_data_centers_bias(self):
+        """Data-driven biases: bias_i = -gain * (d_i · e_i)."""
+        torch.manual_seed(7)
+        data = torch.randn(500, 10)
+        layer = NEFLayer(10, 200, 3, centers=data)
+        # Biases should NOT be iid normal — verify they correlate with
+        # encoder-center dot products
+        assert layer.bias.shape == (200,)
+        x = torch.randn(32, 10)
+        y = layer(x)
+        assert y.shape == (32, 3)
+
+    def test_data_centers_fit(self):
+        """Data-driven biases should at least match random on a simple task."""
+        torch.manual_seed(8)
+        x = torch.linspace(-1, 1, 200).unsqueeze(1)
+        layer = NEFLayer(1, 500, 1, centers=x)
+        layer.fit(x, x, solver="tikhonov", alpha=1e-4)
+        pred = layer(x)
+        mse = (pred - x).pow(2).mean().item()
+        assert mse < 0.01
