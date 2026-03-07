@@ -1,0 +1,241 @@
+"""Benchmark harness for NEF single-layer experiments."""
+
+import time
+import torch
+import torch.nn as nn
+from torch import Tensor
+from dataclasses import dataclass
+
+from leenef.layers import NEFLayer
+
+
+@dataclass
+class BenchmarkResult:
+    name: str
+    dataset: str
+    n_neurons: int
+    activation: str
+    encoder_strategy: str
+    solver: str
+    solver_kwargs: dict
+    metric_name: str          # "accuracy" or "mse"
+    train_metric: float
+    test_metric: float
+    fit_time: float           # seconds
+
+
+def load_vision_dataset(name: str, root: str = "./data"):
+    """Load a torchvision dataset, returning flat float tensors and labels."""
+    import torchvision
+    import torchvision.transforms as T
+
+    transform = T.ToTensor()
+    ds_cls = {
+        "mnist": torchvision.datasets.MNIST,
+        "fashion_mnist": torchvision.datasets.FashionMNIST,
+        "cifar10": torchvision.datasets.CIFAR10,
+    }[name]
+
+    train = ds_cls(root, train=True, download=True, transform=transform)
+    test = ds_cls(root, train=False, download=True, transform=transform)
+
+    def to_tensors(ds):
+        loader = torch.utils.data.DataLoader(ds, batch_size=len(ds))
+        x, y = next(iter(loader))
+        return x.reshape(x.shape[0], -1).float(), y
+    return to_tensors(train), to_tensors(test)
+
+
+def load_regression_dataset(name: str = "california"):
+    """Load a sklearn regression dataset as tensors."""
+    if name == "california":
+        from sklearn.datasets import fetch_california_housing
+        from sklearn.model_selection import train_test_split
+        data = fetch_california_housing()
+        x, y = torch.tensor(data.data, dtype=torch.float32), \
+               torch.tensor(data.target, dtype=torch.float32).unsqueeze(1)
+        # Normalise features
+        x = (x - x.mean(0)) / (x.std(0) + 1e-8)
+        y = (y - y.mean()) / (y.std() + 1e-8)
+        idx = torch.randperm(len(x))
+        split = int(0.8 * len(x))
+        train_idx, test_idx = idx[:split], idx[split:]
+        return (x[train_idx], y[train_idx]), (x[test_idx], y[test_idx])
+    raise ValueError(f"Unknown regression dataset: {name}")
+
+
+def one_hot(labels: Tensor, n_classes: int) -> Tensor:
+    """Convert integer labels to one-hot float targets."""
+    return torch.zeros(len(labels), n_classes).scatter_(
+        1, labels.unsqueeze(1), 1.0)
+
+
+def classification_accuracy(pred: Tensor, labels: Tensor) -> float:
+    return (pred.argmax(dim=1) == labels).float().mean().item()
+
+
+def mse(pred: Tensor, targets: Tensor) -> float:
+    return (pred - targets).pow(2).mean().item()
+
+
+def run_nef_classification(
+    dataset_name: str,
+    n_neurons: int = 2000,
+    activation: str = "relu",
+    encoder_strategy: str = "hypersphere",
+    solver: str = "tikhonov",
+    solver_kwargs: dict | None = None,
+    data_root: str = "./data",
+) -> BenchmarkResult:
+    """Run a single NEF classification benchmark."""
+    solver_kwargs = solver_kwargs or {"alpha": 1e-2}
+
+    (x_train, y_train), (x_test, y_test) = load_vision_dataset(
+        dataset_name, root=data_root)
+    n_classes = int(y_train.max().item()) + 1
+    targets = one_hot(y_train, n_classes)
+
+    layer = NEFLayer(x_train.shape[1], n_neurons, n_classes,
+                     activation=activation, encoder_strategy=encoder_strategy)
+
+    t0 = time.perf_counter()
+    layer.fit(x_train, targets, solver=solver, **solver_kwargs)
+    fit_time = time.perf_counter() - t0
+
+    with torch.no_grad():
+        train_acc = classification_accuracy(layer(x_train), y_train)
+        test_acc = classification_accuracy(layer(x_test), y_test)
+
+    return BenchmarkResult(
+        name="NEFLayer", dataset=dataset_name, n_neurons=n_neurons,
+        activation=activation, encoder_strategy=encoder_strategy,
+        solver=solver, solver_kwargs=solver_kwargs,
+        metric_name="accuracy",
+        train_metric=train_acc, test_metric=test_acc,
+        fit_time=fit_time,
+    )
+
+
+def run_nef_regression(
+    dataset_name: str = "california",
+    n_neurons: int = 2000,
+    activation: str = "relu",
+    encoder_strategy: str = "hypersphere",
+    solver: str = "tikhonov",
+    solver_kwargs: dict | None = None,
+) -> BenchmarkResult:
+    """Run a single NEF regression benchmark."""
+    solver_kwargs = solver_kwargs or {"alpha": 1e-2}
+
+    (x_train, y_train), (x_test, y_test) = load_regression_dataset(dataset_name)
+
+    layer = NEFLayer(x_train.shape[1], n_neurons, y_train.shape[1],
+                     activation=activation, encoder_strategy=encoder_strategy)
+
+    t0 = time.perf_counter()
+    layer.fit(x_train, y_train, solver=solver, **solver_kwargs)
+    fit_time = time.perf_counter() - t0
+
+    with torch.no_grad():
+        train_mse = mse(layer(x_train), y_train)
+        test_mse = mse(layer(x_test), y_test)
+
+    return BenchmarkResult(
+        name="NEFLayer", dataset=dataset_name, n_neurons=n_neurons,
+        activation=activation, encoder_strategy=encoder_strategy,
+        solver=solver, solver_kwargs=solver_kwargs,
+        metric_name="mse",
+        train_metric=train_mse, test_metric=test_mse,
+        fit_time=fit_time,
+    )
+
+
+def run_linear_baseline(
+    dataset_name: str,
+    data_root: str = "./data",
+) -> BenchmarkResult:
+    """Run a simple linear model (no hidden layer) as baseline."""
+    (x_train, y_train), (x_test, y_test) = load_vision_dataset(
+        dataset_name, root=data_root)
+    n_classes = int(y_train.max().item()) + 1
+    targets = one_hot(y_train, n_classes)
+
+    t0 = time.perf_counter()
+    D = torch.linalg.lstsq(x_train, targets).solution
+    fit_time = time.perf_counter() - t0
+
+    with torch.no_grad():
+        train_acc = classification_accuracy(x_train @ D, y_train)
+        test_acc = classification_accuracy(x_test @ D, y_test)
+
+    return BenchmarkResult(
+        name="LinearBaseline", dataset=dataset_name, n_neurons=0,
+        activation="none", encoder_strategy="none",
+        solver="lstsq", solver_kwargs={},
+        metric_name="accuracy",
+        train_metric=train_acc, test_metric=test_acc,
+        fit_time=fit_time,
+    )
+
+
+def format_results(results: list[BenchmarkResult]) -> str:
+    """Format results as an aligned text table."""
+    lines = []
+    header = f"{'Name':<18} {'Dataset':<15} {'Neurons':>7} {'Act':<10} " \
+             f"{'Encoder':<14} {'Train':>8} {'Test':>8} {'Time':>8}"
+    lines.append(header)
+    lines.append("-" * len(header))
+    for r in results:
+        fmt = ".4f" if r.metric_name == "mse" else ".2%"
+        lines.append(
+            f"{r.name:<18} {r.dataset:<15} {r.n_neurons:>7} "
+            f"{r.activation:<10} {r.encoder_strategy:<14} "
+            f"{r.train_metric:>8{fmt}} {r.test_metric:>8{fmt}} "
+            f"{r.fit_time:>7.2f}s"
+        )
+    return "\n".join(lines)
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="NEF benchmarks")
+    parser.add_argument("--datasets", nargs="+",
+                        default=["mnist", "fashion_mnist", "cifar10"],
+                        help="Classification datasets to benchmark")
+    parser.add_argument("--neurons", type=int, nargs="+", default=[2000],
+                        help="Number of neurons")
+    parser.add_argument("--activation", default="relu")
+    parser.add_argument("--encoder", default="hypersphere")
+    parser.add_argument("--solver", default="tikhonov")
+    parser.add_argument("--alpha", type=float, default=1e-2)
+    parser.add_argument("--regression", action="store_true",
+                        help="Also run California Housing regression")
+    parser.add_argument("--data-root", default="./data")
+    args = parser.parse_args()
+
+    results = []
+    for ds in args.datasets:
+        # Linear baseline
+        print(f"Running linear baseline on {ds}...")
+        results.append(run_linear_baseline(ds, data_root=args.data_root))
+        # NEF with each neuron count
+        for n in args.neurons:
+            print(f"Running NEF ({n} neurons) on {ds}...")
+            results.append(run_nef_classification(
+                ds, n_neurons=n, activation=args.activation,
+                encoder_strategy=args.encoder, solver=args.solver,
+                solver_kwargs={"alpha": args.alpha},
+                data_root=args.data_root,
+            ))
+
+    if args.regression:
+        print("Running NEF regression on California Housing...")
+        for n in args.neurons:
+            results.append(run_nef_regression(
+                "california", n_neurons=n, activation=args.activation,
+                encoder_strategy=args.encoder, solver=args.solver,
+                solver_kwargs={"alpha": args.alpha},
+            ))
+
+    print()
+    print(format_results(results))

@@ -17,20 +17,24 @@ def lstsq(activities: Tensor, targets: Tensor) -> Tensor:
     return result.solution
 
 
-def tikhonov(activities: Tensor, targets: Tensor, alpha: float = 1e-4) -> Tensor:
+def tikhonov(activities: Tensor, targets: Tensor, alpha: float = 1e-2) -> Tensor:
     """Tikhonov-regularised least-squares (L2 penalty on decoder norms).
 
-    Solves: (A^T A + alpha * I) D = A^T targets
+    Solves: (A^T A + reg * I) D = A^T targets
+
+    Regularisation is scaled to the matrix norm for numerical stability:
+    reg = alpha * trace(A^T A) / n_neurons, floored at alpha.
     """
     A = activities
-    n_neurons = A.shape[1]
+    n = A.shape[1]
     ATA = A.T @ A
-    ATA.diagonal().add_(alpha)
+    reg = alpha * torch.trace(ATA) / n
+    ATA.diagonal().add_(reg.clamp(min=alpha))
     return torch.linalg.solve(ATA, A.T @ targets)
 
 
 def normal_equations(activities: Tensor, targets: Tensor,
-                     alpha: float = 1e-4) -> Tensor:
+                     alpha: float = 1e-2) -> Tensor:
     """L2-regularised normal equations via Cholesky — fast for large N, moderate n_neurons."""
     A = activities
     ATA = A.T @ A
