@@ -27,10 +27,18 @@ class LIFRate(nn.Module):
         return self.amplitude * torch.where(j > 1, rate, torch.zeros_like(rate))
 
 
+class Abs(nn.Module):
+    """Absolute-value activation — like ReLU but mirrors negatives."""
+
+    def forward(self, x: Tensor) -> Tensor:
+        return x.abs()
+
+
 ACTIVATIONS = {
     "relu": nn.ReLU,
     "softplus": nn.Softplus,
     "lif_rate": LIFRate,
+    "abs": Abs,
 }
 
 
