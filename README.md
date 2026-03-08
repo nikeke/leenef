@@ -159,23 +159,37 @@ the model generalises well, with test MSE within 1% of training MSE.
 
 | Model           | MNIST  | Fashion | CIFAR-10 | Time (MNIST) |
 |-----------------|--------|---------|----------|--------------|
-| Linear baseline | 85.3%  | 81.0%   | 39.6%    |     1s       |
+| Linear baseline | 85.3%  | 81.0%   | 39.6%    |     2s       |
 | NEFLayer        | 95.5%  | 86.1%   | 48.5%    |     2s       |
 | NEFNet-greedy   | 94.0%  | 84.0%   | 45.1%    |     3s       |
-| NEFNet-hybrid   | 97.2%  | 87.9%   | 45.9%    |    69s       |
-| NEFNet-e2e      |**98.4%**|**90.2%**|**58.5%** |   251s       |
+| NEFNet-hybrid   |**98.5%**|**90.4%**| 53.3%    |   314s       |
+| NEFNet-e2e      | 98.4%  | 90.2%   |**58.5%** |   239s       |
 | MLP (2×1000)    | 98.4%  | 89.6%   | 53.4%    |    87s       |
 
-End-to-end with cross-entropy loss and cosine LR schedule **surpasses the
-MLP baseline on CIFAR-10** (58.5% vs 53.4%).  Data-driven bias
-initialisation provides a much better starting point for SGD, dramatically
-reducing the overfitting that plagued earlier runs (where E2E scored only
-43.7% on CIFAR-10 with random biases).
+The default hybrid configuration uses 50 iterations with α = 10⁻³ for the
+decoder solver.  These were found via a systematic sweep over iterations
+(10–100), solver regularisation (10⁻⁵–10⁻²), solver type (Tikhonov vs
+Cholesky vs unregularised lstsq), hidden layer count, and neuron counts.
 
-Greedy multi-layer is actually *worse* than single-layer — stacking a
-random nonlinear transform without learned features hurts rather than helps.
-Hybrid gains ~1.7% on MNIST by learning useful encoder orientations via
-gradient updates.
+**Iterations dominate all other hyperparameters.** Going from 10 to 50
+iterations lifts hybrid from 97.2% → 98.5% on MNIST, 87.9% → 90.4% on
+Fashion, and 45.9% → 53.3% on CIFAR-10.  More layers, more neurons per
+layer, and switching solvers each contribute less than 0.2%.  Returns
+diminish past 50 iterations (75 and 100 barely improve).
+
+**Lower decoder regularisation helps hybrid** but is dataset-dependent.
+α = 10⁻³ is the sweet spot across all three datasets.  Going lower
+(10⁻⁴) hurts Fashion and CIFAR-10 — the decoder overfits the current
+encoder state, producing noisy gradients that destabilise encoder learning.
+At α = 10⁻⁵ results collapse entirely (96.4% MNIST, 32.7% CIFAR-10).
+
+Tuned hybrid **surpasses both E2E and MLP on MNIST and Fashion-MNIST**
+while preserving analytic decoders — only encoder weights are trained by
+gradient descent.  E2E still leads on CIFAR-10 (58.5% vs 53.3%), where
+the ability to also learn decoders via gradient provides extra capacity.
+
+Greedy multi-layer is *worse* than single-layer — stacking a random
+nonlinear transform without learned features hurts rather than helps.
 
 #### Activation effect on multi-layer hybrid
 
@@ -185,6 +199,8 @@ gradient updates.
 | relu       | 96.6%  | 87.2%   |
 | lif_rate   | 92.3%  | 83.7%   |
 | softplus   | 90.8%  | 82.4%   |
+
+> Measured with the old hybrid defaults (10 iterations, α = 10⁻²).
 
 With data-driven biases, abs is the best activation for hybrid training.
 This reverses an earlier finding where softplus was best with random
@@ -225,19 +241,23 @@ Generate plots with `python benchmarks/plot.py` (requires matplotlib).
    (abs, ReLU) and punish smooth ones (softplus −7%, lif_rate −28% on
    MNIST).
 
-5. **End-to-end SGD with NEF initialisation surpasses a standard MLP.**  On
-   CIFAR-10, E2E reaches 58.5% vs 53.4% for MLP.  Data-driven bias
-   initialisation provides a materially better starting point for gradient
-   descent, turning a deficit into an advantage.
+5. **Tuned hybrid surpasses both E2E and MLP.**  With 50 iterations and
+   α = 10⁻³, hybrid reaches 98.5% MNIST / 90.4% Fashion — beating E2E
+   (98.4% / 90.2%) and MLP (98.4% / 89.6%) while preserving analytic
+   decoders.  Iterations dominate all other hyperparameters; more layers,
+   neurons, or solver changes each contribute less than 0.2%.
 
-6. **CIFAR-10 exposes single-layer limits** on high-dimensional inputs
-   (3072-d).  The single-layer ceiling is ~50%, but multi-layer E2E breaks
-   through to 58.5%.
+6. **E2E still leads on CIFAR-10** (58.5% vs hybrid's 53.3%).  On harder
+   problems, being able to also learn decoders via gradient provides
+   extra capacity that analytic solving cannot match.
 
-7. **Greedy multi-layer hurts; hybrid helps modestly.**  An extra random
-   nonlinear transform without learned features is worse than single-layer.
-   Hybrid gains ~1.7% by learning encoder orientations, but the best
-   results come from full end-to-end training.
+7. **Decoder regularisation is the second lever for hybrid.**  α = 10⁻³
+   is optimal — lower values let decoders overfit the current encoder
+   state, producing noisy gradients; higher values underfit.  At α = 10⁻⁵
+   the training collapses entirely.
+
+8. **Greedy multi-layer hurts.**  An extra random nonlinear transform
+   without learned features is worse than single-layer across all datasets.
 
 ## Related work
 

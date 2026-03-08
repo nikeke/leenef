@@ -33,14 +33,14 @@ BIAS_EFFECT = {
 # Multi-layer: strategy comparison
 STRATEGIES = ["Linear", "NEFLayer", "Greedy", "Hybrid", "E2E", "MLP"]
 MULTI = {
-    "MNIST":         [85.3, 95.5, 94.0, 97.2, 98.4, 98.4],
-    "Fashion-MNIST": [81.0, 86.1, 84.0, 87.9, 90.2, 89.6],
-    "CIFAR-10":      [39.6, 48.5, 45.1, 45.9, 58.5, 53.4],
+    "MNIST":         [85.3, 95.5, 94.0, 98.5, 98.4, 98.4],
+    "Fashion-MNIST": [81.0, 86.1, 84.0, 90.4, 90.2, 89.6],
+    "CIFAR-10":      [39.6, 48.5, 45.1, 53.3, 58.5, 53.4],
 }
 MULTI_TIME = {
-    "MNIST":         [1, 2, 3, 69, 251, 87],
-    "Fashion-MNIST": [2, 2, 3, 70, 255, 89],
-    "CIFAR-10":      [16, 3, 3, 72, 331, 150],
+    "MNIST":         [2, 2, 3, 314, 239, 87],
+    "Fashion-MNIST": [2, 2, 3, 312, 250, 89],
+    "CIFAR-10":      [15, 3, 3, 343, 325, 150],
 }
 
 # Multi-layer: activation effect (hybrid, hypersphere + data biases)

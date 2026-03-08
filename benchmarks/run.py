@@ -187,15 +187,16 @@ def run_linear_baseline(
 
 def run_nef_multi(
     dataset_name: str,
-    strategy: str = "greedy",
+    strategy: str = "hybrid",
     hidden_neurons: list[int] | None = None,
     output_neurons: int = 2000,
     activation: str = "abs",
     encoder_strategy: str = "hypersphere",
     solver: str = "tikhonov",
     solver_kwargs: dict | None = None,
-    hybrid_iters: int = 10,
+    hybrid_iters: int = 50,
     hybrid_lr: float = 1e-3,
+    hybrid_alpha: float | None = None,
     e2e_epochs: int = 50,
     e2e_lr: float = 3e-3,
     e2e_batch: int = 256,
@@ -205,6 +206,9 @@ def run_nef_multi(
     """Run a multi-layer NEFNetwork benchmark."""
     hidden_neurons = hidden_neurons or [1000]
     solver_kwargs = solver_kwargs or {"alpha": 1e-2}
+    hybrid_kw = dict(solver_kwargs)
+    if hybrid_alpha is not None:
+        hybrid_kw["alpha"] = hybrid_alpha
 
     (x_train, y_train), (x_test, y_test) = load_vision_dataset(
         dataset_name, root=data_root)
@@ -224,7 +228,7 @@ def run_nef_multi(
         net.fit_greedy(x_train, targets, solver=solver, **solver_kwargs)
     elif strategy == "hybrid":
         net.fit_hybrid(x_train, targets, n_iters=hybrid_iters,
-                       lr=hybrid_lr, solver=solver, **solver_kwargs)
+                       lr=hybrid_lr, solver=solver, **hybrid_kw)
     elif strategy == "e2e":
         net.fit_end_to_end(x_train, targets, n_epochs=e2e_epochs,
                            lr=e2e_lr, batch_size=e2e_batch, loss="ce")
@@ -330,6 +334,8 @@ if __name__ == "__main__":
     parser.add_argument("--encoder", default="hypersphere")
     parser.add_argument("--solver", default="tikhonov")
     parser.add_argument("--alpha", type=float, default=1e-2)
+    parser.add_argument("--hybrid-alpha", type=float, default=1e-3,
+                        help="Solver alpha for hybrid training (default: 1e-3)")
     parser.add_argument("--no-centers", action="store_true",
                         help="Disable data-driven biases (use random biases)")
     parser.add_argument("--regression", action="store_true",
@@ -369,6 +375,7 @@ if __name__ == "__main__":
                     encoder_strategy=args.encoder,
                     solver=args.solver,
                     solver_kwargs={"alpha": args.alpha},
+                    hybrid_alpha=args.hybrid_alpha,
                     data_root=args.data_root,
                     use_centers=use_centers,
                 ))
