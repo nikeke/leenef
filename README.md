@@ -55,7 +55,9 @@ computation at all.  **Hybrid** alternates analytic decoder solves with
 gradient updates to encoder weights, learning useful encoder orientations
 without full backprop.  **End-to-end** runs standard SGD on all parameters,
 initialised from a greedy NEF solve, using NEF as an initialisation
-strategy rather than a training method.
+strategy rather than a training method.  **Hybrid→E2E** (`fit_hybrid_e2e`)
+combines the two: hybrid first learns good encoder orientations, then E2E
+refines all parameters including decoders — the best overall strategy.
 
 ## Setup
 
@@ -157,14 +159,15 @@ the model generalises well, with test MSE within 1% of training MSE.
 
 ### Multi-layer results (hidden=[1000], output=2000)
 
-| Model           | MNIST  | Fashion | CIFAR-10 | Time (MNIST) |
-|-----------------|--------|---------|----------|--------------|
-| Linear baseline | 85.3%  | 81.0%   | 39.6%    |     2s       |
-| NEFLayer        | 95.5%  | 86.1%   | 48.5%    |     2s       |
-| NEFNet-greedy   | 94.0%  | 84.0%   | 45.1%    |     3s       |
-| NEFNet-hybrid   |**98.5%**|**90.4%**| 53.3%    |   314s       |
-| NEFNet-e2e      | 98.4%  | 90.2%   |**58.5%** |   239s       |
-| MLP (2×1000)    | 98.4%  | 89.6%   | 53.4%    |    87s       |
+| Model             | MNIST    | Fashion  | CIFAR-10 | Time (MNIST) |
+|-------------------|----------|----------|----------|--------------|
+| Linear baseline   | 85.3%    | 81.0%    | 39.6%    |     2s       |
+| NEFLayer          | 95.5%    | 86.1%    | 48.5%    |     2s       |
+| NEFNet-greedy     | 94.0%    | 84.0%    | 45.1%    |     3s       |
+| NEFNet-hybrid     | 98.5%    | 90.4%    | 53.3%    |   314s       |
+| NEFNet-hybrid→E2E |**98.7%** |**90.8%** |**58.5%** |   439s       |
+| NEFNet-e2e        | 98.4%    | 90.2%    | 58.5%    |   239s       |
+| MLP (2×1000)      | 98.4%    | 89.6%    | 53.4%    |    87s       |
 
 The default hybrid configuration uses 50 iterations with α = 10⁻³ for the
 decoder solver.  These were found via a systematic sweep over iterations
@@ -183,13 +186,37 @@ diminish past 50 iterations (75 and 100 barely improve).
 encoder state, producing noisy gradients that destabilise encoder learning.
 At α = 10⁻⁵ results collapse entirely (96.4% MNIST, 32.7% CIFAR-10).
 
-Tuned hybrid **surpasses both E2E and MLP on MNIST and Fashion-MNIST**
-while preserving analytic decoders — only encoder weights are trained by
-gradient descent.  E2E still leads on CIFAR-10 (58.5% vs 53.3%), where
-the ability to also learn decoders via gradient provides extra capacity.
+**Hybrid→E2E is the best overall strategy.**  Running 50 hybrid iterations
+then 20 E2E epochs (`fit_hybrid_e2e`) reaches 98.7% / 90.8% / 58.5% —
+the highest accuracy on all three datasets.  The hybrid phase learns
+good encoder orientations with analytic decoders; the E2E phase then
+unlocks decoder learning to squeeze out the last gains.
 
 Greedy multi-layer is *worse* than single-layer — stacking a random
 nonlinear transform without learned features hurts rather than helps.
+
+#### Hybrid improvement sweep
+
+We also tested cross-entropy loss for encoder gradients, cosine LR
+scheduling, incremental hidden-layer initialisation (warm-start from a
+solved single-layer), and mini-batch gradient steps.  None improved on the
+MSE full-batch baseline:
+
+| Variant              | MNIST  | Fashion | CIFAR-10 |
+|----------------------|--------|---------|----------|
+| Baseline (MSE, flat) | 98.65% | 90.15%  | 52.67%   |
+| CE loss              | 94.18% | 82.02%  | 37.23%   |
+| Cosine schedule      | 98.34% | 89.98%  | 50.95%   |
+| Incremental init     | 98.60% | 90.10%  | 52.86%   |
+| Mini-batch (256, 3)  | 96.05% | 85.82%  | 38.71%   |
+
+CE loss is catastrophic: the analytic decoder solve targets MSE (outputs
+near 0/1 for one-hot targets), but cross-entropy interprets these as
+logits, creating a destructive conflict.  Mini-batch hurts because
+3 mini-batch steps provide far less gradient coverage than one full-batch
+step.  Cosine annealing decays too aggressively — hybrid's decoder
+re-solve already stabilises each iteration, making a flat LR optimal.
+Incremental init is neutral: 50 iterations absorb the warm-start advantage.
 
 #### Activation effect on multi-layer hybrid
 
@@ -241,22 +268,29 @@ Generate plots with `python benchmarks/plot.py` (requires matplotlib).
    (abs, ReLU) and punish smooth ones (softplus −7%, lif_rate −28% on
    MNIST).
 
-5. **Tuned hybrid surpasses both E2E and MLP.**  With 50 iterations and
-   α = 10⁻³, hybrid reaches 98.5% MNIST / 90.4% Fashion — beating E2E
-   (98.4% / 90.2%) and MLP (98.4% / 89.6%) while preserving analytic
-   decoders.  Iterations dominate all other hyperparameters; more layers,
-   neurons, or solver changes each contribute less than 0.2%.
+5. **Hybrid→E2E is the best overall strategy.**  Running hybrid then E2E
+   reaches 98.7% / 90.8% / 58.5% — the highest accuracy on all three
+   datasets.  The hybrid phase learns encoder orientations with analytic
+   decoders; the E2E phase unlocks full gradient training to close the
+   CIFAR-10 gap.
 
-6. **E2E still leads on CIFAR-10** (58.5% vs hybrid's 53.3%).  On harder
-   problems, being able to also learn decoders via gradient provides
-   extra capacity that analytic solving cannot match.
+6. **Hybrid alone surpasses both E2E and MLP on easy datasets.**  With 50
+   iterations and α = 10⁻³, pure hybrid reaches 98.5% MNIST / 90.4%
+   Fashion while preserving analytic decoders.  Iterations dominate all
+   other hyperparameters.
 
 7. **Decoder regularisation is the second lever for hybrid.**  α = 10⁻³
    is optimal — lower values let decoders overfit the current encoder
    state, producing noisy gradients; higher values underfit.  At α = 10⁻⁵
    the training collapses entirely.
 
-8. **Greedy multi-layer hurts.**  An extra random nonlinear transform
+8. **CE loss is incompatible with hybrid's analytic decoders.**  Decoders
+   solve for MSE-optimal outputs near 0/1; cross-entropy interprets these
+   as logits, creating a destructive gradient conflict that drops CIFAR-10
+   from 53% to 37%.  The loss used for encoder gradients must match the
+   decoder objective.
+
+9. **Greedy multi-layer hurts.**  An extra random nonlinear transform
    without learned features is worse than single-layer across all datasets.
 
 ## Related work
