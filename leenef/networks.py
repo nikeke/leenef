@@ -33,7 +33,8 @@ class NEFNetwork(nn.Module):
         self.hidden = nn.ModuleList()
         prev_dim = d_in
         for i, n in enumerate(hidden_neurons):
-            # Only the first layer uses data-driven centers
+            # Only the first layer uses data-driven centers at construction;
+            # deeper layers get centers via propagate_centers() after init.
             layer_centers = centers if i == 0 else None
             self.hidden.append(NEFLayer(
                 prev_dim, n, 1,
@@ -48,6 +49,21 @@ class NEFNetwork(nn.Module):
             activation=activation, encoder_strategy=encoder_strategy,
             trainable_encoders=True, gain=gain, rng=rng,
             centers=out_centers, **act_kwargs)
+
+        # Propagate data-driven biases to deeper layers
+        if centers is not None and len(hidden_neurons) > 0:
+            self.propagate_centers(centers)
+
+    @torch.no_grad()
+    def propagate_centers(self, x: Tensor) -> None:
+        """Forward *x* through each layer and use activations as centers for
+        the next layer, giving all layers data-driven biases."""
+        h = x
+        for i, layer in enumerate(self.hidden):
+            if i > 0:
+                layer.set_centers(h)
+            h = layer.encode(h)
+        self.output.set_centers(h)
 
     def forward(self, x: Tensor) -> Tensor:
         for layer in self.hidden:

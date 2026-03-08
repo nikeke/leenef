@@ -169,11 +169,17 @@ the model generalises well, with test MSE within 1% of training MSE.
 |-------------------|----------|----------|----------|--------------|
 | Linear baseline   | 85.3%    | 81.0%    | 39.6%    |     2s       |
 | NEFLayer          | 95.5%    | 86.1%    | 48.5%    |     2s       |
-| NEFNet-greedy     | 94.0%    | 84.0%    | 45.1%    |     3s       |
-| NEFNet-hybrid     | 98.5%    | 90.4%    | 53.3%    |   314s       |
-| NEFNet-hybrid→E2E |**98.7%** |**90.8%** |**58.5%** |   439s       |
-| NEFNet-e2e        | 98.4%    | 90.2%    | 58.5%    |   239s       |
+| NEFNet-greedy     | 95.0%    | 85.7%    | 45.5%    |     3s       |
+| NEFNet-hybrid     | 98.6%    | 90.3%    | 52.3%    |   355s       |
+| NEFNet-hybrid→E2E |**98.6%** |**90.9%** |**58.4%** |   501s       |
+| NEFNet-e2e        | 98.5%    | 90.6%    | 58.4%    |   259s       |
 | MLP (2×1000)      | 98.4%    | 89.6%    | 53.4%    |    87s       |
+
+All multi-layer models use propagated data-driven biases: training data is
+forwarded through each layer, and the resulting activations are used as
+centers for the next layer's bias computation.  This is especially important
+for greedy, which has no gradient learning — propagated centers lifted
+greedy from 94.0% → 95.0% on MNIST and 84.0% → 85.7% on Fashion-MNIST.
 
 The default hybrid configuration uses 50 iterations with α = 10⁻³ for the
 decoder solver.  These were found via a systematic sweep over iterations
@@ -198,8 +204,11 @@ the highest accuracy on all three datasets.  The hybrid phase learns
 good encoder orientations with analytic decoders; the E2E phase then
 unlocks decoder learning to squeeze out the last gains.
 
-Greedy multi-layer is *worse* than single-layer — stacking a random
-nonlinear transform without learned features hurts rather than helps.
+Greedy multi-layer is still slightly worse than single-layer (95.0% vs
+95.5% on MNIST), since a random nonlinear re-encoding loses some
+information.  But propagated data-driven biases dramatically narrow the
+gap — from 1.5% to 0.5% on MNIST — by ensuring every layer's neurons are
+centred around realistic activation patterns rather than random points.
 
 #### Hybrid improvement sweep
 
@@ -298,8 +307,11 @@ Generate plots with `python benchmarks/plot.py` (requires matplotlib).
    from 53% to 37%.  The loss used for encoder gradients must match the
    decoder objective.
 
-9. **Greedy multi-layer hurts.**  An extra random nonlinear transform
-   without learned features is worse than single-layer across all datasets.
+9. **Propagated data-driven biases rescue greedy.**  Without them, greedy
+   multi-layer was worse than single-layer (94.0% vs 95.5% MNIST).
+   Forwarding training data through each layer and using activations as
+   centers for the next layer's biases narrows the gap to 0.5%, though
+   greedy still cannot match gradient-trained strategies.
 
 ## Related work
 

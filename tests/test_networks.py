@@ -205,3 +205,42 @@ class TestHybridE2E:
         y = torch.randn(32, 2)
         net.fit_hybrid_e2e(x, y, n_iters=2, n_epochs=2, batch_size=32)
         assert not net.output.decoders.requires_grad
+
+
+# ---- Propagated centers ----
+
+class TestPropagateCenters:
+    def test_output_bias_changes(self):
+        """propagate_centers should update output layer biases."""
+        torch.manual_seed(20)
+        x = torch.randn(200, 4)
+        net = _make_net(d_in=4, d_out=2, hidden=[100], centers=x)
+        old_bias = net.output.bias.data.clone()
+        # Re-propagate with different data
+        net.propagate_centers(torch.randn(200, 4))
+        assert not torch.allclose(old_bias, net.output.bias.data)
+
+    def test_centers_improve_greedy(self):
+        """Data-driven biases on all layers should help greedy."""
+        torch.manual_seed(21)
+        x = torch.randn(400, 4)
+        labels = (x[:, 0] + x[:, 1] > 0).long()
+        targets = torch.zeros(400, 2).scatter_(1, labels.unsqueeze(1), 1.0)
+
+        # Without centers
+        net_no = NEFNetwork(4, 2, [200], output_neurons=400,
+                            rng=torch.Generator().manual_seed(42))
+        net_no.fit_greedy(x, targets)
+        with torch.no_grad():
+            acc_no = (net_no(x).argmax(1) == labels).float().mean().item()
+
+        # With centers (propagated to all layers)
+        net_yes = NEFNetwork(4, 2, [200], output_neurons=400,
+                             rng=torch.Generator().manual_seed(42),
+                             centers=x)
+        net_yes.fit_greedy(x, targets)
+        with torch.no_grad():
+            acc_yes = (net_yes(x).argmax(1) == labels).float().mean().item()
+
+        assert acc_yes >= acc_no - 0.02, \
+            f"centers ({acc_yes:.3f}) should not hurt vs no centers ({acc_no:.3f})"

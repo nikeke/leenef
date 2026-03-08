@@ -60,6 +60,14 @@ class NEFLayer(nn.Module):
         """Compute neuron activities for input x (N, d_in) → (N, n_neurons)."""
         return self.activation(self.gain * (x @ self.encoders.T) + self.bias)
 
+    @torch.no_grad()
+    def set_centers(self, centers: Tensor) -> None:
+        """Recompute biases from data-driven centers."""
+        idx = torch.randint(len(centers), (self.n_neurons,))
+        self.bias.data.copy_(
+            -self.gain * (centers[idx].float() * self.encoders.data).sum(dim=1)
+        )
+
     def forward(self, x: Tensor) -> Tensor:
         """Full forward pass: encode → decode."""
         return self.encode(x) @ self.decoders
