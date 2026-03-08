@@ -95,16 +95,21 @@ python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
 
 #### Scaling with neuron count
 
-| Dataset       |  500   | 1000   | 2000   | 5000   |
-|---------------|--------|--------|--------|--------|
-| MNIST         | 92.0%  | 94.1%  | 95.5%  | 96.9%  |
-| Fashion-MNIST | 82.8%  | 84.4%  | 86.1%  | 87.7%  |
-| CIFAR-10      | 43.9%  | 45.3%  | 48.5%  | 50.4%  |
+| Dataset       |  500   | 1000   | 2000   | 5000   | 10k    | 20k    | 30k    |
+|---------------|--------|--------|--------|--------|--------|--------|--------|
+| MNIST         | 92.0%  | 94.1%  | 95.5%  | 96.8%  | 97.5%  | 98.0%  | 98.1%  |
+| Fashion-MNIST | 82.8%  | 84.4%  | 86.1%  | 87.3%  | 88.5%  | 89.3%  | 89.6%  |
+| CIFAR-10      | 43.9%  | 45.3%  | 48.5%  | 50.4%  | 50.9%  | 51.4%  | 51.5%  |
+| Time          | <1s    | 1s     | 2s     | 11s    | 37s    | 153s   | 349s   |
 
 At 2000 neurons, MNIST reaches 95.5% in ~2 seconds — within 3% of a
 fully-trained MLP that takes 40× longer.  Performance scales monotonically
-with neuron count; fit time is under 12 seconds for 5000 neurons on 60k
-samples (CPU).
+with neuron count but with severe diminishing returns: 30000 neurons at
+~350 seconds reaches 98.1% on MNIST — close to hybrid's 98.5% at 314
+seconds, but unable to match it despite using 10× more neurons.  The
+single-layer ceiling on Fashion-MNIST (89.6%) and CIFAR-10 (51.5%) falls
+further short of multi-layer results (90.8% / 58.5%), showing that learned
+features are essential where brute-force neuron scaling cannot compensate.
 
 #### Why data-driven biases matter (2000 neurons, abs activation)
 
@@ -253,10 +258,12 @@ Generate plots with `python benchmarks/plot.py` (requires matplotlib).
    makes the encoder direction distribution irrelevant — only having enough
    random directions matters.
 
-2. **Single-layer NEF is remarkably effective for its simplicity.**  With
+2. **Single-layer NEF is remarkably effective but hits a ceiling.**  With
    2000 neurons and a 2-second analytic solve, it reaches 95.5% on MNIST
-   and 86.1% on Fashion-MNIST — within 3% of a fully-trained MLP that
-   takes 40× longer.
+   and 86.1% on Fashion-MNIST — within 3% of a fully-trained MLP.  Even
+   with 30000 neurons and 350 seconds of compute (comparable to hybrid),
+   single-layer tops out at 98.1% / 89.6% / 51.5% — learned features in
+   multi-layer networks cannot be replaced by brute-force neuron scaling.
 
 3. **The abs activation is a natural fit.**  Computing an unsigned distance
    along the encoder direction doubles representational capacity by

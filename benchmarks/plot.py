@@ -13,13 +13,13 @@ OUT.mkdir(exist_ok=True)
 # Data (from benchmark runs — abs + hypersphere + data-driven biases)
 # ---------------------------------------------------------------------------
 
-NEURONS = [500, 1000, 2000, 5000]
+NEURONS = [500, 1000, 2000, 5000, 10000, 20000, 30000]
 
 # Single-layer: neuron scaling
 SCALE = {
-    "MNIST":         [92.0, 94.1, 95.5, 96.9],
-    "Fashion-MNIST": [82.8, 84.4, 86.1, 87.7],
-    "CIFAR-10":      [43.9, 45.3, 48.5, 50.4],
+    "MNIST":         [92.0, 94.1, 95.5, 96.8, 97.5, 98.0, 98.1],
+    "Fashion-MNIST": [82.8, 84.4, 86.1, 87.3, 88.5, 89.3, 89.6],
+    "CIFAR-10":      [43.9, 45.3, 48.5, 50.4, 50.9, 51.4, 51.5],
 }
 
 # Bias effect (2000 neurons, abs activation): encoder × random/data bias
