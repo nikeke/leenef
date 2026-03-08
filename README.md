@@ -1,6 +1,7 @@
 # leenef
 
-Supervised learning with Eliasmith's Neural Engineering Framework (NEF),
+Supervised learning with the Neural Engineering Framework (NEF) of
+Eliasmith and Anderson,
 using rate-based neurons on PyTorch.
 
 ## Overview

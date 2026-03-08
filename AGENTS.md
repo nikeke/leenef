@@ -17,7 +17,8 @@ pip install -e '.[dev]'
 
 ## Architecture
 
-This project implements Eliasmith's Neural Engineering Framework (NEF) for
+This project implements the Neural Engineering Framework (NEF) of Eliasmith
+and Anderson for
 supervised learning using rate-based neurons on top of PyTorch.
 
 A **NEF layer** has three stages:
