@@ -107,6 +107,51 @@ class TestHybrid:
             acc = (net(x).argmax(1) == labels).float().mean().item()
         assert acc > 0.90, f"hybrid classification accuracy too low: {acc}"
 
+    def test_ce_loss(self):
+        torch.manual_seed(10)
+        x = torch.randn(400, 4)
+        labels = (x[:, 0] + x[:, 1] > 0).long()
+        targets = torch.zeros(400, 2).scatter_(1, labels.unsqueeze(1), 1.0)
+        net = _make_net(d_in=4, d_out=2, hidden=[200], output_n=400)
+        net.fit_hybrid(x, targets, n_iters=10, lr=1e-3, loss="ce")
+        with torch.no_grad():
+            acc = (net(x).argmax(1) == labels).float().mean().item()
+        assert acc > 0.90, f"hybrid CE accuracy too low: {acc}"
+
+    def test_cosine_schedule(self):
+        torch.manual_seed(11)
+        x = torch.rand(300, 2) * 2 - 1
+        y = torch.sin(x[:, :1] * 3)
+        net = _make_net(d_in=2, d_out=1, hidden=[200], output_n=300)
+        net.fit_hybrid(x, y, n_iters=15, lr=5e-4, schedule=True)
+        with torch.no_grad():
+            err = (net(x) - y).pow(2).mean().item()
+        assert err < 0.2, f"hybrid with schedule MSE too high: {err}"
+
+    def test_incremental_init(self):
+        torch.manual_seed(12)
+        x = torch.randn(400, 4)
+        labels = (x[:, 0] + x[:, 1] > 0).long()
+        targets = torch.zeros(400, 2).scatter_(1, labels.unsqueeze(1), 1.0)
+        net = _make_net(d_in=4, d_out=2, hidden=[200], output_n=400)
+        net.fit_hybrid(x, targets, n_iters=10, lr=1e-3,
+                       init="incremental", centers=x)
+        with torch.no_grad():
+            acc = (net(x).argmax(1) == labels).float().mean().item()
+        assert acc > 0.90, f"hybrid incremental accuracy too low: {acc}"
+
+    def test_mini_batch(self):
+        torch.manual_seed(13)
+        x = torch.randn(400, 4)
+        labels = (x[:, 0] + x[:, 1] > 0).long()
+        targets = torch.zeros(400, 2).scatter_(1, labels.unsqueeze(1), 1.0)
+        net = _make_net(d_in=4, d_out=2, hidden=[200], output_n=400)
+        net.fit_hybrid(x, targets, n_iters=10, lr=1e-3,
+                       batch_size=64, grad_steps=3)
+        with torch.no_grad():
+            acc = (net(x).argmax(1) == labels).float().mean().item()
+        assert acc > 0.85, f"hybrid mini-batch accuracy too low: {acc}"
+
 
 # ---- Strategy C: end-to-end ----
 
@@ -135,4 +180,28 @@ class TestEndToEnd:
         x = torch.randn(32, 4)
         y = torch.randn(32, 2)
         net.fit_end_to_end(x, y, n_epochs=1, batch_size=32)
+        assert not net.output.decoders.requires_grad
+
+
+# ---- Strategy D: hybrid → E2E ----
+
+class TestHybridE2E:
+    def test_runs_and_improves(self):
+        torch.manual_seed(6)
+        x = torch.randn(400, 4)
+        labels = (x[:, 0] + x[:, 1] > 0).long()
+        targets = torch.zeros(400, 2).scatter_(1, labels.unsqueeze(1), 1.0)
+        net = _make_net(d_in=4, d_out=2, hidden=[200], output_n=400)
+        net.fit_hybrid_e2e(x, targets, n_iters=5, hybrid_lr=1e-3,
+                           n_epochs=5, e2e_lr=1e-3, batch_size=64,
+                           loss="ce")
+        with torch.no_grad():
+            acc = (net(x).argmax(1) == labels).float().mean().item()
+        assert acc > 0.90, f"hybrid_e2e accuracy too low: {acc}"
+
+    def test_decoders_frozen_after(self):
+        net = _make_net()
+        x = torch.randn(32, 4)
+        y = torch.randn(32, 2)
+        net.fit_hybrid_e2e(x, y, n_iters=2, n_epochs=2, batch_size=32)
         assert not net.output.decoders.requires_grad

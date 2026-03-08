@@ -197,6 +197,13 @@ def run_nef_multi(
     hybrid_iters: int = 50,
     hybrid_lr: float = 1e-3,
     hybrid_alpha: float | None = None,
+    hybrid_loss: str = "mse",
+    hybrid_schedule: bool = False,
+    hybrid_init: str = "random",
+    hybrid_batch: int | None = None,
+    hybrid_grad_steps: int = 1,
+    hybrid_e2e_epochs: int = 20,
+    hybrid_e2e_lr: float = 1e-3,
     e2e_epochs: int = 50,
     e2e_lr: float = 3e-3,
     e2e_batch: int = 256,
@@ -228,7 +235,16 @@ def run_nef_multi(
         net.fit_greedy(x_train, targets, solver=solver, **solver_kwargs)
     elif strategy == "hybrid":
         net.fit_hybrid(x_train, targets, n_iters=hybrid_iters,
-                       lr=hybrid_lr, solver=solver, **hybrid_kw)
+                       lr=hybrid_lr, solver=solver, loss=hybrid_loss,
+                       schedule=hybrid_schedule, init=hybrid_init,
+                       batch_size=hybrid_batch, grad_steps=hybrid_grad_steps,
+                       centers=centers, **hybrid_kw)
+    elif strategy == "hybrid_e2e":
+        net.fit_hybrid_e2e(x_train, targets, n_iters=hybrid_iters,
+                           hybrid_lr=hybrid_lr, solver=solver,
+                           n_epochs=hybrid_e2e_epochs, e2e_lr=hybrid_e2e_lr,
+                           batch_size=e2e_batch, loss="ce",
+                           centers=centers, **hybrid_kw)
     elif strategy == "e2e":
         net.fit_end_to_end(x_train, targets, n_epochs=e2e_epochs,
                            lr=e2e_lr, batch_size=e2e_batch, loss="ce")
@@ -336,6 +352,18 @@ if __name__ == "__main__":
     parser.add_argument("--alpha", type=float, default=1e-2)
     parser.add_argument("--hybrid-alpha", type=float, default=1e-3,
                         help="Solver alpha for hybrid training (default: 1e-3)")
+    parser.add_argument("--hybrid-loss", default="mse",
+                        choices=["mse", "ce"],
+                        help="Loss for hybrid encoder gradients")
+    parser.add_argument("--hybrid-schedule", action="store_true",
+                        help="Use cosine LR schedule for hybrid")
+    parser.add_argument("--hybrid-init", default="random",
+                        choices=["random", "incremental"],
+                        help="Hidden layer init strategy for hybrid")
+    parser.add_argument("--hybrid-batch", type=int, default=None,
+                        help="Mini-batch size for hybrid gradient steps")
+    parser.add_argument("--hybrid-grad-steps", type=int, default=1,
+                        help="Gradient steps per decoder solve in hybrid")
     parser.add_argument("--no-centers", action="store_true",
                         help="Disable data-driven biases (use random biases)")
     parser.add_argument("--regression", action="store_true",
@@ -376,6 +404,11 @@ if __name__ == "__main__":
                     solver=args.solver,
                     solver_kwargs={"alpha": args.alpha},
                     hybrid_alpha=args.hybrid_alpha,
+                    hybrid_loss=args.hybrid_loss,
+                    hybrid_schedule=args.hybrid_schedule,
+                    hybrid_init=args.hybrid_init,
+                    hybrid_batch=args.hybrid_batch,
+                    hybrid_grad_steps=args.hybrid_grad_steps,
                     data_root=args.data_root,
                     use_centers=use_centers,
                 ))
