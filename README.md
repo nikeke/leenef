@@ -28,8 +28,9 @@ Biases are derived from centers as `bias = −gain · (d · e)`, so there is no
 separate bias distribution to tune.  Encoders are unit vectors on the
 hypersphere; centers are sampled from training data.
 
-The library provides `NEFLayer` for single-layer models and `NEFNetwork`
-for multi-layer models, both plugging into standard PyTorch workflows:
+The library provides `NEFLayer` for single-layer models, `NEFNetwork`
+for multi-layer models, and `RecurrentNEFLayer` for temporal sequences,
+all plugging into standard PyTorch workflows:
 
 ```python
 from leenef.layers import NEFLayer
@@ -320,6 +321,67 @@ Generate plots with `python benchmarks/plot.py` (requires matplotlib).
     methods adapt encoders to compensate, making initial gain diversity
     redundant.  Default remains uniform gain = 1.0.
 
+## Recurrent / temporal extension
+
+`RecurrentNEFLayer` extends the feedforward pipeline with the canonical NEF
+decode-then-re-encode feedback loop.  At each timestep *t*:
+
+```
+x_aug = concat(u[t], s[t-1])                   # (B, d_in + d_state)
+a[t]  = activate(gain · (x_aug · E^T) + bias)  # (B, n_neurons)
+s[t]  = a[t] @ D_state                         # (B, d_state)   ← state decoder
+y     = a[T] @ D_out                           # (B, d_out)     ← output decoder
+```
+
+The **state decoder** `D_state` is the NEF "representational decoder" — it
+extracts a low-dimensional state summary from the population at each step and
+feeds it back through the encoders.  The **output decoder** `D_out` is the
+"transformational decoder" applied at the final timestep to produce the task
+prediction.  The dynamics matrix is implicit in the encoder weights that
+project both external input and feedback state into neuron space.
+
+```python
+from leenef.recurrent import RecurrentNEFLayer
+
+layer = RecurrentNEFLayer(d_in=28, n_neurons=1000, d_out=10, d_state=28)
+
+# Training strategies (same three as feedforward)
+layer.fit_greedy(seq, targets, n_iters=5)
+layer.fit_hybrid(seq, targets, n_iters=20, lr=1e-3, loss="ce")
+layer.fit_end_to_end(seq, targets, n_epochs=30, lr=1e-3, loss="ce")
+
+# Inference: (B, T, d_in) → (B, d_out)
+predictions = layer(x_test_seq)
+```
+
+### Recurrent results — Sequential MNIST
+
+Row-by-row sMNIST: each image is a sequence of 28 rows (T=28, d=28),
+classified at the final timestep.
+
+| Model                         | Test accuracy | Time   |
+|-------------------------------|---------------|--------|
+| RecNEF-greedy (2000n, 5 iter) |  ~18%         |  ~60s  |
+| RecNEF-hybrid (1000n, 20 iter)|  ~56%         |  ~300s |
+| RecNEF-E2E (1000n, 30 epochs) | **98.1%**     |  257s  |
+| LSTM-128 (20 epochs)          | **98.5%**     |  103s  |
+
+**The feedforward NEF advantage does not transfer to recurrence.**  In
+feedforward, random encoders work because each input is encoded
+independently.  In the recurrent case, the state decoder feeds noisy
+state estimates back into the encoders, compounding errors across
+timesteps.  The iterative greedy solve never converges — ~18% regardless of
+neuron count or iterations.  Hybrid is hurt by the analytic D_out solve
+resetting decoders each iteration, fighting the gradient learning of state
+decoders.
+
+End-to-end BPTT works well (98.1%), nearly matching LSTM (98.5%).  The
+greedy initialisation provides a starting point, but essentially all
+learning happens during SGD.  This is consistent with the NEF view: the
+architecture (decode-then-re-encode loop) is sound, but the recurrent
+dynamics require gradient-trained parameters to learn useful state
+representations.
+
 ## Divergences from canonical NEF
 
 This implementation adapts the NEF framework for supervised learning and
@@ -366,10 +428,12 @@ a data point.
 |--------|---------|
 | `leenef/encoders.py` | Random encoder generation (hypersphere, Gaussian, sparse) |
 | `leenef/activations.py` | Rate-based neuron models (ReLU, softplus, LIF rate, abs) |
-| `leenef/solvers.py` | Decoder solvers (lstsq, Tikhonov, Cholesky) |
+| `leenef/solvers.py` | Decoder solvers (lstsq, Tikhonov, Cholesky, normal equations) |
 | `leenef/layers.py` | `NEFLayer(nn.Module)` — encode → activate → decode |
 | `leenef/networks.py` | `NEFNetwork(nn.Module)` — multi-layer with greedy/hybrid/e2e |
+| `leenef/recurrent.py` | `RecurrentNEFLayer(nn.Module)` — temporal decode-then-re-encode loop |
 | `benchmarks/run.py` | Benchmark harness with single-layer, multi-layer, and MLP baselines |
+| `benchmarks/run_recurrent.py` | Sequential MNIST benchmark for recurrent NEF and LSTM baseline |
 | `benchmarks/plot.py` | Visualisation script (generates `docs/*.png`) |
 
 ## References

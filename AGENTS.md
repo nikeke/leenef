@@ -70,6 +70,14 @@ output layer decodes.  Three training strategies are supported:
   Gain can be scalar, range tuple, or per-neuron tensor (`_gain` buffer).
 - `networks.py` — `NEFNetwork(nn.Module)` stacks NEFLayers with the three
   training strategies above.  Also supports `hybrid_e2e` (hybrid → E2E).
+- `recurrent.py` — `RecurrentNEFLayer(nn.Module)` implements the NEF
+  decode-then-re-encode feedback loop for temporal sequences.  State
+  decoders close the recurrent loop; output decoders produce the task
+  prediction at the final timestep.  Same three strategies (greedy/hybrid/
+  E2E), but only E2E produces competitive results — greedy and hybrid
+  struggle because random encoders compound state feedback noise across
+  timesteps.  `solve_from_normal_equations` in `solvers.py` avoids
+  materialising the full T×B activity matrix during greedy solve.
 
 ## Conventions
 
