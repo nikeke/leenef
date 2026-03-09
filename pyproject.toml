@@ -3,15 +3,25 @@ name = "leenef"
 version = "0.1.0"
 description = "Supervised learning experiments with the Neural Engineering Framework (Eliasmith & Anderson)"
 requires-python = ">=3.12"
+license = "MIT"
+authors = [
+    {name = "Nikša Bosnić", email = "nikeke@otpisani.net"},
+]
 dependencies = [
     "torch>=2.0",
     "torchvision>=0.15",
     "scikit-learn>=1.3",
 ]
 
+[project.urls]
+Repository = "https://github.com/nikeke/leenef"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
+]
+bench = [
+    "matplotlib>=3.8",
 ]
 
 [build-system]
