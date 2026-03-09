@@ -1,14 +1,15 @@
 """Tests for leenef core modules."""
 
-import torch
 import pytest
-from leenef.encoders import make_encoders, uniform_hypersphere, gaussian, sparse
-from leenef.activations import make_activation, LIFRate
-from leenef.solvers import solve_decoders, lstsq, tikhonov, normal_equations
-from leenef.layers import NEFLayer
+import torch
 
+from leenef.activations import LIFRate, make_activation
+from leenef.encoders import gaussian, make_encoders, sparse, uniform_hypersphere
+from leenef.layers import NEFLayer
+from leenef.solvers import lstsq, normal_equations, solve_decoders, tikhonov
 
 # ── Encoders ──────────────────────────────────────────────────────────
+
 
 class TestEncoders:
     def test_hypersphere_shape(self):
@@ -40,6 +41,7 @@ class TestEncoders:
 
 # ── Activations ───────────────────────────────────────────────────────
 
+
 class TestActivations:
     def test_relu(self):
         act = make_activation("relu")
@@ -66,6 +68,7 @@ class TestActivations:
 
 
 # ── Solvers ───────────────────────────────────────────────────────────
+
 
 class TestSolvers:
     @pytest.fixture
@@ -110,6 +113,7 @@ class TestSolvers:
 
 # ── NEFLayer ──────────────────────────────────────────────────────────
 
+
 class TestNEFLayer:
     def test_shape(self):
         layer = NEFLayer(10, 200, 3)
@@ -132,7 +136,7 @@ class TestNEFLayer:
         torch.manual_seed(2)
         layer = NEFLayer(1, 1000, 1)
         x = torch.linspace(-1, 1, 300).unsqueeze(1)
-        y = x ** 2
+        y = x**2
         layer.fit(x, y, solver="tikhonov", alpha=1e-4)
         pred = layer(x)
         mse = (pred - y).pow(2).mean().item()
@@ -143,11 +147,13 @@ class TestNEFLayer:
         torch.manual_seed(3)
         layer = NEFLayer(2, 500, 3)
         # Three clusters
-        x = torch.cat([
-            torch.randn(100, 2) + torch.tensor([2.0, 0.0]),
-            torch.randn(100, 2) + torch.tensor([-2.0, 0.0]),
-            torch.randn(100, 2) + torch.tensor([0.0, 2.0]),
-        ])
+        x = torch.cat(
+            [
+                torch.randn(100, 2) + torch.tensor([2.0, 0.0]),
+                torch.randn(100, 2) + torch.tensor([-2.0, 0.0]),
+                torch.randn(100, 2) + torch.tensor([0.0, 2.0]),
+            ]
+        )
         labels = torch.cat([torch.zeros(100), torch.ones(100), 2 * torch.ones(100)]).long()
         targets = torch.zeros(300, 3)
         targets.scatter_(1, labels.unsqueeze(1), 1.0)
@@ -236,6 +242,7 @@ class TestNEFLayer:
 
 # ── Exception paths ───────────────────────────────────────────────────
 
+
 class TestExceptions:
     def test_bad_encoder_strategy(self):
         with pytest.raises(ValueError, match="Unknown encoder strategy"):
@@ -247,8 +254,7 @@ class TestExceptions:
 
     def test_bad_solver(self):
         with pytest.raises(ValueError, match="Unknown solver"):
-            solve_decoders(torch.randn(10, 5), torch.randn(10, 1),
-                           method="nonexistent")
+            solve_decoders(torch.randn(10, 5), torch.randn(10, 1), method="nonexistent")
 
     def test_bad_sparsity(self):
         with pytest.raises(ValueError, match="sparsity"):
@@ -268,11 +274,13 @@ class TestExceptions:
 
     def test_gain_tensor_wrong_shape(self):
         from leenef.layers import _make_gain
+
         with pytest.raises(ValueError, match="gain tensor must have shape"):
             _make_gain(torch.ones(5), n_neurons=10)
 
 
 # ── Abs activation ────────────────────────────────────────────────────
+
 
 class TestAbs:
     def test_abs_activation(self):

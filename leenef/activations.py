@@ -12,8 +12,7 @@ class LIFRate(nn.Module):
     for x > 1, else 0.  Operates on the pre-activation (gain * e·x + bias).
     """
 
-    def __init__(self, tau_rc: float = 0.02, tau_ref: float = 0.002,
-                 amplitude: float = 1.0):
+    def __init__(self, tau_rc: float = 0.02, tau_ref: float = 0.002, amplitude: float = 1.0):
         super().__init__()
         self.tau_rc = tau_rc
         self.tau_ref = tau_ref
@@ -45,6 +44,5 @@ ACTIVATIONS = {
 def make_activation(name: str = "relu", **kwargs) -> nn.Module:
     """Create an activation by name."""
     if name not in ACTIVATIONS:
-        raise ValueError(
-            f"Unknown activation {name!r}. Available: {sorted(ACTIVATIONS)}")
+        raise ValueError(f"Unknown activation {name!r}. Available: {sorted(ACTIVATIONS)}")
     return ACTIVATIONS[name](**kwargs)

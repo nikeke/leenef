@@ -1,10 +1,10 @@
 """leenef — NEF supervised learning experiments."""
 
+from .activations import ACTIVATIONS, make_activation
+from .encoders import ENCODER_STRATEGIES, make_encoders
 from .layers import NEFLayer
 from .networks import NEFNetwork
-from .encoders import make_encoders, ENCODER_STRATEGIES
-from .activations import make_activation, ACTIVATIONS
-from .solvers import solve_decoders, SOLVERS
+from .solvers import SOLVERS, solve_decoders
 
 __all__ = [
     "NEFLayer",

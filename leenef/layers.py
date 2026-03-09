@@ -4,14 +4,14 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 
-from .encoders import make_encoders
 from .activations import make_activation
+from .encoders import make_encoders
 from .solvers import solve_decoders
 
 
-def _make_gain(spec: float | tuple[float, float] | Tensor,
-               n_neurons: int,
-               rng: torch.Generator | None = None) -> Tensor:
+def _make_gain(
+    spec: float | tuple[float, float] | Tensor, n_neurons: int, rng: torch.Generator | None = None
+) -> Tensor:
     """Build a per-neuron gain vector from a gain specification.
 
     Args:
@@ -21,8 +21,8 @@ def _make_gain(spec: float | tuple[float, float] | Tensor,
     if isinstance(spec, Tensor):
         if spec.shape != (n_neurons,):
             raise ValueError(
-                f"gain tensor must have shape ({n_neurons},), "
-                f"got {tuple(spec.shape)}")
+                f"gain tensor must have shape ({n_neurons},), got {tuple(spec.shape)}"
+            )
         return spec.float()
     if isinstance(spec, tuple):
         lo, hi = spec
@@ -42,14 +42,19 @@ class NEFLayer(nn.Module):
               for per-neuron uniform sampling, or a ``Tensor(n_neurons,)``.
     """
 
-    def __init__(self, d_in: int, n_neurons: int, d_out: int,
-                 activation: str = "abs",
-                 encoder_strategy: str = "hypersphere",
-                 trainable_encoders: bool = False,
-                 gain: float | tuple[float, float] | Tensor = 1.0,
-                 rng: torch.Generator | None = None,
-                 centers: Tensor | None = None,
-                 **act_kwargs):
+    def __init__(
+        self,
+        d_in: int,
+        n_neurons: int,
+        d_out: int,
+        activation: str = "abs",
+        encoder_strategy: str = "hypersphere",
+        trainable_encoders: bool = False,
+        gain: float | tuple[float, float] | Tensor = 1.0,
+        rng: torch.Generator | None = None,
+        centers: Tensor | None = None,
+        **act_kwargs,
+    ):
         super().__init__()
         self.d_in = d_in
         self.n_neurons = n_neurons
@@ -79,8 +84,7 @@ class NEFLayer(nn.Module):
         self.activation = make_activation(activation, **act_kwargs)
 
         # Decoders — always a parameter so it participates in state_dict
-        self.decoders = nn.Parameter(torch.zeros(n_neurons, d_out),
-                                     requires_grad=False)
+        self.decoders = nn.Parameter(torch.zeros(n_neurons, d_out), requires_grad=False)
 
     @property
     def gain(self) -> Tensor:
@@ -94,22 +98,17 @@ class NEFLayer(nn.Module):
     @torch.no_grad()
     def set_centers(self, centers: Tensor) -> None:
         """Recompute biases from data-driven centers."""
-        idx = torch.randint(len(centers), (self.n_neurons,),
-                            generator=self._rng)
-        self.bias.data.copy_(
-            -self._gain * (centers[idx].float() * self.encoders.data).sum(dim=1)
-        )
+        idx = torch.randint(len(centers), (self.n_neurons,), generator=self._rng)
+        self.bias.data.copy_(-self._gain * (centers[idx].float() * self.encoders.data).sum(dim=1))
 
     def forward(self, x: Tensor) -> Tensor:
         """Full forward pass: encode → decode."""
         if x.dim() != 2 or x.shape[1] != self.d_in:
-            raise ValueError(
-                f"Expected input shape (N, {self.d_in}), got {tuple(x.shape)}")
+            raise ValueError(f"Expected input shape (N, {self.d_in}), got {tuple(x.shape)}")
         return self.encode(x) @ self.decoders
 
     @torch.no_grad()
-    def fit(self, x: Tensor, targets: Tensor,
-            solver: str = "tikhonov", **solver_kwargs) -> None:
+    def fit(self, x: Tensor, targets: Tensor, solver: str = "tikhonov", **solver_kwargs) -> None:
         """Analytically solve for decoders given input-target pairs.
 
         Args:
@@ -120,7 +119,8 @@ class NEFLayer(nn.Module):
         if x.shape[0] != targets.shape[0]:
             raise ValueError(
                 f"x and targets must have same number of samples, "
-                f"got {x.shape[0]} vs {targets.shape[0]}")
+                f"got {x.shape[0]} vs {targets.shape[0]}"
+            )
         A = self.encode(x)
         D = solve_decoders(A, targets, method=solver, **solver_kwargs)
         self.decoders.data.copy_(D)

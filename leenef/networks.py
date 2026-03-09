@@ -10,8 +10,7 @@ from .layers import NEFLayer
 def _ce_targets(targets: Tensor) -> Tensor:
     """Convert one-hot targets to class indices for CrossEntropyLoss."""
     if targets.dim() != 2:
-        raise ValueError(
-            f"CE loss requires 2-D one-hot targets, got shape {tuple(targets.shape)}")
+        raise ValueError(f"CE loss requires 2-D one-hot targets, got shape {tuple(targets.shape)}")
     return targets.argmax(dim=1)
 
 
@@ -28,15 +27,19 @@ class NEFNetwork(nn.Module):
         fit_end_to_end — standard SGD with NEF-initialised weights
     """
 
-    def __init__(self, d_in: int, d_out: int,
-                 hidden_neurons: list[int],
-                 output_neurons: int = 2000,
-                 activation: str = "abs",
-                 encoder_strategy: str = "hypersphere",
-                 gain: float | tuple[float, float] | Tensor = 1.0,
-                 rng: torch.Generator | None = None,
-                 centers: Tensor | None = None,
-                 **act_kwargs):
+    def __init__(
+        self,
+        d_in: int,
+        d_out: int,
+        hidden_neurons: list[int],
+        output_neurons: int = 2000,
+        activation: str = "abs",
+        encoder_strategy: str = "hypersphere",
+        gain: float | tuple[float, float] | Tensor = 1.0,
+        rng: torch.Generator | None = None,
+        centers: Tensor | None = None,
+        **act_kwargs,
+    ):
         super().__init__()
         self._activation = activation
         self._encoder_strategy = encoder_strategy
@@ -46,19 +49,35 @@ class NEFNetwork(nn.Module):
             # Only the first layer uses data-driven centers at construction;
             # deeper layers get centers via propagate_centers() after init.
             layer_centers = centers if i == 0 else None
-            self.hidden.append(NEFLayer(
-                prev_dim, n, 1,
-                activation=activation, encoder_strategy=encoder_strategy,
-                trainable_encoders=True, gain=gain, rng=rng,
-                centers=layer_centers, **act_kwargs))
+            self.hidden.append(
+                NEFLayer(
+                    prev_dim,
+                    n,
+                    1,
+                    activation=activation,
+                    encoder_strategy=encoder_strategy,
+                    trainable_encoders=True,
+                    gain=gain,
+                    rng=rng,
+                    centers=layer_centers,
+                    **act_kwargs,
+                )
+            )
             prev_dim = n
         # Output layer uses centers only when there are no hidden layers
         out_centers = centers if len(hidden_neurons) == 0 else None
         self.output = NEFLayer(
-            prev_dim, output_neurons, d_out,
-            activation=activation, encoder_strategy=encoder_strategy,
-            trainable_encoders=True, gain=gain, rng=rng,
-            centers=out_centers, **act_kwargs)
+            prev_dim,
+            output_neurons,
+            d_out,
+            activation=activation,
+            encoder_strategy=encoder_strategy,
+            trainable_encoders=True,
+            gain=gain,
+            rng=rng,
+            centers=out_centers,
+            **act_kwargs,
+        )
 
         # Propagate data-driven biases to deeper layers
         if centers is not None and len(hidden_neurons) > 0:
@@ -91,8 +110,9 @@ class NEFNetwork(nn.Module):
     # ------------------------------------------------------------------
 
     @torch.no_grad()
-    def fit_greedy(self, x: Tensor, targets: Tensor,
-                   solver: str = "tikhonov", **solver_kw) -> None:
+    def fit_greedy(
+        self, x: Tensor, targets: Tensor, solver: str = "tikhonov", **solver_kw
+    ) -> None:
         """Random hidden features → analytic output decoders."""
         h = x
         for layer in self.hidden:
@@ -103,16 +123,21 @@ class NEFNetwork(nn.Module):
     # Strategy B — hybrid: analytic decoders + gradient encoder updates
     # ------------------------------------------------------------------
 
-    def fit_hybrid(self, x: Tensor, targets: Tensor,
-                   n_iters: int = 10, lr: float = 1e-3,
-                   solver: str = "tikhonov",
-                   loss: str = "mse",
-                   schedule: bool = False,
-                   init: str = "random",
-                   batch_size: int | None = None,
-                   grad_steps: int = 1,
-                   centers: Tensor | None = None,
-                   **solver_kw) -> None:
+    def fit_hybrid(
+        self,
+        x: Tensor,
+        targets: Tensor,
+        n_iters: int = 10,
+        lr: float = 1e-3,
+        solver: str = "tikhonov",
+        loss: str = "mse",
+        schedule: bool = False,
+        init: str = "random",
+        batch_size: int | None = None,
+        grad_steps: int = 1,
+        centers: Tensor | None = None,
+        **solver_kw,
+    ) -> None:
         """Alternate between analytic decoder solves and encoder gradient steps.
 
         Each iteration: (1) solve output decoders from current activities,
@@ -136,10 +161,14 @@ class NEFNetwork(nn.Module):
         # --- optional incremental initialisation ---
         if init == "incremental" and len(self.hidden) > 0:
             h0 = self.hidden[0]
-            tmp = NEFLayer(h0.d_in, h0.n_neurons, self.output.d_out,
-                           activation=self._activation,
-                           encoder_strategy=self._encoder_strategy,
-                           centers=centers)
+            tmp = NEFLayer(
+                h0.d_in,
+                h0.n_neurons,
+                self.output.d_out,
+                activation=self._activation,
+                encoder_strategy=self._encoder_strategy,
+                centers=centers,
+            )
             tmp.fit(x, targets, solver=solver, **solver_kw)
             h0.encoders.data.copy_(tmp.encoders.data)
             h0.bias.data.copy_(tmp.bias.data)
@@ -155,8 +184,11 @@ class NEFNetwork(nn.Module):
         # --- optimiser + optional schedule ---
         enc_params = [p for p in self.parameters() if p.requires_grad]
         optimizer = torch.optim.Adam(enc_params, lr=lr)
-        scheduler = (torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=n_iters) if schedule else None)
+        scheduler = (
+            torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=n_iters)
+            if schedule
+            else None
+        )
 
         # --- optional mini-batch loader ---
         if batch_size is not None:
@@ -164,7 +196,8 @@ class NEFNetwork(nn.Module):
             g = torch.Generator()
             g.manual_seed(0)
             loader = torch.utils.data.DataLoader(
-                dataset, batch_size=batch_size, shuffle=True, generator=g)
+                dataset, batch_size=batch_size, shuffle=True, generator=g
+            )
 
         for _ in range(n_iters):
             # Analytic decoder solve (always full-batch, always MSE)
@@ -176,18 +209,18 @@ class NEFNetwork(nn.Module):
                 steps = 0
                 for xb, yb in loader:
                     pred = self.forward(xb)
-                    l = loss_fn(pred, yb)
+                    batch_loss = loss_fn(pred, yb)
                     optimizer.zero_grad()
-                    l.backward()
+                    batch_loss.backward()
                     optimizer.step()
                     steps += 1
                     if steps >= grad_steps:
                         break
             else:
                 pred = self.forward(x)
-                l = loss_fn(pred, grad_targets)
+                batch_loss = loss_fn(pred, grad_targets)
                 optimizer.zero_grad()
-                l.backward()
+                batch_loss.backward()
                 optimizer.step()
 
             if scheduler is not None:
@@ -201,16 +234,14 @@ class NEFNetwork(nn.Module):
     # Strategy C — end-to-end SGD with NEF initialisation
     # ------------------------------------------------------------------
 
-    def _sgd_train(self, x: Tensor, targets: Tensor,
-                   n_epochs: int, lr: float, batch_size: int,
-                   loss: str) -> None:
+    def _sgd_train(
+        self, x: Tensor, targets: Tensor, n_epochs: int, lr: float, batch_size: int, loss: str
+    ) -> None:
         """Shared SGD training loop used by fit_end_to_end and fit_hybrid_e2e."""
         self.output.decoders.requires_grad_(True)
         try:
-            optimizer = torch.optim.Adam(
-                [p for p in self.parameters() if p.requires_grad], lr=lr)
-            scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-                optimizer, T_max=n_epochs)
+            optimizer = torch.optim.Adam([p for p in self.parameters() if p.requires_grad], lr=lr)
+            scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=n_epochs)
 
             if loss == "ce":
                 loss_fn = nn.CrossEntropyLoss()
@@ -223,23 +254,29 @@ class NEFNetwork(nn.Module):
             g = torch.Generator()
             g.manual_seed(0)
             loader = torch.utils.data.DataLoader(
-                dataset, batch_size=batch_size, shuffle=True, generator=g)
+                dataset, batch_size=batch_size, shuffle=True, generator=g
+            )
 
             for _ in range(n_epochs):
                 for xb, yb in loader:
                     pred = self.forward(xb)
-                    l = loss_fn(pred, yb)
+                    batch_loss = loss_fn(pred, yb)
                     optimizer.zero_grad()
-                    l.backward()
+                    batch_loss.backward()
                     optimizer.step()
                 scheduler.step()
         finally:
             self.output.decoders.requires_grad_(False)
 
-    def fit_end_to_end(self, x: Tensor, targets: Tensor,
-                       n_epochs: int = 50, lr: float = 1e-3,
-                       batch_size: int = 256,
-                       loss: str = "mse") -> None:
+    def fit_end_to_end(
+        self,
+        x: Tensor,
+        targets: Tensor,
+        n_epochs: int = 50,
+        lr: float = 1e-3,
+        batch_size: int = 256,
+        loss: str = "mse",
+    ) -> None:
         """Standard SGD on all parameters, initialised via greedy NEF solve.
 
         Args:
@@ -254,19 +291,24 @@ class NEFNetwork(nn.Module):
     # Strategy D — hybrid then end-to-end refinement
     # ------------------------------------------------------------------
 
-    def fit_hybrid_e2e(self, x: Tensor, targets: Tensor,
-                       n_iters: int = 10, hybrid_lr: float = 1e-3,
-                       solver: str = "tikhonov",
-                       n_epochs: int = 20, e2e_lr: float = 1e-3,
-                       batch_size: int = 256,
-                       loss: str = "ce",
-                       **hybrid_kw) -> None:
+    def fit_hybrid_e2e(
+        self,
+        x: Tensor,
+        targets: Tensor,
+        n_iters: int = 10,
+        hybrid_lr: float = 1e-3,
+        solver: str = "tikhonov",
+        n_epochs: int = 20,
+        e2e_lr: float = 1e-3,
+        batch_size: int = 256,
+        loss: str = "ce",
+        **hybrid_kw,
+    ) -> None:
         """Run hybrid training, then refine with end-to-end SGD.
 
         First phase uses ``fit_hybrid`` to learn good encoder orientations
         with analytic decoders.  Second phase runs full SGD (including
         decoders) from that warm start — no greedy reset.
         """
-        self.fit_hybrid(x, targets, n_iters=n_iters, lr=hybrid_lr,
-                        solver=solver, **hybrid_kw)
+        self.fit_hybrid(x, targets, n_iters=n_iters, lr=hybrid_lr, solver=solver, **hybrid_kw)
         self._sgd_train(x, targets, n_epochs, e2e_lr, batch_size, loss)

@@ -33,8 +33,7 @@ def tikhonov(activities: Tensor, targets: Tensor, alpha: float = 1e-2) -> Tensor
     return torch.linalg.solve(ATA, A.T @ targets)
 
 
-def normal_equations(activities: Tensor, targets: Tensor,
-                     alpha: float = 1e-2) -> Tensor:
+def normal_equations(activities: Tensor, targets: Tensor, alpha: float = 1e-2) -> Tensor:
     """L2-regularised normal equations via Cholesky — fast for large N, moderate n_neurons."""
     A = activities
     ATA = A.T @ A
@@ -52,10 +51,10 @@ SOLVERS = {
 }
 
 
-def solve_decoders(activities: Tensor, targets: Tensor,
-                   method: str = "tikhonov", **kwargs) -> Tensor:
+def solve_decoders(
+    activities: Tensor, targets: Tensor, method: str = "tikhonov", **kwargs
+) -> Tensor:
     """Solve for decoders using a named method."""
     if method not in SOLVERS:
-        raise ValueError(
-            f"Unknown solver {method!r}. Available: {sorted(SOLVERS)}")
+        raise ValueError(f"Unknown solver {method!r}. Available: {sorted(SOLVERS)}")
     return SOLVERS[method](activities, targets, **kwargs)

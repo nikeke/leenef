@@ -1,19 +1,25 @@
 """Tests for multi-layer NEFNetwork."""
 
-import torch
 import pytest
+import torch
 
 from leenef.networks import NEFNetwork, _ce_targets
 
 
 def _make_net(d_in=4, d_out=2, hidden=None, output_n=200, **kw):
     hidden = hidden or [100]
-    return NEFNetwork(d_in, d_out, hidden_neurons=hidden,
-                      output_neurons=output_n,
-                      rng=torch.Generator().manual_seed(42), **kw)
+    return NEFNetwork(
+        d_in,
+        d_out,
+        hidden_neurons=hidden,
+        output_neurons=output_n,
+        rng=torch.Generator().manual_seed(42),
+        **kw,
+    )
 
 
 # ---- Architecture ----
+
 
 class TestArchitecture:
     def test_forward_shape(self):
@@ -42,6 +48,7 @@ class TestArchitecture:
 
 # ---- Strategy A: greedy ----
 
+
 class TestGreedy:
     def test_fit_identity(self):
         torch.manual_seed(0)
@@ -55,7 +62,7 @@ class TestGreedy:
     def test_fit_quadratic(self):
         torch.manual_seed(1)
         x = torch.rand(600, 1) * 2 - 1
-        y = x ** 2
+        y = x**2
         net = _make_net(d_in=1, d_out=1, hidden=[300], output_n=500)
         net.fit_greedy(x, y)
         with torch.no_grad():
@@ -77,6 +84,7 @@ class TestGreedy:
 
 # ---- Strategy B: hybrid ----
 
+
 class TestHybrid:
     def test_improves_over_greedy(self):
         torch.manual_seed(3)
@@ -93,8 +101,9 @@ class TestHybrid:
         with torch.no_grad():
             hybrid_err = (hybrid(x) - y).pow(2).mean().item()
 
-        assert hybrid_err < greedy_err, \
+        assert hybrid_err < greedy_err, (
             f"hybrid ({hybrid_err:.4f}) should beat greedy ({greedy_err:.4f})"
+        )
 
     def test_multiclass(self):
         torch.manual_seed(4)
@@ -134,8 +143,7 @@ class TestHybrid:
         labels = (x[:, 0] + x[:, 1] > 0).long()
         targets = torch.zeros(400, 2).scatter_(1, labels.unsqueeze(1), 1.0)
         net = _make_net(d_in=4, d_out=2, hidden=[200], output_n=400)
-        net.fit_hybrid(x, targets, n_iters=10, lr=1e-3,
-                       init="incremental", centers=x)
+        net.fit_hybrid(x, targets, n_iters=10, lr=1e-3, init="incremental", centers=x)
         with torch.no_grad():
             acc = (net(x).argmax(1) == labels).float().mean().item()
         assert acc > 0.90, f"hybrid incremental accuracy too low: {acc}"
@@ -146,14 +154,14 @@ class TestHybrid:
         labels = (x[:, 0] + x[:, 1] > 0).long()
         targets = torch.zeros(400, 2).scatter_(1, labels.unsqueeze(1), 1.0)
         net = _make_net(d_in=4, d_out=2, hidden=[200], output_n=400)
-        net.fit_hybrid(x, targets, n_iters=10, lr=1e-3,
-                       batch_size=64, grad_steps=3)
+        net.fit_hybrid(x, targets, n_iters=10, lr=1e-3, batch_size=64, grad_steps=3)
         with torch.no_grad():
             acc = (net(x).argmax(1) == labels).float().mean().item()
         assert acc > 0.85, f"hybrid mini-batch accuracy too low: {acc}"
 
 
 # ---- Strategy C: end-to-end ----
+
 
 class TestEndToEnd:
     def test_improves_over_greedy(self):
@@ -171,8 +179,9 @@ class TestEndToEnd:
         with torch.no_grad():
             e2e_err = (e2e(x) - y).pow(2).mean().item()
 
-        assert e2e_err < greedy_err, \
+        assert e2e_err < greedy_err, (
             f"end-to-end ({e2e_err:.4f}) should beat greedy ({greedy_err:.4f})"
+        )
 
     def test_decoders_frozen_after(self):
         """Decoders should have requires_grad=False after fit_end_to_end."""
@@ -185,6 +194,7 @@ class TestEndToEnd:
 
 # ---- Strategy D: hybrid → E2E ----
 
+
 class TestHybridE2E:
     def test_runs_and_improves(self):
         torch.manual_seed(6)
@@ -192,9 +202,16 @@ class TestHybridE2E:
         labels = (x[:, 0] + x[:, 1] > 0).long()
         targets = torch.zeros(400, 2).scatter_(1, labels.unsqueeze(1), 1.0)
         net = _make_net(d_in=4, d_out=2, hidden=[200], output_n=400)
-        net.fit_hybrid_e2e(x, targets, n_iters=5, hybrid_lr=1e-3,
-                           n_epochs=5, e2e_lr=1e-3, batch_size=64,
-                           loss="ce")
+        net.fit_hybrid_e2e(
+            x,
+            targets,
+            n_iters=5,
+            hybrid_lr=1e-3,
+            n_epochs=5,
+            e2e_lr=1e-3,
+            batch_size=64,
+            loss="ce",
+        )
         with torch.no_grad():
             acc = (net(x).argmax(1) == labels).float().mean().item()
         assert acc > 0.90, f"hybrid_e2e accuracy too low: {acc}"
@@ -208,6 +225,7 @@ class TestHybridE2E:
 
 
 # ---- Propagated centers ----
+
 
 class TestPropagateCenters:
     def test_output_bias_changes(self):
@@ -228,25 +246,26 @@ class TestPropagateCenters:
         targets = torch.zeros(400, 2).scatter_(1, labels.unsqueeze(1), 1.0)
 
         # Without centers
-        net_no = NEFNetwork(4, 2, [200], output_neurons=400,
-                            rng=torch.Generator().manual_seed(42))
+        net_no = NEFNetwork(4, 2, [200], output_neurons=400, rng=torch.Generator().manual_seed(42))
         net_no.fit_greedy(x, targets)
         with torch.no_grad():
             acc_no = (net_no(x).argmax(1) == labels).float().mean().item()
 
         # With centers (propagated to all layers)
-        net_yes = NEFNetwork(4, 2, [200], output_neurons=400,
-                             rng=torch.Generator().manual_seed(42),
-                             centers=x)
+        net_yes = NEFNetwork(
+            4, 2, [200], output_neurons=400, rng=torch.Generator().manual_seed(42), centers=x
+        )
         net_yes.fit_greedy(x, targets)
         with torch.no_grad():
             acc_yes = (net_yes(x).argmax(1) == labels).float().mean().item()
 
-        assert acc_yes >= acc_no - 0.02, \
+        assert acc_yes >= acc_no - 0.02, (
             f"centers ({acc_yes:.3f}) should not hurt vs no centers ({acc_no:.3f})"
+        )
 
 
 # ---- Determinism ----
+
 
 class TestDeterminism:
     def test_greedy_deterministic(self):
@@ -255,8 +274,9 @@ class TestDeterminism:
         y = torch.randn(200, 2)
         results = []
         for _ in range(2):
-            net = NEFNetwork(4, 2, [100], output_neurons=200,
-                             rng=torch.Generator().manual_seed(99))
+            net = NEFNetwork(
+                4, 2, [100], output_neurons=200, rng=torch.Generator().manual_seed(99)
+            )
             net.fit_greedy(x, y)
             with torch.no_grad():
                 results.append(net(x))
@@ -264,6 +284,7 @@ class TestDeterminism:
 
 
 # ---- Save/load round-trip ----
+
 
 class TestSaveLoad:
     def test_network_state_dict_round_trip(self):
@@ -284,23 +305,25 @@ class TestSaveLoad:
     def test_per_neuron_gain_survives_save_load(self):
         """Per-neuron gain in state_dict is restored correctly."""
         torch.manual_seed(51)
-        net = NEFNetwork(4, 2, [100], output_neurons=200,
-                         gain=(0.5, 2.0),
-                         rng=torch.Generator().manual_seed(42))
+        net = NEFNetwork(
+            4, 2, [100], output_neurons=200, gain=(0.5, 2.0), rng=torch.Generator().manual_seed(42)
+        )
         x = torch.randn(50, 4)
         y = torch.randn(50, 2)
         net.fit_greedy(x, y)
         out1 = net(x)
 
         state = net.state_dict()
-        net2 = NEFNetwork(4, 2, [100], output_neurons=200, gain=1.0,
-                          rng=torch.Generator().manual_seed(0))
+        net2 = NEFNetwork(
+            4, 2, [100], output_neurons=200, gain=1.0, rng=torch.Generator().manual_seed(0)
+        )
         net2.load_state_dict(state)
         out2 = net2(x)
         assert torch.allclose(out1, out2, atol=1e-5)
 
 
 # ---- Exception paths ----
+
 
 class TestNetworkExceptions:
     def test_ce_targets_requires_2d(self):
