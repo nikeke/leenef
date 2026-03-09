@@ -4,7 +4,7 @@ from .activations import ACTIVATIONS, make_activation
 from .encoders import ENCODER_STRATEGIES, make_encoders
 from .layers import NEFLayer
 from .networks import NEFNetwork
-from .solvers import SOLVERS, solve_decoders
+from .solvers import SOLVERS, solve_decoders, solve_from_normal_equations
 
 __all__ = [
     "NEFLayer",
@@ -14,5 +14,6 @@ __all__ = [
     "make_activation",
     "ACTIVATIONS",
     "solve_decoders",
+    "solve_from_normal_equations",
     "SOLVERS",
 ]

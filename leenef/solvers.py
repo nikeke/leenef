@@ -44,6 +44,27 @@ def normal_equations(activities: Tensor, targets: Tensor, alpha: float = 1e-2) -
     return torch.cholesky_solve(A.T @ targets, L)
 
 
+def solve_from_normal_equations(ATA: Tensor, ATY: Tensor, alpha: float = 1e-2) -> Tensor:
+    """Solve for decoders from precomputed normal equations.
+
+    Useful when activities are accumulated incrementally (e.g. over
+    timesteps in a recurrent layer) to avoid materialising the full
+    activity matrix.
+
+    Args:
+        ATA:   (n_neurons, n_neurons) — accumulated A^T A.
+        ATY:   (n_neurons, d_out) — accumulated A^T targets.
+        alpha: Tikhonov regularisation strength.
+    Returns:
+        decoders: (n_neurons, d_out)
+    """
+    n = ATA.shape[0]
+    ATA = ATA.clone()
+    reg = alpha * torch.trace(ATA) / n
+    ATA.diagonal().add_(reg.clamp(min=alpha))
+    return torch.linalg.solve(ATA, ATY)
+
+
 SOLVERS = {
     "lstsq": lstsq,
     "tikhonov": tikhonov,
