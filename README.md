@@ -105,10 +105,10 @@ python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
 At 2000 neurons, MNIST reaches 95.5% in ~2 seconds — within 3% of a
 fully-trained MLP that takes 40× longer.  Performance scales monotonically
 with neuron count but with severe diminishing returns: 30000 neurons at
-~350 seconds reaches 98.1% on MNIST — close to hybrid's 98.5% at 314
+~350 seconds reaches 98.1% on MNIST — close to hybrid's 98.6% at 355
 seconds, but unable to match it despite using 10× more neurons.  The
 single-layer ceiling on Fashion-MNIST (89.6%) and CIFAR-10 (51.5%) falls
-further short of multi-layer results (90.8% / 58.5%), showing that learned
+further short of multi-layer results (90.9% / 58.4%), showing that learned
 features are essential where brute-force neuron scaling cannot compensate.
 
 #### Why data-driven biases matter (2000 neurons, abs activation)
@@ -199,7 +199,7 @@ encoder state, producing noisy gradients that destabilise encoder learning.
 At α = 10⁻⁵ results collapse entirely (96.4% MNIST, 32.7% CIFAR-10).
 
 **Hybrid→E2E is the best overall strategy.**  Running 50 hybrid iterations
-then 20 E2E epochs (`fit_hybrid_e2e`) reaches 98.7% / 90.8% / 58.5% —
+then 20 E2E epochs (`fit_hybrid_e2e`) reaches 98.6% / 90.9% / 58.4% —
 the highest accuracy on all three datasets.  The hybrid phase learns
 good encoder orientations with analytic decoders; the E2E phase then
 unlocks decoder learning to squeeze out the last gains.
@@ -286,13 +286,13 @@ Generate plots with `python benchmarks/plot.py` (requires matplotlib).
    MNIST).
 
 5. **Hybrid→E2E is the best overall strategy.**  Running hybrid then E2E
-   reaches 98.7% / 90.8% / 58.5% — the highest accuracy on all three
+   reaches 98.6% / 90.9% / 58.4% — the highest accuracy on all three
    datasets.  The hybrid phase learns encoder orientations with analytic
    decoders; the E2E phase unlocks full gradient training to close the
    CIFAR-10 gap.
 
 6. **Hybrid alone surpasses both E2E and MLP on easy datasets.**  With 50
-   iterations and α = 10⁻³, pure hybrid reaches 98.5% MNIST / 90.4%
+   iterations and α = 10⁻³, pure hybrid reaches 98.6% MNIST / 90.3%
    Fashion while preserving analytic decoders.  Iterations dominate all
    other hyperparameters.
 
@@ -312,6 +312,38 @@ Generate plots with `python benchmarks/plot.py` (requires matplotlib).
    Forwarding training data through each layer and using activations as
    centers for the next layer's biases narrows the gap to 0.5%, though
    greedy still cannot match gradient-trained strategies.
+
+10. **Per-neuron gain distributions have limited impact.**  In canonical NEF,
+    each neuron has its own gain sampled from a distribution.  We support
+    this via `gain=(lo, hi)`, but benchmarks show it only helps greedy
+    multi-layer on CIFAR-10 (+1.4% with U(0.5, 2.0)).  Gradient-based
+    methods adapt encoders to compensate, making initial gain diversity
+    redundant.  Default remains uniform gain = 1.0.
+
+## Divergences from canonical NEF
+
+This implementation adapts the NEF framework for supervised learning and
+departs from the original formulation in several ways:
+
+- **Scalar gain per neuron, not gain–intercept pairs.**  Canonical NEF
+  samples (gain, intercept) pairs to produce diverse tuning curves.  We
+  derive intercepts from data-driven centers instead, and support per-neuron
+  gain distributions via `gain=(lo, hi)` though uniform gain works well.
+
+- **Absolute value activation, not spiking neurons.**  We use rate-based
+  activations (default: `abs`) rather than spiking neuron models.  The abs
+  activation gives each neuron a two-sided tuning curve — it responds to
+  deviations in either direction from its preferred point.
+
+- **Encode-only hidden layers.**  In canonical NEF, every population has
+  decoders that extract a representation or transformation.  Our hidden
+  layers pass raw activities to the next layer; only the output layer
+  decodes.  This treats hidden layers as learned representations rather
+  than explicit transformations.
+
+- **Random fallback biases.**  When no training data centers are provided,
+  biases fall back to iid Gaussian samples rather than a principled
+  intercept distribution.  Always pass `centers=x_train` for best results.
 
 ## Related work
 
