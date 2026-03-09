@@ -11,6 +11,10 @@ pytest tests/test_core.py -q                  # core module tests
 pytest tests/test_core.py::TestNEFLayer -q    # single test class
 pytest -k test_fit_identity -q                # single test by name
 
+# Lint
+ruff check leenef/ tests/ benchmarks/        # lint (E/F/W/I rules)
+ruff format --check leenef/ tests/ benchmarks/  # format check
+
 # Install after changing pyproject.toml
 pip install -e '.[dev]'
 ```
@@ -63,8 +67,9 @@ output layer decodes.  Three training strategies are supported:
   `forward()` runs the full pipeline; `fit()` solves decoders analytically.
   Accepts optional `centers=` training data to derive data-driven biases
   (`bias = -gain * (d · e)`), placing each neuron around a training sample.
+  Gain can be scalar, range tuple, or per-neuron tensor (`_gain` buffer).
 - `networks.py` — `NEFNetwork(nn.Module)` stacks NEFLayers with the three
-  training strategies above.
+  training strategies above.  Also supports `hybrid_e2e` (hybrid → E2E).
 
 ## Conventions
 
