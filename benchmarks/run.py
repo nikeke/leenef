@@ -93,6 +93,7 @@ def run_nef_classification(
     solver_kwargs: dict | None = None,
     data_root: str = "./data",
     use_centers: bool = True,
+    gain: float | tuple[float, float] = 1.0,
 ) -> BenchmarkResult:
     """Run a single NEF classification benchmark."""
     solver_kwargs = solver_kwargs or {"alpha": 1e-2}
@@ -105,7 +106,7 @@ def run_nef_classification(
     centers = x_train if use_centers else None
     layer = NEFLayer(x_train.shape[1], n_neurons, n_classes,
                      activation=activation, encoder_strategy=encoder_strategy,
-                     centers=centers)
+                     gain=gain, centers=centers)
 
     t0 = time.perf_counter()
     layer.fit(x_train, targets, solver=solver, **solver_kwargs)
@@ -214,6 +215,7 @@ def run_nef_multi(
     e2e_batch: int = 256,
     data_root: str = "./data",
     use_centers: bool = True,
+    gain: float | tuple[float, float] = 1.0,
 ) -> BenchmarkResult:
     """Run a multi-layer NEFNetwork benchmark."""
     hidden_neurons = hidden_neurons or [1000]
@@ -233,6 +235,7 @@ def run_nef_multi(
                      output_neurons=output_neurons,
                      activation=activation,
                      encoder_strategy=encoder_strategy,
+                     gain=gain,
                      centers=centers)
 
     t0 = time.perf_counter()

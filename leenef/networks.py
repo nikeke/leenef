@@ -33,7 +33,7 @@ class NEFNetwork(nn.Module):
                  output_neurons: int = 2000,
                  activation: str = "abs",
                  encoder_strategy: str = "hypersphere",
-                 gain: float = 1.0,
+                 gain: float | tuple[float, float] | Tensor = 1.0,
                  rng: torch.Generator | None = None,
                  centers: Tensor | None = None,
                  **act_kwargs):

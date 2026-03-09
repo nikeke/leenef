@@ -9,19 +9,44 @@ from .activations import make_activation
 from .solvers import solve_decoders
 
 
+def _make_gain(spec: float | tuple[float, float] | Tensor,
+               n_neurons: int,
+               rng: torch.Generator | None = None) -> Tensor:
+    """Build a per-neuron gain vector from a gain specification.
+
+    Args:
+        spec: ``float`` for uniform gain, ``(low, high)`` tuple for
+              per-neuron uniform sampling, or a pre-built ``Tensor``.
+    """
+    if isinstance(spec, Tensor):
+        if spec.shape != (n_neurons,):
+            raise ValueError(
+                f"gain tensor must have shape ({n_neurons},), "
+                f"got {tuple(spec.shape)}")
+        return spec.float()
+    if isinstance(spec, tuple):
+        lo, hi = spec
+        return lo + (hi - lo) * torch.rand(n_neurons, generator=rng)
+    return torch.full((n_neurons,), spec, dtype=torch.float32)
+
+
 class NEFLayer(nn.Module):
     """Single NEF layer: encode → activate → decode.
 
     Encoders (input weights) are random and optionally trainable.
     Decoders (output weights) are computed analytically via ``fit()``
     or trained with backprop like a normal ``nn.Module``.
+
+    Args:
+        gain: neuron gain — ``float`` for uniform, ``(low, high)`` tuple
+              for per-neuron uniform sampling, or a ``Tensor(n_neurons,)``.
     """
 
     def __init__(self, d_in: int, n_neurons: int, d_out: int,
                  activation: str = "abs",
                  encoder_strategy: str = "hypersphere",
                  trainable_encoders: bool = False,
-                 gain: float = 1.0,
+                 gain: float | tuple[float, float] | Tensor = 1.0,
                  rng: torch.Generator | None = None,
                  centers: Tensor | None = None,
                  **act_kwargs):
@@ -31,8 +56,8 @@ class NEFLayer(nn.Module):
         self.d_out = d_out
         self._rng = rng
 
-        # Gain — stored as buffer for state_dict serialization
-        self.register_buffer("_gain", torch.tensor(gain, dtype=torch.float32))
+        # Per-neuron gain vector, stored as buffer for state_dict
+        self.register_buffer("_gain", _make_gain(gain, n_neurons, rng))
 
         # Encoders
         enc = make_encoders(n_neurons, d_in, strategy=encoder_strategy, rng=rng)
@@ -58,9 +83,9 @@ class NEFLayer(nn.Module):
                                      requires_grad=False)
 
     @property
-    def gain(self) -> float:
-        """Scalar gain value."""
-        return self._gain.item()
+    def gain(self) -> Tensor:
+        """Per-neuron gain vector (n_neurons,)."""
+        return self._gain
 
     def encode(self, x: Tensor) -> Tensor:
         """Compute neuron activities for input x (N, d_in) → (N, n_neurons)."""
