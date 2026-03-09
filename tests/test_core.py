@@ -104,8 +104,7 @@ class TestSolvers:
     def test_solve_decoders_dispatch(self, linear_data):
         A, y = linear_data
         for method in ("lstsq", "tikhonov", "cholesky"):
-            kw = {"alpha": 1e-4} if method != "lstsq" else {}
-            D = solve_decoders(A, y, method=method, **kw)
+            D = solve_decoders(A, y, method=method, alpha=1e-4)
             assert D.shape == (50, 1)
 
 
@@ -187,3 +186,97 @@ class TestNEFLayer:
         pred = layer(x)
         mse = (pred - x).pow(2).mean().item()
         assert mse < 0.01
+
+    def test_per_neuron_gain_tuple(self):
+        """Tuple gain creates per-neuron diversity."""
+        torch.manual_seed(20)
+        layer = NEFLayer(5, 100, 2, gain=(0.5, 2.0))
+        assert layer.gain.shape == (100,)
+        assert layer.gain.min() >= 0.5
+        assert layer.gain.max() <= 2.0
+        assert not torch.all(layer.gain == layer.gain[0])  # not all same
+
+    def test_per_neuron_gain_tensor(self):
+        """Explicit tensor gain."""
+        g = torch.linspace(0.5, 2.0, 100)
+        layer = NEFLayer(5, 100, 2, gain=g)
+        assert torch.equal(layer.gain, g)
+
+    def test_per_neuron_gain_float(self):
+        """Float gain fills all neurons with the same value."""
+        layer = NEFLayer(5, 100, 2, gain=2.5)
+        assert layer.gain.shape == (100,)
+        assert torch.allclose(layer.gain, torch.full((100,), 2.5))
+
+    def test_set_centers(self):
+        """set_centers should change biases."""
+        torch.manual_seed(30)
+        layer = NEFLayer(10, 200, 3)
+        old_bias = layer.bias.data.clone()
+        data = torch.randn(500, 10)
+        layer.set_centers(data)
+        assert not torch.allclose(old_bias, layer.bias.data)
+
+    def test_state_dict_round_trip(self):
+        """Save/load round-trip preserves output including per-neuron gain."""
+        torch.manual_seed(40)
+        layer = NEFLayer(3, 200, 2, gain=(0.5, 2.0))
+        x = torch.randn(100, 3)
+        y = torch.randn(100, 2)
+        layer.fit(x, y)
+        out1 = layer(x)
+
+        # Save and reload
+        state = layer.state_dict()
+        layer2 = NEFLayer(3, 200, 2, gain=1.0)  # different gain spec
+        layer2.load_state_dict(state)
+        out2 = layer2(x)
+        assert torch.allclose(out1, out2, atol=1e-5)
+
+
+# ── Exception paths ───────────────────────────────────────────────────
+
+class TestExceptions:
+    def test_bad_encoder_strategy(self):
+        with pytest.raises(ValueError, match="Unknown encoder strategy"):
+            make_encoders(10, 5, strategy="nonexistent")
+
+    def test_bad_activation(self):
+        with pytest.raises(ValueError, match="Unknown activation"):
+            make_activation("nonexistent")
+
+    def test_bad_solver(self):
+        with pytest.raises(ValueError, match="Unknown solver"):
+            solve_decoders(torch.randn(10, 5), torch.randn(10, 1),
+                           method="nonexistent")
+
+    def test_bad_sparsity(self):
+        with pytest.raises(ValueError, match="sparsity"):
+            sparse(10, 5, sparsity=1.0)
+        with pytest.raises(ValueError, match="sparsity"):
+            sparse(10, 5, sparsity=-0.1)
+
+    def test_forward_shape_mismatch(self):
+        layer = NEFLayer(10, 100, 2)
+        with pytest.raises(ValueError, match="Expected input shape"):
+            layer(torch.randn(5, 7))
+
+    def test_fit_sample_mismatch(self):
+        layer = NEFLayer(3, 100, 2)
+        with pytest.raises(ValueError, match="same number of samples"):
+            layer.fit(torch.randn(10, 3), torch.randn(20, 2))
+
+    def test_gain_tensor_wrong_shape(self):
+        from leenef.layers import _make_gain
+        with pytest.raises(ValueError, match="gain tensor must have shape"):
+            _make_gain(torch.ones(5), n_neurons=10)
+
+
+# ── Abs activation ────────────────────────────────────────────────────
+
+class TestAbs:
+    def test_abs_activation(self):
+        act = make_activation("abs")
+        x = torch.tensor([-2.0, -1.0, 0.0, 1.0, 2.0])
+        expected = torch.tensor([2.0, 1.0, 0.0, 1.0, 2.0])
+        assert torch.equal(act(x), expected)

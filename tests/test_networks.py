@@ -3,7 +3,7 @@
 import torch
 import pytest
 
-from leenef.networks import NEFNetwork
+from leenef.networks import NEFNetwork, _ce_targets
 
 
 def _make_net(d_in=4, d_out=2, hidden=None, output_n=200, **kw):
@@ -244,3 +244,65 @@ class TestPropagateCenters:
 
         assert acc_yes >= acc_no - 0.02, \
             f"centers ({acc_yes:.3f}) should not hurt vs no centers ({acc_no:.3f})"
+
+
+# ---- Determinism ----
+
+class TestDeterminism:
+    def test_greedy_deterministic(self):
+        """Same RNG seed → identical greedy results."""
+        x = torch.randn(200, 4)
+        y = torch.randn(200, 2)
+        results = []
+        for _ in range(2):
+            net = NEFNetwork(4, 2, [100], output_neurons=200,
+                             rng=torch.Generator().manual_seed(99))
+            net.fit_greedy(x, y)
+            with torch.no_grad():
+                results.append(net(x))
+        assert torch.allclose(results[0], results[1], atol=1e-5)
+
+
+# ---- Save/load round-trip ----
+
+class TestSaveLoad:
+    def test_network_state_dict_round_trip(self):
+        """Save/load preserves network output exactly."""
+        torch.manual_seed(50)
+        x = torch.randn(100, 4)
+        y = torch.randn(100, 2)
+        net = _make_net(d_in=4, d_out=2, hidden=[100], output_n=200)
+        net.fit_greedy(x, y)
+        out1 = net(x)
+
+        state = net.state_dict()
+        net2 = _make_net(d_in=4, d_out=2, hidden=[100], output_n=200)
+        net2.load_state_dict(state)
+        out2 = net2(x)
+        assert torch.allclose(out1, out2, atol=1e-5)
+
+    def test_per_neuron_gain_survives_save_load(self):
+        """Per-neuron gain in state_dict is restored correctly."""
+        torch.manual_seed(51)
+        net = NEFNetwork(4, 2, [100], output_neurons=200,
+                         gain=(0.5, 2.0),
+                         rng=torch.Generator().manual_seed(42))
+        x = torch.randn(50, 4)
+        y = torch.randn(50, 2)
+        net.fit_greedy(x, y)
+        out1 = net(x)
+
+        state = net.state_dict()
+        net2 = NEFNetwork(4, 2, [100], output_neurons=200, gain=1.0,
+                          rng=torch.Generator().manual_seed(0))
+        net2.load_state_dict(state)
+        out2 = net2(x)
+        assert torch.allclose(out1, out2, atol=1e-5)
+
+
+# ---- Exception paths ----
+
+class TestNetworkExceptions:
+    def test_ce_targets_requires_2d(self):
+        with pytest.raises(ValueError, match="2-D one-hot"):
+            _ce_targets(torch.tensor([0, 1, 2]))
