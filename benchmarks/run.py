@@ -51,17 +51,22 @@ def load_regression_dataset(name: str = "california"):
     """Load a sklearn regression dataset as tensors."""
     if name == "california":
         from sklearn.datasets import fetch_california_housing
-        from sklearn.model_selection import train_test_split
         data = fetch_california_housing()
         x, y = torch.tensor(data.data, dtype=torch.float32), \
                torch.tensor(data.target, dtype=torch.float32).unsqueeze(1)
-        # Normalise features
-        x = (x - x.mean(0)) / (x.std(0) + 1e-8)
-        y = (y - y.mean()) / (y.std() + 1e-8)
-        idx = torch.randperm(len(x))
+        # Seeded train/test split, then normalize on train only
+        idx = torch.randperm(len(x), generator=torch.Generator().manual_seed(42))
         split = int(0.8 * len(x))
         train_idx, test_idx = idx[:split], idx[split:]
-        return (x[train_idx], y[train_idx]), (x[test_idx], y[test_idx])
+        x_train, x_test = x[train_idx], x[test_idx]
+        y_train, y_test = y[train_idx], y[test_idx]
+        x_mean, x_std = x_train.mean(0), x_train.std(0) + 1e-8
+        y_mean, y_std = y_train.mean(), y_train.std() + 1e-8
+        x_train = (x_train - x_mean) / x_std
+        x_test = (x_test - x_mean) / x_std
+        y_train = (y_train - y_mean) / y_std
+        y_test = (y_test - y_mean) / y_std
+        return (x_train, y_train), (x_test, y_test)
     raise ValueError(f"Unknown regression dataset: {name}")
 
 
@@ -393,7 +398,7 @@ if __name__ == "__main__":
             ))
 
         if args.multi:
-            for strat in ["greedy", "hybrid", "e2e"]:
+            for strat in ["greedy", "hybrid", "hybrid_e2e", "e2e"]:
                 print(f"Running NEFNet-{strat} on {ds}...")
                 results.append(run_nef_multi(
                     ds, strategy=strat,
