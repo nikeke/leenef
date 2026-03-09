@@ -4,7 +4,7 @@ import torch
 from torch import Tensor
 
 
-def lstsq(activities: Tensor, targets: Tensor) -> Tensor:
+def lstsq(activities: Tensor, targets: Tensor, **_kwargs) -> Tensor:
     """Solve D such that activities @ D ≈ targets via torch.linalg.lstsq.
 
     Args:
@@ -55,4 +55,7 @@ SOLVERS = {
 def solve_decoders(activities: Tensor, targets: Tensor,
                    method: str = "tikhonov", **kwargs) -> Tensor:
     """Solve for decoders using a named method."""
+    if method not in SOLVERS:
+        raise ValueError(
+            f"Unknown solver {method!r}. Available: {sorted(SOLVERS)}")
     return SOLVERS[method](activities, targets, **kwargs)

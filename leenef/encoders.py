@@ -19,6 +19,8 @@ def gaussian(n_neurons: int, dim: int, *, rng: torch.Generator | None = None) ->
 def sparse(n_neurons: int, dim: int, *, sparsity: float = 0.9,
            rng: torch.Generator | None = None) -> Tensor:
     """Sparse random encoders — each neuron sees only (1-sparsity) of inputs."""
+    if not 0.0 <= sparsity < 1.0:
+        raise ValueError(f"sparsity must be in [0, 1), got {sparsity}")
     e = torch.randn(n_neurons, dim, generator=rng)
     mask = torch.rand(n_neurons, dim, generator=rng) >= sparsity
     return e * mask
@@ -34,4 +36,8 @@ ENCODER_STRATEGIES = {
 def make_encoders(n_neurons: int, dim: int, strategy: str = "hypersphere",
                   **kwargs) -> Tensor:
     """Create encoders using a named strategy."""
+    if strategy not in ENCODER_STRATEGIES:
+        raise ValueError(
+            f"Unknown encoder strategy {strategy!r}. "
+            f"Available: {sorted(ENCODER_STRATEGIES)}")
     return ENCODER_STRATEGIES[strategy](n_neurons, dim, **kwargs)

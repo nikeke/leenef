@@ -29,16 +29,18 @@ class NEFLayer(nn.Module):
         self.d_in = d_in
         self.n_neurons = n_neurons
         self.d_out = d_out
+        self._rng = rng
+
+        # Gain — stored as buffer for state_dict serialization
+        self.register_buffer("_gain", torch.tensor(gain, dtype=torch.float32))
 
         # Encoders
         enc = make_encoders(n_neurons, d_in, strategy=encoder_strategy, rng=rng)
 
         # Biases — data-driven or random
         if centers is not None:
-            # bias = -gain * (d_i · e_i) so encode() computes
-            # activation(gain * ((x - d_i) · e_i))
             idx = torch.randint(len(centers), (n_neurons,), generator=rng)
-            bias = -gain * (centers[idx].float() * enc).sum(dim=1)
+            bias = -self._gain * (centers[idx].float() * enc).sum(dim=1)
         else:
             bias = torch.randn(n_neurons, generator=rng)
 
@@ -49,27 +51,35 @@ class NEFLayer(nn.Module):
             self.register_buffer("encoders", enc)
             self.register_buffer("bias", bias)
 
-        self.gain = gain
         self.activation = make_activation(activation, **act_kwargs)
 
         # Decoders — always a parameter so it participates in state_dict
         self.decoders = nn.Parameter(torch.zeros(n_neurons, d_out),
                                      requires_grad=False)
 
+    @property
+    def gain(self) -> float:
+        """Scalar gain value."""
+        return self._gain.item()
+
     def encode(self, x: Tensor) -> Tensor:
         """Compute neuron activities for input x (N, d_in) → (N, n_neurons)."""
-        return self.activation(self.gain * (x @ self.encoders.T) + self.bias)
+        return self.activation(self._gain * (x @ self.encoders.T) + self.bias)
 
     @torch.no_grad()
     def set_centers(self, centers: Tensor) -> None:
         """Recompute biases from data-driven centers."""
-        idx = torch.randint(len(centers), (self.n_neurons,))
+        idx = torch.randint(len(centers), (self.n_neurons,),
+                            generator=self._rng)
         self.bias.data.copy_(
-            -self.gain * (centers[idx].float() * self.encoders.data).sum(dim=1)
+            -self._gain * (centers[idx].float() * self.encoders.data).sum(dim=1)
         )
 
     def forward(self, x: Tensor) -> Tensor:
         """Full forward pass: encode → decode."""
+        if x.dim() != 2 or x.shape[1] != self.d_in:
+            raise ValueError(
+                f"Expected input shape (N, {self.d_in}), got {tuple(x.shape)}")
         return self.encode(x) @ self.decoders
 
     @torch.no_grad()
@@ -82,6 +92,10 @@ class NEFLayer(nn.Module):
             targets: (N, d_out) desired outputs
             solver:  solver name from ``leenef.solvers``
         """
+        if x.shape[0] != targets.shape[0]:
+            raise ValueError(
+                f"x and targets must have same number of samples, "
+                f"got {x.shape[0]} vs {targets.shape[0]}")
         A = self.encode(x)
         D = solve_decoders(A, targets, method=solver, **solver_kwargs)
         self.decoders.data.copy_(D)

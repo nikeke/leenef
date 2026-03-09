@@ -7,6 +7,14 @@ from torch import Tensor
 from .layers import NEFLayer
 
 
+def _ce_targets(targets: Tensor) -> Tensor:
+    """Convert one-hot targets to class indices for CrossEntropyLoss."""
+    if targets.dim() != 2:
+        raise ValueError(
+            f"CE loss requires 2-D one-hot targets, got shape {tuple(targets.shape)}")
+    return targets.argmax(dim=1)
+
+
 class NEFNetwork(nn.Module):
     """Multi-layer NEF network.
 
@@ -30,6 +38,8 @@ class NEFNetwork(nn.Module):
                  centers: Tensor | None = None,
                  **act_kwargs):
         super().__init__()
+        self._activation = activation
+        self._encoder_strategy = encoder_strategy
         self.hidden = nn.ModuleList()
         prev_dim = d_in
         for i, n in enumerate(hidden_neurons):
@@ -59,9 +69,8 @@ class NEFNetwork(nn.Module):
         """Forward *x* through each layer and use activations as centers for
         the next layer, giving all layers data-driven biases."""
         h = x
-        for i, layer in enumerate(self.hidden):
-            if i > 0:
-                layer.set_centers(h)
+        for layer in self.hidden:
+            layer.set_centers(h)
             h = layer.encode(h)
         self.output.set_centers(h)
 
@@ -128,7 +137,8 @@ class NEFNetwork(nn.Module):
         if init == "incremental" and len(self.hidden) > 0:
             h0 = self.hidden[0]
             tmp = NEFLayer(h0.d_in, h0.n_neurons, self.output.d_out,
-                           activation="abs", encoder_strategy="hypersphere",
+                           activation=self._activation,
+                           encoder_strategy=self._encoder_strategy,
                            centers=centers)
             tmp.fit(x, targets, solver=solver, **solver_kw)
             h0.encoders.data.copy_(tmp.encoders.data)
@@ -137,7 +147,7 @@ class NEFNetwork(nn.Module):
         # --- loss function ---
         if loss == "ce":
             loss_fn = nn.CrossEntropyLoss()
-            grad_targets = targets.argmax(dim=1)
+            grad_targets = _ce_targets(targets)
         else:
             loss_fn = nn.MSELoss()
             grad_targets = targets
@@ -151,8 +161,10 @@ class NEFNetwork(nn.Module):
         # --- optional mini-batch loader ---
         if batch_size is not None:
             dataset = torch.utils.data.TensorDataset(x, grad_targets)
+            g = torch.Generator()
+            g.manual_seed(0)
             loader = torch.utils.data.DataLoader(
-                dataset, batch_size=batch_size, shuffle=True)
+                dataset, batch_size=batch_size, shuffle=True, generator=g)
 
         for _ in range(n_iters):
             # Analytic decoder solve (always full-batch, always MSE)
@@ -194,33 +206,35 @@ class NEFNetwork(nn.Module):
                    loss: str) -> None:
         """Shared SGD training loop used by fit_end_to_end and fit_hybrid_e2e."""
         self.output.decoders.requires_grad_(True)
+        try:
+            optimizer = torch.optim.Adam(
+                [p for p in self.parameters() if p.requires_grad], lr=lr)
+            scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+                optimizer, T_max=n_epochs)
 
-        optimizer = torch.optim.Adam(
-            [p for p in self.parameters() if p.requires_grad], lr=lr)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=n_epochs)
+            if loss == "ce":
+                loss_fn = nn.CrossEntropyLoss()
+                train_targets = _ce_targets(targets)
+            else:
+                loss_fn = nn.MSELoss()
+                train_targets = targets
 
-        if loss == "ce":
-            loss_fn = nn.CrossEntropyLoss()
-            train_targets = targets.argmax(dim=1)
-        else:
-            loss_fn = nn.MSELoss()
-            train_targets = targets
+            dataset = torch.utils.data.TensorDataset(x, train_targets)
+            g = torch.Generator()
+            g.manual_seed(0)
+            loader = torch.utils.data.DataLoader(
+                dataset, batch_size=batch_size, shuffle=True, generator=g)
 
-        dataset = torch.utils.data.TensorDataset(x, train_targets)
-        loader = torch.utils.data.DataLoader(
-            dataset, batch_size=batch_size, shuffle=True)
-
-        for _ in range(n_epochs):
-            for xb, yb in loader:
-                pred = self.forward(xb)
-                l = loss_fn(pred, yb)
-                optimizer.zero_grad()
-                l.backward()
-                optimizer.step()
-            scheduler.step()
-
-        self.output.decoders.requires_grad_(False)
+            for _ in range(n_epochs):
+                for xb, yb in loader:
+                    pred = self.forward(xb)
+                    l = loss_fn(pred, yb)
+                    optimizer.zero_grad()
+                    l.backward()
+                    optimizer.step()
+                scheduler.step()
+        finally:
+            self.output.decoders.requires_grad_(False)
 
     def fit_end_to_end(self, x: Tensor, targets: Tensor,
                        n_epochs: int = 50, lr: float = 1e-3,
