@@ -146,14 +146,20 @@ class RecurrentNEFLayer(nn.Module):
         for _ in range(n_iters):
             # Unroll and accumulate normal equations for D_state
             AtA = seq.new_zeros(self.n_neurons, self.n_neurons)
-            AtY = seq.new_zeros(self.n_neurons, d_in)
+            AtY = seq.new_zeros(self.n_neurons, self.d_state)
             s = seq.new_zeros(B, self.d_state)
             final_a = None
 
             for t in range(T):
                 a = self.encode_step(seq[:, t], s)
                 AtA.addmm_(a.T, a)
-                AtY.addmm_(a.T, seq[:, t])
+                # State target: reconstruct input (truncated or padded to d_state)
+                if self.d_state <= d_in:
+                    state_target = seq[:, t, : self.d_state]
+                else:
+                    state_target = seq.new_zeros(B, self.d_state)
+                    state_target[:, :d_in] = seq[:, t]
+                AtY.addmm_(a.T, state_target)
                 s = a @ self.state_decoders
                 final_a = a
 
@@ -162,12 +168,7 @@ class RecurrentNEFLayer(nn.Module):
             self.decoders.data.copy_(D_out)
 
             # Solve D_state from accumulated normal equations
-            if self.d_state == d_in:
-                D_state = solve_from_normal_equations(AtA, AtY, alpha=alpha)
-            else:
-                # d_state != d_in: project targets to d_state dims via PCA
-                # For now, just truncate to d_state columns
-                D_state = solve_from_normal_equations(AtA, AtY[:, : self.d_state], alpha=alpha)
+            D_state = solve_from_normal_equations(AtA, AtY, alpha=alpha)
             self.state_decoders.data.copy_(D_state)
 
     # ------------------------------------------------------------------
