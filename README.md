@@ -51,11 +51,16 @@ net.fit_end_to_end(x, targets)
 
 In a multi-layer `NEFNetwork`, hidden layers encode only (their neuron
 activities become the next layer's input) and only the output layer decodes.
-Three training strategies are available.  **Greedy** solves each layer
+Five training strategies are available.  **Greedy** solves each layer
 independently with random encoders and analytic decoders — no gradient
 computation at all.  **Hybrid** alternates analytic decoder solves with
 gradient updates to encoder weights, learning useful encoder orientations
-without full backprop.  **End-to-end** runs standard SGD on all parameters,
+without full backprop.  **Target propagation** (`fit_target_prop`) replaces
+backpropagation with layer-local targets: at each iteration it solves
+representational decoders (the NEF inverse model) analytically at every
+layer, then propagates targets backward via difference target propagation
+and updates encoders with single-layer gradients only — no gradient flows
+between layers.  **End-to-end** runs standard SGD on all parameters,
 initialised from a greedy NEF solve, using NEF as an initialisation
 strategy rather than a training method.  **Hybrid→E2E** (`fit_hybrid_e2e`)
 combines the two: hybrid first learns good encoder orientations, then E2E
@@ -172,6 +177,7 @@ the model generalises well, with test MSE within 1% of training MSE.
 | NEFLayer          | 95.5%    | 86.1%    | 48.5%    |     2s       |
 | NEFNet-greedy     | 95.0%    | 85.7%    | 45.5%    |     3s       |
 | NEFNet-hybrid     | 98.6%    | 90.3%    | 52.3%    |   355s       |
+| NEFNet-target-prop| 97.8%    | 89.1%    | 53.8%    |   492s       |
 | NEFNet-hybrid→E2E |**98.6%** |**90.9%** |**58.4%** |   501s       |
 | NEFNet-e2e        | 98.5%    | 90.6%    | 58.4%    |   259s       |
 | MLP (2×1000)      | 98.4%    | 89.6%    | 53.4%    |    87s       |
@@ -204,6 +210,20 @@ then 20 E2E epochs (`fit_hybrid_e2e`) reaches 98.6% / 90.9% / 58.4% —
 the highest accuracy on all three datasets.  The hybrid phase learns
 good encoder orientations with analytic decoders; the E2E phase then
 unlocks decoder learning to squeeze out the last gains.
+
+**Target propagation avoids backprop entirely.**  `fit_target_prop` replaces
+cross-layer gradient flow with analytical inverse models: each iteration
+solves representational decoders at every layer (mapping activities back to
+inputs), then uses difference target propagation (DTP) to compute local
+targets.  Encoder updates use single-layer gradients only — no gradient
+ever flows between layers.  On CIFAR-10 this outperforms hybrid (53.8% vs
+52.3%), since DTP correction produces more informative learning signals for
+complex representations.  On MNIST and Fashion it is slightly behind hybrid
+(97.8% / 89.1% vs 98.6% / 90.3%) at comparable wall-clock time.  ReLU
+gives nearly identical accuracy to abs but is 1.8× slower — abs keeps
+activities nonzero, giving representational decoders richer signal.
+See `docs/analytical_target_propagation.md` for the full algorithm and
+analysis of related approaches.
 
 Greedy multi-layer is still slightly worse than single-layer (95.0% vs
 95.5% on MNIST), since a random nonlinear re-encoding loses some
@@ -321,6 +341,13 @@ Generate plots with `python benchmarks/plot.py` (requires matplotlib).
     methods adapt encoders to compensate, making initial gain diversity
     redundant.  Default remains uniform gain = 1.0.
 
+11. **Target propagation is competitive without backprop.**  Using NEF
+    representational decoders as analytical inverse models, TP updates
+    encoders with single-layer gradients only.  It beats hybrid on CIFAR-10
+    (53.8% vs 52.3%) and is within 1% on MNIST/Fashion, suggesting that
+    DTP correction produces more informative encoder updates for complex
+    data than backpropagated gradients through random encoders.
+
 ## Recurrent / temporal extension
 
 `RecurrentNEFLayer` extends the feedforward pipeline with the canonical NEF
@@ -430,11 +457,12 @@ a data point.
 | `leenef/activations.py` | Rate-based neuron models (ReLU, softplus, LIF rate, abs) |
 | `leenef/solvers.py` | Decoder solvers (lstsq, Tikhonov, Cholesky, normal equations) |
 | `leenef/layers.py` | `NEFLayer(nn.Module)` — encode → activate → decode |
-| `leenef/networks.py` | `NEFNetwork(nn.Module)` — multi-layer with greedy/hybrid/e2e |
+| `leenef/networks.py` | `NEFNetwork(nn.Module)` — multi-layer with greedy/hybrid/target-prop/e2e |
 | `leenef/recurrent.py` | `RecurrentNEFLayer(nn.Module)` — temporal decode-then-re-encode loop |
 | `benchmarks/run.py` | Benchmark harness with single-layer, multi-layer, and MLP baselines |
 | `benchmarks/run_recurrent.py` | Sequential MNIST benchmark for recurrent NEF and LSTM baseline |
 | `benchmarks/plot.py` | Visualisation script (generates `docs/*.png`) |
+| `docs/analytical_target_propagation.md` | Algorithm derivation, comparison, and survey of related approaches |
 
 ## References
 

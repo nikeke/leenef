@@ -46,12 +46,16 @@ This avoids gradient-based training for a single layer entirely.
 
 For multi-layer networks (`NEFNetwork` in `networks.py`), hidden layers
 use encode-only (activities as inter-layer representation) and only the
-output layer decodes.  Three training strategies are supported:
+output layer decodes.  Five training strategies are supported:
 
 - **Greedy** (`fit_greedy`) — random hidden encoders, analytic output
   decoders.  Fastest, no gradient computation.
 - **Hybrid** (`fit_hybrid`) — alternate analytic decoder solves with
   gradient updates to all encoders/biases.
+- **Target propagation** (`fit_target_prop`) — replaces backprop with
+  layer-local targets via analytical representational decoders (NEF
+  inverse models) and difference target propagation.  Single-layer
+  gradients only; no gradient flows between layers.
 - **End-to-end** (`fit_end_to_end`) — standard SGD on all parameters,
   initialised via a greedy NEF solve.
 
@@ -68,7 +72,7 @@ output layer decodes.  Three training strategies are supported:
   Accepts optional `centers=` training data to derive data-driven biases
   (`bias = -gain * (d · e)`), placing each neuron around a training sample.
   Gain can be scalar, range tuple, or per-neuron tensor (`_gain` buffer).
-- `networks.py` — `NEFNetwork(nn.Module)` stacks NEFLayers with the three
+- `networks.py` — `NEFNetwork(nn.Module)` stacks NEFLayers with the five
   training strategies above.  Also supports `hybrid_e2e` (hybrid → E2E).
 - `recurrent.py` — `RecurrentNEFLayer(nn.Module)` implements the NEF
   decode-then-re-encode feedback loop for temporal sequences.  State
