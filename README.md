@@ -177,7 +177,7 @@ the model generalises well, with test MSE within 1% of training MSE.
 | NEFLayer          | 95.5%    | 86.1%    | 48.5%    |     2s       |
 | NEFNet-greedy     | 95.0%    | 85.7%    | 45.5%    |     3s       |
 | NEFNet-hybrid     | 98.6%    | 90.3%    | 52.3%    |   355s       |
-| NEFNet-target-prop| 97.8%    | 89.1%    | 53.8%    |   492s       |
+| NEFNet-target-prop| 98.6%    | 90.2%    | 50.5%    |   441s       |
 | NEFNet-hybrid→E2E |**98.6%** |**90.9%** |**58.4%** |   501s       |
 | NEFNet-e2e        | 98.5%    | 90.6%    | 58.4%    |   259s       |
 | MLP (2×1000)      | 98.4%    | 89.6%    | 53.4%    |    87s       |
@@ -213,15 +213,18 @@ unlocks decoder learning to squeeze out the last gains.
 
 **Target propagation avoids backprop entirely.**  `fit_target_prop` replaces
 cross-layer gradient flow with analytical inverse models: each iteration
-solves representational decoders at every layer (mapping activities back to
-inputs), then uses difference target propagation (DTP) to compute local
-targets.  Encoder updates use single-layer gradients only — no gradient
-ever flows between layers.  On CIFAR-10 this outperforms hybrid (53.8% vs
-52.3%), since DTP correction produces more informative learning signals for
-complex representations.  On MNIST and Fashion it is slightly behind hybrid
-(97.8% / 89.1% vs 98.6% / 90.3%) at comparable wall-clock time.  ReLU
-gives nearly identical accuracy to abs but is 1.8× slower — abs keeps
-activities nonzero, giving representational decoders richer signal.
+solves representational decoders (mapping activities back to inputs), then
+uses difference target propagation (DTP) to compute local targets.  Encoder
+updates use single-layer gradients only — no gradient ever flows between
+layers.  A normalised gradient step ensures *eta* directly controls what
+fraction of activity norm the targets deviate by, making the hyperparameter
+scale-independent.  On MNIST and Fashion, TP matches hybrid (98.6% /
+90.2% vs 98.6% / 90.3%) without any cross-layer backpropagation.  CIFAR-10
+(50.5%) currently lags — the default eta=0.1 is too aggressive for harder
+data; a lower eta should recover performance.  Speed improved substantially
+over the initial implementation by skipping the unused first-layer
+representational decoder and reusing the forward-pass computation graph for
+local gradient steps.
 See `docs/analytical_target_propagation.md` for the full algorithm and
 analysis of related approaches.
 
@@ -341,12 +344,14 @@ Generate plots with `python benchmarks/plot.py` (requires matplotlib).
     methods adapt encoders to compensate, making initial gain diversity
     redundant.  Default remains uniform gain = 1.0.
 
-11. **Target propagation is competitive without backprop.**  Using NEF
-    representational decoders as analytical inverse models, TP updates
-    encoders with single-layer gradients only.  It beats hybrid on CIFAR-10
-    (53.8% vs 52.3%) and is within 1% on MNIST/Fashion, suggesting that
-    DTP correction produces more informative encoder updates for complex
-    data than backpropagated gradients through random encoders.
+11. **Target propagation matches hybrid without backprop.**  Using NEF
+    representational decoders as analytical inverse models and a normalised
+    gradient step, TP matches hybrid on MNIST (98.6%) and Fashion (90.2%)
+    using only single-layer gradients.  CIFAR-10 (50.5%) needs a smaller
+    eta — the default step fraction is too aggressive for harder data.
+    The key insight: the original raw gradient was unscaled by N, making
+    targets barely differ from activities; normalising the step so eta
+    controls the fractional deviation fixed the learning signal entirely.
 
 ## Recurrent / temporal extension
 

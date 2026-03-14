@@ -327,17 +327,20 @@ class NEFNetwork(nn.Module):
         eta: float = 0.1,
         solver: str = "tikhonov",
         schedule: bool = False,
+        normalize_step: bool = True,
         **solver_kw,
     ) -> None:
         """Analytical target propagation using NEF representational decoders.
 
         Each iteration:
-          1. Forward pass — collect all layer inputs and activities.
+          1. Forward pass with gradient tracking — collect all layer
+             inputs and activities (single encode, reused for local loss).
           2. Solve output task decoder analytically.
-          3. Solve representational decoders for every layer analytically
-             (each decoder maps a layer's activities back to its input).
-          4. Compute output target activities (gradient of output loss
-             w.r.t. output activities, scaled by *eta*).
+          3. Solve representational decoders for layers 1..L (layer 0's
+             repr decoder is never needed by DTP backward).
+          4. Compute output target activities via normalised gradient step:
+             ``target = a - eta * grad / ||grad|| * ||a||`` so *eta*
+             directly controls the fractional step size.
           5. Propagate targets backward via Difference Target Propagation:
              ``target[l] = a[l] + (target[l+1] - a[l+1]) @ D_repr[l+1]``
           6. Update each layer's encoders and biases with a local gradient
@@ -348,14 +351,20 @@ class NEFNetwork(nn.Module):
         updates use single-layer gradients only.
 
         Args:
-            n_iters:  number of TP iterations (default 50).
-            lr:       learning rate for local encoder updates.
-            eta:      step size for output target computation.  Controls
-                      how far targets deviate from current activities.
-            solver:   decoder solver (default ``"tikhonov"``).
-            schedule: use cosine-annealing LR schedule over *n_iters*.
+            n_iters:        number of TP iterations (default 50).
+            lr:             learning rate for local encoder updates.
+            eta:            step size for output target computation.
+                            With *normalize_step=True* (default), this is
+                            the fraction of activity norm to step by.
+            solver:         decoder solver (default ``"tikhonov"``).
+            schedule:       use cosine-annealing LR schedule over *n_iters*.
+            normalize_step: normalise the output gradient so *eta* controls
+                            the step as a fraction of activity norm (default
+                            True).  When False, raw (unscaled) gradient is
+                            used, matching the original formulation.
         """
         all_layers = list(self.hidden) + [self.output]
+        n_layers = len(all_layers)
 
         # One optimizer per layer for independent local updates
         optimizers = []
@@ -371,47 +380,60 @@ class NEFNetwork(nn.Module):
             ]
 
         for _ in range(n_iters):
-            # ── Forward pass: collect inputs and activities ────────
-            inputs = [x]  # inputs[l] feeds into all_layers[l]
+            # ── Forward pass WITH grad, detach at layer boundaries ─
+            # Each layer's activities are connected to its own encoder
+            # params only, so we can reuse them for the local loss
+            # without redundant re-encoding.
+            inputs = [x]
             activities = []
             h = x
-            with torch.no_grad():
-                for layer in all_layers:
-                    a = layer.encode(h)
-                    activities.append(a)
-                    h = a
+            for idx, layer in enumerate(all_layers):
+                if idx > 0:
+                    h = h.detach()
+                    inputs.append(h)
+                a = layer.encode(h)
+                activities.append(a)
+                h = a
 
             # ── Solve task decoder (output layer) ─────────────────
-            a_out = activities[-1]
+            a_out = activities[-1].detach()
             D_out = solve_decoders(a_out, targets, method=solver, **solver_kw)
             self.output.decoders.data.copy_(D_out)
 
-            # ── Solve representational decoders for every layer ───
-            repr_decoders = []
-            for idx, layer in enumerate(all_layers):
-                D_repr = solve_decoders(activities[idx], inputs[idx], method=solver, **solver_kw)
+            # ── Solve representational decoders for layers 1..L ───
+            # Layer 0's repr decoder is never used by DTP backward,
+            # so skip it entirely.
+            repr_decoders: list[Tensor | None] = [None]
+            for idx in range(1, n_layers):
+                D_repr = solve_decoders(
+                    a_out if idx == n_layers - 1 else activities[idx].detach(),
+                    inputs[idx],
+                    method=solver,
+                    **solver_kw,
+                )
                 repr_decoders.append(D_repr)
-                # Collect next layer's input
-                if idx < len(all_layers) - 1:
-                    inputs.append(activities[idx])
 
             # ── Compute output target activities ──────────────────
             error = a_out @ D_out - targets
-            target_out = a_out - eta * (error @ D_out.T)
-            layer_targets = [None] * len(all_layers)
+            grad = error @ D_out.T
+            if normalize_step:
+                grad_norm = grad.norm()
+                if grad_norm > 0:
+                    grad = grad / grad_norm * a_out.norm()
+            target_out = a_out - eta * grad
+            layer_targets: list[Tensor | None] = [None] * n_layers
             layer_targets[-1] = target_out
 
             # ── DTP backward pass ─────────────────────────────────
-            for idx in range(len(all_layers) - 2, -1, -1):
-                delta = layer_targets[idx + 1] - activities[idx + 1]
-                layer_targets[idx] = activities[idx] + delta @ repr_decoders[idx + 1]
+            for idx in range(n_layers - 2, -1, -1):
+                a_det = activities[idx + 1].detach()
+                delta = layer_targets[idx + 1] - a_det
+                layer_targets[idx] = activities[idx].detach() + delta @ repr_decoders[idx + 1]
 
-            # ── Local encoder updates (independent per layer) ─────
-            for idx, layer in enumerate(all_layers):
-                inp = inputs[idx]
+            # ── Local encoder updates (reuse forward-pass graph) ──
+            for idx in range(n_layers):
                 target = layer_targets[idx].detach()
-                a_pred = layer.encode(inp)
-                local_loss = (a_pred - target).pow(2).mean()
+                local_loss = (activities[idx] - target).pow(2).mean()
                 optimizers[idx].zero_grad()
                 local_loss.backward()
                 optimizers[idx].step()
