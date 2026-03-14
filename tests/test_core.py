@@ -73,14 +73,14 @@ class TestActivations:
 class TestSolvers:
     @pytest.fixture
     def linear_data(self):
-        """y = 2*x + 1 with 100 neurons (random features)."""
-        torch.manual_seed(0)
-        x = torch.randn(200, 1)
+        """y = 2*x + 1 with 200 random-feature neurons."""
+        g = torch.Generator().manual_seed(0)
+        x = torch.randn(200, 1, generator=g)
         y = 2 * x + 1
-        # Random feature expansion
-        W = torch.randn(50, 1)
-        b = torch.randn(50)
-        A = torch.relu(x @ W.T + b)
+        # Enough random features to fit a simple linear function reliably
+        W = torch.randn(200, 1, generator=g)
+        b = torch.randn(200, generator=g)
+        A = torch.abs(x @ W.T + b)
         return A, y
 
     def test_lstsq(self, linear_data):
@@ -108,7 +108,7 @@ class TestSolvers:
         A, y = linear_data
         for method in ("lstsq", "tikhonov", "cholesky"):
             D = solve_decoders(A, y, method=method, alpha=1e-4)
-            assert D.shape == (50, 1)
+            assert D.shape == (200, 1)
 
 
 # ── NEFLayer ──────────────────────────────────────────────────────────
