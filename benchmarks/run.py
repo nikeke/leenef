@@ -241,6 +241,11 @@ def run_nef_multi(
     e2e_epochs: int = 50,
     e2e_lr: float = 3e-3,
     e2e_batch: int = 256,
+    tp_iters: int = 50,
+    tp_lr: float = 1e-3,
+    tp_eta: float = 0.1,
+    tp_normalize: bool = True,
+    tp_schedule: bool = False,
     data_root: str = "./data",
     use_centers: bool = True,
     gain: float | tuple[float, float] = 1.0,
@@ -303,6 +308,18 @@ def run_nef_multi(
     elif strategy == "e2e":
         net.fit_end_to_end(
             x_train, targets, n_epochs=e2e_epochs, lr=e2e_lr, batch_size=e2e_batch, loss="ce"
+        )
+    elif strategy == "target_prop":
+        net.fit_target_prop(
+            x_train,
+            targets,
+            n_iters=tp_iters,
+            lr=tp_lr,
+            eta=tp_eta,
+            solver=solver,
+            normalize_step=tp_normalize,
+            schedule=tp_schedule,
+            **solver_kwargs,
         )
     fit_time = time.perf_counter() - t0
 
@@ -449,6 +466,10 @@ if __name__ == "__main__":
         default=1,
         help="Gradient steps per decoder solve in hybrid",
     )
+    parser.add_argument("--tp-eta", type=float, default=0.1, help="Target prop eta (default: 0.1)")
+    parser.add_argument(
+        "--tp-no-normalize", action="store_true", help="Disable normalized step in target prop"
+    )
     parser.add_argument(
         "--no-centers", action="store_true", help="Disable data-driven biases (use random biases)"
     )
@@ -483,7 +504,7 @@ if __name__ == "__main__":
             )
 
         if args.multi:
-            for strat in ["greedy", "hybrid", "hybrid_e2e", "e2e"]:
+            for strat in ["greedy", "hybrid", "target_prop", "hybrid_e2e", "e2e"]:
                 print(f"Running NEFNet-{strat} on {ds}...")
                 results.append(
                     run_nef_multi(
@@ -501,6 +522,8 @@ if __name__ == "__main__":
                         hybrid_init=args.hybrid_init,
                         hybrid_batch=args.hybrid_batch,
                         hybrid_grad_steps=args.hybrid_grad_steps,
+                        tp_eta=args.tp_eta,
+                        tp_normalize=not args.tp_no_normalize,
                         data_root=args.data_root,
                         use_centers=use_centers,
                     )
