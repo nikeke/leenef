@@ -360,6 +360,7 @@ class RecurrentNEFLayer(nn.Module):
         solver: str = "tikhonov",
         schedule: bool = False,
         normalize_step: bool = True,
+        batch_size: int | None = None,
         **solver_kw,
     ) -> None:
         """Target propagation through time using NEF state decoders as inverse models.
@@ -370,20 +371,22 @@ class RecurrentNEFLayer(nn.Module):
         each timestep's target back to the previous timestep's activity
         space.  Encoder/bias updates use single-timestep gradients only.
 
-        Each iteration:
-          1. Unroll forward WITH gradient tracking, collecting per-timestep
-             activities (single encode, graph reused for local loss).
-          2. Solve D_out from final-step activities → task targets.
-          3. Solve D_state from all-step activities → augmented inputs
-             (representational decoding via incremental normal equations).
-          4. Compute final-timestep target via normalised gradient step.
-          5. Propagate targets backward through time via DTP:
-             ``target[t] = a[t] + (target[t+1] - a[t+1]) @ D_repr``
-             where D_repr maps activities back to augmented inputs, and
-             we extract the activity-space component.
-          6. Update encoders/biases with a single gradient step per
-             timestep, aggregated across all timesteps.
-          7. Re-solve D_out after all iterations.
+        Each iteration has two phases:
+
+        **Phase 1** (no grad, chunked normal equations):
+          1. Unroll forward, accumulating ``A^T A`` and ``A^T Y`` for both
+             the output and representational decoder solves.
+          2. Solve ``D_out`` and ``D_state_repr`` analytically.
+          3. Compute final-timestep targets with full-batch normalisation.
+
+        **Phase 2** (with grad, chunked encoder updates):
+          4. Re-unroll forward with gradient tracking in memory-safe chunks.
+          5. Propagate targets backward through time via DTP within each
+             chunk (targets are per-sample, so chunking is exact).
+          6. Accumulate local encoder/bias gradients across all chunks,
+             then step the optimiser once.
+
+        Re-solve ``D_out`` after all iterations.
 
         Args:
             n_iters:        number of TP iterations (default 50).
@@ -393,9 +396,17 @@ class RecurrentNEFLayer(nn.Module):
             schedule:       use cosine-annealing LR schedule.
             normalize_step: normalise the output gradient so *eta* controls
                             the step as a fraction of activity norm.
+            batch_size:     chunk size for the gradient phase.  When
+                            ``None`` (default), auto-sized to keep peak
+                            memory under ~4 GB.
         """
         B, T, d_in = seq.shape
         alpha = solver_kw.get("alpha", 1e-2)
+
+        if batch_size is None:
+            # ~4 floats per neuron per timestep (activities + targets + autograd)
+            bytes_per_sample = T * self.n_neurons * 4 * 4
+            batch_size = max(256, min(B, (4 * 1024**3) // max(1, bytes_per_sample)))
 
         params = [p for p in self.parameters() if p.requires_grad]
         optimizer = torch.optim.Adam(params, lr=lr)
@@ -406,78 +417,105 @@ class RecurrentNEFLayer(nn.Module):
         )
 
         for _ in range(n_iters):
-            # ── Forward pass WITH grad, collecting per-step activities ──
-            activities = []
-            aug_inputs = []
-            s = seq.new_zeros(B, self.d_state)
-            for t in range(T):
-                x_aug = torch.cat([seq[:, t], s.detach()], dim=-1)
-                aug_inputs.append(x_aug)
-                a = self.activation(self._gain * (x_aug @ self.encoders.T) + self.bias)
-                activities.append(a)
-                s = a @ self.state_decoders.detach()
+            # ── Phase 1: Forward (no grad), accumulate normal equations,
+            #    collect final-step activities for target computation ──
+            AtA_out = seq.new_zeros(self.n_neurons, self.n_neurons)
+            AtY_out = seq.new_zeros(self.n_neurons, self.d_out)
+            AtA_state = seq.new_zeros(self.n_neurons, self.n_neurons)
+            AtY_state = seq.new_zeros(self.n_neurons, d_in + self.d_state)
+            a_final_chunks = []
 
-            a_final = activities[-1]
+            with torch.no_grad():
+                for i in range(0, B, batch_size):
+                    sb = seq[i : i + batch_size]
+                    tb = targets[i : i + batch_size]
+                    s = sb.new_zeros(sb.shape[0], self.d_state)
+                    for t in range(T):
+                        x_aug = torch.cat([sb[:, t], s], dim=-1)
+                        a = self.activation(
+                            self._gain * (x_aug @ self.encoders.T) + self.bias
+                        )
+                        AtA_state.addmm_(a.T, a)
+                        AtY_state.addmm_(a.T, x_aug)
+                        s = a @ self.state_decoders
+                    AtA_out.addmm_(a.T, a)
+                    AtY_out.addmm_(a.T, tb)
+                    a_final_chunks.append(a)
 
-            # ── Solve D_out from final-step activities ──
-            a_final_det = a_final.detach()
-            D_out = solve_decoders(a_final_det, targets, method=solver, **solver_kw)
+            # Solve decoders
+            D_out = solve_from_normal_equations(AtA_out, AtY_out, alpha=alpha)
             self.decoders.data.copy_(D_out)
+            D_state_repr = solve_from_normal_equations(AtA_state, AtY_state, alpha=alpha)
+            self.state_decoders.data.copy_(D_state_repr[:, d_in : d_in + self.d_state])
 
-            # ── Solve D_state from accumulated normal equations ──
-            # Representational decoder: activities → augmented input
-            AtA = seq.new_zeros(self.n_neurons, self.n_neurons)
-            AtY = seq.new_zeros(self.n_neurons, d_in + self.d_state)
-            for t in range(T):
-                a_det = activities[t].detach()
-                AtA.addmm_(a_det.T, a_det)
-                AtY.addmm_(a_det.T, aug_inputs[t].detach())
-
-            D_state_repr = solve_from_normal_equations(AtA, AtY, alpha=alpha)
-            # Extract state component for the recurrent loop
-            D_state_loop = D_state_repr[:, d_in : d_in + self.d_state]
-            self.state_decoders.data.copy_(D_state_loop)
-
-            # ── Compute final-timestep target via normalised gradient step ──
-            error = a_final_det @ D_out - targets
-            grad = error @ D_out.T
+            # Compute final-timestep targets (full-batch normalisation)
+            a_final_all = torch.cat(a_final_chunks, dim=0)
+            del a_final_chunks
+            error = a_final_all @ D_out - targets
+            grad_out = error @ D_out.T
             if normalize_step:
-                grad_norm = grad.norm()
-                if grad_norm > 0:
-                    grad = grad / grad_norm * a_final_det.norm()
-            target_final = a_final_det - eta * grad
+                gn = grad_out.norm()
+                if gn > 0:
+                    grad_out = grad_out / gn * a_final_all.norm()
+            target_final_all = a_final_all - eta * grad_out
+            del a_final_all, error, grad_out
 
-            # ── DTP backward through time ──
-            timestep_targets = [None] * T
-            timestep_targets[-1] = target_final
-            for t in range(T - 2, -1, -1):
-                a_next_det = activities[t + 1].detach()
-                delta = timestep_targets[t + 1] - a_next_det
-                # Map delta through repr decoder, then back to activity space
-                # delta in activity space → augmented input space → we need
-                # the activity-space correction for timestep t
-                # D_state_repr maps activities → [u, s]; the s component
-                # was decoded from activities at t, so the correction is:
-                timestep_targets[t] = (
-                    activities[t].detach() + delta @ D_state_repr @ self.encoders.T
-                )
+            # Precompute DTP projection matrix (n_neurons × n_neurons)
+            DRE = D_state_repr @ self.encoders.detach().T
 
-            # ── Local encoder updates (reuse forward-pass graph) ──
-            total_loss = sum(
-                (activities[t] - timestep_targets[t].detach()).pow(2).mean() for t in range(T)
-            )
+            # ── Phase 2: Re-forward (with grad) in chunks, DTP targets,
+            #    accumulate encoder/bias gradients ──
             optimizer.zero_grad()
-            total_loss.backward()
+            for i in range(0, B, batch_size):
+                sb = seq[i : i + batch_size]
+                Bb = sb.shape[0]
+
+                # Forward with grad
+                activities = []
+                s = sb.new_zeros(Bb, self.d_state)
+                for t in range(T):
+                    x_aug = torch.cat([sb[:, t], s.detach()], dim=-1)
+                    a = self.activation(
+                        self._gain * (x_aug @ self.encoders.T) + self.bias
+                    )
+                    activities.append(a)
+                    s = a @ self.state_decoders.detach()
+
+                # DTP backward through time
+                timestep_targets = [None] * T
+                timestep_targets[-1] = target_final_all[i : i + Bb]
+                for t in range(T - 2, -1, -1):
+                    a_next_det = activities[t + 1].detach()
+                    delta = timestep_targets[t + 1] - a_next_det
+                    timestep_targets[t] = activities[t].detach() + delta @ DRE
+
+                # Local loss (scaled for correct gradient accumulation)
+                chunk_loss = sum(
+                    (activities[t] - timestep_targets[t].detach()).pow(2).mean()
+                    for t in range(T)
+                ) * (Bb / B)
+                chunk_loss.backward()
+
+                del activities, timestep_targets, chunk_loss
+
             optimizer.step()
+            del target_final_all
 
             if scheduler_obj is not None:
                 scheduler_obj.step()
 
-        # Final D_out solve after last encoder update
+        # ── Final D_out solve after last encoder update ──
         with torch.no_grad():
-            s = seq.new_zeros(B, self.d_state)
-            for t in range(T):
-                a = self.encode_step(seq[:, t], s)
-                s = a @ self.state_decoders
-            D_out = solve_decoders(a, targets, method=solver, **solver_kw)
+            AtA = seq.new_zeros(self.n_neurons, self.n_neurons)
+            AtY = seq.new_zeros(self.n_neurons, self.d_out)
+            for i in range(0, B, batch_size):
+                sb = seq[i : i + batch_size]
+                tb = targets[i : i + batch_size]
+                s = sb.new_zeros(sb.shape[0], self.d_state)
+                for t in range(T):
+                    a = self.encode_step(sb[:, t], s)
+                    s = a @ self.state_decoders
+                AtA.addmm_(a.T, a)
+                AtY.addmm_(a.T, tb)
+            D_out = solve_from_normal_equations(AtA, AtY, alpha=alpha)
             self.decoders.data.copy_(D_out)
