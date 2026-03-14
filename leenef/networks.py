@@ -395,22 +395,35 @@ class NEFNetwork(nn.Module):
                 activities.append(a)
                 h = a
 
-            # ── Solve task decoder (output layer) ─────────────────
+            # ── Factorize output Gram matrix once (Cholesky) ──────
+            # The task decoder and the output-layer repr decoder both
+            # use a_out, so we compute A^T A and its Cholesky factor
+            # once and reuse it for both solves.
             a_out = activities[-1].detach()
-            D_out = solve_decoders(a_out, targets, method=solver, **solver_kw)
+            AT_out = a_out.T
+            ATA = AT_out @ a_out
+            alpha = solver_kw.get("alpha", 1e-2)
+            reg = alpha * torch.trace(ATA) / ATA.shape[0]
+            ATA.diagonal().add_(reg.clamp(min=alpha))
+            L_out = torch.linalg.cholesky(ATA)
+
+            D_out = torch.cholesky_solve(AT_out @ targets, L_out)
             self.output.decoders.data.copy_(D_out)
 
             # ── Solve representational decoders for layers 1..L ───
             # Layer 0's repr decoder is never used by DTP backward,
-            # so skip it entirely.
+            # so skip it entirely.  The output layer reuses L_out.
             repr_decoders: list[Tensor | None] = [None]
             for idx in range(1, n_layers):
-                D_repr = solve_decoders(
-                    a_out if idx == n_layers - 1 else activities[idx].detach(),
-                    inputs[idx],
-                    method=solver,
-                    **solver_kw,
-                )
+                if idx == n_layers - 1:
+                    D_repr = torch.cholesky_solve(AT_out @ inputs[idx], L_out)
+                else:
+                    D_repr = solve_decoders(
+                        activities[idx].detach(),
+                        inputs[idx],
+                        method=solver,
+                        **solver_kw,
+                    )
                 repr_decoders.append(D_repr)
 
             # ── Compute output target activities ──────────────────

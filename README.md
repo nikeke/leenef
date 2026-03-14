@@ -177,7 +177,7 @@ the model generalises well, with test MSE within 1% of training MSE.
 | NEFLayer          | 95.5%    | 86.1%    | 48.5%    |     2s       |
 | NEFNet-greedy     | 95.0%    | 85.7%    | 45.5%    |     3s       |
 | NEFNet-hybrid     | 98.6%    | 90.3%    | 52.3%    |   355s       |
-| NEFNet-target-prop| 98.6%    | 90.2%    | 50.5%    |   441s       |
+| NEFNet-target-prop| 98.6%    | 90.0%    | 51.0%    |   349s       |
 | NEFNet-hybrid→E2E |**98.6%** |**90.9%** |**58.4%** |   501s       |
 | NEFNet-e2e        | 98.5%    | 90.6%    | 58.4%    |   259s       |
 | MLP (2×1000)      | 98.4%    | 89.6%    | 53.4%    |    87s       |
@@ -219,12 +219,14 @@ updates use single-layer gradients only — no gradient ever flows between
 layers.  A normalised gradient step ensures *eta* directly controls what
 fraction of activity norm the targets deviate by, making the hyperparameter
 scale-independent.  On MNIST and Fashion, TP matches hybrid (98.6% /
-90.2% vs 98.6% / 90.3%) without any cross-layer backpropagation.  CIFAR-10
-(50.5%) currently lags — the default eta=0.1 is too aggressive for harder
-data; a lower eta should recover performance.  Speed improved substantially
-over the initial implementation by skipping the unused first-layer
-representational decoder and reusing the forward-pass computation graph for
-local gradient steps.
+90.0% vs 98.6% / 90.3%) at the same wall-clock time (~350s) without any
+cross-layer backpropagation.  CIFAR-10 (51.0%) currently lags — the
+default eta=0.1 is too aggressive for harder data; a lower eta should
+recover performance.  Key speed optimisations: skipping the unused
+first-layer representational decoder, reusing the forward-pass computation
+graph for local gradient steps, and caching the output-layer Cholesky
+factorisation to solve both task and representational decoders from one
+A^T A decomposition.
 See `docs/analytical_target_propagation.md` for the full algorithm and
 analysis of related approaches.
 
