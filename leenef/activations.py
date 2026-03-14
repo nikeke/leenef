@@ -41,7 +41,7 @@ ACTIVATIONS = {
 }
 
 
-def make_activation(name: str = "relu", **kwargs) -> nn.Module:
+def make_activation(name: str = "abs", **kwargs) -> nn.Module:
     """Create an activation by name."""
     if name not in ACTIVATIONS:
         raise ValueError(f"Unknown activation {name!r}. Available: {sorted(ACTIVATIONS)}")
