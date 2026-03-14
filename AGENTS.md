@@ -37,8 +37,8 @@ A **NEF layer** has three stages:
    `y = a @ D`.
 
 Biases are derived from centers: `bias = −gain · (d · e)`.  Default
-configuration: **abs** activation, **hypersphere** encoders, **data-driven
-biases** via `centers=x_train`.
+configuration: **abs** activation, **hypersphere** encoders, **per-neuron
+gain** U(0.5, 2.0), **data-driven biases** via `centers=x_train`.
 
 The key insight: **encoders are random and fixed; decoders are solved
 analytically** via regularised least-squares (`layer.fit(x, targets)`).
@@ -77,11 +77,15 @@ output layer decodes.  Five training strategies are supported:
 - `recurrent.py` — `RecurrentNEFLayer(nn.Module)` implements the NEF
   decode-then-re-encode feedback loop for temporal sequences.  State
   decoders close the recurrent loop; output decoders produce the task
-  prediction at the final timestep.  Same three strategies (greedy/hybrid/
-  E2E), but only E2E produces competitive results — greedy and hybrid
-  struggle because random encoders compound state feedback noise across
+  prediction at the final timestep.  Four strategies (greedy/hybrid/
+  target-prop/E2E); only E2E produces competitive results — greedy and
+  hybrid struggle because random encoders compound state feedback noise
+  across timesteps.  Target propagation through time (TPTT) uses state
+  decoders as inverse models to propagate targets backward through
   timesteps.  `solve_from_normal_equations` in `solvers.py` avoids
   materialising the full T×B activity matrix during greedy solve.
+  Supports data-driven biases via `centers=` (first timestep + zero
+  state).
 
 ## Conventions
 
