@@ -5,6 +5,7 @@ import torch.nn as nn
 from torch import Tensor
 
 from .layers import NEFLayer
+from .solvers import solve_decoders
 
 
 def _ce_targets(targets: Tensor) -> Tensor:
@@ -312,3 +313,113 @@ class NEFNetwork(nn.Module):
         """
         self.fit_hybrid(x, targets, n_iters=n_iters, lr=hybrid_lr, solver=solver, **hybrid_kw)
         self._sgd_train(x, targets, n_epochs, e2e_lr, batch_size, loss)
+
+    # ------------------------------------------------------------------
+    # Strategy E — analytical target propagation (NEF-TP)
+    # ------------------------------------------------------------------
+
+    def fit_target_prop(
+        self,
+        x: Tensor,
+        targets: Tensor,
+        n_iters: int = 50,
+        lr: float = 1e-3,
+        eta: float = 0.1,
+        solver: str = "tikhonov",
+        schedule: bool = False,
+        **solver_kw,
+    ) -> None:
+        """Analytical target propagation using NEF representational decoders.
+
+        Each iteration:
+          1. Forward pass — collect all layer inputs and activities.
+          2. Solve output task decoder analytically.
+          3. Solve representational decoders for every layer analytically
+             (each decoder maps a layer's activities back to its input).
+          4. Compute output target activities (gradient of output loss
+             w.r.t. output activities, scaled by *eta*).
+          5. Propagate targets backward via Difference Target Propagation:
+             ``target[l] = a[l] + (target[l+1] - a[l+1]) @ D_repr[l+1]``
+          6. Update each layer's encoders and biases with a local gradient
+             step minimising ``||encode(input) - target||²``.
+          7. Re-solve output decoders after all iterations.
+
+        No backpropagation through multiple layers is needed — all encoder
+        updates use single-layer gradients only.
+
+        Args:
+            n_iters:  number of TP iterations (default 50).
+            lr:       learning rate for local encoder updates.
+            eta:      step size for output target computation.  Controls
+                      how far targets deviate from current activities.
+            solver:   decoder solver (default ``"tikhonov"``).
+            schedule: use cosine-annealing LR schedule over *n_iters*.
+        """
+        all_layers = list(self.hidden) + [self.output]
+
+        # One optimizer per layer for independent local updates
+        optimizers = []
+        for layer in all_layers:
+            params = [p for p in layer.parameters() if p.requires_grad]
+            optimizers.append(torch.optim.Adam(params, lr=lr))
+
+        schedulers = None
+        if schedule:
+            schedulers = [
+                torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=n_iters)
+                for opt in optimizers
+            ]
+
+        for _ in range(n_iters):
+            # ── Forward pass: collect inputs and activities ────────
+            inputs = [x]  # inputs[l] feeds into all_layers[l]
+            activities = []
+            h = x
+            with torch.no_grad():
+                for layer in all_layers:
+                    a = layer.encode(h)
+                    activities.append(a)
+                    h = a
+
+            # ── Solve task decoder (output layer) ─────────────────
+            a_out = activities[-1]
+            D_out = solve_decoders(a_out, targets, method=solver, **solver_kw)
+            self.output.decoders.data.copy_(D_out)
+
+            # ── Solve representational decoders for every layer ───
+            repr_decoders = []
+            for idx, layer in enumerate(all_layers):
+                D_repr = solve_decoders(activities[idx], inputs[idx], method=solver, **solver_kw)
+                repr_decoders.append(D_repr)
+                # Collect next layer's input
+                if idx < len(all_layers) - 1:
+                    inputs.append(activities[idx])
+
+            # ── Compute output target activities ──────────────────
+            error = a_out @ D_out - targets
+            target_out = a_out - eta * (error @ D_out.T)
+            layer_targets = [None] * len(all_layers)
+            layer_targets[-1] = target_out
+
+            # ── DTP backward pass ─────────────────────────────────
+            for idx in range(len(all_layers) - 2, -1, -1):
+                delta = layer_targets[idx + 1] - activities[idx + 1]
+                layer_targets[idx] = activities[idx] + delta @ repr_decoders[idx + 1]
+
+            # ── Local encoder updates (independent per layer) ─────
+            for idx, layer in enumerate(all_layers):
+                inp = inputs[idx]
+                target = layer_targets[idx].detach()
+                a_pred = layer.encode(inp)
+                local_loss = (a_pred - target).pow(2).mean()
+                optimizers[idx].zero_grad()
+                local_loss.backward()
+                optimizers[idx].step()
+
+            if schedulers is not None:
+                for s in schedulers:
+                    s.step()
+
+        # Final decoder solve after last encoder update
+        h = self._encode_hidden(x)
+        self.output.fit(h, targets, solver=solver, **solver_kw)

@@ -329,3 +329,80 @@ class TestNetworkExceptions:
     def test_ce_targets_requires_2d(self):
         with pytest.raises(ValueError, match="2-D one-hot"):
             _ce_targets(torch.tensor([0, 1, 2]))
+
+
+# ---- Target Propagation ----
+
+
+class TestTargetProp:
+    def test_forward_shape_after_tp(self):
+        """Network forward still works after TP training."""
+        net = _make_net(d_in=4, d_out=2, hidden=[50], output_n=100)
+        g = torch.Generator().manual_seed(0)
+        x = torch.randn(30, 4, generator=g)
+        targets = torch.randn(30, 2, generator=g)
+        net.fit_target_prop(x, targets, n_iters=2, lr=1e-3, eta=0.1)
+        pred = net(x)
+        assert pred.shape == (30, 2)
+
+    def test_tp_improves_over_greedy(self):
+        """TP should beat greedy on a learnable task."""
+        g = torch.Generator().manual_seed(7)
+        x = torch.randn(200, 4, generator=g)
+        w = torch.randn(4, 2, generator=g)
+        targets = x @ w
+
+        net_g = _make_net(d_in=4, d_out=2, hidden=[100], output_n=200, centers=x)
+        net_g.fit_greedy(x, targets)
+        mse_greedy = (net_g(x) - targets).pow(2).mean().item()
+
+        net_tp = _make_net(d_in=4, d_out=2, hidden=[100], output_n=200, centers=x)
+        net_tp.fit_target_prop(x, targets, n_iters=10, lr=1e-3, eta=0.1)
+        mse_tp = (net_tp(x) - targets).pow(2).mean().item()
+
+        assert mse_tp < mse_greedy
+
+    def test_tp_with_relu(self):
+        """TP works with relu activation."""
+        g = torch.Generator().manual_seed(3)
+        x = torch.randn(100, 4, generator=g)
+        targets = torch.randn(100, 2, generator=g)
+        net = _make_net(d_in=4, d_out=2, hidden=[50], output_n=100, activation="relu")
+        net.fit_target_prop(x, targets, n_iters=3, lr=1e-3, eta=0.1)
+        pred = net(x)
+        assert pred.shape == (100, 2)
+        assert torch.isfinite(pred).all()
+
+    def test_tp_with_schedule(self):
+        """TP runs with cosine LR schedule without error."""
+        g = torch.Generator().manual_seed(5)
+        x = torch.randn(50, 4, generator=g)
+        targets = torch.randn(50, 2, generator=g)
+        net = _make_net(d_in=4, d_out=2, hidden=[50], output_n=100)
+        net.fit_target_prop(x, targets, n_iters=5, lr=1e-3, eta=0.1, schedule=True)
+        assert torch.isfinite(net(x)).all()
+
+    def test_tp_multi_hidden(self):
+        """TP works with multiple hidden layers."""
+        g = torch.Generator().manual_seed(9)
+        x = torch.randn(80, 4, generator=g)
+        targets = torch.randn(80, 2, generator=g)
+        net = _make_net(d_in=4, d_out=2, hidden=[50, 30], output_n=100)
+        net.fit_target_prop(x, targets, n_iters=3, lr=1e-3, eta=0.1)
+        pred = net(x)
+        assert pred.shape == (80, 2)
+        assert torch.isfinite(pred).all()
+
+    def test_repr_decoder_quality(self):
+        """Representational decoders should reconstruct inputs reasonably."""
+        from leenef.solvers import solve_decoders
+
+        g = torch.Generator().manual_seed(11)
+        x = torch.randn(200, 8, generator=g)
+        net = _make_net(d_in=8, d_out=2, hidden=[200], output_n=200, centers=x)
+        a = net.hidden[0].encode(x)
+        D_repr = solve_decoders(a, x, method="tikhonov")
+        recon = a @ D_repr
+        mse = (recon - x).pow(2).mean().item()
+        # With 200 neurons and 8-dim input, reconstruction should be decent
+        assert mse < 1.0
