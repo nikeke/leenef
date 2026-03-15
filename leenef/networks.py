@@ -15,6 +15,107 @@ def _ce_targets(targets: Tensor) -> Tensor:
     return targets.argmax(dim=1)
 
 
+_NONNEGATIVE_TARGET_ACTIVATIONS = {"abs", "relu"}
+
+
+def _project_activity_target(target: Tensor, activation: str) -> Tensor:
+    """Project an activity-space target into the activation's feasible set."""
+    if activation in _NONNEGATIVE_TARGET_ACTIVATIONS:
+        return target.clamp(min=0)
+    return target
+
+
+def _infeasible_fraction(target: Tensor, activation: str) -> float:
+    """Fraction of target entries outside the activation's feasible set."""
+    if activation in _NONNEGATIVE_TARGET_ACTIVATIONS:
+        return (target < 0).float().mean().item()
+    return 0.0
+
+
+def _target_drift(activity: Tensor, target: Tensor) -> float:
+    """Relative target displacement ||target - activity|| / ||activity||."""
+    eps = torch.finfo(activity.dtype).eps
+    denom = activity.norm().clamp(min=eps)
+    return ((target - activity).norm() / denom).item()
+
+
+def _gram_diag_ratio(activity: Tensor) -> float:
+    """Cheap conditioning proxy based on the Gram-matrix diagonal spread."""
+    eps = torch.finfo(activity.dtype).eps
+    gram_diag = activity.pow(2).sum(dim=0)
+    return (gram_diag.max() / gram_diag.clamp(min=eps).min()).item()
+
+
+def _r2_score(targets: Tensor, prediction: Tensor) -> float:
+    """Compute a global R² score for reconstruction diagnostics."""
+    eps = torch.finfo(targets.dtype).eps
+    denom = (targets - targets.mean(dim=0, keepdim=True)).pow(2).sum().clamp(min=eps)
+    return (1 - (prediction - targets).pow(2).sum() / denom).item()
+
+
+def _scaled_activity_noise(
+    activities: Tensor,
+    noise_std: float,
+    *,
+    rng: torch.Generator | None = None,
+) -> Tensor:
+    """Sample activity noise scaled by each neuron's empirical std."""
+    if noise_std <= 0:
+        return torch.zeros_like(activities)
+    eps = torch.finfo(activities.dtype).eps
+    scale = activities.std(dim=0, unbiased=False, keepdim=True).clamp_min(eps)
+    noise = torch.randn(
+        activities.shape,
+        generator=rng,
+        device=activities.device,
+        dtype=activities.dtype,
+    )
+    return noise * (noise_std * scale)
+
+
+def _solve_repr_decoder(
+    activities: Tensor,
+    inputs: Tensor,
+    *,
+    solver: str,
+    noise_std: float,
+    noise_repeats: int,
+    rng: torch.Generator | None = None,
+    **solver_kw,
+) -> Tensor:
+    """Solve a representational decoder, optionally with noisy activity copies."""
+    if noise_repeats < 0:
+        raise ValueError(f"repr_noise_repeats must be >= 0, got {noise_repeats}")
+
+    if noise_std <= 0 or noise_repeats == 0:
+        return solve_decoders(activities, inputs, method=solver, **solver_kw)
+
+    activity_batches = [activities]
+    input_batches = [inputs]
+    for _ in range(noise_repeats):
+        noisy = activities + _scaled_activity_noise(activities, noise_std, rng=rng)
+        activity_batches.append(noisy)
+        input_batches.append(inputs)
+    return solve_decoders(
+        torch.cat(activity_batches, dim=0),
+        torch.cat(input_batches, dim=0),
+        method=solver,
+        **solver_kw,
+    )
+
+
+def _difference_target(
+    activity: Tensor,
+    next_activity: Tensor,
+    next_target: Tensor,
+    repr_decoder: Tensor,
+    activation: str,
+) -> Tensor:
+    """Difference target-propagation step with optional feasibility projection."""
+    raw_target = activity + (next_target - next_activity) @ repr_decoder
+    return _project_activity_target(raw_target, activation)
+
+
 class NEFNetwork(nn.Module):
     """Multi-layer NEF network.
 
@@ -25,6 +126,9 @@ class NEFNetwork(nn.Module):
         fit_greedy     — random hidden encoders, analytic output decoders
         fit_hybrid     — alternate analytic decoder solves with gradient
                          encoder updates
+        fit_target_prop — analytical target propagation via NEF inverses
+        fit_hybrid_e2e — hybrid warm start then end-to-end refinement
+        fit_target_prop_e2e — target-prop warm start then end-to-end refinement
         fit_end_to_end — standard SGD with NEF-initialised weights
     """
 
@@ -44,6 +148,8 @@ class NEFNetwork(nn.Module):
         super().__init__()
         self._activation = activation
         self._encoder_strategy = encoder_strategy
+        self._rng = rng
+        self.last_target_prop_diagnostics: list[dict[str, object]] | None = None
         self.hidden = nn.ModuleList()
         prev_dim = d_in
         for i, n in enumerate(hidden_neurons):
@@ -314,6 +420,37 @@ class NEFNetwork(nn.Module):
         self.fit_hybrid(x, targets, n_iters=n_iters, lr=hybrid_lr, solver=solver, **hybrid_kw)
         self._sgd_train(x, targets, n_epochs, e2e_lr, batch_size, loss)
 
+    def fit_target_prop_e2e(
+        self,
+        x: Tensor,
+        targets: Tensor,
+        n_iters: int = 50,
+        tp_lr: float = 1e-3,
+        eta: float = 0.1,
+        solver: str = "tikhonov",
+        n_epochs: int = 20,
+        e2e_lr: float = 1e-3,
+        batch_size: int = 256,
+        loss: str = "ce",
+        **tp_kw,
+    ) -> None:
+        """Run target propagation, then refine with end-to-end SGD.
+
+        This mirrors ``fit_hybrid_e2e`` but uses target propagation as the
+        warm start, preserving locally trained encoder geometry before a short
+        global clean-up phase.
+        """
+        self.fit_target_prop(
+            x,
+            targets,
+            n_iters=n_iters,
+            lr=tp_lr,
+            eta=eta,
+            solver=solver,
+            **tp_kw,
+        )
+        self._sgd_train(x, targets, n_epochs, e2e_lr, batch_size, loss)
+
     # ------------------------------------------------------------------
     # Strategy E — analytical target propagation (NEF-TP)
     # ------------------------------------------------------------------
@@ -328,6 +465,10 @@ class NEFNetwork(nn.Module):
         solver: str = "tikhonov",
         schedule: bool = False,
         normalize_step: bool = True,
+        repr_noise_std: float = 0.0,
+        repr_noise_repeats: int = 1,
+        collect_diagnostics: bool = False,
+        diagnostic_noise_std: float = 0.1,
         **solver_kw,
     ) -> None:
         """Analytical target propagation using NEF representational decoders.
@@ -362,9 +503,29 @@ class NEFNetwork(nn.Module):
                             the step as a fraction of activity norm (default
                             True).  When False, raw (unscaled) gradient is
                             used, matching the original formulation.
+            repr_noise_std: std of activity noise used to make repr decoders
+                            robust off the clean manifold.  ``0.0`` (default)
+                            keeps the original clean solve.
+            repr_noise_repeats:
+                            number of noisy activity copies to append when
+                            solving repr decoders (default ``1``).
+            collect_diagnostics:
+                            when True, store per-iteration TP diagnostics in
+                            ``last_target_prop_diagnostics``.
+            diagnostic_noise_std:
+                            activity-noise probe used for perturbed inverse
+                            diagnostics when ``collect_diagnostics=True``.
         """
+        if repr_noise_std < 0:
+            raise ValueError(f"repr_noise_std must be >= 0, got {repr_noise_std}")
+        if repr_noise_repeats < 0:
+            raise ValueError(f"repr_noise_repeats must be >= 0, got {repr_noise_repeats}")
+        if diagnostic_noise_std < 0:
+            raise ValueError(f"diagnostic_noise_std must be >= 0, got {diagnostic_noise_std}")
+
         all_layers = list(self.hidden) + [self.output]
         n_layers = len(all_layers)
+        self.last_target_prop_diagnostics = [] if collect_diagnostics else None
 
         # One optimizer per layer for independent local updates
         optimizers = []
@@ -416,12 +577,26 @@ class NEFNetwork(nn.Module):
             repr_decoders: list[Tensor | None] = [None]
             for idx in range(1, n_layers):
                 if idx == n_layers - 1:
-                    D_repr = torch.cholesky_solve(AT_out @ inputs[idx], L_out)
+                    if repr_noise_std <= 0:
+                        D_repr = torch.cholesky_solve(AT_out @ inputs[idx], L_out)
+                    else:
+                        D_repr = _solve_repr_decoder(
+                            a_out,
+                            inputs[idx].detach(),
+                            solver=solver,
+                            noise_std=repr_noise_std,
+                            noise_repeats=repr_noise_repeats,
+                            rng=self._rng,
+                            **solver_kw,
+                        )
                 else:
-                    D_repr = solve_decoders(
+                    D_repr = _solve_repr_decoder(
                         activities[idx].detach(),
-                        inputs[idx],
-                        method=solver,
+                        inputs[idx].detach(),
+                        solver=solver,
+                        noise_std=repr_noise_std,
+                        noise_repeats=repr_noise_repeats,
+                        rng=self._rng,
                         **solver_kw,
                     )
                 repr_decoders.append(D_repr)
@@ -429,19 +604,74 @@ class NEFNetwork(nn.Module):
             # ── Compute output target activities ──────────────────
             error = a_out @ D_out - targets
             grad = error @ D_out.T
+            raw_grad_norm = grad.norm().item()
             if normalize_step:
                 grad_norm = grad.norm()
                 if grad_norm > 0:
                     grad = grad / grad_norm * a_out.norm()
-            target_out = a_out - eta * grad
+            output_pre_target = a_out - eta * grad
+            target_out = _project_activity_target(output_pre_target, self._activation)
             layer_targets: list[Tensor | None] = [None] * n_layers
             layer_targets[-1] = target_out
+            pre_projection_fractions = [0.0] * n_layers
+            post_projection_fractions = [0.0] * n_layers
+            pre_projection_fractions[-1] = _infeasible_fraction(
+                output_pre_target, self._activation
+            )
+            post_projection_fractions[-1] = _infeasible_fraction(target_out, self._activation)
 
             # ── DTP backward pass ─────────────────────────────────
             for idx in range(n_layers - 2, -1, -1):
                 a_det = activities[idx + 1].detach()
                 delta = layer_targets[idx + 1] - a_det
-                layer_targets[idx] = activities[idx].detach() + delta @ repr_decoders[idx + 1]
+                raw_target = activities[idx].detach() + delta @ repr_decoders[idx + 1]
+                pre_projection_fractions[idx] = _infeasible_fraction(raw_target, self._activation)
+                layer_targets[idx] = _project_activity_target(raw_target, self._activation)
+                post_projection_fractions[idx] = _infeasible_fraction(
+                    layer_targets[idx], self._activation
+                )
+
+            if collect_diagnostics:
+                iteration_layers: list[dict[str, object]] = []
+                for idx in range(n_layers):
+                    activity = activities[idx].detach()
+                    target = layer_targets[idx].detach()
+                    layer_diag: dict[str, object] = {
+                        "layer_index": idx,
+                        "target_drift": _target_drift(activity, target),
+                        "infeasible_fraction_before": pre_projection_fractions[idx],
+                        "infeasible_fraction_after": post_projection_fractions[idx],
+                        "gram_diag_ratio": _gram_diag_ratio(activity),
+                        "repr_mse": None,
+                        "repr_r2": None,
+                        "repr_perturbed_mse": None,
+                        "repr_perturbed_r2": None,
+                    }
+                    if idx > 0:
+                        layer_input = inputs[idx].detach()
+                        recon = activity @ repr_decoders[idx]
+                        layer_diag["repr_mse"] = (recon - layer_input).pow(2).mean().item()
+                        layer_diag["repr_r2"] = _r2_score(layer_input, recon)
+                        if diagnostic_noise_std > 0:
+                            perturbed = activity + _scaled_activity_noise(
+                                activity, diagnostic_noise_std, rng=self._rng
+                            )
+                            perturbed_recon = perturbed @ repr_decoders[idx]
+                            layer_diag["repr_perturbed_mse"] = (
+                                (perturbed_recon - layer_input).pow(2).mean().item()
+                            )
+                            layer_diag["repr_perturbed_r2"] = _r2_score(
+                                layer_input, perturbed_recon
+                            )
+                    iteration_layers.append(layer_diag)
+                self.last_target_prop_diagnostics.append(
+                    {
+                        "raw_grad_norm": raw_grad_norm,
+                        "applied_grad_norm": grad.norm().item(),
+                        "output_activity_norm": a_out.norm().item(),
+                        "layers": iteration_layers,
+                    }
+                )
 
             # ── Local encoder updates (reuse forward-pass graph) ──
             for idx in range(n_layers):

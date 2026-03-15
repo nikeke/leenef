@@ -3,7 +3,7 @@
 import pytest
 import torch
 
-from leenef.networks import NEFNetwork, _ce_targets
+from leenef.networks import NEFNetwork, _ce_targets, _difference_target, _project_activity_target
 
 
 def _make_net(d_in=4, d_out=2, hidden=None, output_n=200, **kw):
@@ -224,6 +224,39 @@ class TestHybridE2E:
         assert not net.output.decoders.requires_grad
 
 
+# ---- Strategy E: target-prop -> E2E ----
+
+
+class TestTargetPropE2E:
+    def test_runs_and_improves(self):
+        torch.manual_seed(24)
+        x = torch.randn(400, 4)
+        labels = (x[:, 0] + x[:, 1] > 0).long()
+        targets = torch.zeros(400, 2).scatter_(1, labels.unsqueeze(1), 1.0)
+        net = _make_net(d_in=4, d_out=2, hidden=[200], output_n=400)
+        net.fit_target_prop_e2e(
+            x,
+            targets,
+            n_iters=5,
+            tp_lr=1e-3,
+            eta=0.1,
+            n_epochs=5,
+            e2e_lr=1e-3,
+            batch_size=64,
+            loss="ce",
+        )
+        with torch.no_grad():
+            acc = (net(x).argmax(1) == labels).float().mean().item()
+        assert acc > 0.90, f"target_prop_e2e accuracy too low: {acc}"
+
+    def test_decoders_frozen_after(self):
+        net = _make_net()
+        x = torch.randn(32, 4)
+        y = torch.randn(32, 2)
+        net.fit_target_prop_e2e(x, y, n_iters=2, n_epochs=2, batch_size=32, loss="mse")
+        assert not net.output.decoders.requires_grad
+
+
 # ---- Propagated centers ----
 
 
@@ -334,6 +367,24 @@ class TestNetworkExceptions:
 # ---- Target Propagation ----
 
 
+class TestTargetPropHelpers:
+    def test_project_activity_target_clamps_nonnegative_activations(self):
+        target = torch.tensor([[-1.0, 0.5], [2.0, -3.0]])
+        expected = torch.tensor([[0.0, 0.5], [2.0, 0.0]])
+        assert torch.equal(_project_activity_target(target, "relu"), expected)
+        assert torch.equal(_project_activity_target(target, "abs"), expected)
+        assert torch.equal(_project_activity_target(target, "softplus"), target)
+
+    def test_difference_target_is_noop_when_upper_target_matches_activity(self):
+        activity = torch.rand(8, 6)
+        next_activity = torch.rand(8, 10)
+        repr_decoder = torch.randn(10, 6)
+        target = _difference_target(
+            activity, next_activity, next_activity.clone(), repr_decoder, "relu"
+        )
+        assert torch.allclose(target, activity)
+
+
 class TestTargetProp:
     def test_forward_shape_after_tp(self):
         """Network forward still works after TP training."""
@@ -392,6 +443,60 @@ class TestTargetProp:
         pred = net(x)
         assert pred.shape == (80, 2)
         assert torch.isfinite(pred).all()
+
+    def test_tp_collects_diagnostics(self):
+        g = torch.Generator().manual_seed(21)
+        x = torch.randn(64, 4, generator=g)
+        targets = torch.randn(64, 2, generator=g)
+        net = _make_net(d_in=4, d_out=2, hidden=[50], output_n=100, activation="relu")
+        net.fit_target_prop(x, targets, n_iters=3, lr=1e-3, eta=0.1, collect_diagnostics=True)
+        diagnostics = net.last_target_prop_diagnostics
+        assert diagnostics is not None
+        assert len(diagnostics) == 3
+        assert len(diagnostics[-1]["layers"]) == 2
+        for layer in diagnostics[-1]["layers"]:
+            assert layer["target_drift"] >= 0
+            assert layer["infeasible_fraction_after"] == 0.0
+
+    def test_tp_with_raw_step(self):
+        g = torch.Generator().manual_seed(22)
+        x = torch.randn(64, 4, generator=g)
+        targets = torch.randn(64, 2, generator=g)
+        net = _make_net(d_in=4, d_out=2, hidden=[50], output_n=100)
+        net.fit_target_prop(
+            x,
+            targets,
+            n_iters=2,
+            lr=1e-3,
+            eta=0.1,
+            normalize_step=False,
+            collect_diagnostics=True,
+        )
+        diag = net.last_target_prop_diagnostics
+        assert diag is not None
+        assert diag[0]["applied_grad_norm"] == pytest.approx(diag[0]["raw_grad_norm"])
+
+    def test_tp_with_robust_repr_decoders(self):
+        g = torch.Generator().manual_seed(23)
+        x = torch.randn(64, 8, generator=g)
+        targets = torch.randn(64, 2, generator=g)
+        net = _make_net(d_in=8, d_out=2, hidden=[60], output_n=80, centers=x)
+        net.fit_target_prop(
+            x,
+            targets,
+            n_iters=2,
+            lr=1e-3,
+            eta=0.1,
+            repr_noise_std=0.1,
+            repr_noise_repeats=2,
+            collect_diagnostics=True,
+        )
+        diagnostics = net.last_target_prop_diagnostics
+        assert diagnostics is not None
+        for layer in diagnostics[-1]["layers"][1:]:
+            assert layer["repr_mse"] is not None
+            assert layer["repr_perturbed_mse"] is not None
+            assert torch.isfinite(torch.tensor(layer["repr_perturbed_mse"]))
 
     def test_repr_decoder_quality(self):
         """Representational decoders should reconstruct inputs reasonably."""
