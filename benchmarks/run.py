@@ -1,7 +1,11 @@
 """Benchmark harness for NEF single-layer and multi-layer experiments."""
 
+import argparse
+import csv
+import json
 import time
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+from pathlib import Path
 
 import torch
 import torch.nn as nn
@@ -24,6 +28,40 @@ class BenchmarkResult:
     train_metric: float
     test_metric: float
     fit_time: float  # seconds
+
+
+def save_results_json(results: list[BenchmarkResult], path: str | Path) -> None:
+    """Persist benchmark results as JSON."""
+    out_path = Path(path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = [asdict(result) for result in results]
+    out_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+
+
+def save_results_csv(results: list[BenchmarkResult], path: str | Path) -> None:
+    """Persist benchmark results as CSV."""
+    out_path = Path(path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fieldnames = [
+        "name",
+        "dataset",
+        "n_neurons",
+        "activation",
+        "encoder_strategy",
+        "solver",
+        "solver_kwargs",
+        "metric_name",
+        "train_metric",
+        "test_metric",
+        "fit_time",
+    ]
+    with out_path.open("w", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=fieldnames)
+        writer.writeheader()
+        for result in results:
+            row = asdict(result)
+            row["solver_kwargs"] = json.dumps(row["solver_kwargs"], sort_keys=True)
+            writer.writerow(row)
 
 
 def load_vision_dataset(name: str, root: str = "./data"):
@@ -246,6 +284,8 @@ def run_nef_multi(
     tp_eta: float = 0.1,
     tp_normalize: bool = True,
     tp_schedule: bool = False,
+    tp_e2e_epochs: int = 20,
+    tp_e2e_lr: float = 1e-3,
     data_root: str = "./data",
     use_centers: bool = True,
     gain: float | tuple[float, float] = (0.5, 2.0),
@@ -317,6 +357,22 @@ def run_nef_multi(
             lr=tp_lr,
             eta=tp_eta,
             solver=solver,
+            normalize_step=tp_normalize,
+            schedule=tp_schedule,
+            **solver_kwargs,
+        )
+    elif strategy == "target_prop_e2e":
+        net.fit_target_prop_e2e(
+            x_train,
+            targets,
+            n_iters=tp_iters,
+            tp_lr=tp_lr,
+            eta=tp_eta,
+            solver=solver,
+            n_epochs=tp_e2e_epochs,
+            e2e_lr=tp_e2e_lr,
+            batch_size=e2e_batch,
+            loss="ce",
             normalize_step=tp_normalize,
             schedule=tp_schedule,
             **solver_kwargs,
@@ -419,9 +475,8 @@ def format_results(results: list[BenchmarkResult]) -> str:
     return "\n".join(lines)
 
 
-if __name__ == "__main__":
-    import argparse
-
+def build_benchmark_parser() -> argparse.ArgumentParser:
+    """Build the CLI parser for benchmark runs."""
     parser = argparse.ArgumentParser(description="NEF benchmarks")
     parser.add_argument(
         "--datasets",
@@ -471,6 +526,18 @@ if __name__ == "__main__":
         "--tp-no-normalize", action="store_true", help="Disable normalized step in target prop"
     )
     parser.add_argument(
+        "--tp-e2e-epochs",
+        type=int,
+        default=20,
+        help="Number of E2E fine-tuning epochs after target propagation",
+    )
+    parser.add_argument(
+        "--tp-e2e-lr",
+        type=float,
+        default=1e-3,
+        help="Learning rate for the E2E phase after target propagation",
+    )
+    parser.add_argument(
         "--no-centers", action="store_true", help="Disable data-driven biases (use random biases)"
     )
     parser.add_argument(
@@ -479,7 +546,17 @@ if __name__ == "__main__":
     parser.add_argument("--multi", action="store_true", help="Run multi-layer benchmarks")
     parser.add_argument("--mlp", action="store_true", help="Run MLP baseline")
     parser.add_argument("--data-root", default="./data")
-    args = parser.parse_args()
+    parser.add_argument(
+        "--save-json", type=Path, default=None, help="Write results to a JSON file"
+    )
+    parser.add_argument("--save-csv", type=Path, default=None, help="Write results to a CSV file")
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    """CLI entry point for feed-forward benchmarks."""
+    parser = build_benchmark_parser()
+    args = parser.parse_args(argv)
 
     results = []
     use_centers = not args.no_centers
@@ -504,7 +581,14 @@ if __name__ == "__main__":
             )
 
         if args.multi:
-            for strat in ["greedy", "hybrid", "target_prop", "hybrid_e2e", "e2e"]:
+            for strat in [
+                "greedy",
+                "hybrid",
+                "target_prop",
+                "target_prop_e2e",
+                "hybrid_e2e",
+                "e2e",
+            ]:
                 print(f"Running NEFNet-{strat} on {ds}...")
                 results.append(
                     run_nef_multi(
@@ -524,6 +608,8 @@ if __name__ == "__main__":
                         hybrid_grad_steps=args.hybrid_grad_steps,
                         tp_eta=args.tp_eta,
                         tp_normalize=not args.tp_no_normalize,
+                        tp_e2e_epochs=args.tp_e2e_epochs,
+                        tp_e2e_lr=args.tp_e2e_lr,
                         data_root=args.data_root,
                         use_centers=use_centers,
                     )
@@ -550,3 +636,12 @@ if __name__ == "__main__":
 
     print()
     print(format_results(results))
+    if args.save_json is not None:
+        save_results_json(results, args.save_json)
+    if args.save_csv is not None:
+        save_results_csv(results, args.save_csv)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

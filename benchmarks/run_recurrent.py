@@ -1,5 +1,6 @@
 """Benchmark harness for recurrent NEF on temporal classification tasks."""
 
+import argparse
 import sys
 import time
 from pathlib import Path
@@ -13,7 +14,14 @@ _root = str(Path(__file__).resolve().parent.parent)
 if _root not in sys.path:
     sys.path.insert(0, _root)
 
-from benchmarks.run import BenchmarkResult, classification_accuracy, one_hot  # noqa: E402
+from benchmarks.run import (  # noqa: E402
+    BenchmarkResult,
+    classification_accuracy,
+    format_results,
+    one_hot,
+    save_results_csv,
+    save_results_json,
+)
 from leenef.recurrent import RecurrentNEFLayer  # noqa: E402
 
 
@@ -89,6 +97,8 @@ def run_recurrent_nef(
     greedy_iters: int = 5,
     hybrid_iters: int = 10,
     hybrid_lr: float = 1e-3,
+    hybrid_e2e_epochs: int = 20,
+    hybrid_e2e_lr: float = 1e-3,
     e2e_epochs: int = 50,
     e2e_lr: float = 1e-3,
     e2e_batch: int = 256,
@@ -101,12 +111,15 @@ def run_recurrent_nef(
     gain: float | tuple[float, float] = (0.5, 2.0),
     use_centers: bool = True,
     data_root: str = "./data",
+    grad_clip: float | None = 1.0,
 ) -> BenchmarkResult:
     """Run a recurrent NEF benchmark on Sequential MNIST.
 
     Args:
         mode: ``"row"``, ``"pixel"``, or ``"pixel_permuted"``.
-        strategy: ``"greedy"``, ``"hybrid"``, ``"e2e"``, or ``"target_prop"``.
+        strategy:
+            ``"greedy"``, ``"hybrid"``, ``"hybrid_e2e"``, ``"e2e"``, or
+            ``"target_prop"``.
     """
     solver_kwargs = solver_kwargs or {"alpha": 1e-2}
 
@@ -142,6 +155,21 @@ def run_recurrent_nef(
             lr=hybrid_lr,
             solver=solver,
             loss=loss,
+            grad_clip=grad_clip,
+            **solver_kwargs,
+        )
+    elif strategy == "hybrid_e2e":
+        layer.fit_hybrid_e2e(
+            x_train_seq,
+            targets,
+            n_iters=hybrid_iters,
+            hybrid_lr=hybrid_lr,
+            solver=solver,
+            n_epochs=hybrid_e2e_epochs,
+            e2e_lr=hybrid_e2e_lr,
+            batch_size=e2e_batch,
+            loss=loss,
+            grad_clip=grad_clip,
             **solver_kwargs,
         )
     elif strategy == "e2e":
@@ -152,6 +180,7 @@ def run_recurrent_nef(
             lr=e2e_lr,
             batch_size=e2e_batch,
             loss=loss,
+            grad_clip=grad_clip,
             greedy_iters=greedy_iters,
         )
     elif strategy == "target_prop":
@@ -258,3 +287,116 @@ def run_lstm_baseline(
         test_metric=test_acc,
         fit_time=fit_time,
     )
+
+
+def build_recurrent_benchmark_parser() -> argparse.ArgumentParser:
+    """Build the CLI parser for recurrent benchmarks."""
+    parser = argparse.ArgumentParser(description="Recurrent NEF benchmarks")
+    parser.add_argument("--mode", default="row", choices=["row", "pixel", "pixel_permuted"])
+    parser.add_argument(
+        "--strategies",
+        nargs="+",
+        default=["greedy", "hybrid", "hybrid_e2e", "target_prop", "e2e"],
+        choices=["greedy", "hybrid", "hybrid_e2e", "target_prop", "e2e"],
+        help="Recurrent NEF strategies to benchmark",
+    )
+    parser.add_argument("--neurons", type=int, default=2000)
+    parser.add_argument("--d-state", type=int, default=None)
+    parser.add_argument("--activation", default="relu")
+    parser.add_argument("--encoder", default="hypersphere")
+    parser.add_argument("--solver", default="tikhonov")
+    parser.add_argument("--alpha", type=float, default=1e-2)
+    parser.add_argument("--greedy-iters", type=int, default=5)
+    parser.add_argument("--hybrid-iters", type=int, default=10)
+    parser.add_argument("--hybrid-lr", type=float, default=1e-3)
+    parser.add_argument("--hybrid-e2e-epochs", type=int, default=20)
+    parser.add_argument("--hybrid-e2e-lr", type=float, default=1e-3)
+    parser.add_argument("--e2e-epochs", type=int, default=50)
+    parser.add_argument("--e2e-lr", type=float, default=1e-3)
+    parser.add_argument("--e2e-batch", type=int, default=256)
+    parser.add_argument("--tp-iters", type=int, default=50)
+    parser.add_argument("--tp-lr", type=float, default=1e-3)
+    parser.add_argument("--tp-eta", type=float, default=0.1)
+    parser.add_argument("--tp-no-normalize", action="store_true")
+    parser.add_argument("--tp-schedule", action="store_true")
+    parser.add_argument("--loss", default="mse", choices=["mse", "ce"])
+    parser.add_argument("--grad-clip", type=float, default=1.0)
+    parser.add_argument("--no-centers", action="store_true")
+    parser.add_argument("--data-root", default="./data")
+    parser.add_argument("--lstm", action="store_true", help="Also run the LSTM baseline")
+    parser.add_argument("--lstm-hidden-size", type=int, default=128)
+    parser.add_argument("--lstm-layers", type=int, default=1)
+    parser.add_argument("--lstm-epochs", type=int, default=20)
+    parser.add_argument("--lstm-lr", type=float, default=1e-3)
+    parser.add_argument("--lstm-batch", type=int, default=256)
+    parser.add_argument(
+        "--save-json", type=Path, default=None, help="Write results to a JSON file"
+    )
+    parser.add_argument("--save-csv", type=Path, default=None, help="Write results to a CSV file")
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    """CLI entry point for recurrent benchmarks."""
+    parser = build_recurrent_benchmark_parser()
+    args = parser.parse_args(argv)
+
+    results = []
+    use_centers = not args.no_centers
+    for strategy in args.strategies:
+        print(f"Running RecNEF-{strategy} on sMNIST-{args.mode}...")
+        results.append(
+            run_recurrent_nef(
+                mode=args.mode,
+                strategy=strategy,
+                n_neurons=args.neurons,
+                d_state=args.d_state,
+                activation=args.activation,
+                encoder_strategy=args.encoder,
+                solver=args.solver,
+                solver_kwargs={"alpha": args.alpha},
+                greedy_iters=args.greedy_iters,
+                hybrid_iters=args.hybrid_iters,
+                hybrid_lr=args.hybrid_lr,
+                hybrid_e2e_epochs=args.hybrid_e2e_epochs,
+                hybrid_e2e_lr=args.hybrid_e2e_lr,
+                e2e_epochs=args.e2e_epochs,
+                e2e_lr=args.e2e_lr,
+                e2e_batch=args.e2e_batch,
+                tp_iters=args.tp_iters,
+                tp_lr=args.tp_lr,
+                tp_eta=args.tp_eta,
+                tp_normalize=not args.tp_no_normalize,
+                tp_schedule=args.tp_schedule,
+                loss=args.loss,
+                use_centers=use_centers,
+                data_root=args.data_root,
+                grad_clip=args.grad_clip,
+            )
+        )
+
+    if args.lstm:
+        print(f"Running LSTM baseline on sMNIST-{args.mode}...")
+        results.append(
+            run_lstm_baseline(
+                mode=args.mode,
+                hidden_size=args.lstm_hidden_size,
+                n_layers=args.lstm_layers,
+                n_epochs=args.lstm_epochs,
+                lr=args.lstm_lr,
+                batch_size=args.lstm_batch,
+                data_root=args.data_root,
+            )
+        )
+
+    print()
+    print(format_results(results))
+    if args.save_json is not None:
+        save_results_json(results, args.save_json)
+    if args.save_csv is not None:
+        save_results_csv(results, args.save_csv)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
