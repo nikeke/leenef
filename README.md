@@ -193,8 +193,8 @@ the model generalises well, with test MSE within 1% of training MSE.
 | NEFLayer          | 95.6%    | 85.5%    | 47.8%    |     2s       |
 | NEFNet-greedy     | 95.1%    | 85.5%    | 45.8%    |     3s       |
 | NEFNet-hybrid     | 98.5%    | 90.0%    | 51.7%    |   315s       |
-| NEFNet-target-prop| 98.5%    | 89.7%    | 51.3%    |   412s       |
-| NEFNet-TP→E2E     | 98.5%    | 90.7%    |**58.5%** |   466s       |
+| NEFNet-target-prop| 98.6%    | 90.1%    | 51.0%    |   371s       |
+| NEFNet-TP→E2E     | 98.6%    | 90.6%    |**58.5%** |   470s       |
 | NEFNet-hybrid→E2E |**98.6%** |**91.0%** | 58.1%    |   412s       |
 | NEFNet-e2e        | 98.4%    | 90.3%    | 57.8%    |   240s       |
 | MLP (2×1000)      | 98.1%    | 90.2%    | 54.6%    |    84s       |
@@ -222,27 +222,29 @@ diminish past 50 iterations (75 and 100 barely improve).
 encoder state, producing noisy gradients that destabilise encoder learning.
 At α = 10⁻⁵ results collapse entirely (96.4% MNIST, 32.7% CIFAR-10).
 
-**Warm-started E2E remains the most reliable path.**  `fit_target_prop_e2e`
-reaches 98.5% / 90.7% / 58.5%, keeping it competitive with
-`fit_hybrid_e2e` while edging ahead on CIFAR-10.  The hybrid→E2E warm start
-still has the best MNIST and Fashion-MNIST numbers in this table, so it
-remains the safest general-purpose choice overall.
+**Warm-started E2E remains a strong option.**  `fit_target_prop_e2e`
+reaches 98.6% / 90.6% / 58.5% with a gentler `eta=0.01` TP warm start,
+keeping it competitive with `fit_hybrid_e2e` while still edging ahead on
+CIFAR-10.  The hybrid→E2E warm start keeps the best Fashion-MNIST number and
+a slight MNIST edge, so it remains the safest general-purpose choice overall.
 
-**Plain target propagation is competitive again with a smaller default step.**
+**Plain target propagation benefits from a moderate fixed step.**
 `fit_target_prop` still avoids cross-layer backprop entirely: it solves
 representational decoders analytically, propagates DTP targets backward, and
-updates each layer with only single-layer gradients.  Enforcing nonnegative
-activity targets made the old `eta=0.1` step too aggressive because too much
-of each target update was being clipped away before the local losses saw it.
-Reducing the default to `eta=0.01` keeps the feasibility fix while preserving
-the TP signal, bringing plain TP back to 98.5% / 89.7% / 51.3% and restoring
-its earlier competitiveness with hybrid on the easier datasets.
+updates each layer with only single-layer gradients.  The current default keeps
+those activity targets unconstrained and uses `eta=0.03`, which gave the best
+overall plain-TP trade-off in the reruns: 98.6% / 90.1% / 51.0%.  Strict target
+projection (`project_targets=True`) and adaptive infeasible-target backoff
+(`max_infeasible_fraction=...`) are still available for experiments, but they
+were less reliable as the default path on the current benchmark configuration.
 
 **Target propagation eta sweep** (50 iterations, lr=10⁻³, normalised step):
 
 > Measured with an earlier configuration (gain=1.0, data-driven biases).
-> With feasibility projection enabled, the current default uses `eta=0.01`
-> to keep target clipping low while retaining most of the TP signal.
+> The qualitative pattern still holds on the current configuration:
+> MNIST is forgiving, Fashion prefers a mid-sized step, and CIFAR-10 wants a
+> gentler one.  The current defaults split that difference with `eta=0.03` for
+> plain TP and `eta=0.01` for the TP→E2E warm start.
 
 | eta    | MNIST | Fashion | CIFAR-10 |
 |--------|-------|---------|----------|
@@ -253,12 +255,12 @@ its earlier competitiveness with hybrid on the easier datasets.
 | 0.05   | 98.5% | **90.2%**| 51.1%   |
 | 0.10   | **98.6%** | 90.0% | 51.0%  |
 
-MNIST is insensitive to eta across two orders of magnitude.  Fashion
-slightly prefers larger eta (~0.05).  CIFAR-10 benefits dramatically from
-smaller eta — 0.002 lifts test accuracy from 51.0% to 54.8%, surpassing
-both hybrid (52.3%) and the MLP baseline (53.4%).  The pattern is clear:
-harder data needs gentler target updates to keep targets in the feasible
-activity region.
+MNIST is insensitive to eta across a wide range.  Fashion prefers a
+mid-sized step, while CIFAR-10 benefits from gentler updates.  That is why the
+current defaults no longer share one TP step across both strategies: plain TP
+uses `eta=0.03`, while TP→E2E keeps a smaller `eta=0.01` warm start.  The
+optional projection/adaptive controls remain useful for experiments, but the
+simple fixed defaults above were more reliable on the current reruns.
 
 See `docs/analytical_target_propagation.md` for the full algorithm and
 analysis of related approaches.
