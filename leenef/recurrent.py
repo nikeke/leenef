@@ -435,9 +435,7 @@ class RecurrentNEFLayer(nn.Module):
                     s = sb.new_zeros(sb.shape[0], self.d_state)
                     for t in range(T):
                         x_aug = torch.cat([sb[:, t], s], dim=-1)
-                        a = self.activation(
-                            self._gain * (x_aug @ self.encoders.T) + self.bias
-                        )
+                        a = self.activation(self._gain * (x_aug @ self.encoders.T) + self.bias)
                         AtA_state.addmm_(a.T, a)
                         AtY_state.addmm_(a.T, x_aug)
                         s = a @ self.state_decoders
@@ -478,9 +476,7 @@ class RecurrentNEFLayer(nn.Module):
                 s = sb.new_zeros(Bb, self.d_state)
                 for t in range(T):
                     x_aug = torch.cat([sb[:, t], s.detach()], dim=-1)
-                    a = self.activation(
-                        self._gain * (x_aug @ self.encoders.T) + self.bias
-                    )
+                    a = self.activation(self._gain * (x_aug @ self.encoders.T) + self.bias)
                     activities.append(a)
                     s = a @ self.state_decoders.detach()
 
@@ -494,8 +490,7 @@ class RecurrentNEFLayer(nn.Module):
 
                 # Local loss (scaled for correct gradient accumulation)
                 chunk_loss = sum(
-                    (activities[t] - timestep_targets[t].detach()).pow(2).mean()
-                    for t in range(T)
+                    (activities[t] - timestep_targets[t].detach()).pow(2).mean() for t in range(T)
                 ) * (Bb / B)
                 chunk_loss.backward()
 

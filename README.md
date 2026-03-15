@@ -105,17 +105,17 @@ python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
 
 | Dataset       |  500   | 1000   | 2000   | 5000   | 10k    | 20k    | 30k    |
 |---------------|--------|--------|--------|--------|--------|--------|--------|
-| MNIST         | 92.0%  | 94.1%  | 95.5%  | 96.8%  | 97.5%  | 98.0%  | 98.1%  |
-| Fashion-MNIST | 82.8%  | 84.4%  | 86.1%  | 87.3%  | 88.5%  | 89.3%  | 89.6%  |
-| CIFAR-10      | 43.9%  | 45.3%  | 48.5%  | 50.4%  | 50.9%  | 51.4%  | 51.5%  |
-| Time          | <1s    | 1s     | 2s     | 11s    | 37s    | 153s   | 349s   |
+| MNIST         | 92.1%  | 94.3%  | 95.5%  | 96.9%  | 97.4%  | 97.9%  | 98.3%  |
+| Fashion-MNIST | 82.6%  | 84.7%  | 85.7%  | 87.1%  | 88.4%  | 89.3%  | 89.8%  |
+| CIFAR-10      | 43.7%  | 45.9%  | 47.8%  | 50.4%  | 51.0%  | 51.5%  | 51.8%  |
+| Time          | <1s    | 1s     | 2s     | 10s    | 43s    | 140s   | 394s   |
 
 At 2000 neurons, MNIST reaches 95.5% in ~2 seconds — within 3% of a
 fully-trained MLP that takes 40× longer.  Performance scales monotonically
 with neuron count but with severe diminishing returns: 30000 neurons at
-~350 seconds reaches 98.1% on MNIST — close to hybrid's 98.6% at 355
+~394 seconds reaches 98.3% on MNIST — close to hybrid's 98.5% at 315
 seconds, but unable to match it despite using 10× more neurons.  The
-single-layer ceiling on Fashion-MNIST (89.6%) and CIFAR-10 (51.5%) falls
+single-layer ceiling on Fashion-MNIST (89.8%) and CIFAR-10 (51.8%) falls
 further short of multi-layer results (91.0% / 58.1%), showing that learned
 features are essential where brute-force neuron scaling cannot compensate.
 
@@ -123,15 +123,15 @@ features are essential where brute-force neuron scaling cannot compensate.
 
 |               | hyper  | + data | gauss  | + data | sparse | + data |
 |---------------|--------|--------|--------|--------|--------|--------|
-| MNIST         | 92.8%  |**95.5%**| 95.8% | 95.5%  | 95.8%  | 95.7%  |
-| Fashion-MNIST | 83.8%  |**86.1%**| 86.1% | 86.1%  | 86.2%  | 86.2%  |
-| CIFAR-10      | 45.2%  |**48.5%**| 47.4% | 48.5%  | 47.2%  | 48.7%  |
+| MNIST         | 93.4%  |**95.6%**| 96.0% | 95.7%  | 95.6%  | 95.6%  |
+| Fashion-MNIST | 84.1%  |**85.9%**| 86.0% | 86.0%  | 86.0%  | 85.6%  |
+| CIFAR-10      | 45.9%  |**48.3%**| 47.3% | 47.5%  | 47.5%  | 48.2%  |
 
 Without data-driven biases, hypersphere encoders lag Gaussian and sparse by
-3–8%.  Data-driven biases **close the entire gap**.  The advantage of
+2–3%.  Data-driven biases **close the entire gap**.  The advantage of
 Gaussian encoders was their varying norms creating an implicit distribution
 of activation thresholds — data-driven biases make this explicit.  With
-data biases, all encoder types converge to the same accuracy; the encoder
+data biases, all encoder types converge to similar accuracy; the encoder
 direction distribution no longer matters, only having enough random
 directions does.
 
@@ -143,16 +143,16 @@ placement) — rather than relying on Gaussian norms as an accidental proxy.
 
 | Activation | MNIST  | Fashion | CIFAR-10 |
 |------------|--------|---------|----------|
-| abs        |**95.5%**|**86.1%**|**48.5%**|
-| relu       | 95.2%  | 85.8%   | 48.5%   |
-| softplus   | 88.9%  | 81.7%   | 42.7%   |
-| lif_rate   | 67.3%  | 76.5%   | 30.0%   |
+| abs        |**95.7%**|**85.8%**|**48.1%**|
+| relu       | 95.4%  | 85.3%   | 47.9%   |
+| softplus   | 90.9%  | 82.4%   | 44.2%   |
+| lif_rate   | 88.9%  | 81.2%   | 38.8%   |
 
 Data-driven biases amplify the effect of activation choice.  With random
 biases (not shown), all four activations cluster within ~1% of each other.
 With data biases, neurons have more structured activation patterns with
 sharper boundaries.  The abs and ReLU activations handle this well, but
-softplus loses 7% on MNIST and lif_rate loses 28%.
+softplus loses 5% on MNIST and lif_rate loses 7%.
 
 The abs activation is a natural fit for the distance interpretation: each
 neuron computes `|gain · ((x − d) · e)|`, responding to deviations in
@@ -163,10 +163,10 @@ ReLU, which discards one half of the encoding space.
 
 | Neurons | Train MSE | Test MSE |
 |---------|-----------|----------|
-| 500     | 0.262     | 0.255    |
-| 1000    | 0.248     | 0.243    |
-| 2000    | 0.232     | 0.234    |
-| 5000    | 0.210     | 0.223    |
+| 500     | 0.269     | 0.265    |
+| 1000    | 0.254     | 0.249    |
+| 2000    | 0.235     | 0.236    |
+| 5000    | 0.213     | 0.227    |
 
 More neurons improve accuracy with diminishing returns.  At 2000 neurons
 the model generalises well, with test MSE within 1% of training MSE.
@@ -231,6 +231,10 @@ from one A^T A decomposition.
 
 **Target propagation eta sweep** (50 iterations, lr=10⁻³, normalised step):
 
+> Measured with an earlier configuration (gain=1.0, data-driven biases).
+> Qualitative conclusions (CIFAR-10 prefers small eta, MNIST is insensitive)
+> are expected to hold with current defaults.
+
 | eta    | MNIST | Fashion | CIFAR-10 |
 |--------|-------|---------|----------|
 | 0.001  | —     | —       | 53.8%    |
@@ -258,6 +262,10 @@ centred around realistic activation patterns rather than random points.
 
 #### Hybrid improvement sweep
 
+> Measured with an earlier configuration (gain=1.0, data-driven biases).
+> Qualitative conclusions (CE is catastrophic, flat LR is optimal) are
+> expected to hold with current defaults.
+
 We also tested cross-entropy loss for encoder gradients, cosine LR
 scheduling, incremental hidden-layer initialisation (warm-start from a
 solved single-layer), and mini-batch gradient steps.  None improved on the
@@ -283,17 +291,21 @@ Incremental init is neutral: 50 iterations absorb the warm-start advantage.
 
 | Activation | MNIST  | Fashion |
 |------------|--------|---------|
-| abs        |**97.2%**|**87.9%**|
-| relu       | 96.6%  | 87.2%   |
-| lif_rate   | 92.3%  | 83.7%   |
-| softplus   | 90.8%  | 82.4%   |
+| relu       |**97.8%**|**88.7%**|
+| abs        | 97.5%  | 88.0%   |
+| lif_rate   | 95.2%  | 85.1%   |
+| softplus   | 94.0%  | 84.1%   |
 
-> Measured with the old hybrid defaults (10 iterations, α = 10⁻²).
+> Measured with 10 hybrid iterations, gain=U(0.5, 2.0), data-driven
+> biases, α = 10⁻².
 
-With data-driven biases, abs is the best activation for hybrid training.
-This reverses an earlier finding where softplus was best with random
-biases — the sharp distance structure created by data-driven biases
-benefits from an activation that preserves it.
+With data-driven biases and per-neuron gain, relu slightly edges out abs
+for multi-layer hybrid training.  Per-neuron gain diversity means ReLU's
+zero-gradient region no longer kills half the neurons uniformly — some
+neurons have low gain (wide tuning) while others have high gain (narrow
+tuning), creating a rich gradient landscape.  The ranking reversal from
+single-layer (where abs leads) suggests that gradient flow through
+multiple encode–decode cycles benefits from ReLU's sparsity.
 
 ## Visualisations
 
@@ -309,26 +321,29 @@ Generate plots with `python benchmarks/plot.py` (requires matplotlib).
 1. **Data-driven biases are the key design choice.**  Rewriting the encoding
    as `|gain · ((x − d) · e)|` reveals each neuron measures unsigned
    deviation from a reference point *d* along direction *e*.  Sampling *d*
-   from training data closes the entire 3–8% gap between encoder types and
+   from training data closes the entire 2–3% gap between encoder types and
    makes the encoder direction distribution irrelevant — only having enough
    random directions matters.
 
 2. **Single-layer NEF is remarkably effective but hits a ceiling.**  With
    2000 neurons and a 2-second analytic solve, it reaches 95.5% on MNIST
-   and 86.1% on Fashion-MNIST — within 3% of a fully-trained MLP.  Even
-   with 30000 neurons and 350 seconds of compute (comparable to hybrid),
-   single-layer tops out at 98.1% / 89.6% / 51.5% — learned features in
+   and 85.7% on Fashion-MNIST — within 3% of a fully-trained MLP.  Even
+   with 30000 neurons and 394 seconds of compute (comparable to hybrid),
+   single-layer tops out at 98.3% / 89.8% / 51.8% — learned features in
    multi-layer networks cannot be replaced by brute-force neuron scaling.
 
-3. **The abs activation is a natural fit.**  Computing an unsigned distance
-   along the encoder direction doubles representational capacity by
-   responding to deviations in either direction.  With data-driven biases,
-   abs is the best activation for both single-layer and multi-layer models.
+3. **The abs activation is a natural fit for single-layer models.**
+   Computing an unsigned distance along the encoder direction doubles
+   representational capacity by responding to deviations in either
+   direction.  With data-driven biases, abs is the best single-layer
+   activation.  For multi-layer hybrid training, relu slightly edges
+   ahead — per-neuron gain diversity means ReLU's sparsity aids gradient
+   flow without killing neurons uniformly.
 
 4. **Activation sensitivity is controlled by bias structure.**  With random
    biases, all activations perform within ~1%.  Data-driven biases create
    sharper activation patterns that reward sharp-threshold activations
-   (abs, ReLU) and punish smooth ones (softplus −7%, lif_rate −28% on
+   (abs, ReLU) and punish smooth ones (softplus −5%, lif_rate −7% on
    MNIST).
 
 5. **Hybrid→E2E is the best overall strategy.**  Running hybrid then E2E

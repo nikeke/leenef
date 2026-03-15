@@ -19,37 +19,37 @@ NEURONS = [500, 1000, 2000, 5000, 10000, 20000, 30000]
 
 # Single-layer: neuron scaling
 SCALE = {
-    "MNIST": [92.0, 94.1, 95.5, 96.8, 97.5, 98.0, 98.1],
-    "Fashion-MNIST": [82.8, 84.4, 86.1, 87.3, 88.5, 89.3, 89.6],
-    "CIFAR-10": [43.9, 45.3, 48.5, 50.4, 50.9, 51.4, 51.5],
+    "MNIST": [92.1, 94.3, 95.5, 96.9, 97.4, 97.9, 98.3],
+    "Fashion-MNIST": [82.6, 84.7, 85.7, 87.1, 88.4, 89.3, 89.8],
+    "CIFAR-10": [43.7, 45.9, 47.8, 50.4, 51.0, 51.5, 51.8],
 }
 
 # Bias effect (2000 neurons, abs activation): encoder × random/data bias
 ENCODERS = ["hypersphere", "gaussian", "sparse"]
 BIAS_EFFECT = {
-    "MNIST": {"random": [92.8, 95.8, 95.8], "data": [95.5, 95.5, 95.7]},
-    "Fashion-MNIST": {"random": [83.8, 86.1, 86.2], "data": [86.1, 86.1, 86.2]},
-    "CIFAR-10": {"random": [45.2, 47.4, 47.2], "data": [48.5, 48.5, 48.7]},
+    "MNIST": {"random": [93.4, 96.0, 95.6], "data": [95.6, 95.7, 95.6]},
+    "Fashion-MNIST": {"random": [84.1, 86.0, 86.0], "data": [85.9, 86.0, 85.6]},
+    "CIFAR-10": {"random": [45.9, 47.3, 47.5], "data": [48.3, 47.5, 48.2]},
 }
 
 # Multi-layer: strategy comparison
 STRATEGIES = ["Linear", "NEFLayer", "Greedy", "Hybrid", "Hybrid→E2E", "E2E", "MLP"]
 MULTI = {
-    "MNIST": [85.3, 95.5, 95.0, 98.6, 98.6, 98.5, 98.4],
-    "Fashion-MNIST": [81.0, 86.1, 85.7, 90.3, 90.9, 90.6, 89.6],
-    "CIFAR-10": [39.6, 48.5, 45.5, 52.3, 58.4, 58.4, 53.4],
+    "MNIST": [85.3, 95.6, 95.1, 98.5, 98.6, 98.4, 98.1],
+    "Fashion-MNIST": [81.0, 85.5, 85.5, 90.0, 91.0, 90.3, 90.2],
+    "CIFAR-10": [39.6, 47.8, 45.8, 51.7, 58.1, 57.8, 54.6],
 }
 MULTI_TIME = {
-    "MNIST": [2, 2, 3, 355, 501, 259, 87],
-    "Fashion-MNIST": [2, 2, 3, 340, 457, 263, 89],
-    "CIFAR-10": [15, 3, 3, 375, 511, 500, 150],
+    "MNIST": [2, 2, 3, 315, 412, 240, 84],
+    "Fashion-MNIST": [2, 2, 3, 316, 410, 239, 82],
+    "CIFAR-10": [14, 3, 3, 343, 475, 319, 142],
 }
 
 # Multi-layer: activation effect (hybrid, hypersphere + data biases)
-ACTIVATIONS_ML = ["abs", "relu", "lif_rate", "softplus"]
+ACTIVATIONS_ML = ["relu", "abs", "lif_rate", "softplus"]
 HYBRID_ACT = {
-    "MNIST": [97.2, 96.6, 92.3, 90.8],
-    "Fashion-MNIST": [87.9, 87.2, 83.7, 82.4],
+    "MNIST": [97.8, 97.5, 95.2, 94.0],
+    "Fashion-MNIST": [88.7, 88.0, 85.1, 84.1],
 }
 
 
