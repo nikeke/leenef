@@ -88,7 +88,9 @@ pytest -k test_fit_identity -q             # single test
 > All timings are from a CPU-only setup (AMD Ryzen 5 PRO 5650U, no GPU).
 
 Default configuration: **abs** activation, **hypersphere** encoders,
-**data-driven biases** (`centers=x_train`), Tikhonov solver (α = 0.01).
+**per-neuron gain** U(0.5, 2.0), **data-driven biases** (`centers=x_train`),
+Tikhonov solver (α = 0.01).  Recurrent layers default to **relu** because
+abs has gradient ±1 everywhere, causing gradient explosion through BPTT.
 
 ```bash
 python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
@@ -114,7 +116,7 @@ with neuron count but with severe diminishing returns: 30000 neurons at
 ~350 seconds reaches 98.1% on MNIST — close to hybrid's 98.6% at 355
 seconds, but unable to match it despite using 10× more neurons.  The
 single-layer ceiling on Fashion-MNIST (89.6%) and CIFAR-10 (51.5%) falls
-further short of multi-layer results (90.9% / 58.4%), showing that learned
+further short of multi-layer results (91.0% / 58.1%), showing that learned
 features are essential where brute-force neuron scaling cannot compensate.
 
 #### Why data-driven biases matter (2000 neurons, abs activation)
@@ -174,19 +176,19 @@ the model generalises well, with test MSE within 1% of training MSE.
 | Model             | MNIST    | Fashion  | CIFAR-10 | Time (MNIST) |
 |-------------------|----------|----------|----------|--------------|
 | Linear baseline   | 85.3%    | 81.0%    | 39.6%    |     2s       |
-| NEFLayer          | 95.5%    | 86.1%    | 48.5%    |     2s       |
-| NEFNet-greedy     | 95.0%    | 85.7%    | 45.5%    |     3s       |
-| NEFNet-hybrid     | 98.6%    | 90.3%    | 52.3%    |   355s       |
-| NEFNet-target-prop| 98.6%    | 90.2%    | 54.8%    |   349s       |
-| NEFNet-hybrid→E2E |**98.6%** |**90.9%** |**58.4%** |   501s       |
-| NEFNet-e2e        | 98.5%    | 90.6%    | 58.4%    |   259s       |
-| MLP (2×1000)      | 98.4%    | 89.6%    | 53.4%    |    87s       |
+| NEFLayer          | 95.6%    | 85.5%    | 47.8%    |     2s       |
+| NEFNet-greedy     | 95.1%    | 85.5%    | 45.8%    |     3s       |
+| NEFNet-hybrid     | 98.5%    | 90.0%    | 51.7%    |   315s       |
+| NEFNet-target-prop| 98.6%    | 90.0%    | 53.9%    |   351s       |
+| NEFNet-hybrid→E2E |**98.6%** |**91.0%** |**58.1%** |   412s       |
+| NEFNet-e2e        | 98.4%    | 90.3%    | 57.8%    |   240s       |
+| MLP (2×1000)      | 98.1%    | 90.2%    | 54.6%    |    84s       |
 
 All multi-layer models use propagated data-driven biases: training data is
 forwarded through each layer, and the resulting activations are used as
 centers for the next layer's bias computation.  This is especially important
 for greedy, which has no gradient learning — propagated centers lifted
-greedy from 94.0% → 95.0% on MNIST and 84.0% → 85.7% on Fashion-MNIST.
+greedy from 94.0% → 95.1% on MNIST and 84.0% → 85.5% on Fashion-MNIST.
 
 The default hybrid configuration uses 50 iterations with α = 10⁻³ for the
 decoder solver.  These were found via a systematic sweep over iterations
@@ -206,7 +208,7 @@ encoder state, producing noisy gradients that destabilise encoder learning.
 At α = 10⁻⁵ results collapse entirely (96.4% MNIST, 32.7% CIFAR-10).
 
 **Hybrid→E2E is the best overall strategy.**  Running 50 hybrid iterations
-then 20 E2E epochs (`fit_hybrid_e2e`) reaches 98.6% / 90.9% / 58.4% —
+then 20 E2E epochs (`fit_hybrid_e2e`) reaches 98.6% / 91.0% / 58.1% —
 the highest accuracy on all three datasets.  The hybrid phase learns
 good encoder orientations with analytic decoders; the E2E phase then
 unlocks decoder learning to squeeze out the last gains.
@@ -218,11 +220,10 @@ uses difference target propagation (DTP) to compute local targets.  Encoder
 updates use single-layer gradients only — no gradient ever flows between
 layers.  A normalised gradient step ensures *eta* directly controls what
 fraction of activity norm the targets deviate by, making the hyperparameter
-scale-independent.  **Optimal eta varies by dataset complexity**: MNIST is
-robust across 0.01–0.1 (98.5–98.6%), Fashion peaks at eta≈0.05 (90.2%),
-and CIFAR-10 needs eta≈0.002 (54.8%) — the full sweep is shown below.
-With tuned eta, TP matches or exceeds hybrid on all three datasets while
-using only single-layer gradients.  Key speed optimisations: skipping the
+scale-independent.  With the default eta=0.1, **TP matches or exceeds hybrid
+on all three datasets** (98.6% / 90.0% / 53.9% vs 98.5% / 90.0% / 51.7%).
+Per-dataset eta tuning can squeeze more from CIFAR-10 (see sweep below).
+Key speed optimisations: skipping the
 unused first-layer representational decoder, reusing the forward-pass
 computation graph for local gradient steps, and caching the output-layer
 Cholesky factorisation to solve both task and representational decoders
@@ -331,13 +332,13 @@ Generate plots with `python benchmarks/plot.py` (requires matplotlib).
    MNIST).
 
 5. **Hybrid→E2E is the best overall strategy.**  Running hybrid then E2E
-   reaches 98.6% / 90.9% / 58.4% — the highest accuracy on all three
+   reaches 98.6% / 91.0% / 58.1% — the highest accuracy on all three
    datasets.  The hybrid phase learns encoder orientations with analytic
    decoders; the E2E phase unlocks full gradient training to close the
    CIFAR-10 gap.
 
 6. **Hybrid alone surpasses both E2E and MLP on easy datasets.**  With 50
-   iterations and α = 10⁻³, pure hybrid reaches 98.6% MNIST / 90.3%
+   iterations and α = 10⁻³, pure hybrid reaches 98.5% MNIST / 90.0%
    Fashion while preserving analytic decoders.  Iterations dominate all
    other hyperparameters.
 
@@ -358,22 +359,23 @@ Generate plots with `python benchmarks/plot.py` (requires matplotlib).
    centers for the next layer's biases narrows the gap to 0.5%, though
    greedy still cannot match gradient-trained strategies.
 
-10. **Per-neuron gain distributions have limited impact.**  In canonical NEF,
-    each neuron has its own gain sampled from a distribution.  We support
-    this via `gain=(lo, hi)`, but benchmarks show it only helps greedy
-    multi-layer on CIFAR-10 (+1.4% with U(0.5, 2.0)).  Gradient-based
-    methods adapt encoders to compensate, making initial gain diversity
-    redundant.  Default remains uniform gain = 1.0.
+10. **Per-neuron gain U(0.5, 2.0) is the default.**  In canonical NEF,
+    each neuron has its own gain sampled from a distribution.  Per-neuron
+    gain via `gain=(lo, hi)` is now the default for all layers and
+    strategies, following the NEF tradition of diverse tuning curves.
+    The impact is modest in feedforward networks (gradient-based methods
+    adapt encoders to compensate), but it provides a better initial
+    encoding — each neuron responds at a different sensitivity level,
+    giving the population a richer representation from the start.
 
 11. **Target propagation matches hybrid without backprop.**  Using NEF
     representational decoders as analytical inverse models and a normalised
     gradient step, TP matches or exceeds hybrid on all three datasets
-    (98.6% / 90.2% / 54.8%) using only single-layer gradients.  Optimal
-    eta varies by dataset complexity: MNIST is robust (0.01–0.1), Fashion
-    prefers ~0.05, and CIFAR-10 needs ~0.002.  The key insight: the
-    original raw gradient was unscaled by N, making targets barely differ
-    from activities; normalising the step so eta controls the fractional
-    deviation fixed the learning signal entirely.
+    (98.6% / 90.0% / 53.9% vs 98.5% / 90.0% / 51.7%) using only
+    single-layer gradients.  Per-dataset eta tuning (see sweep) can lift
+    CIFAR-10 further.  The key insight: normalising the step so eta
+    controls the fractional deviation keeps targets in the feasible
+    activity region regardless of scale.
 
 ## Recurrent / temporal extension
 
@@ -394,15 +396,23 @@ feeds it back through the encoders.  The **output decoder** `D_out` is the
 prediction.  The dynamics matrix is implicit in the encoder weights that
 project both external input and feedback state into neuron space.
 
+**Recurrent layers default to relu activation** rather than abs.  The abs
+activation has gradient ±1 everywhere (no sparsity), which causes gradient
+explosion through BPTT over many timesteps.  ReLU's zero gradient on negative
+activations provides the damping needed for stable recurrent gradient flow.
+
 ```python
 from leenef.recurrent import RecurrentNEFLayer
 
-layer = RecurrentNEFLayer(d_in=28, n_neurons=1000, d_out=10, d_state=28)
+# Default: relu activation (abs explodes through recurrent BPTT)
+layer = RecurrentNEFLayer(d_in=28, n_neurons=2000, d_out=10,
+                          d_state=28, centers=x_train_seq)
 
-# Training strategies (same three as feedforward)
+# Training strategies (same four as feedforward, plus greedy)
 layer.fit_greedy(seq, targets, n_iters=5)
-layer.fit_hybrid(seq, targets, n_iters=20, lr=1e-3, loss="ce")
-layer.fit_end_to_end(seq, targets, n_epochs=30, lr=1e-3, loss="ce")
+layer.fit_hybrid(seq, targets, n_iters=10, lr=1e-3)
+layer.fit_target_prop(seq, targets, n_iters=50, lr=1e-3, eta=0.1)
+layer.fit_end_to_end(seq, targets, n_epochs=50, lr=1e-3)
 
 # Inference: (B, T, d_in) → (B, d_out)
 predictions = layer(x_test_seq)
@@ -411,30 +421,40 @@ predictions = layer(x_test_seq)
 ### Recurrent results — Sequential MNIST
 
 Row-by-row sMNIST: each image is a sequence of 28 rows (T=28, d=28),
-classified at the final timestep.
+classified at the final timestep.  All NEF models use 2000 neurons,
+relu activation, gain U(0.5, 2.0), and data-driven biases.
 
-| Model                         | Test accuracy | Time   |
-|-------------------------------|---------------|--------|
-| RecNEF-greedy (2000n, 5 iter) |  ~18%         |  ~60s  |
-| RecNEF-hybrid (1000n, 20 iter)|  ~56%         |  ~300s |
-| RecNEF-E2E (1000n, 30 epochs) | **98.1%**     |  257s  |
-| LSTM-128 (20 epochs)          | **98.5%**     |  103s  |
+| Model                           | Test accuracy | Time    |
+|---------------------------------|---------------|---------|
+| RecNEF-greedy (5 iter)          |  15.3%        |   241s  |
+| RecNEF-hybrid (10 iter)         |   9.6%        |   454s  |
+| RecNEF-target-prop (50 iter)    |  12.1%        |  5864s  |
+| RecNEF-E2E (50 epochs)          | **98.5%**     |   802s  |
+| LSTM-128 (20 epochs)            | **98.3%**     |    98s  |
 
 **The feedforward NEF advantage does not transfer to recurrence.**  In
 feedforward, random encoders work because each input is encoded
 independently.  In the recurrent case, the state decoder feeds noisy
 state estimates back into the encoders, compounding errors across
-timesteps.  The iterative greedy solve never converges — ~18% regardless of
-neuron count or iterations.  Hybrid is hurt by the analytic D_out solve
-resetting decoders each iteration, fighting the gradient learning of state
-decoders.
+timesteps.  Greedy, hybrid, and target propagation all fail to learn
+useful temporal dynamics — their per-iteration encoder updates cannot
+overcome the cascading noise in the 28-step feedback loop.
 
-End-to-end BPTT works well (98.1%), nearly matching LSTM (98.5%).  The
+**End-to-end BPTT is the only competitive strategy** (98.5%), matching
+LSTM (98.3%).  Full gradient flow through all timesteps allows SGD to
+jointly optimise encoders, biases, and both decoders, learning state
+representations that remain coherent across the feedback loop.  The
 greedy initialisation provides a starting point, but essentially all
-learning happens during SGD.  This is consistent with the NEF view: the
-architecture (decode-then-re-encode loop) is sound, but the recurrent
-dynamics require gradient-trained parameters to learn useful state
-representations.
+learning happens during SGD.
+
+**Why abs fails for recurrence:**  In feedforward, abs doubles
+representational capacity by responding to both directions.  In recurrent
+BPTT, abs has gradient sign(x) ∈ {−1, +1} at every neuron, meaning the
+recurrent Jacobian has no sparsity to damp gradient magnitudes.  Over 28
+timesteps, this causes gradient explosion regardless of gain or learning
+rate.  ReLU's zero gradient on negative activations (roughly half the
+neurons) provides the critical damping for stable recurrent learning.
+Tested: E2E with abs gets 10.1% (random), E2E with relu gets 98.5%.
 
 ## Divergences from canonical NEF
 

@@ -36,7 +36,10 @@ class RecurrentNEFLayer(nn.Module):
         d_state:    Dimension of the recurrent state feedback.
                     Defaults to *d_in* (state carries as much info
                     as one input frame).
-        activation: Name of the activation function (default ``"abs"``).
+        activation: Name of the activation function (default ``"relu"``).
+                    Uses ``relu`` rather than ``abs`` because ``abs``
+                    has gradient ±1 everywhere, causing gradient
+                    explosion through BPTT over many timesteps.
         encoder_strategy: Encoder generation strategy.
         gain:       Neuron gain — scalar, ``(low, high)`` tuple, or
                     ``Tensor(n_neurons,)``.
@@ -52,7 +55,7 @@ class RecurrentNEFLayer(nn.Module):
         n_neurons: int,
         d_out: int,
         d_state: int | None = None,
-        activation: str = "abs",
+        activation: str = "relu",
         encoder_strategy: str = "hypersphere",
         gain: float | tuple[float, float] | Tensor = (0.5, 2.0),
         centers: Tensor | None = None,

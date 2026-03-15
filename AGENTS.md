@@ -39,6 +39,7 @@ A **NEF layer** has three stages:
 Biases are derived from centers: `bias = −gain · (d · e)`.  Default
 configuration: **abs** activation, **hypersphere** encoders, **per-neuron
 gain** U(0.5, 2.0), **data-driven biases** via `centers=x_train`.
+Recurrent layers default to **relu** (abs causes gradient explosion in BPTT).
 
 The key insight: **encoders are random and fixed; decoders are solved
 analytically** via regularised least-squares (`layer.fit(x, targets)`).

@@ -82,7 +82,7 @@ def run_recurrent_nef(
     strategy: str = "greedy",
     n_neurons: int = 2000,
     d_state: int | None = None,
-    activation: str = "abs",
+    activation: str = "relu",
     encoder_strategy: str = "hypersphere",
     solver: str = "tikhonov",
     solver_kwargs: dict | None = None,
