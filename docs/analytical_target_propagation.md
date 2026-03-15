@@ -135,8 +135,15 @@ activities in the direction that reduces output loss.
 
 Strict activity projection (`project_targets=True`) and adaptive step backoff
 (`max_infeasible_fraction=...`) are available when you want tighter control of
-infeasible targets, but the current benchmark reruns preferred the fixed
-defaults above.
+infeasible targets, but the current feed-forward benchmark reruns preferred the
+fixed defaults above.
+
+Recurrent TP now exposes the same `project_targets` control plus experimental
+`state_target` and `auxiliary_weight` knobs.  On the current row-wise sMNIST
+slices, predictive decoded-state targets were the main win, auxiliary timestep
+label supervision hurt, and projected activity targets gave a smaller positive
+lift on top of the predictive path.  These recurrent controls therefore remain
+explicit experiments rather than new defaults.
 
 An alternative: **normalised step**, scaling by `||D_out||²` so that
 `η = 1` corresponds to a Newton-like step in activity space.

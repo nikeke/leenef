@@ -408,11 +408,13 @@ currently `fit_end_to_end` and `fit_hybrid_e2e`.
 
 ### Predictive decoded-state targets (experimental recurrent TP)
 
-The current recurrent TP implementation now exposes a `state_target` option for
-the analytic state decoder.  The default `reconstruction` target asks the state
-decoder to reproduce the current input frame.  The experimental `predictive`
-target instead decodes the next frame (and zeros at the terminal step), which
-is a closer fit to what the recurrent state should carry.
+The current recurrent TP implementation now exposes three experimental controls:
+`state_target` for the analytic state decoder, `auxiliary_weight` for optional
+pre-final label supervision, and `project_targets` for activity-space target
+projection.  The default `reconstruction` state target asks the state decoder
+to reproduce the current input frame.  The experimental `predictive` target
+instead decodes the next frame (and zeros at the terminal step), which is a
+closer fit to what the recurrent state should carry.
 
 Seeded row-wise sMNIST TP slice (`2k` train / `1k` test, `10` TP iterations,
 `2000` neurons):
@@ -427,6 +429,25 @@ recurrent TP change that improves accuracy consistently across seeds, so it is
 worth keeping as an active research direction rather than a dead-end branch.
 The same direction held on a larger seeded `5k` / `1k` slice, where predictive
 targets improved recurrent TP from 23.0% to 32.8%.
+
+Follow-up on that predictive path showed a more nuanced picture for the other
+experimental controls:
+
+- explicit auxiliary label supervision on earlier timesteps did **not** help;
+  a seed-0 sweep over `auxiliary_weight ∈ {0.5, 1, 2, 4}` all underperformed
+  the no-auxiliary baseline
+- activity-target projection, which hurt the feed-forward TP default path,
+  looks mildly positive here when combined with predictive state targets
+
+| Predictive TP variant | Seed 0 | Seed 1 | Seed 2 | Mean |
+|-----------------------|--------|--------|--------|------|
+| No projection         | 31.9%  | 30.9%  | 32.8%  | 31.9% |
+| Projected targets     | 32.5%  | 30.6%  | 33.1%  | 32.1% |
+
+On the larger seeded `5k` / `1k` slice, projected predictive TP again improved
+slightly from 32.8% to 33.3%.  That makes predictive state targets the main
+recurrent TP gain, projected targets a smaller follow-on improvement, and
+auxiliary timestep labels an experiment worth keeping opt-in only.
 
 **Why abs fails for recurrence:**  In feedforward, abs doubles
 representational capacity by responding to both directions.  In recurrent
@@ -538,8 +559,12 @@ also save JSON / CSV outputs for reproducible reruns and future plot refreshes.
     that clearly helps.**  On seeded row-wise sMNIST TP slices, switching
     the analytic state decoder from reconstruction targets to predictive
     targets lifts mean accuracy from 22.2% to 31.9%, and the same effect
-    persisted on a larger `5k` / `1k` slice (23.0% → 32.8%).  Recurrent TP
-    is still research-grade, but this is a meaningful step forward.
+    persisted on a larger `5k` / `1k` slice (23.0% → 32.8%).  Projected
+    activity targets add a smaller follow-on lift on top of that predictive
+    path (31.9% → 32.1% mean on the `2k` / `1k` seeds, 32.8% → 33.3% on the
+    larger slice), while auxiliary timestep label supervision did not improve
+    the predictive baseline.  Recurrent TP is still research-grade, but this
+    is a meaningful step forward.
 
 ## Divergences from canonical NEF
 
