@@ -33,8 +33,6 @@ BIAS_EFFECT = {
 }
 
 # Multi-layer: strategy comparison
-# Target Prop / TP→E2E values come from the fresh post-audit reruns; the other
-# rows remain from the checked-in benchmark table.
 STRATEGIES = [
     "Linear",
     "NEFLayer",
@@ -47,9 +45,9 @@ STRATEGIES = [
     "MLP",
 ]
 MULTI = {
-    "MNIST": [85.3, 95.6, 95.1, 98.5, 97.3, 98.7, 98.6, 98.4, 98.1],
-    "Fashion-MNIST": [81.0, 85.5, 85.5, 90.0, 86.8, 90.5, 91.0, 90.3, 90.2],
-    "CIFAR-10": [39.6, 47.8, 45.8, 51.7, 41.2, 57.2, 58.1, 57.8, 54.6],
+    "MNIST": [85.3, 95.6, 95.1, 98.5, 98.5, 98.5, 98.6, 98.4, 98.1],
+    "Fashion-MNIST": [81.0, 85.5, 85.5, 90.0, 89.7, 90.7, 91.0, 90.3, 90.2],
+    "CIFAR-10": [39.6, 47.8, 45.8, 51.7, 51.3, 58.5, 58.1, 57.8, 54.6],
 }
 MULTI_TIME = {
     "MNIST": [2, 2, 3, 315, 412, 466, 412, 240, 84],

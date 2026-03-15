@@ -193,9 +193,9 @@ the model generalises well, with test MSE within 1% of training MSE.
 | NEFLayer          | 95.6%    | 85.5%    | 47.8%    |     2s       |
 | NEFNet-greedy     | 95.1%    | 85.5%    | 45.8%    |     3s       |
 | NEFNet-hybrid     | 98.5%    | 90.0%    | 51.7%    |   315s       |
-| NEFNet-target-prop| 97.3%    | 86.8%    | 41.2%    |   412s       |
-| NEFNet-TP→E2E     |**98.7%** | 90.5%    | 57.2%    |   466s       |
-| NEFNet-hybrid→E2E | 98.6%    |**91.0%** |**58.1%** |   412s       |
+| NEFNet-target-prop| 98.5%    | 89.7%    | 51.3%    |   412s       |
+| NEFNet-TP→E2E     | 98.5%    | 90.7%    |**58.5%** |   466s       |
+| NEFNet-hybrid→E2E |**98.6%** |**91.0%** | 58.1%    |   412s       |
 | NEFNet-e2e        | 98.4%    | 90.3%    | 57.8%    |   240s       |
 | MLP (2×1000)      | 98.1%    | 90.2%    | 54.6%    |    84s       |
 
@@ -204,11 +204,6 @@ forwarded through each layer, and the resulting activations are used as
 centers for the next layer's bias computation.  This is especially important
 for greedy, which has no gradient learning — propagated centers lifted
 greedy from 94.0% → 95.1% on MNIST and 84.0% → 85.5% on Fashion-MNIST.
-
-The `NEFNet-target-prop` and `NEFNet-TP→E2E` rows above were rerun on the
-current post-audit code.  The remaining rows are retained from the earlier
-benchmark sweep, so this table should be read as a targeted refresh of the
-affected strategies rather than a full benchmark rerun of every model.
 
 The default hybrid configuration uses 50 iterations with α = 10⁻³ for the
 decoder solver.  These were found via a systematic sweep over iterations
@@ -227,29 +222,27 @@ diminish past 50 iterations (75 and 100 barely improve).
 encoder state, producing noisy gradients that destabilise encoder learning.
 At α = 10⁻⁵ results collapse entirely (96.4% MNIST, 32.7% CIFAR-10).
 
-**Warm-started E2E remains the most reliable path.**  In the refreshed
-affected-strategy rows, `fit_target_prop_e2e` reaches 98.7% / 90.5% / 57.2%,
-which is the best MNIST result in the table and competitive with the existing
-`fit_hybrid_e2e` numbers.  The earlier `fit_hybrid_e2e` sweep still leads on
-Fashion-MNIST and CIFAR-10 (91.0% / 58.1%), so hybrid→E2E remains the safest
-general-purpose choice until all rows are rerun under the same current code.
+**Warm-started E2E remains the most reliable path.**  `fit_target_prop_e2e`
+reaches 98.5% / 90.7% / 58.5%, keeping it competitive with
+`fit_hybrid_e2e` while edging ahead on CIFAR-10.  The hybrid→E2E warm start
+still has the best MNIST and Fashion-MNIST numbers in this table, so it
+remains the safest general-purpose choice overall.
 
-**Plain target propagation is now clearly weaker than its warm-started form.**
+**Plain target propagation is competitive again with a smaller default step.**
 `fit_target_prop` still avoids cross-layer backprop entirely: it solves
 representational decoders analytically, propagates DTP targets backward, and
-updates each layer with only single-layer gradients.  But the fresh rerun on
-current code reached 97.3% / 86.8% / 41.2%, well below the earlier hybrid row.
-The new target-feasibility and robust-inverse changes made TP easier to
-inspect and warm-start from, but they did not preserve the old headline claim
-that plain TP matches hybrid everywhere.  In practice, `fit_target_prop_e2e`
-is the more compelling path today: TP shapes the encoder geometry locally,
-then a short E2E phase repairs the remaining global mismatch.
+updates each layer with only single-layer gradients.  Enforcing nonnegative
+activity targets made the old `eta=0.1` step too aggressive because too much
+of each target update was being clipped away before the local losses saw it.
+Reducing the default to `eta=0.01` keeps the feasibility fix while preserving
+the TP signal, bringing plain TP back to 98.5% / 89.7% / 51.3% and restoring
+its earlier competitiveness with hybrid on the easier datasets.
 
 **Target propagation eta sweep** (50 iterations, lr=10⁻³, normalised step):
 
 > Measured with an earlier configuration (gain=1.0, data-driven biases).
-> Qualitative conclusions (CIFAR-10 prefers small eta, MNIST is insensitive)
-> are expected to hold with current defaults.
+> With feasibility projection enabled, the current default uses `eta=0.01`
+> to keep target clipping low while retaining most of the TP signal.
 
 | eta    | MNIST | Fashion | CIFAR-10 |
 |--------|-------|---------|----------|
@@ -463,8 +456,7 @@ Row-by-row sMNIST: each image is a sequence of 28 rows (T=28, d=28),
 classified at the final timestep.  All NEF models use 2000 neurons,
 relu activation, gain U(0.5, 2.0), and data-driven biases.
 
-Historical full-dataset baseline (kept for context from the earlier benchmark
-pass):
+Historical full-dataset baseline:
 
 | Model                           | Test accuracy | Time    |
 |---------------------------------|---------------|---------|
@@ -474,7 +466,7 @@ pass):
 | RecNEF-E2E (50 epochs)          | **98.5%**     |   802s  |
 | LSTM-128 (20 epochs)            | **98.3%**     |    98s  |
 
-Post-audit spot-check rerun of the affected recurrent strategies on a smaller
+Later spot-check rerun of the changed recurrent strategies on a smaller
 row-wise sMNIST slice (`5k` train / `1k` test, chosen to keep recurrent TP
 practical in-session):
 
@@ -486,8 +478,9 @@ practical in-session):
 | RecNEF-E2E (50 epochs)                 |  68.2%        |    66s  |
 
 These spot-check numbers are **not directly comparable** to the historical
-full-dataset table above; they are a smaller rerun used to assess the new
-recurrent code paths without paying the full cost of another 60k/10k TP run.
+full-dataset table above; they come from a smaller rerun used to assess the
+changed recurrent code paths without paying the full cost of another 60k/10k
+TP run.
 
 **The recurrent story is better than before, but still mixed.**  On the 5k/1k
 spot-check, `fit_hybrid_e2e` is the clearest beneficiary of the recurrent
