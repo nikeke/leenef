@@ -54,6 +54,7 @@ class TestBenchmarkCliParsers:
         args = parser.parse_args(["--save-json", str(tmp_path / "ff.json"), "--multi"])
         assert args.multi
         assert args.save_json.name == "ff.json"
+        assert args.tp_eta == 0.01
 
     def test_recurrent_parser_accepts_save_flags(self, tmp_path):
         parser = build_recurrent_benchmark_parser()

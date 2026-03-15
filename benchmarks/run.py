@@ -281,7 +281,7 @@ def run_nef_multi(
     e2e_batch: int = 256,
     tp_iters: int = 50,
     tp_lr: float = 1e-3,
-    tp_eta: float = 0.1,
+    tp_eta: float = 0.01,
     tp_normalize: bool = True,
     tp_schedule: bool = False,
     tp_e2e_epochs: int = 20,
@@ -521,7 +521,12 @@ def build_benchmark_parser() -> argparse.ArgumentParser:
         default=1,
         help="Gradient steps per decoder solve in hybrid",
     )
-    parser.add_argument("--tp-eta", type=float, default=0.1, help="Target prop eta (default: 0.1)")
+    parser.add_argument(
+        "--tp-eta",
+        type=float,
+        default=0.01,
+        help="Target prop eta (default: 0.01)",
+    )
     parser.add_argument(
         "--tp-no-normalize", action="store_true", help="Disable normalized step in target prop"
     )

@@ -426,7 +426,7 @@ class NEFNetwork(nn.Module):
         targets: Tensor,
         n_iters: int = 50,
         tp_lr: float = 1e-3,
-        eta: float = 0.1,
+        eta: float = 0.01,
         solver: str = "tikhonov",
         n_epochs: int = 20,
         e2e_lr: float = 1e-3,
@@ -461,7 +461,7 @@ class NEFNetwork(nn.Module):
         targets: Tensor,
         n_iters: int = 50,
         lr: float = 1e-3,
-        eta: float = 0.1,
+        eta: float = 0.01,
         solver: str = "tikhonov",
         schedule: bool = False,
         normalize_step: bool = True,
@@ -497,6 +497,9 @@ class NEFNetwork(nn.Module):
             eta:            step size for output target computation.
                             With *normalize_step=True* (default), this is
                             the fraction of activity norm to step by.
+                            The default is deliberately conservative because
+                            feasibility projection is less destructive with a
+                            smaller target step.
             solver:         decoder solver (default ``"tikhonov"``).
             schedule:       use cosine-annealing LR schedule over *n_iters*.
             normalize_step: normalise the output gradient so *eta* controls
