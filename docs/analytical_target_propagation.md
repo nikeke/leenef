@@ -130,7 +130,13 @@ activities in the direction that reduces output loss.
 
 - `η` too large → target far from feasible activity space → noisy encoder updates
 - `η` too small → target ≈ current activities → no learning signal
-- Default: `η = 0.1`, tunable
+- Current defaults: plain TP uses `η = 0.03`; TP→E2E keeps a gentler
+  warm-start `η = 0.01`
+
+Strict activity projection (`project_targets=True`) and adaptive step backoff
+(`max_infeasible_fraction=...`) are available when you want tighter control of
+infeasible targets, but the current benchmark reruns preferred the fixed
+defaults above.
 
 An alternative: **normalised step**, scaling by `||D_out||²` so that
 `η = 1` corresponds to a Newton-like step in activity space.

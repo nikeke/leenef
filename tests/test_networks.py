@@ -3,7 +3,13 @@
 import pytest
 import torch
 
-from leenef.networks import NEFNetwork, _ce_targets, _difference_target, _project_activity_target
+from leenef.networks import (
+    NEFNetwork,
+    _bounded_target_update,
+    _ce_targets,
+    _difference_target,
+    _project_activity_target,
+)
 
 
 def _make_net(d_in=4, d_out=2, hidden=None, output_n=200, **kw):
@@ -384,6 +390,53 @@ class TestTargetPropHelpers:
         )
         assert torch.allclose(target, activity)
 
+    def test_bounded_target_update_backoff_limits_infeasible_fraction(self):
+        activity = torch.full((4, 3), 0.2)
+        update = -torch.ones_like(activity)
+        target, applied_scale, pre_fraction, post_fraction = _bounded_target_update(
+            activity,
+            update,
+            step_scale=1.0,
+            activation="relu",
+            max_infeasible_fraction=0.1,
+            project=True,
+        )
+        assert applied_scale < 1.0
+        assert pre_fraction <= 0.1
+        assert post_fraction == 0.0
+        assert torch.all(target >= 0)
+
+    def test_bounded_target_update_can_back_off_without_projection(self):
+        activity = torch.full((4, 3), 0.2)
+        update = -torch.ones_like(activity)
+        target, applied_scale, pre_fraction, post_fraction = _bounded_target_update(
+            activity,
+            update,
+            step_scale=1.0,
+            activation="relu",
+            max_infeasible_fraction=0.1,
+            project=False,
+        )
+        assert applied_scale < 1.0
+        assert pre_fraction <= 0.1
+        assert post_fraction == pytest.approx(pre_fraction)
+        assert torch.allclose(target, activity + applied_scale * update)
+
+    def test_bounded_target_update_noops_when_projection_not_needed(self):
+        activity = torch.full((4, 3), 0.2)
+        update = torch.full((4, 3), 0.05)
+        target, applied_scale, pre_fraction, post_fraction = _bounded_target_update(
+            activity,
+            update,
+            step_scale=0.5,
+            activation="abs",
+            max_infeasible_fraction=0.01,
+        )
+        assert applied_scale == pytest.approx(0.5)
+        assert pre_fraction == 0.0
+        assert post_fraction == 0.0
+        assert torch.allclose(target, activity + 0.5 * update)
+
 
 class TestTargetProp:
     def test_forward_shape_after_tp(self):
@@ -449,7 +502,15 @@ class TestTargetProp:
         x = torch.randn(64, 4, generator=g)
         targets = torch.randn(64, 2, generator=g)
         net = _make_net(d_in=4, d_out=2, hidden=[50], output_n=100, activation="relu")
-        net.fit_target_prop(x, targets, n_iters=3, lr=1e-3, eta=0.1, collect_diagnostics=True)
+        net.fit_target_prop(
+            x,
+            targets,
+            n_iters=3,
+            lr=1e-3,
+            eta=0.1,
+            collect_diagnostics=True,
+            project_targets=True,
+        )
         diagnostics = net.last_target_prop_diagnostics
         assert diagnostics is not None
         assert len(diagnostics) == 3
@@ -457,6 +518,22 @@ class TestTargetProp:
         for layer in diagnostics[-1]["layers"]:
             assert layer["target_drift"] >= 0
             assert layer["infeasible_fraction_after"] == 0.0
+            assert layer["requested_step_scale"] >= layer["applied_step_scale"] >= 0.0
+        assert (
+            diagnostics[-1]["requested_output_step_scale"]
+            >= diagnostics[-1]["applied_output_step_scale"]
+            >= 0.0
+        )
+
+    def test_tp_defaults_to_unprojected_targets(self):
+        g = torch.Generator().manual_seed(29)
+        x = torch.randn(64, 4, generator=g)
+        targets = torch.randn(64, 2, generator=g)
+        net = _make_net(d_in=4, d_out=2, hidden=[50], output_n=100, activation="relu")
+        net.fit_target_prop(x, targets, n_iters=2, lr=1e-3, eta=0.1, collect_diagnostics=True)
+        diagnostics = net.last_target_prop_diagnostics
+        assert diagnostics is not None
+        assert any(layer["infeasible_fraction_after"] > 0.0 for layer in diagnostics[0]["layers"])
 
     def test_tp_with_raw_step(self):
         g = torch.Generator().manual_seed(22)

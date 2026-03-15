@@ -281,11 +281,14 @@ def run_nef_multi(
     e2e_batch: int = 256,
     tp_iters: int = 50,
     tp_lr: float = 1e-3,
-    tp_eta: float = 0.01,
+    tp_eta: float = 0.03,
     tp_normalize: bool = True,
+    tp_project_targets: bool = False,
+    tp_max_infeasible_fraction: float | None = None,
     tp_schedule: bool = False,
     tp_e2e_epochs: int = 20,
     tp_e2e_lr: float = 1e-3,
+    tp_e2e_eta: float = 0.01,
     data_root: str = "./data",
     use_centers: bool = True,
     gain: float | tuple[float, float] = (0.5, 2.0),
@@ -358,6 +361,8 @@ def run_nef_multi(
             eta=tp_eta,
             solver=solver,
             normalize_step=tp_normalize,
+            project_targets=tp_project_targets,
+            max_infeasible_fraction=tp_max_infeasible_fraction,
             schedule=tp_schedule,
             **solver_kwargs,
         )
@@ -367,13 +372,15 @@ def run_nef_multi(
             targets,
             n_iters=tp_iters,
             tp_lr=tp_lr,
-            eta=tp_eta,
+            eta=tp_e2e_eta,
             solver=solver,
             n_epochs=tp_e2e_epochs,
             e2e_lr=tp_e2e_lr,
             batch_size=e2e_batch,
             loss="ce",
             normalize_step=tp_normalize,
+            project_targets=tp_project_targets,
+            max_infeasible_fraction=tp_max_infeasible_fraction,
             schedule=tp_schedule,
             **solver_kwargs,
         )
@@ -524,11 +531,22 @@ def build_benchmark_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--tp-eta",
         type=float,
-        default=0.01,
-        help="Target prop eta (default: 0.01)",
+        default=0.03,
+        help="Target prop eta / adaptive eta upper bound for plain TP (default: 0.03)",
     )
     parser.add_argument(
         "--tp-no-normalize", action="store_true", help="Disable normalized step in target prop"
+    )
+    parser.add_argument(
+        "--tp-project-targets",
+        action="store_true",
+        help="Project TP activity targets into the activation's feasible region",
+    )
+    parser.add_argument(
+        "--tp-max-infeasible-fraction",
+        type=float,
+        default=None,
+        help="Optional adaptive-eta budget on the fraction of infeasible output targets",
     )
     parser.add_argument(
         "--tp-e2e-epochs",
@@ -541,6 +559,12 @@ def build_benchmark_parser() -> argparse.ArgumentParser:
         type=float,
         default=1e-3,
         help="Learning rate for the E2E phase after target propagation",
+    )
+    parser.add_argument(
+        "--tp-e2e-eta",
+        type=float,
+        default=0.01,
+        help="TP warm-start eta for TP->E2E (default: 0.01)",
     )
     parser.add_argument(
         "--no-centers", action="store_true", help="Disable data-driven biases (use random biases)"
@@ -613,8 +637,11 @@ def main(argv: list[str] | None = None) -> int:
                         hybrid_grad_steps=args.hybrid_grad_steps,
                         tp_eta=args.tp_eta,
                         tp_normalize=not args.tp_no_normalize,
+                        tp_project_targets=args.tp_project_targets,
+                        tp_max_infeasible_fraction=args.tp_max_infeasible_fraction,
                         tp_e2e_epochs=args.tp_e2e_epochs,
                         tp_e2e_lr=args.tp_e2e_lr,
+                        tp_e2e_eta=args.tp_e2e_eta,
                         data_root=args.data_root,
                         use_centers=use_centers,
                     )
