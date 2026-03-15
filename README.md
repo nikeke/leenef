@@ -99,19 +99,19 @@ abs has gradient ±1 everywhere, causing gradient explosion through BPTT.
 
 ```bash
 python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
-       --neurons 500 1000 2000 5000 --regression \
+       --neurons 500 1000 2000 5000 --regression --seed 0 \
        --save-json results/feedforward.json
 python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
-       --neurons 2000 --multi --mlp \
+       --neurons 2000 --multi --mlp --seed 0 \
        --save-csv results/feedforward-multi.csv
 python benchmarks/run_recurrent.py --mode row \
-       --strategies greedy hybrid hybrid_e2e target_prop e2e \
+       --strategies greedy hybrid hybrid_e2e target_prop e2e --seed 0 \
        --save-json results/recurrent-row.json
 ```
 
-Both benchmark harnesses can persist structured JSON / CSV results, which makes
-later plotting and README table refreshes reproducible instead of purely
-manual.
+Both benchmark harnesses take `--seed` (use `0` for comparable reruns) and can
+persist structured JSON / CSV results, which makes later plotting and README
+table refreshes reproducible instead of purely manual.
 
 ### Single-layer results
 
@@ -233,18 +233,23 @@ a slight MNIST edge, so it remains the safest general-purpose choice overall.
 representational decoders analytically, propagates DTP targets backward, and
 updates each layer with only single-layer gradients.  The current default keeps
 those activity targets unconstrained and uses `eta=0.03`, which gave the best
-overall plain-TP trade-off in the reruns: 98.6% / 90.1% / 51.0%.  Strict target
-projection (`project_targets=True`) and adaptive infeasible-target backoff
-(`max_infeasible_fraction=...`) are still available for experiments, but they
-were less reliable as the default path on the current benchmark configuration.
+overall plain-TP trade-off in the seeded reruns: 98.6% / 90.1% / 51.0%.
+Strict target projection (`project_targets=True`) is still available for
+experiments, but a later seeded full plain-TP rerun with projection fell to
+98.3% / 88.4% / 48.9%, so projection remains opt-in.  Adaptive
+infeasible-target backoff (`max_infeasible_fraction=...`) also remains
+available for experiments, but the fixed defaults were more reliable on the
+current benchmark configuration.
 
-**Target propagation eta sweep** (50 iterations, lr=10⁻³, normalised step):
+**Target propagation eta sweep** (historical broad sweep; 50 iterations,
+lr=10⁻³, normalised step):
 
 > Measured with an earlier configuration (gain=1.0, data-driven biases).
-> The qualitative pattern still holds on the current configuration:
+> We no longer use it as a literal tuning table: the current seeded reruns
+> split the defaults at `eta=0.03` for plain TP and `eta=0.01` for the TP→E2E
+> warm start.  The table is still useful for the qualitative pattern:
 > MNIST is forgiving, Fashion prefers a mid-sized step, and CIFAR-10 wants a
-> gentler one.  The current defaults split that difference with `eta=0.03` for
-> plain TP and `eta=0.01` for the TP→E2E warm start.
+> gentler one.
 
 | eta    | MNIST | Fashion | CIFAR-10 |
 |--------|-------|---------|----------|
@@ -255,12 +260,12 @@ were less reliable as the default path on the current benchmark configuration.
 | 0.05   | 98.5% | **90.2%**| 51.1%   |
 | 0.10   | **98.6%** | 90.0% | 51.0%  |
 
-MNIST is insensitive to eta across a wide range.  Fashion prefers a
-mid-sized step, while CIFAR-10 benefits from gentler updates.  That is why the
-current defaults no longer share one TP step across both strategies: plain TP
-uses `eta=0.03`, while TP→E2E keeps a smaller `eta=0.01` warm start.  The
-optional projection/adaptive controls remain useful for experiments, but the
-simple fixed defaults above were more reliable on the current reruns.
+MNIST is insensitive to eta across a wide range.  Fashion prefers a mid-sized
+step, while CIFAR-10 benefits from gentler updates.  That is why the current
+defaults no longer share one TP step across both strategies: plain TP uses
+`eta=0.03`, while TP→E2E keeps a smaller `eta=0.01` warm start.  The optional
+projection/adaptive controls remain useful for experiments, but the simple
+fixed defaults above were more reliable on the current seeded reruns.
 
 See `docs/analytical_target_propagation.md` for the full algorithm and
 analysis of related approaches.
@@ -340,8 +345,9 @@ also save JSON / CSV outputs for reproducible reruns and future plot refreshes.
    random directions matters.
 
 2. **Single-layer NEF is remarkably effective but hits a ceiling.**  With
-   2000 neurons and a 2-second analytic solve, it reaches 95.5% on MNIST
-   and 85.7% on Fashion-MNIST — within 3% of a fully-trained MLP.  Even
+   2000 neurons and a 2-second analytic solve, it reaches 95.6% on MNIST
+   and 85.5% on Fashion-MNIST — within 3% of a fully-trained MLP on
+   MNIST.  Even
    with 30000 neurons and 394 seconds of compute (comparable to hybrid),
    single-layer tops out at 98.3% / 89.8% / 51.8% — learned features in
    multi-layer networks cannot be replaced by brute-force neuron scaling.
@@ -360,16 +366,17 @@ also save JSON / CSV outputs for reproducible reruns and future plot refreshes.
    (abs, ReLU) and punish smooth ones (softplus −5%, lif_rate −7% on
    MNIST).
 
-5. **Hybrid→E2E is the best overall strategy.**  Running hybrid then E2E
-   reaches 98.6% / 91.0% / 58.1% — the highest accuracy on all three
-   datasets.  The hybrid phase learns encoder orientations with analytic
-   decoders; the E2E phase unlocks full gradient training to close the
-   CIFAR-10 gap.
+5. **Hybrid→E2E remains the best balanced overall strategy.**  Running
+   hybrid then E2E reaches 98.6% / 91.0% / 58.1% — best on Fashion-MNIST,
+   tied for best on MNIST, and only 0.4 points behind TP→E2E on CIFAR-10.
+   The hybrid phase learns encoder orientations with analytic decoders; the
+   E2E phase unlocks full gradient training without giving back the strong
+   Fashion result.
 
-6. **Hybrid alone surpasses both E2E and MLP on easy datasets.**  With 50
-   iterations and α = 10⁻³, pure hybrid reaches 98.5% MNIST / 90.0%
-   Fashion while preserving analytic decoders.  Iterations dominate all
-   other hyperparameters.
+6. **Hybrid alone remains a strong analytic-gradient compromise.**  With 50
+   iterations and α = 10⁻³, pure hybrid reaches 98.5% / 90.0% / 51.7%
+   while preserving analytic decoders.  Iteration count dominates the
+   other hybrid hyperparameters.
 
 7. **Decoder regularisation is the second lever for hybrid.**  α = 10⁻³
    is optimal — lower values let decoders overfit the current encoder
@@ -397,14 +404,15 @@ also save JSON / CSV outputs for reproducible reruns and future plot refreshes.
     encoding — each neuron responds at a different sensitivity level,
     giving the population a richer representation from the start.
 
-11. **Target propagation matches hybrid without backprop.**  Using NEF
-    representational decoders as analytical inverse models and a normalised
-    gradient step, TP matches or exceeds hybrid on all three datasets
-    (98.6% / 90.0% / 53.9% vs 98.5% / 90.0% / 51.7%) using only
-    single-layer gradients.  Per-dataset eta tuning (see sweep) can lift
-    CIFAR-10 further.  The key insight: normalising the step so eta
-    controls the fractional deviation keeps targets in the feasible
-    activity region regardless of scale.
+11. **Target propagation stays competitive without cross-layer backprop.**
+    Using NEF representational decoders as analytical inverse models and a
+    normalised activity-space step, plain TP reaches 98.6% / 90.1% / 51.0%
+    using only single-layer gradients.  A short TP→E2E fine-tune pushes
+    that to 98.6% / 90.6% / 58.5%.  The current seeded defaults now split
+    `eta` by strategy — `0.03` for plain TP, `0.01` for TP→E2E — because a
+    single shared step was not the best trade-off.  Strict target
+    projection remains an opt-in experimental control rather than the
+    default path.
 
 ## Recurrent / temporal extension
 
@@ -441,7 +449,7 @@ layer = RecurrentNEFLayer(d_in=28, n_neurons=2000, d_out=10,
 layer.fit_greedy(seq, targets, n_iters=5)
 layer.fit_hybrid(seq, targets, n_iters=10, lr=1e-3)
 layer.fit_hybrid_e2e(seq, targets, n_iters=10, n_epochs=20, e2e_lr=1e-3)
-layer.fit_target_prop(seq, targets, n_iters=50, lr=1e-3, eta=0.1)
+layer.fit_target_prop(seq, targets, n_iters=50, lr=1e-3, eta=0.1)  # recurrent TP default
 layer.fit_end_to_end(seq, targets, n_epochs=50, lr=1e-3, grad_clip=1.0)
 
 # Inference: (B, T, d_in) → (B, d_out)
