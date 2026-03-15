@@ -114,6 +114,7 @@ def run_recurrent_nef(
     data_root: str = "./data",
     grad_clip: float | None = 1.0,
     seed: int | None = 0,
+    state_target: str = "reconstruction",
 ) -> BenchmarkResult:
     """Run a recurrent NEF benchmark on Sequential MNIST.
 
@@ -149,7 +150,12 @@ def run_recurrent_nef(
     t0 = time.perf_counter()
     if strategy == "greedy":
         layer.fit_greedy(
-            x_train_seq, targets, n_iters=greedy_iters, solver=solver, **solver_kwargs
+            x_train_seq,
+            targets,
+            n_iters=greedy_iters,
+            solver=solver,
+            state_target=state_target,
+            **solver_kwargs,
         )
     elif strategy == "hybrid":
         layer.fit_hybrid(
@@ -197,6 +203,7 @@ def run_recurrent_nef(
             solver=solver,
             normalize_step=tp_normalize,
             schedule=tp_schedule,
+            state_target=state_target,
             **solver_kwargs,
         )
     else:
@@ -329,6 +336,12 @@ def build_recurrent_benchmark_parser() -> argparse.ArgumentParser:
     parser.add_argument("--tp-eta", type=float, default=0.1)
     parser.add_argument("--tp-no-normalize", action="store_true")
     parser.add_argument("--tp-schedule", action="store_true")
+    parser.add_argument(
+        "--state-target",
+        default="reconstruction",
+        choices=["reconstruction", "predictive"],
+        help="Decoded recurrent state target for greedy/target_prop (default: reconstruction)",
+    )
     parser.add_argument("--loss", default="mse", choices=["mse", "ce"])
     parser.add_argument("--grad-clip", type=float, default=1.0)
     parser.add_argument("--no-centers", action="store_true")
@@ -384,6 +397,7 @@ def main(argv: list[str] | None = None) -> int:
                 tp_eta=args.tp_eta,
                 tp_normalize=not args.tp_no_normalize,
                 tp_schedule=args.tp_schedule,
+                state_target=args.state_target,
                 loss=args.loss,
                 use_centers=use_centers,
                 data_root=args.data_root,

@@ -81,3 +81,4 @@ class TestBenchmarkCliParsers:
         assert args.lstm
         assert args.save_csv.name == "rec.csv"
         assert args.seed == 0
+        assert args.state_target == "reconstruction"

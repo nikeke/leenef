@@ -63,6 +63,34 @@ class TestRecurrentExceptions:
         with pytest.raises(ValueError, match="supports only"):
             layer.fit_target_prop(seq, targets, n_iters=1, solver="lstsq")
 
+    def test_tp_rejects_unsupported_state_target(self):
+        layer = RecurrentNEFLayer(d_in=4, n_neurons=30, d_out=2)
+        seq = torch.randn(8, 3, 4)
+        targets = torch.randn(8, 2)
+        with pytest.raises(ValueError, match="Unsupported state_target"):
+            layer.fit_target_prop(seq, targets, n_iters=1, state_target="future")
+
+
+class TestRecurrentStateTargets:
+    def test_reconstruction_state_target_uses_current_frame(self):
+        layer = RecurrentNEFLayer(d_in=3, n_neurons=20, d_out=2, d_state=5)
+        seq = torch.tensor(
+            [[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], [[7.0, 8.0, 9.0], [1.0, 2.0, 3.0]]]
+        )
+        target = layer._state_target(seq, 0, "reconstruction")
+        expected = torch.tensor([[1.0, 2.0, 3.0, 0.0, 0.0], [7.0, 8.0, 9.0, 0.0, 0.0]])
+        torch.testing.assert_close(target, expected)
+
+    def test_predictive_state_target_uses_next_frame_and_terminal_zero(self):
+        layer = RecurrentNEFLayer(d_in=3, n_neurons=20, d_out=2, d_state=3)
+        seq = torch.tensor(
+            [[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], [[7.0, 8.0, 9.0], [1.0, 2.0, 3.0]]]
+        )
+        predictive = layer._state_target(seq, 0, "predictive")
+        terminal = layer._state_target(seq, 1, "predictive")
+        torch.testing.assert_close(predictive, seq[:, 1, :])
+        torch.testing.assert_close(terminal, torch.zeros_like(terminal))
+
 
 class TestRecurrentGreedy:
     """Greedy training tests."""
@@ -99,6 +127,13 @@ class TestRecurrentGreedy:
         targets = torch.randn(32, 3)
         layer.fit_greedy(seq, targets, n_iters=3)
         assert layer.state_decoders.shape == (100, 4)
+
+    def test_greedy_predictive_state_target_runs(self):
+        layer = RecurrentNEFLayer(d_in=4, n_neurons=60, d_out=2)
+        seq = torch.randn(16, 4, 4)
+        targets = torch.randn(16, 2)
+        layer.fit_greedy(seq, targets, n_iters=2, state_target="predictive")
+        assert torch.isfinite(layer(seq)).all()
 
 
 class TestRecurrentHybrid:
@@ -259,6 +294,13 @@ class TestRecurrentTargetProp:
         seq = torch.randn(16, 5, 4)
         targets = torch.randn(16, 2)
         layer.fit_target_prop(seq, targets, n_iters=5, eta=0.05)
+        assert torch.isfinite(layer(seq)).all()
+
+    def test_tp_predictive_state_target_runs(self):
+        layer = RecurrentNEFLayer(d_in=4, n_neurons=50, d_out=2)
+        seq = torch.randn(16, 5, 4)
+        targets = torch.randn(16, 2)
+        layer.fit_target_prop(seq, targets, n_iters=2, lr=1e-3, eta=0.1, state_target="predictive")
         assert torch.isfinite(layer(seq)).all()
 
 

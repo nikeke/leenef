@@ -10,6 +10,7 @@ from .layers import _make_gain
 from .solvers import solve_decoders, solve_from_normal_equations
 
 _SUPPORTED_TP_SOLVERS = {"tikhonov", "cholesky"}
+_SUPPORTED_STATE_TARGETS = {"reconstruction", "predictive"}
 
 
 def _temporal_projection_matrix(state_decoders: Tensor, encoders: Tensor, d_in: int) -> Tensor:
@@ -136,13 +137,29 @@ class RecurrentNEFLayer(nn.Module):
         self._validate_targets(targets, B)
         return B, T, d_in
 
-    def _state_target(self, frame: Tensor) -> Tensor:
-        """Current reconstruction-style state target used by non-E2E methods."""
+    def _pack_state_target(self, frame: Tensor) -> Tensor:
+        """Truncate or pad a frame into the configured recurrent state shape."""
         if self.d_state <= self.d_in:
             return frame[:, : self.d_state]
         target = frame.new_zeros(frame.shape[0], self.d_state)
         target[:, : self.d_in] = frame
         return target
+
+    def _state_target(self, seq: Tensor, timestep: int, mode: str = "reconstruction") -> Tensor:
+        """Build the decoded-state target for analytic recurrent solvers."""
+        if mode == "reconstruction":
+            frame = seq[:, timestep]
+        elif mode == "predictive":
+            frame = (
+                seq[:, timestep + 1]
+                if timestep + 1 < seq.shape[1]
+                else seq[:, timestep].new_zeros(seq.shape[0], self.d_in)
+            )
+        else:
+            raise ValueError(
+                f"Unsupported state_target {mode!r}; expected one of {sorted(_SUPPORTED_STATE_TARGETS)}"
+            )
+        return self._pack_state_target(frame)
 
     def encode_step(self, u: Tensor, s_prev: Tensor) -> Tensor:
         """Single-step encode: activities from input + state feedback.
@@ -188,6 +205,7 @@ class RecurrentNEFLayer(nn.Module):
         targets: Tensor,
         n_iters: int = 5,
         solver: str = "tikhonov",
+        state_target: str = "reconstruction",
         **solver_kw,
     ) -> None:
         """Iteratively solve state and output decoders analytically.
@@ -205,8 +223,17 @@ class RecurrentNEFLayer(nn.Module):
             targets:  (B, d_out) classification/regression targets.
             n_iters:  number of greedy iterations (default 5).
             solver:   solver for D_out (default ``"tikhonov"``).
+            state_target:
+                      decoded state supervision. ``"reconstruction"`` decodes
+                      the current frame; ``"predictive"`` decodes the next
+                      frame (zero at the terminal step).
         """
         B, T, _ = self._validate_training_data(seq, targets)
+        if state_target not in _SUPPORTED_STATE_TARGETS:
+            raise ValueError(
+                f"Unsupported state_target {state_target!r}; expected one of "
+                f"{sorted(_SUPPORTED_STATE_TARGETS)}"
+            )
         alpha = solver_kw.get("alpha", 1e-2)
 
         for _ in range(n_iters):
@@ -219,7 +246,7 @@ class RecurrentNEFLayer(nn.Module):
             for t in range(T):
                 a = self.encode_step(seq[:, t], s)
                 AtA.addmm_(a.T, a)
-                AtY.addmm_(a.T, self._state_target(seq[:, t]))
+                AtY.addmm_(a.T, self._state_target(seq, t, state_target))
                 s = a @ self.state_decoders
                 final_a = a
 
@@ -466,6 +493,7 @@ class RecurrentNEFLayer(nn.Module):
         schedule: bool = False,
         normalize_step: bool = True,
         batch_size: int | None = None,
+        state_target: str = "reconstruction",
         **solver_kw,
     ) -> None:
         """Target propagation through time using NEF state decoders as inverse models.
@@ -507,11 +535,20 @@ class RecurrentNEFLayer(nn.Module):
             batch_size:     chunk size for the gradient phase.  When
                             ``None`` (default), auto-sized to keep peak
                             memory under ~4 GB.
+            state_target:   decoded-state supervision used by the analytic
+                            recurrent inverse. ``"reconstruction"`` decodes
+                            the current frame; ``"predictive"`` decodes the
+                            next frame (zero at the terminal step).
         """
         if solver not in _SUPPORTED_TP_SOLVERS:
             raise ValueError(
                 f"fit_target_prop supports only {sorted(_SUPPORTED_TP_SOLVERS)} "
                 f"because it uses accumulated normal equations, got {solver!r}"
+            )
+        if state_target not in _SUPPORTED_STATE_TARGETS:
+            raise ValueError(
+                f"Unsupported state_target {state_target!r}; expected one of "
+                f"{sorted(_SUPPORTED_STATE_TARGETS)}"
             )
 
         B, T, d_in = self._validate_training_data(seq, targets)
@@ -548,7 +585,7 @@ class RecurrentNEFLayer(nn.Module):
                         x_aug = torch.cat([sb[:, t], s], dim=-1)
                         a = self.activation(self._gain * (x_aug @ self.encoders.T) + self.bias)
                         AtA_state.addmm_(a.T, a)
-                        AtY_state.addmm_(a.T, self._state_target(sb[:, t]))
+                        AtY_state.addmm_(a.T, self._state_target(sb, t, state_target))
                         s = a @ self.state_decoders
                     AtA_out.addmm_(a.T, a)
                     AtY_out.addmm_(a.T, tb)
