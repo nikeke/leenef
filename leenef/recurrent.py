@@ -7,6 +7,7 @@ from torch import Tensor
 from .activations import make_activation
 from .encoders import make_encoders
 from .layers import _make_gain
+from .networks import _project_activity_target
 from .solvers import solve_decoders, solve_from_normal_equations
 
 _SUPPORTED_TP_SOLVERS = {"tikhonov", "cholesky"}
@@ -16,6 +17,70 @@ _SUPPORTED_STATE_TARGETS = {"reconstruction", "predictive"}
 def _temporal_projection_matrix(state_decoders: Tensor, encoders: Tensor, d_in: int) -> Tensor:
     """Approximate temporal backward map through the state-feedback channels only."""
     return state_decoders @ encoders[:, d_in:].T
+
+
+def _temporal_output_weights(
+    n_steps: int,
+    auxiliary_weight: float,
+    *,
+    device: torch.device,
+    dtype: torch.dtype,
+) -> Tensor:
+    """Weights for final-step plus optional auxiliary timestep supervision."""
+    if auxiliary_weight < 0:
+        raise ValueError(f"auxiliary_weight must be >= 0, got {auxiliary_weight}")
+    weights = torch.zeros(n_steps, device=device, dtype=dtype)
+    weights[-1] = 1.0
+    if n_steps > 1 and auxiliary_weight > 0:
+        weights[:-1] = auxiliary_weight / (n_steps - 1)
+    return weights
+
+
+def _accumulate_weighted_output_stats(
+    ata: Tensor,
+    aty: Tensor,
+    activity: Tensor,
+    targets: Tensor,
+    weight: float,
+) -> None:
+    """Accumulate weighted normal equations for temporal output supervision."""
+    if weight <= 0:
+        return
+    ata.addmm_(activity.T, activity, beta=1.0, alpha=weight)
+    aty.addmm_(activity.T, targets, beta=1.0, alpha=weight)
+
+
+def _local_output_target(
+    activity: Tensor,
+    targets: Tensor,
+    decoders: Tensor,
+    eta: float,
+    *,
+    normalize_step: bool,
+    step_scale: float,
+    activation: str,
+    project_targets: bool,
+) -> Tensor:
+    """Output-driven activity target for one timestep."""
+    error = activity @ decoders - targets
+    grad = error @ decoders.T
+    if normalize_step:
+        grad_norm = grad.norm()
+        if grad_norm > 0:
+            grad = grad / grad_norm * activity.norm()
+    target = activity - (eta * step_scale) * grad
+    if project_targets:
+        target = _project_activity_target(target, activation)
+    return target
+
+
+def _require_weighted_output_solver(solver: str, context: str) -> None:
+    """Reject solver modes that cannot be supported with accumulated stats."""
+    if solver not in _SUPPORTED_TP_SOLVERS:
+        raise ValueError(
+            f"{context} requires one of {sorted(_SUPPORTED_TP_SOLVERS)} because it uses "
+            f"accumulated normal equations, got {solver!r}"
+        )
 
 
 class RecurrentNEFLayer(nn.Module):
@@ -78,6 +143,7 @@ class RecurrentNEFLayer(nn.Module):
         self.d_out = d_out
         self.d_state = d_state if d_state is not None else d_in
         self._rng = rng
+        self._activation_name = activation
 
         # Per-neuron gain
         self.register_buffer("_gain", _make_gain(gain, n_neurons, rng))
@@ -194,6 +260,40 @@ class RecurrentNEFLayer(nn.Module):
             s = a @ self.state_decoders
         return a @ self.decoders
 
+    def _unroll_activities(self, seq: Tensor, *, detach_feedback: bool = False) -> list[Tensor]:
+        """Collect timestep activities, optionally detaching recurrent feedback."""
+        B, T, _ = self._validate_sequence(seq)
+        s = seq.new_zeros(B, self.d_state)
+        state_decoders = self.state_decoders.detach() if detach_feedback else self.state_decoders
+        activities = []
+        for t in range(T):
+            a = self.encode_step(seq[:, t], s.detach() if detach_feedback else s)
+            activities.append(a)
+            s = a @ state_decoders
+        return activities
+
+    def _temporal_output_loss(
+        self,
+        activities: list[Tensor],
+        targets: Tensor,
+        loss_fn: nn.Module,
+        auxiliary_weight: float,
+    ) -> Tensor:
+        """Weighted loss over timestep outputs with optional auxiliary supervision."""
+        weights = _temporal_output_weights(
+            len(activities),
+            auxiliary_weight,
+            device=activities[0].device,
+            dtype=activities[0].dtype,
+        )
+        loss = activities[0].new_zeros(())
+        for t, a in enumerate(activities):
+            weight = float(weights[t])
+            if weight <= 0:
+                continue
+            loss = loss + weight * loss_fn(a @ self.decoders, targets)
+        return loss
+
     # ------------------------------------------------------------------
     # Greedy: fully analytic, iterative
     # ------------------------------------------------------------------
@@ -206,6 +306,7 @@ class RecurrentNEFLayer(nn.Module):
         n_iters: int = 5,
         solver: str = "tikhonov",
         state_target: str = "reconstruction",
+        auxiliary_weight: float = 0.0,
         **solver_kw,
     ) -> None:
         """Iteratively solve state and output decoders analytically.
@@ -227,6 +328,10 @@ class RecurrentNEFLayer(nn.Module):
                       decoded state supervision. ``"reconstruction"`` decodes
                       the current frame; ``"predictive"`` decodes the next
                       frame (zero at the terminal step).
+            auxiliary_weight:
+                      total weight assigned to auxiliary label supervision on
+                      pre-final timesteps. ``0`` preserves the final-step-only
+                      behavior.
         """
         B, T, _ = self._validate_training_data(seq, targets)
         if state_target not in _SUPPORTED_STATE_TARGETS:
@@ -235,11 +340,19 @@ class RecurrentNEFLayer(nn.Module):
                 f"{sorted(_SUPPORTED_STATE_TARGETS)}"
             )
         alpha = solver_kw.get("alpha", 1e-2)
+        output_weights = _temporal_output_weights(
+            T, auxiliary_weight, device=seq.device, dtype=seq.dtype
+        )
+        use_auxiliary_output = T > 1 and auxiliary_weight > 0
+        if use_auxiliary_output:
+            _require_weighted_output_solver(solver, "Temporal auxiliary output supervision")
 
         for _ in range(n_iters):
             # Unroll and accumulate normal equations for D_state
             AtA = seq.new_zeros(self.n_neurons, self.n_neurons)
             AtY = seq.new_zeros(self.n_neurons, self.d_state)
+            AtA_out = seq.new_zeros(self.n_neurons, self.n_neurons)
+            AtY_out = seq.new_zeros(self.n_neurons, self.d_out)
             s = seq.new_zeros(B, self.d_state)
             final_a = None
 
@@ -247,11 +360,17 @@ class RecurrentNEFLayer(nn.Module):
                 a = self.encode_step(seq[:, t], s)
                 AtA.addmm_(a.T, a)
                 AtY.addmm_(a.T, self._state_target(seq, t, state_target))
+                _accumulate_weighted_output_stats(
+                    AtA_out, AtY_out, a, targets, float(output_weights[t])
+                )
                 s = a @ self.state_decoders
                 final_a = a
 
             # Solve D_out from final-step activities
-            D_out = solve_decoders(final_a, targets, method=solver, **solver_kw)
+            if use_auxiliary_output:
+                D_out = solve_from_normal_equations(AtA_out, AtY_out, alpha=alpha)
+            else:
+                D_out = solve_decoders(final_a, targets, method=solver, **solver_kw)
             self.decoders.data.copy_(D_out)
 
             # Solve D_state from accumulated normal equations
@@ -274,6 +393,7 @@ class RecurrentNEFLayer(nn.Module):
         batch_size: int | None = None,
         grad_steps: int = 1,
         grad_clip: float | None = 1.0,
+        auxiliary_weight: float = 0.0,
         **solver_kw,
     ) -> None:
         """Alternate analytic D_out solves with gradient encoder updates.
@@ -287,6 +407,8 @@ class RecurrentNEFLayer(nn.Module):
             loss: ``"mse"`` or ``"ce"`` (cross-entropy on final output).
             grad_clip: max gradient norm for recurrent BPTT updates.  ``None``
                        disables clipping.
+            auxiliary_weight: total weight assigned to auxiliary label
+                       supervision on pre-final timesteps.
         """
         from .networks import _ce_targets
 
@@ -298,6 +420,13 @@ class RecurrentNEFLayer(nn.Module):
         else:
             loss_fn = nn.MSELoss()
             grad_targets = targets
+        _, T, _ = seq.shape
+        output_weights = _temporal_output_weights(
+            T, auxiliary_weight, device=seq.device, dtype=seq.dtype
+        )
+        use_auxiliary_output = T > 1 and auxiliary_weight > 0
+        if use_auxiliary_output:
+            _require_weighted_output_solver(solver, "Temporal auxiliary output supervision")
 
         # D_state participates in gradient updates during hybrid
         self.state_decoders.requires_grad_(True)
@@ -323,18 +452,34 @@ class RecurrentNEFLayer(nn.Module):
                 with torch.no_grad():
                     B, T, _ = seq.shape
                     s = seq.new_zeros(B, self.d_state)
+                    AtA_out = seq.new_zeros(self.n_neurons, self.n_neurons)
+                    AtY_out = seq.new_zeros(self.n_neurons, self.d_out)
                     for t in range(T):
                         a = self.encode_step(seq[:, t], s)
+                        _accumulate_weighted_output_stats(
+                            AtA_out, AtY_out, a, targets, float(output_weights[t])
+                        )
                         s = a @ self.state_decoders
-                    D_out = solve_decoders(a, targets, method=solver, **solver_kw)
+                    if use_auxiliary_output:
+                        D_out = solve_from_normal_equations(
+                            AtA_out, AtY_out, alpha=solver_kw.get("alpha", 1e-2)
+                        )
+                    else:
+                        D_out = solve_decoders(a, targets, method=solver, **solver_kw)
                     self.decoders.data.copy_(D_out)
 
                 # Gradient step(s) on encoders, bias, D_state
                 if batch_size is not None:
                     steps = 0
                     for sb, yb in loader:
-                        pred = self.forward(sb)
-                        batch_loss = loss_fn(pred, yb)
+                        if use_auxiliary_output:
+                            activities = self._unroll_activities(sb)
+                            batch_loss = self._temporal_output_loss(
+                                activities, yb, loss_fn, auxiliary_weight
+                            )
+                        else:
+                            pred = self.forward(sb)
+                            batch_loss = loss_fn(pred, yb)
                         optimizer.zero_grad()
                         batch_loss.backward()
                         if grad_clip is not None:
@@ -344,8 +489,14 @@ class RecurrentNEFLayer(nn.Module):
                         if steps >= grad_steps:
                             break
                 else:
-                    pred = self.forward(seq)
-                    batch_loss = loss_fn(pred, grad_targets)
+                    if use_auxiliary_output:
+                        activities = self._unroll_activities(seq)
+                        batch_loss = self._temporal_output_loss(
+                            activities, grad_targets, loss_fn, auxiliary_weight
+                        )
+                    else:
+                        pred = self.forward(seq)
+                        batch_loss = loss_fn(pred, grad_targets)
                     optimizer.zero_grad()
                     batch_loss.backward()
                     if grad_clip is not None:
@@ -359,10 +510,20 @@ class RecurrentNEFLayer(nn.Module):
             with torch.no_grad():
                 B, T, _ = seq.shape
                 s = seq.new_zeros(B, self.d_state)
+                AtA_out = seq.new_zeros(self.n_neurons, self.n_neurons)
+                AtY_out = seq.new_zeros(self.n_neurons, self.d_out)
                 for t in range(T):
                     a = self.encode_step(seq[:, t], s)
+                    _accumulate_weighted_output_stats(
+                        AtA_out, AtY_out, a, targets, float(output_weights[t])
+                    )
                     s = a @ self.state_decoders
-                D_out = solve_decoders(a, targets, method=solver, **solver_kw)
+                if use_auxiliary_output:
+                    D_out = solve_from_normal_equations(
+                        AtA_out, AtY_out, alpha=solver_kw.get("alpha", 1e-2)
+                    )
+                else:
+                    D_out = solve_decoders(a, targets, method=solver, **solver_kw)
                 self.decoders.data.copy_(D_out)
         finally:
             self.state_decoders.requires_grad_(False)
@@ -380,6 +541,7 @@ class RecurrentNEFLayer(nn.Module):
         batch_size: int,
         loss: str,
         grad_clip: float | None,
+        auxiliary_weight: float,
     ) -> None:
         """Shared recurrent BPTT loop used by E2E-style strategies."""
         from .networks import _ce_targets
@@ -390,6 +552,9 @@ class RecurrentNEFLayer(nn.Module):
         else:
             loss_fn = nn.MSELoss()
             train_targets = targets
+        _, T, _ = seq.shape
+        _temporal_output_weights(T, auxiliary_weight, device=seq.device, dtype=seq.dtype)
+        use_auxiliary_output = T > 1 and auxiliary_weight > 0
 
         params = [p for p in self.parameters() if p.requires_grad]
         optimizer = torch.optim.Adam(params, lr=lr)
@@ -404,8 +569,14 @@ class RecurrentNEFLayer(nn.Module):
 
         for _ in range(n_epochs):
             for sb, yb in loader:
-                pred = self.forward(sb)
-                batch_loss = loss_fn(pred, yb)
+                if use_auxiliary_output:
+                    activities = self._unroll_activities(sb)
+                    batch_loss = self._temporal_output_loss(
+                        activities, yb, loss_fn, auxiliary_weight
+                    )
+                else:
+                    pred = self.forward(sb)
+                    batch_loss = loss_fn(pred, yb)
                 optimizer.zero_grad()
                 batch_loss.backward()
                 if grad_clip is not None:
@@ -423,6 +594,7 @@ class RecurrentNEFLayer(nn.Module):
         loss: str = "mse",
         greedy_iters: int = 5,
         grad_clip: float | None = 1.0,
+        auxiliary_weight: float = 0.0,
         **greedy_kw,
     ) -> None:
         """Full SGD (BPTT) on all parameters, initialised via greedy solve.
@@ -431,14 +603,20 @@ class RecurrentNEFLayer(nn.Module):
             greedy_iters: iterations for the initial greedy solve.
             grad_clip: max gradient norm for recurrent BPTT updates.  ``None``
                        disables clipping.
+            auxiliary_weight: total weight assigned to auxiliary label
+                       supervision on pre-final timesteps.
         """
         self._validate_training_data(seq, targets)
-        self.fit_greedy(seq, targets, n_iters=greedy_iters, **greedy_kw)
+        self.fit_greedy(
+            seq, targets, n_iters=greedy_iters, auxiliary_weight=auxiliary_weight, **greedy_kw
+        )
 
         self.decoders.requires_grad_(True)
         self.state_decoders.requires_grad_(True)
         try:
-            self._sgd_train(seq, targets, n_epochs, lr, batch_size, loss, grad_clip)
+            self._sgd_train(
+                seq, targets, n_epochs, lr, batch_size, loss, grad_clip, auxiliary_weight
+            )
         finally:
             self.decoders.requires_grad_(False)
             self.state_decoders.requires_grad_(False)
@@ -455,6 +633,7 @@ class RecurrentNEFLayer(nn.Module):
         batch_size: int = 256,
         loss: str = "ce",
         grad_clip: float | None = 1.0,
+        auxiliary_weight: float = 0.0,
         **hybrid_kw,
     ) -> None:
         """Run recurrent hybrid training, then refine with end-to-end SGD."""
@@ -467,13 +646,23 @@ class RecurrentNEFLayer(nn.Module):
             solver=solver,
             loss=loss,
             grad_clip=grad_clip,
+            auxiliary_weight=auxiliary_weight,
             **hybrid_kw,
         )
 
         self.decoders.requires_grad_(True)
         self.state_decoders.requires_grad_(True)
         try:
-            self._sgd_train(seq, targets, n_epochs, e2e_lr, batch_size, loss, grad_clip)
+            self._sgd_train(
+                seq,
+                targets,
+                n_epochs,
+                e2e_lr,
+                batch_size,
+                loss,
+                grad_clip,
+                auxiliary_weight,
+            )
         finally:
             self.decoders.requires_grad_(False)
             self.state_decoders.requires_grad_(False)
@@ -494,6 +683,8 @@ class RecurrentNEFLayer(nn.Module):
         normalize_step: bool = True,
         batch_size: int | None = None,
         state_target: str = "reconstruction",
+        auxiliary_weight: float = 0.0,
+        project_targets: bool = False,
         **solver_kw,
     ) -> None:
         """Target propagation through time using NEF state decoders as inverse models.
@@ -539,6 +730,12 @@ class RecurrentNEFLayer(nn.Module):
                             recurrent inverse. ``"reconstruction"`` decodes
                             the current frame; ``"predictive"`` decodes the
                             next frame (zero at the terminal step).
+            auxiliary_weight:
+                            total weight assigned to auxiliary label
+                            supervision on pre-final timesteps.
+            project_targets:
+                            clamp TP activity targets into the activation's
+                            feasible set at every timestep.
         """
         if solver not in _SUPPORTED_TP_SOLVERS:
             raise ValueError(
@@ -553,6 +750,9 @@ class RecurrentNEFLayer(nn.Module):
 
         B, T, d_in = self._validate_training_data(seq, targets)
         alpha = solver_kw.get("alpha", 1e-2)
+        output_weights = _temporal_output_weights(
+            T, auxiliary_weight, device=seq.device, dtype=seq.dtype
+        )
 
         if batch_size is None:
             # ~4 floats per neuron per timestep (activities + targets + autograd)
@@ -586,9 +786,10 @@ class RecurrentNEFLayer(nn.Module):
                         a = self.activation(self._gain * (x_aug @ self.encoders.T) + self.bias)
                         AtA_state.addmm_(a.T, a)
                         AtY_state.addmm_(a.T, self._state_target(sb, t, state_target))
+                        _accumulate_weighted_output_stats(
+                            AtA_out, AtY_out, a, tb, float(output_weights[t])
+                        )
                         s = a @ self.state_decoders
-                    AtA_out.addmm_(a.T, a)
-                    AtY_out.addmm_(a.T, tb)
                     a_final_chunks.append(a)
 
             # Solve decoders
@@ -599,15 +800,17 @@ class RecurrentNEFLayer(nn.Module):
 
             # Compute final-timestep targets (full-batch normalisation)
             a_final_all = torch.cat(a_final_chunks, dim=0)
-            del a_final_chunks
-            error = a_final_all @ D_out - targets
-            grad_out = error @ D_out.T
-            if normalize_step:
-                gn = grad_out.norm()
-                if gn > 0:
-                    grad_out = grad_out / gn * a_final_all.norm()
-            target_final_all = a_final_all - eta * grad_out
-            del a_final_all, error, grad_out
+            target_final_all = _local_output_target(
+                a_final_all,
+                targets,
+                D_out,
+                eta,
+                normalize_step=normalize_step,
+                step_scale=float(output_weights[-1]),
+                activation=self._activation_name,
+                project_targets=project_targets,
+            )
+            del a_final_chunks, a_final_all
 
             # Precompute DTP projection matrix (n_neurons × n_neurons)
             DRE = _temporal_projection_matrix(
@@ -634,9 +837,25 @@ class RecurrentNEFLayer(nn.Module):
                 timestep_targets = [None] * T
                 timestep_targets[-1] = target_final_all[i : i + Bb]
                 for t in range(T - 2, -1, -1):
+                    a_t_det = activities[t].detach()
                     a_next_det = activities[t + 1].detach()
-                    delta = timestep_targets[t + 1] - a_next_det
-                    timestep_targets[t] = activities[t].detach() + delta @ DRE
+                    future_target = a_t_det + (timestep_targets[t + 1] - a_next_det) @ DRE
+                    local_target = _local_output_target(
+                        a_t_det,
+                        targets[i : i + Bb],
+                        D_out,
+                        eta,
+                        normalize_step=normalize_step,
+                        step_scale=float(output_weights[t]),
+                        activation=self._activation_name,
+                        project_targets=project_targets,
+                    )
+                    timestep_target = future_target + (local_target - a_t_det)
+                    if project_targets:
+                        timestep_target = _project_activity_target(
+                            timestep_target, self._activation_name
+                        )
+                    timestep_targets[t] = timestep_target
 
                 # Local loss (scaled for correct gradient accumulation)
                 chunk_loss = sum(
@@ -662,8 +881,7 @@ class RecurrentNEFLayer(nn.Module):
                 s = sb.new_zeros(sb.shape[0], self.d_state)
                 for t in range(T):
                     a = self.encode_step(sb[:, t], s)
+                    _accumulate_weighted_output_stats(AtA, AtY, a, tb, float(output_weights[t]))
                     s = a @ self.state_decoders
-                AtA.addmm_(a.T, a)
-                AtY.addmm_(a.T, tb)
             D_out = solve_from_normal_equations(AtA, AtY, alpha=alpha)
             self.decoders.data.copy_(D_out)

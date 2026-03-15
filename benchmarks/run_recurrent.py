@@ -115,6 +115,8 @@ def run_recurrent_nef(
     grad_clip: float | None = 1.0,
     seed: int | None = 0,
     state_target: str = "reconstruction",
+    auxiliary_weight: float = 0.0,
+    tp_project_targets: bool = False,
 ) -> BenchmarkResult:
     """Run a recurrent NEF benchmark on Sequential MNIST.
 
@@ -155,6 +157,7 @@ def run_recurrent_nef(
             n_iters=greedy_iters,
             solver=solver,
             state_target=state_target,
+            auxiliary_weight=auxiliary_weight,
             **solver_kwargs,
         )
     elif strategy == "hybrid":
@@ -166,6 +169,7 @@ def run_recurrent_nef(
             solver=solver,
             loss=loss,
             grad_clip=grad_clip,
+            auxiliary_weight=auxiliary_weight,
             **solver_kwargs,
         )
     elif strategy == "hybrid_e2e":
@@ -180,6 +184,7 @@ def run_recurrent_nef(
             batch_size=e2e_batch,
             loss=loss,
             grad_clip=grad_clip,
+            auxiliary_weight=auxiliary_weight,
             **solver_kwargs,
         )
     elif strategy == "e2e":
@@ -192,6 +197,7 @@ def run_recurrent_nef(
             loss=loss,
             grad_clip=grad_clip,
             greedy_iters=greedy_iters,
+            auxiliary_weight=auxiliary_weight,
         )
     elif strategy == "target_prop":
         layer.fit_target_prop(
@@ -204,6 +210,8 @@ def run_recurrent_nef(
             normalize_step=tp_normalize,
             schedule=tp_schedule,
             state_target=state_target,
+            auxiliary_weight=auxiliary_weight,
+            project_targets=tp_project_targets,
             **solver_kwargs,
         )
     else:
@@ -336,11 +344,18 @@ def build_recurrent_benchmark_parser() -> argparse.ArgumentParser:
     parser.add_argument("--tp-eta", type=float, default=0.1)
     parser.add_argument("--tp-no-normalize", action="store_true")
     parser.add_argument("--tp-schedule", action="store_true")
+    parser.add_argument("--tp-project-targets", action="store_true")
     parser.add_argument(
         "--state-target",
         default="reconstruction",
         choices=["reconstruction", "predictive"],
         help="Decoded recurrent state target for greedy/target_prop (default: reconstruction)",
+    )
+    parser.add_argument(
+        "--auxiliary-weight",
+        type=float,
+        default=0.0,
+        help="Total auxiliary label-supervision weight assigned to pre-final timesteps",
     )
     parser.add_argument("--loss", default="mse", choices=["mse", "ce"])
     parser.add_argument("--grad-clip", type=float, default=1.0)
@@ -397,7 +412,9 @@ def main(argv: list[str] | None = None) -> int:
                 tp_eta=args.tp_eta,
                 tp_normalize=not args.tp_no_normalize,
                 tp_schedule=args.tp_schedule,
+                tp_project_targets=args.tp_project_targets,
                 state_target=args.state_target,
+                auxiliary_weight=args.auxiliary_weight,
                 loss=args.loss,
                 use_centers=use_centers,
                 data_root=args.data_root,

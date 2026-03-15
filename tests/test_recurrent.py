@@ -3,7 +3,11 @@
 import pytest
 import torch
 
-from leenef.recurrent import RecurrentNEFLayer, _temporal_projection_matrix
+from leenef.recurrent import (
+    RecurrentNEFLayer,
+    _temporal_output_weights,
+    _temporal_projection_matrix,
+)
 
 
 class TestRecurrentShapes:
@@ -91,6 +95,15 @@ class TestRecurrentStateTargets:
         torch.testing.assert_close(predictive, seq[:, 1, :])
         torch.testing.assert_close(terminal, torch.zeros_like(terminal))
 
+    def test_temporal_output_weights_split_auxiliary_mass(self):
+        weights = _temporal_output_weights(5, 0.8, device=torch.device("cpu"), dtype=torch.float32)
+        torch.testing.assert_close(weights[-1], torch.tensor(1.0))
+        torch.testing.assert_close(weights[:-1].sum(), torch.tensor(0.8))
+
+    def test_temporal_output_weights_reject_negative_auxiliary_weight(self):
+        with pytest.raises(ValueError, match="auxiliary_weight must be >= 0"):
+            _temporal_output_weights(4, -0.1, device=torch.device("cpu"), dtype=torch.float32)
+
 
 class TestRecurrentGreedy:
     """Greedy training tests."""
@@ -135,6 +148,20 @@ class TestRecurrentGreedy:
         layer.fit_greedy(seq, targets, n_iters=2, state_target="predictive")
         assert torch.isfinite(layer(seq)).all()
 
+    def test_greedy_auxiliary_supervision_runs(self):
+        layer = RecurrentNEFLayer(d_in=4, n_neurons=60, d_out=2)
+        seq = torch.randn(16, 4, 4)
+        targets = torch.randn(16, 2)
+        layer.fit_greedy(seq, targets, n_iters=2, auxiliary_weight=0.5)
+        assert torch.isfinite(layer(seq)).all()
+
+    def test_greedy_auxiliary_supervision_rejects_lstsq(self):
+        layer = RecurrentNEFLayer(d_in=4, n_neurons=60, d_out=2)
+        seq = torch.randn(16, 4, 4)
+        targets = torch.randn(16, 2)
+        with pytest.raises(ValueError, match="accumulated normal equations"):
+            layer.fit_greedy(seq, targets, n_iters=1, solver="lstsq", auxiliary_weight=0.5)
+
 
 class TestRecurrentHybrid:
     """Hybrid training tests."""
@@ -159,6 +186,12 @@ class TestRecurrentHybrid:
         seq = torch.randn(32, 5, 8)
         targets = torch.randn(32, 3)
         layer.fit_hybrid(seq, targets, n_iters=2, batch_size=16, grad_steps=2)
+
+    def test_hybrid_auxiliary_supervision_runs(self):
+        layer = RecurrentNEFLayer(d_in=8, n_neurons=50, d_out=3)
+        seq = torch.randn(16, 5, 8)
+        targets = torch.randn(16, 3)
+        layer.fit_hybrid(seq, targets, n_iters=2, auxiliary_weight=0.5)
 
     def test_state_decoders_grad_restored(self):
         """state_decoders.requires_grad should be False after hybrid."""
@@ -187,6 +220,20 @@ class TestRecurrentE2E:
         layer.fit_end_to_end(seq, targets, n_epochs=1, greedy_iters=1, batch_size=4)
         assert not layer.decoders.requires_grad
         assert not layer.state_decoders.requires_grad
+
+    def test_e2e_auxiliary_supervision_runs(self):
+        layer = RecurrentNEFLayer(d_in=4, n_neurons=30, d_out=2)
+        seq = torch.randn(8, 3, 4)
+        targets = torch.randn(8, 2)
+        layer.fit_end_to_end(
+            seq,
+            targets,
+            n_epochs=1,
+            greedy_iters=1,
+            batch_size=4,
+            auxiliary_weight=0.5,
+        )
+        assert torch.isfinite(layer(seq)).all()
 
 
 class TestRecurrentHybridE2E:
@@ -301,6 +348,22 @@ class TestRecurrentTargetProp:
         seq = torch.randn(16, 5, 4)
         targets = torch.randn(16, 2)
         layer.fit_target_prop(seq, targets, n_iters=2, lr=1e-3, eta=0.1, state_target="predictive")
+        assert torch.isfinite(layer(seq)).all()
+
+    def test_tp_auxiliary_supervision_and_projection_run(self):
+        layer = RecurrentNEFLayer(d_in=4, n_neurons=50, d_out=2, activation="relu")
+        seq = torch.randn(16, 5, 4)
+        targets = torch.randn(16, 2)
+        layer.fit_target_prop(
+            seq,
+            targets,
+            n_iters=2,
+            lr=1e-3,
+            eta=0.05,
+            state_target="predictive",
+            auxiliary_weight=0.5,
+            project_targets=True,
+        )
         assert torch.isfinite(layer(seq)).all()
 
 

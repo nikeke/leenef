@@ -82,4 +82,6 @@ class TestBenchmarkCliParsers:
         assert args.save_csv.name == "rec.csv"
         assert args.seed == 0
         assert args.state_target == "reconstruction"
+        assert args.auxiliary_weight == 0.0
+        assert not args.tp_project_targets
         assert args.strategies == ["greedy", "hybrid", "target_prop", "e2e", "hybrid_e2e"]
