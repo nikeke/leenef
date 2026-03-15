@@ -92,15 +92,21 @@ def run_recurrent_nef(
     e2e_epochs: int = 50,
     e2e_lr: float = 1e-3,
     e2e_batch: int = 256,
+    tp_iters: int = 50,
+    tp_lr: float = 1e-3,
+    tp_eta: float = 0.1,
+    tp_normalize: bool = True,
+    tp_schedule: bool = False,
     loss: str = "mse",
     gain: float | tuple[float, float] = (0.5, 2.0),
+    use_centers: bool = True,
     data_root: str = "./data",
 ) -> BenchmarkResult:
     """Run a recurrent NEF benchmark on Sequential MNIST.
 
     Args:
         mode: ``"row"``, ``"pixel"``, or ``"pixel_permuted"``.
-        strategy: ``"greedy"``, ``"hybrid"``, or ``"e2e"``.
+        strategy: ``"greedy"``, ``"hybrid"``, ``"e2e"``, or ``"target_prop"``.
     """
     solver_kwargs = solver_kwargs or {"alpha": 1e-2}
 
@@ -110,6 +116,7 @@ def run_recurrent_nef(
     n_classes = 10
     targets = one_hot(y_train, n_classes)
 
+    centers = x_train_seq if use_centers else None
     _, _, d_in = x_train_seq.shape
     layer = RecurrentNEFLayer(
         d_in=d_in,
@@ -119,6 +126,7 @@ def run_recurrent_nef(
         activation=activation,
         encoder_strategy=encoder_strategy,
         gain=gain,
+        centers=centers,
     )
 
     t0 = time.perf_counter()
@@ -145,6 +153,18 @@ def run_recurrent_nef(
             batch_size=e2e_batch,
             loss=loss,
             greedy_iters=greedy_iters,
+        )
+    elif strategy == "target_prop":
+        layer.fit_target_prop(
+            x_train_seq,
+            targets,
+            n_iters=tp_iters,
+            lr=tp_lr,
+            eta=tp_eta,
+            solver=solver,
+            normalize_step=tp_normalize,
+            schedule=tp_schedule,
+            **solver_kwargs,
         )
     else:
         raise ValueError(f"Unknown strategy {strategy!r}")

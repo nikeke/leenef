@@ -136,6 +136,70 @@ class TestRecurrentDeterminism:
         assert torch.allclose(y1, y2), "Same seed should produce identical output"
 
 
+class TestRecurrentTargetProp:
+    """Target propagation through time tests."""
+
+    def test_tp_runs(self):
+        layer = RecurrentNEFLayer(d_in=8, n_neurons=50, d_out=3)
+        seq = torch.randn(16, 5, 8)
+        targets = torch.randn(16, 3)
+        layer.fit_target_prop(seq, targets, n_iters=2, lr=1e-3, eta=0.1)
+        assert (layer.decoders != 0).any()
+
+    def test_tp_reduces_error(self):
+        """TP should reduce error from the untrained baseline."""
+        torch.manual_seed(42)
+        seq = torch.randn(64, 3, 4)
+        targets = torch.randn(64, 2)
+
+        layer = RecurrentNEFLayer(
+            d_in=4, n_neurons=100, d_out=2, rng=torch.Generator().manual_seed(42)
+        )
+        err_init = (layer(seq) - targets).pow(2).mean().item()
+
+        layer.fit_target_prop(seq, targets, n_iters=10, lr=1e-3, eta=0.1)
+        err_tp = (layer(seq) - targets).pow(2).mean().item()
+        assert err_tp < err_init
+
+    def test_tp_with_schedule(self):
+        layer = RecurrentNEFLayer(d_in=4, n_neurons=30, d_out=2)
+        seq = torch.randn(16, 3, 4)
+        targets = torch.randn(16, 2)
+        layer.fit_target_prop(seq, targets, n_iters=3, schedule=True)
+        assert torch.isfinite(layer(seq)).all()
+
+    def test_tp_finite_output(self):
+        layer = RecurrentNEFLayer(d_in=4, n_neurons=50, d_out=2)
+        seq = torch.randn(16, 5, 4)
+        targets = torch.randn(16, 2)
+        layer.fit_target_prop(seq, targets, n_iters=5, eta=0.05)
+        assert torch.isfinite(layer(seq)).all()
+
+
+class TestRecurrentCenters:
+    """Data-driven biases for recurrent layer."""
+
+    def test_centers_from_sequences(self):
+        """Passing sequences as centers should produce data-driven biases."""
+        seq = torch.randn(32, 5, 4)
+        layer = RecurrentNEFLayer(
+            d_in=4, n_neurons=50, d_out=2, centers=seq, rng=torch.Generator().manual_seed(0)
+        )
+        # Bias should not be all-random; it's deterministic from centers
+        layer2 = RecurrentNEFLayer(
+            d_in=4, n_neurons=50, d_out=2, centers=seq, rng=torch.Generator().manual_seed(0)
+        )
+        assert torch.allclose(layer.bias, layer2.bias)
+
+    def test_centers_from_flat(self):
+        """Flat 2D tensor also works as centers."""
+        flat = torch.randn(32, 4)
+        layer = RecurrentNEFLayer(
+            d_in=4, n_neurons=50, d_out=2, centers=flat, rng=torch.Generator().manual_seed(0)
+        )
+        assert torch.isfinite(layer.bias).all()
+
+
 class TestRecurrentRoundTrip:
     """Save/load round-trip tests."""
 
