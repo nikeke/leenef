@@ -50,7 +50,7 @@ class NEFLayer(nn.Module):
         activation: str = "abs",
         encoder_strategy: str = "hypersphere",
         trainable_encoders: bool = False,
-        gain: float | tuple[float, float] | Tensor = 1.0,
+        gain: float | tuple[float, float] | Tensor = (0.5, 2.0),
         rng: torch.Generator | None = None,
         centers: Tensor | None = None,
         **act_kwargs,

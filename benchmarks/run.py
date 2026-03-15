@@ -97,7 +97,7 @@ def run_nef_classification(
     solver_kwargs: dict | None = None,
     data_root: str = "./data",
     use_centers: bool = True,
-    gain: float | tuple[float, float] = 1.0,
+    gain: float | tuple[float, float] = (0.5, 2.0),
 ) -> BenchmarkResult:
     """Run a single NEF classification benchmark."""
     solver_kwargs = solver_kwargs or {"alpha": 1e-2}
@@ -248,7 +248,7 @@ def run_nef_multi(
     tp_schedule: bool = False,
     data_root: str = "./data",
     use_centers: bool = True,
-    gain: float | tuple[float, float] = 1.0,
+    gain: float | tuple[float, float] = (0.5, 2.0),
 ) -> BenchmarkResult:
     """Run a multi-layer NEFNetwork benchmark."""
     hidden_neurons = hidden_neurons or [1000]

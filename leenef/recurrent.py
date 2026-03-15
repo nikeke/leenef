@@ -51,7 +51,7 @@ class RecurrentNEFLayer(nn.Module):
         d_state: int | None = None,
         activation: str = "abs",
         encoder_strategy: str = "hypersphere",
-        gain: float | tuple[float, float] | Tensor = 1.0,
+        gain: float | tuple[float, float] | Tensor = (0.5, 2.0),
         rng: torch.Generator | None = None,
         **act_kwargs,
     ):

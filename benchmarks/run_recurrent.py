@@ -93,6 +93,7 @@ def run_recurrent_nef(
     e2e_lr: float = 1e-3,
     e2e_batch: int = 256,
     loss: str = "mse",
+    gain: float | tuple[float, float] = (0.5, 2.0),
     data_root: str = "./data",
 ) -> BenchmarkResult:
     """Run a recurrent NEF benchmark on Sequential MNIST.
@@ -117,6 +118,7 @@ def run_recurrent_nef(
         d_state=d_state,
         activation=activation,
         encoder_strategy=encoder_strategy,
+        gain=gain,
     )
 
     t0 = time.perf_counter()
