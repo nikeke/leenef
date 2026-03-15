@@ -651,9 +651,9 @@ def main(argv: list[str] | None = None) -> int:
                 "greedy",
                 "hybrid",
                 "target_prop",
-                "target_prop_e2e",
-                "hybrid_e2e",
                 "e2e",
+                "hybrid_e2e",
+                "target_prop_e2e",
             ]:
                 print(f"Running NEFNet-{strat} on {ds}...")
                 results.append(

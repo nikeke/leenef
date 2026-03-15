@@ -121,8 +121,8 @@ def run_recurrent_nef(
     Args:
         mode: ``"row"``, ``"pixel"``, or ``"pixel_permuted"``.
         strategy:
-            ``"greedy"``, ``"hybrid"``, ``"hybrid_e2e"``, ``"e2e"``, or
-            ``"target_prop"``.
+            ``"greedy"``, ``"hybrid"``, ``"target_prop"``, ``"e2e"``, or
+            ``"hybrid_e2e"``.
     """
     solver_kwargs = solver_kwargs or {"alpha": 1e-2}
     set_benchmark_seed(seed)
@@ -313,8 +313,8 @@ def build_recurrent_benchmark_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--strategies",
         nargs="+",
-        default=["greedy", "hybrid", "hybrid_e2e", "target_prop", "e2e"],
-        choices=["greedy", "hybrid", "hybrid_e2e", "target_prop", "e2e"],
+        default=["greedy", "hybrid", "target_prop", "e2e", "hybrid_e2e"],
+        choices=["greedy", "hybrid", "target_prop", "e2e", "hybrid_e2e"],
         help="Recurrent NEF strategies to benchmark",
     )
     parser.add_argument("--neurons", type=int, default=2000)
