@@ -1,8 +1,9 @@
 """Tests for RecurrentNEFLayer."""
 
+import pytest
 import torch
 
-from leenef.recurrent import RecurrentNEFLayer
+from leenef.recurrent import RecurrentNEFLayer, _temporal_projection_matrix
 
 
 class TestRecurrentShapes:
@@ -30,6 +31,37 @@ class TestRecurrentShapes:
     def test_default_d_state_equals_d_in(self):
         layer = RecurrentNEFLayer(d_in=12, n_neurons=50, d_out=3)
         assert layer.d_state == 12
+
+
+class TestRecurrentExceptions:
+    """Validation and exception-path tests."""
+
+    def test_invalid_d_state(self):
+        with pytest.raises(ValueError, match="d_state must be positive"):
+            RecurrentNEFLayer(d_in=4, n_neurons=30, d_out=2, d_state=0)
+
+    def test_forward_rejects_bad_sequence_shape(self):
+        layer = RecurrentNEFLayer(d_in=4, n_neurons=30, d_out=2)
+        with pytest.raises(ValueError, match="Expected seq shape"):
+            layer(torch.randn(8, 4))
+
+    def test_encode_step_rejects_bad_state_shape(self):
+        layer = RecurrentNEFLayer(d_in=4, n_neurons=30, d_out=2, d_state=3)
+        with pytest.raises(ValueError, match="Expected s_prev shape"):
+            layer.encode_step(torch.randn(8, 4), torch.randn(8, 4))
+
+    def test_fit_greedy_rejects_target_shape(self):
+        layer = RecurrentNEFLayer(d_in=4, n_neurons=30, d_out=2)
+        seq = torch.randn(8, 3, 4)
+        with pytest.raises(ValueError, match="Expected targets shape"):
+            layer.fit_greedy(seq, torch.randn(8, 3))
+
+    def test_tp_rejects_unsupported_solver(self):
+        layer = RecurrentNEFLayer(d_in=4, n_neurons=30, d_out=2)
+        seq = torch.randn(8, 3, 4)
+        targets = torch.randn(8, 2)
+        with pytest.raises(ValueError, match="supports only"):
+            layer.fit_target_prop(seq, targets, n_iters=1, solver="lstsq")
 
 
 class TestRecurrentGreedy:
@@ -122,6 +154,50 @@ class TestRecurrentE2E:
         assert not layer.state_decoders.requires_grad
 
 
+class TestRecurrentHybridE2E:
+    """Hybrid -> E2E training tests."""
+
+    def test_hybrid_e2e_runs(self):
+        layer = RecurrentNEFLayer(d_in=8, n_neurons=50, d_out=3)
+        seq = torch.randn(16, 5, 8)
+        targets = torch.randn(16, 3)
+        layer.fit_hybrid_e2e(seq, targets, n_iters=2, n_epochs=2, batch_size=8)
+        assert (layer.decoders != 0).any()
+
+    def test_hybrid_e2e_grad_restored(self):
+        layer = RecurrentNEFLayer(d_in=4, n_neurons=30, d_out=2)
+        seq = torch.randn(8, 3, 4)
+        targets = torch.randn(8, 2)
+        layer.fit_hybrid_e2e(seq, targets, n_iters=1, n_epochs=1, batch_size=4, loss="mse")
+        assert not layer.decoders.requires_grad
+        assert not layer.state_decoders.requires_grad
+
+
+class TestRecurrentLongSequences:
+    """Longer unroll smoke tests with gradient clipping."""
+
+    def test_hybrid_long_sequence_stays_finite(self):
+        layer = RecurrentNEFLayer(d_in=4, n_neurons=40, d_out=2)
+        seq = torch.randn(8, 32, 4)
+        targets = torch.randn(8, 2)
+        layer.fit_hybrid(seq, targets, n_iters=1, batch_size=4, grad_clip=0.5)
+        assert torch.isfinite(layer(seq)).all()
+
+    def test_e2e_long_sequence_stays_finite(self):
+        layer = RecurrentNEFLayer(d_in=4, n_neurons=40, d_out=2)
+        seq = torch.randn(8, 32, 4)
+        targets = torch.randn(8, 2)
+        layer.fit_end_to_end(
+            seq,
+            targets,
+            n_epochs=1,
+            greedy_iters=1,
+            batch_size=4,
+            grad_clip=0.5,
+        )
+        assert torch.isfinite(layer(seq)).all()
+
+
 class TestRecurrentDeterminism:
     """Reproducibility tests."""
 
@@ -138,6 +214,16 @@ class TestRecurrentDeterminism:
 
 class TestRecurrentTargetProp:
     """Target propagation through time tests."""
+
+    def test_temporal_projection_uses_only_state_channels(self):
+        state_decoders = torch.randn(6, 3)
+        encoders = torch.randn(6, 7)
+        encoders_alt = encoders.clone()
+        encoders_alt[:, :4] = torch.randn_like(encoders_alt[:, :4])
+        assert torch.allclose(
+            _temporal_projection_matrix(state_decoders, encoders, d_in=4),
+            _temporal_projection_matrix(state_decoders, encoders_alt, d_in=4),
+        )
 
     def test_tp_runs(self):
         layer = RecurrentNEFLayer(d_in=8, n_neurons=50, d_out=3)
