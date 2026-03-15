@@ -2,8 +2,12 @@
 
 import csv
 import json
+import random
 import sys
 from pathlib import Path
+
+import numpy as np
+import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -12,6 +16,7 @@ from benchmarks.run import (
     build_benchmark_parser,
     save_results_csv,
     save_results_json,
+    set_benchmark_seed,
 )
 from benchmarks.run_recurrent import build_recurrent_benchmark_parser
 
@@ -49,11 +54,19 @@ class TestBenchmarkPersistence:
 
 
 class TestBenchmarkCliParsers:
+    def test_set_benchmark_seed_replays_random_streams(self):
+        set_benchmark_seed(123)
+        first = (random.random(), float(np.random.rand()), float(torch.rand(())))
+        set_benchmark_seed(123)
+        second = (random.random(), float(np.random.rand()), float(torch.rand(())))
+        assert second == first
+
     def test_feedforward_parser_accepts_save_flags(self, tmp_path):
         parser = build_benchmark_parser()
         args = parser.parse_args(["--save-json", str(tmp_path / "ff.json"), "--multi"])
         assert args.multi
         assert args.save_json.name == "ff.json"
+        assert args.seed == 0
         assert args.tp_eta == 0.03
         assert args.tp_e2e_eta == 0.01
         assert not args.tp_project_targets
@@ -67,3 +80,4 @@ class TestBenchmarkCliParsers:
         assert args.mode == "pixel"
         assert args.lstm
         assert args.save_csv.name == "rec.csv"
+        assert args.seed == 0

@@ -3,10 +3,12 @@
 import argparse
 import csv
 import json
+import random
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
+import numpy as np
 import torch
 import torch.nn as nn
 from torch import Tensor
@@ -28,6 +30,19 @@ class BenchmarkResult:
     train_metric: float
     test_metric: float
     fit_time: float  # seconds
+
+
+def set_benchmark_seed(seed: int | None) -> None:
+    """Seed Python, NumPy, and PyTorch for comparable benchmark reruns."""
+    if seed is None:
+        return
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
 
 
 def save_results_json(results: list[BenchmarkResult], path: str | Path) -> None:
@@ -87,7 +102,7 @@ def load_vision_dataset(name: str, root: str = "./data"):
     return to_tensors(train), to_tensors(test)
 
 
-def load_regression_dataset(name: str = "california"):
+def load_regression_dataset(name: str = "california", seed: int = 0):
     """Load a sklearn regression dataset as tensors."""
     if name == "california":
         from sklearn.datasets import fetch_california_housing
@@ -98,7 +113,7 @@ def load_regression_dataset(name: str = "california"):
             torch.tensor(data.target, dtype=torch.float32).unsqueeze(1),
         )
         # Seeded train/test split, then normalize on train only
-        idx = torch.randperm(len(x), generator=torch.Generator().manual_seed(42))
+        idx = torch.randperm(len(x), generator=torch.Generator().manual_seed(seed))
         split = int(0.8 * len(x))
         train_idx, test_idx = idx[:split], idx[split:]
         x_train, x_test = x[train_idx], x[test_idx]
@@ -136,9 +151,11 @@ def run_nef_classification(
     data_root: str = "./data",
     use_centers: bool = True,
     gain: float | tuple[float, float] = (0.5, 2.0),
+    seed: int | None = 0,
 ) -> BenchmarkResult:
     """Run a single NEF classification benchmark."""
     solver_kwargs = solver_kwargs or {"alpha": 1e-2}
+    set_benchmark_seed(seed)
 
     (x_train, y_train), (x_test, y_test) = load_vision_dataset(dataset_name, root=data_root)
     n_classes = int(y_train.max().item()) + 1
@@ -186,11 +203,14 @@ def run_nef_regression(
     solver: str = "tikhonov",
     solver_kwargs: dict | None = None,
     use_centers: bool = True,
+    seed: int | None = 0,
 ) -> BenchmarkResult:
     """Run a single NEF regression benchmark."""
     solver_kwargs = solver_kwargs or {"alpha": 1e-2}
+    set_benchmark_seed(seed)
 
-    (x_train, y_train), (x_test, y_test) = load_regression_dataset(dataset_name)
+    data_seed = 0 if seed is None else seed
+    (x_train, y_train), (x_test, y_test) = load_regression_dataset(dataset_name, seed=data_seed)
 
     centers = x_train if use_centers else None
     layer = NEFLayer(
@@ -292,6 +312,7 @@ def run_nef_multi(
     data_root: str = "./data",
     use_centers: bool = True,
     gain: float | tuple[float, float] = (0.5, 2.0),
+    seed: int | None = 0,
 ) -> BenchmarkResult:
     """Run a multi-layer NEFNetwork benchmark."""
     hidden_neurons = hidden_neurons or [1000]
@@ -299,6 +320,7 @@ def run_nef_multi(
     hybrid_kw = dict(solver_kwargs)
     if hybrid_alpha is not None:
         hybrid_kw["alpha"] = hybrid_alpha
+    set_benchmark_seed(seed)
 
     (x_train, y_train), (x_test, y_test) = load_vision_dataset(dataset_name, root=data_root)
     n_classes = int(y_train.max().item()) + 1
@@ -413,9 +435,11 @@ def run_mlp_baseline(
     lr: float = 1e-3,
     batch_size: int = 256,
     data_root: str = "./data",
+    seed: int | None = 0,
 ) -> BenchmarkResult:
     """Train a standard MLP via SGD as a comparison baseline."""
     hidden_sizes = hidden_sizes or [1000, 1000]
+    set_benchmark_seed(seed)
 
     (x_train, y_train), (x_test, y_test) = load_vision_dataset(dataset_name, root=data_root)
     n_classes = int(y_train.max().item()) + 1
@@ -431,7 +455,13 @@ def run_mlp_baseline(
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     loss_fn = nn.CrossEntropyLoss()
     dataset = torch.utils.data.TensorDataset(x_train, y_train)
-    loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    loader_seed = 0 if seed is None else seed
+    loader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        generator=torch.Generator().manual_seed(loader_seed),
+    )
 
     t0 = time.perf_counter()
     for _ in range(n_epochs):
@@ -574,6 +604,12 @@ def build_benchmark_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--multi", action="store_true", help="Run multi-layer benchmarks")
     parser.add_argument("--mlp", action="store_true", help="Run MLP baseline")
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=0,
+        help="Random seed for reproducible benchmark runs (default: 0)",
+    )
     parser.add_argument("--data-root", default="./data")
     parser.add_argument(
         "--save-json", type=Path, default=None, help="Write results to a JSON file"
@@ -606,6 +642,7 @@ def main(argv: list[str] | None = None) -> int:
                     solver_kwargs={"alpha": args.alpha},
                     data_root=args.data_root,
                     use_centers=use_centers,
+                    seed=args.seed,
                 )
             )
 
@@ -644,12 +681,13 @@ def main(argv: list[str] | None = None) -> int:
                         tp_e2e_eta=args.tp_e2e_eta,
                         data_root=args.data_root,
                         use_centers=use_centers,
+                        seed=args.seed,
                     )
                 )
 
         if args.mlp:
             print(f"Running MLP baseline on {ds}...")
-            results.append(run_mlp_baseline(ds, data_root=args.data_root))
+            results.append(run_mlp_baseline(ds, data_root=args.data_root, seed=args.seed))
 
     if args.regression:
         print("Running NEF regression on California Housing...")
@@ -663,6 +701,7 @@ def main(argv: list[str] | None = None) -> int:
                     solver=args.solver,
                     solver_kwargs={"alpha": args.alpha},
                     use_centers=use_centers,
+                    seed=args.seed,
                 )
             )
 

@@ -21,6 +21,7 @@ from benchmarks.run import (  # noqa: E402
     one_hot,
     save_results_csv,
     save_results_json,
+    set_benchmark_seed,
 )
 from leenef.recurrent import RecurrentNEFLayer  # noqa: E402
 
@@ -28,7 +29,7 @@ from leenef.recurrent import RecurrentNEFLayer  # noqa: E402
 def load_sequential_mnist(
     mode: str = "row",
     root: str = "./data",
-    seed: int = 42,
+    seed: int = 0,
 ) -> tuple[
     tuple[Tensor, Tensor, Tensor],
     tuple[Tensor, Tensor, Tensor],
@@ -112,6 +113,7 @@ def run_recurrent_nef(
     use_centers: bool = True,
     data_root: str = "./data",
     grad_clip: float | None = 1.0,
+    seed: int | None = 0,
 ) -> BenchmarkResult:
     """Run a recurrent NEF benchmark on Sequential MNIST.
 
@@ -122,9 +124,11 @@ def run_recurrent_nef(
             ``"target_prop"``.
     """
     solver_kwargs = solver_kwargs or {"alpha": 1e-2}
+    set_benchmark_seed(seed)
+    data_seed = 0 if seed is None else seed
 
     (x_train_seq, _, y_train), (x_test_seq, _, y_test) = load_sequential_mnist(
-        mode=mode, root=data_root
+        mode=mode, root=data_root, seed=data_seed
     )
     n_classes = 10
     targets = one_hot(y_train, n_classes)
@@ -244,10 +248,13 @@ def run_lstm_baseline(
     lr: float = 1e-3,
     batch_size: int = 256,
     data_root: str = "./data",
+    seed: int | None = 0,
 ) -> BenchmarkResult:
     """Train an LSTM baseline on Sequential MNIST."""
+    set_benchmark_seed(seed)
+    data_seed = 0 if seed is None else seed
     (x_train_seq, _, y_train), (x_test_seq, _, y_test) = load_sequential_mnist(
-        mode=mode, root=data_root
+        mode=mode, root=data_root, seed=data_seed
     )
     _, _, d_in = x_train_seq.shape
 
@@ -256,9 +263,12 @@ def run_lstm_baseline(
     loss_fn = nn.CrossEntropyLoss()
 
     dataset = torch.utils.data.TensorDataset(x_train_seq, y_train)
-    g = torch.Generator()
-    g.manual_seed(0)
-    loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, generator=g)
+    loader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        generator=torch.Generator().manual_seed(data_seed),
+    )
 
     t0 = time.perf_counter()
     for _ in range(n_epochs):
@@ -322,6 +332,12 @@ def build_recurrent_benchmark_parser() -> argparse.ArgumentParser:
     parser.add_argument("--loss", default="mse", choices=["mse", "ce"])
     parser.add_argument("--grad-clip", type=float, default=1.0)
     parser.add_argument("--no-centers", action="store_true")
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=0,
+        help="Random seed for reproducible benchmark runs (default: 0)",
+    )
     parser.add_argument("--data-root", default="./data")
     parser.add_argument("--lstm", action="store_true", help="Also run the LSTM baseline")
     parser.add_argument("--lstm-hidden-size", type=int, default=128)
@@ -372,6 +388,7 @@ def main(argv: list[str] | None = None) -> int:
                 use_centers=use_centers,
                 data_root=args.data_root,
                 grad_clip=args.grad_clip,
+                seed=args.seed,
             )
         )
 
@@ -386,6 +403,7 @@ def main(argv: list[str] | None = None) -> int:
                 lr=args.lstm_lr,
                 batch_size=args.lstm_batch,
                 data_root=args.data_root,
+                seed=args.seed,
             )
         )
 

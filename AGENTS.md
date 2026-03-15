@@ -17,6 +17,10 @@ ruff format --check leenef/ tests/ benchmarks/  # format check
 
 # Install after changing pyproject.toml
 pip install -e '.[dev]'
+
+# Benchmarks (use --seed 0 so reruns stay comparable)
+python benchmarks/run.py --multi --seed 0
+python benchmarks/run_recurrent.py --seed 0
 ```
 
 ## Architecture
