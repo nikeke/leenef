@@ -33,16 +33,28 @@ BIAS_EFFECT = {
 }
 
 # Multi-layer: strategy comparison
-STRATEGIES = ["Linear", "NEFLayer", "Greedy", "Hybrid", "Hybrid→E2E", "E2E", "MLP"]
+# Target Prop / TP→E2E values come from the fresh post-audit reruns; the other
+# rows remain from the checked-in benchmark table.
+STRATEGIES = [
+    "Linear",
+    "NEFLayer",
+    "Greedy",
+    "Hybrid",
+    "Target Prop",
+    "TP→E2E",
+    "Hybrid→E2E",
+    "E2E",
+    "MLP",
+]
 MULTI = {
-    "MNIST": [85.3, 95.6, 95.1, 98.5, 98.6, 98.4, 98.1],
-    "Fashion-MNIST": [81.0, 85.5, 85.5, 90.0, 91.0, 90.3, 90.2],
-    "CIFAR-10": [39.6, 47.8, 45.8, 51.7, 58.1, 57.8, 54.6],
+    "MNIST": [85.3, 95.6, 95.1, 98.5, 97.3, 98.7, 98.6, 98.4, 98.1],
+    "Fashion-MNIST": [81.0, 85.5, 85.5, 90.0, 86.8, 90.5, 91.0, 90.3, 90.2],
+    "CIFAR-10": [39.6, 47.8, 45.8, 51.7, 41.2, 57.2, 58.1, 57.8, 54.6],
 }
 MULTI_TIME = {
-    "MNIST": [2, 2, 3, 315, 412, 240, 84],
-    "Fashion-MNIST": [2, 2, 3, 316, 410, 239, 82],
-    "CIFAR-10": [14, 3, 3, 343, 475, 319, 142],
+    "MNIST": [2, 2, 3, 315, 412, 466, 412, 240, 84],
+    "Fashion-MNIST": [2, 2, 3, 316, 375, 474, 410, 239, 82],
+    "CIFAR-10": [14, 3, 3, 343, 367, 500, 475, 319, 142],
 }
 
 # Multi-layer: activation effect (hybrid, hypersphere + data biases)
@@ -115,11 +127,18 @@ def plot_strategy_comparison():
 
     ax = axes[1]
     for ds in ["MNIST", "Fashion-MNIST"]:
-        ax.scatter(MULTI_TIME[ds], MULTI[ds], s=80, zorder=3)
-        for j, strat in enumerate(STRATEGIES):
+        points = [
+            (fit_time, acc, strat)
+            for fit_time, acc, strat in zip(MULTI_TIME[ds], MULTI[ds], STRATEGIES, strict=True)
+            if fit_time is not None
+        ]
+        ax.scatter(
+            [fit_time for fit_time, _, _ in points], [acc for _, acc, _ in points], s=80, zorder=3
+        )
+        for fit_time, acc, strat in points:
             ax.annotate(
                 strat,
-                (MULTI_TIME[ds][j], MULTI[ds][j]),
+                (fit_time, acc),
                 textcoords="offset points",
                 xytext=(5, 5),
                 fontsize=8,

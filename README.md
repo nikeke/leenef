@@ -41,17 +41,20 @@ layer = NEFLayer(d_in=784, n_neurons=2000, d_out=10, centers=x_train)
 layer.fit(x_train, y_train)
 predictions = layer(x_test)
 
-# Multi-layer — three training strategies
+# Multi-layer — six training strategies
 net = NEFNetwork(d_in=784, d_out=10, hidden_neurons=[1000],
                  output_neurons=2000, centers=x_train)
 net.fit_greedy(x, targets)
 net.fit_hybrid(x, targets)
+net.fit_target_prop(x, targets)
+net.fit_target_prop_e2e(x, targets)
+net.fit_hybrid_e2e(x, targets)
 net.fit_end_to_end(x, targets)
 ```
 
 In a multi-layer `NEFNetwork`, hidden layers encode only (their neuron
 activities become the next layer's input) and only the output layer decodes.
-Five training strategies are available.  **Greedy** solves each layer
+Six training strategies are available.  **Greedy** solves each layer
 independently with random encoders and analytic decoders — no gradient
 computation at all.  **Hybrid** alternates analytic decoder solves with
 gradient updates to encoder weights, learning useful encoder orientations
@@ -60,11 +63,13 @@ backpropagation with layer-local targets: at each iteration it solves
 representational decoders (the NEF inverse model) analytically at every
 layer, then propagates targets backward via difference target propagation
 and updates encoders with single-layer gradients only — no gradient flows
-between layers.  **End-to-end** runs standard SGD on all parameters,
-initialised from a greedy NEF solve, using NEF as an initialisation
-strategy rather than a training method.  **Hybrid→E2E** (`fit_hybrid_e2e`)
-combines the two: hybrid first learns good encoder orientations, then E2E
-refines all parameters including decoders — the best overall strategy.
+between layers.  **TP→E2E** (`fit_target_prop_e2e`) uses that local TP phase
+as the warm start before a short global refinement pass.  **End-to-end** runs
+standard SGD on all parameters, initialised from a greedy NEF solve, using NEF
+as an initialisation strategy rather than a training method.
+**Hybrid→E2E** (`fit_hybrid_e2e`) combines the two: hybrid first learns good
+encoder orientations, then E2E refines all parameters including decoders — the
+best overall strategy in the benchmark table below.
 
 ## Setup
 
@@ -94,10 +99,19 @@ abs has gradient ±1 everywhere, causing gradient explosion through BPTT.
 
 ```bash
 python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
-       --neurons 500 1000 2000 5000 --regression
+       --neurons 500 1000 2000 5000 --regression \
+       --save-json results/feedforward.json
 python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
-       --neurons 2000 --multi --mlp
+       --neurons 2000 --multi --mlp \
+       --save-csv results/feedforward-multi.csv
+python benchmarks/run_recurrent.py --mode row \
+       --strategies greedy hybrid hybrid_e2e target_prop e2e \
+       --save-json results/recurrent-row.json
 ```
+
+Both benchmark harnesses can persist structured JSON / CSV results, which makes
+later plotting and README table refreshes reproducible instead of purely
+manual.
 
 ### Single-layer results
 
@@ -179,8 +193,9 @@ the model generalises well, with test MSE within 1% of training MSE.
 | NEFLayer          | 95.6%    | 85.5%    | 47.8%    |     2s       |
 | NEFNet-greedy     | 95.1%    | 85.5%    | 45.8%    |     3s       |
 | NEFNet-hybrid     | 98.5%    | 90.0%    | 51.7%    |   315s       |
-| NEFNet-target-prop| 98.6%    | 90.0%    | 53.9%    |   351s       |
-| NEFNet-hybrid→E2E |**98.6%** |**91.0%** |**58.1%** |   412s       |
+| NEFNet-target-prop| 97.3%    | 86.8%    | 41.2%    |   412s       |
+| NEFNet-TP→E2E     |**98.7%** | 90.5%    | 57.2%    |   466s       |
+| NEFNet-hybrid→E2E | 98.6%    |**91.0%** |**58.1%** |   412s       |
 | NEFNet-e2e        | 98.4%    | 90.3%    | 57.8%    |   240s       |
 | MLP (2×1000)      | 98.1%    | 90.2%    | 54.6%    |    84s       |
 
@@ -189,6 +204,11 @@ forwarded through each layer, and the resulting activations are used as
 centers for the next layer's bias computation.  This is especially important
 for greedy, which has no gradient learning — propagated centers lifted
 greedy from 94.0% → 95.1% on MNIST and 84.0% → 85.5% on Fashion-MNIST.
+
+The `NEFNet-target-prop` and `NEFNet-TP→E2E` rows above were rerun on the
+current post-audit code.  The remaining rows are retained from the earlier
+benchmark sweep, so this table should be read as a targeted refresh of the
+affected strategies rather than a full benchmark rerun of every model.
 
 The default hybrid configuration uses 50 iterations with α = 10⁻³ for the
 decoder solver.  These were found via a systematic sweep over iterations
@@ -207,27 +227,23 @@ diminish past 50 iterations (75 and 100 barely improve).
 encoder state, producing noisy gradients that destabilise encoder learning.
 At α = 10⁻⁵ results collapse entirely (96.4% MNIST, 32.7% CIFAR-10).
 
-**Hybrid→E2E is the best overall strategy.**  Running 50 hybrid iterations
-then 20 E2E epochs (`fit_hybrid_e2e`) reaches 98.6% / 91.0% / 58.1% —
-the highest accuracy on all three datasets.  The hybrid phase learns
-good encoder orientations with analytic decoders; the E2E phase then
-unlocks decoder learning to squeeze out the last gains.
+**Warm-started E2E remains the most reliable path.**  In the refreshed
+affected-strategy rows, `fit_target_prop_e2e` reaches 98.7% / 90.5% / 57.2%,
+which is the best MNIST result in the table and competitive with the existing
+`fit_hybrid_e2e` numbers.  The earlier `fit_hybrid_e2e` sweep still leads on
+Fashion-MNIST and CIFAR-10 (91.0% / 58.1%), so hybrid→E2E remains the safest
+general-purpose choice until all rows are rerun under the same current code.
 
-**Target propagation avoids backprop entirely.**  `fit_target_prop` replaces
-cross-layer gradient flow with analytical inverse models: each iteration
-solves representational decoders (mapping activities back to inputs), then
-uses difference target propagation (DTP) to compute local targets.  Encoder
-updates use single-layer gradients only — no gradient ever flows between
-layers.  A normalised gradient step ensures *eta* directly controls what
-fraction of activity norm the targets deviate by, making the hyperparameter
-scale-independent.  With the default eta=0.1, **TP matches or exceeds hybrid
-on all three datasets** (98.6% / 90.0% / 53.9% vs 98.5% / 90.0% / 51.7%).
-Per-dataset eta tuning can squeeze more from CIFAR-10 (see sweep below).
-Key speed optimisations: skipping the
-unused first-layer representational decoder, reusing the forward-pass
-computation graph for local gradient steps, and caching the output-layer
-Cholesky factorisation to solve both task and representational decoders
-from one A^T A decomposition.
+**Plain target propagation is now clearly weaker than its warm-started form.**
+`fit_target_prop` still avoids cross-layer backprop entirely: it solves
+representational decoders analytically, propagates DTP targets backward, and
+updates each layer with only single-layer gradients.  But the fresh rerun on
+current code reached 97.3% / 86.8% / 41.2%, well below the earlier hybrid row.
+The new target-feasibility and robust-inverse changes made TP easier to
+inspect and warm-start from, but they did not preserve the old headline claim
+that plain TP matches hybrid everywhere.  In practice, `fit_target_prop_e2e`
+is the more compelling path today: TP shapes the encoder geometry locally,
+then a short E2E phase repairs the remaining global mismatch.
 
 **Target propagation eta sweep** (50 iterations, lr=10⁻³, normalised step):
 
@@ -309,7 +325,10 @@ multiple encode–decode cycles benefits from ReLU's sparsity.
 
 ## Visualisations
 
-Generate plots with `python benchmarks/plot.py` (requires matplotlib).
+Generate plots with `python benchmarks/plot.py` (requires the `bench` extras:
+`matplotlib` and `numpy`).  The checked-in plots are still summary views built
+from the repo's tracked benchmark tables, but the benchmark harnesses can now
+also save JSON / CSV outputs for reproducible reruns and future plot refreshes.
 
 ![Neuron scaling](docs/neuron_scaling.png)
 ![Data-driven bias effect](docs/bias_effect.png)
@@ -423,21 +442,29 @@ from leenef.recurrent import RecurrentNEFLayer
 layer = RecurrentNEFLayer(d_in=28, n_neurons=2000, d_out=10,
                           d_state=28, centers=x_train_seq)
 
-# Training strategies (same four as feedforward, plus greedy)
+# Training strategies
 layer.fit_greedy(seq, targets, n_iters=5)
 layer.fit_hybrid(seq, targets, n_iters=10, lr=1e-3)
+layer.fit_hybrid_e2e(seq, targets, n_iters=10, n_epochs=20, e2e_lr=1e-3)
 layer.fit_target_prop(seq, targets, n_iters=50, lr=1e-3, eta=0.1)
-layer.fit_end_to_end(seq, targets, n_epochs=50, lr=1e-3)
+layer.fit_end_to_end(seq, targets, n_epochs=50, lr=1e-3, grad_clip=1.0)
 
 # Inference: (B, T, d_in) → (B, d_out)
 predictions = layer(x_test_seq)
 ```
+
+Recurrent hybrid and E2E-style training support gradient clipping via
+`grad_clip` (default `1.0`) because long unrolled sequences are otherwise more
+prone to gradient explosion than the feed-forward models.
 
 ### Recurrent results — Sequential MNIST
 
 Row-by-row sMNIST: each image is a sequence of 28 rows (T=28, d=28),
 classified at the final timestep.  All NEF models use 2000 neurons,
 relu activation, gain U(0.5, 2.0), and data-driven biases.
+
+Historical full-dataset baseline (kept for context from the earlier benchmark
+pass):
 
 | Model                           | Test accuracy | Time    |
 |---------------------------------|---------------|---------|
@@ -447,20 +474,36 @@ relu activation, gain U(0.5, 2.0), and data-driven biases.
 | RecNEF-E2E (50 epochs)          | **98.5%**     |   802s  |
 | LSTM-128 (20 epochs)            | **98.3%**     |    98s  |
 
-**The feedforward NEF advantage does not transfer to recurrence.**  In
-feedforward, random encoders work because each input is encoded
-independently.  In the recurrent case, the state decoder feeds noisy
-state estimates back into the encoders, compounding errors across
-timesteps.  Greedy, hybrid, and target propagation all fail to learn
-useful temporal dynamics — their per-iteration encoder updates cannot
-overcome the cascading noise in the 28-step feedback loop.
+Post-audit spot-check rerun of the affected recurrent strategies on a smaller
+row-wise sMNIST slice (`5k` train / `1k` test, chosen to keep recurrent TP
+practical in-session):
 
-**End-to-end BPTT is the only competitive strategy** (98.5%), matching
-LSTM (98.3%).  Full gradient flow through all timesteps allows SGD to
-jointly optimise encoders, biases, and both decoders, learning state
-representations that remain coherent across the feedback loop.  The
-greedy initialisation provides a starting point, but essentially all
-learning happens during SGD.
+| Model                                  | Test accuracy | Time    |
+|----------------------------------------|---------------|---------|
+| RecNEF-hybrid (10 iter)                |  37.3%        |    28s  |
+| RecNEF-hybrid→E2E (10 iter + 20 epochs)| **76.0%**     |    47s  |
+| RecNEF-target-prop (50 iter)           |  22.4%        |   499s  |
+| RecNEF-E2E (50 epochs)                 |  68.2%        |    66s  |
+
+These spot-check numbers are **not directly comparable** to the historical
+full-dataset table above; they are a smaller rerun used to assess the new
+recurrent code paths without paying the full cost of another 60k/10k TP run.
+
+**The recurrent story is better than before, but still mixed.**  On the 5k/1k
+spot-check, `fit_hybrid_e2e` is the clearest beneficiary of the recurrent
+changes, beating plain hybrid by nearly 39 points and even topping pure E2E on
+that smaller slice.  That makes the new warm-start path worth a full rerun.
+
+**Plain recurrent TP is still weak and very expensive.**  Even after repairing
+the temporal inverse to use the state-feedback channels, recurrent TP reached
+only 22.4% on the spot-check while remaining by far the slowest strategy.
+That keeps it in the "interesting research path" bucket rather than the
+"reliable training rule" bucket.
+
+**Pure E2E is still the only full-scale proven winner.**  The historical
+60k/10k row-wise benchmark still has recurrent E2E at 98.5%, matching LSTM.
+The new clipped recurrent warm starts look promising on the smaller rerun, but
+they have not yet replaced that full-dataset claim.
 
 **Why abs fails for recurrence:**  In feedforward, abs doubles
 representational capacity by responding to both directions.  In recurrent
