@@ -71,6 +71,9 @@ class TestBenchmarkCliParsers:
         assert args.tp_e2e_eta == 0.01
         assert not args.tp_project_targets
         assert args.tp_max_infeasible_fraction is None
+        assert args.tp_hidden_max_infeasible_fraction is None
+        assert args.tp_eta_schedule == "constant"
+        assert args.tp_eta_final_fraction == 1.0
 
     def test_recurrent_parser_accepts_save_flags(self, tmp_path):
         parser = build_recurrent_benchmark_parser()

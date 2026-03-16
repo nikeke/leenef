@@ -9,6 +9,7 @@ from leenef.networks import (
     _ce_targets,
     _difference_target,
     _project_activity_target,
+    _scheduled_step_scale,
 )
 
 
@@ -437,6 +438,17 @@ class TestTargetPropHelpers:
         assert post_fraction == 0.0
         assert torch.allclose(target, activity + 0.5 * update)
 
+    def test_scheduled_step_scale_constant_keeps_eta(self):
+        assert _scheduled_step_scale(0.03, 2, 5, schedule="constant", final_fraction=0.25) == 0.03
+
+    def test_scheduled_step_scale_cosine_decay_hits_final_fraction(self):
+        assert _scheduled_step_scale(
+            0.04, 0, 5, schedule="cosine_decay", final_fraction=0.25
+        ) == pytest.approx(0.04)
+        assert _scheduled_step_scale(
+            0.04, 4, 5, schedule="cosine_decay", final_fraction=0.25
+        ) == pytest.approx(0.01)
+
 
 class TestTargetProp:
     def test_forward_shape_after_tp(self):
@@ -485,6 +497,26 @@ class TestTargetProp:
         net = _make_net(d_in=4, d_out=2, hidden=[50], output_n=100)
         net.fit_target_prop(x, targets, n_iters=5, lr=1e-3, eta=0.1, schedule=True)
         assert torch.isfinite(net(x)).all()
+
+    def test_tp_with_eta_decay_schedule(self):
+        g = torch.Generator().manual_seed(6)
+        x = torch.randn(64, 4, generator=g)
+        targets = torch.randn(64, 2, generator=g)
+        net = _make_net(d_in=4, d_out=2, hidden=[50], output_n=100)
+        net.fit_target_prop(
+            x,
+            targets,
+            n_iters=4,
+            lr=1e-3,
+            eta=0.1,
+            eta_schedule="cosine_decay",
+            eta_final_fraction=0.25,
+            collect_diagnostics=True,
+        )
+        diag = net.last_target_prop_diagnostics
+        assert diag is not None
+        assert diag[0]["requested_output_step_scale"] == pytest.approx(0.1)
+        assert diag[-1]["requested_output_step_scale"] == pytest.approx(0.025)
 
     def test_tp_multi_hidden(self):
         """TP works with multiple hidden layers."""
@@ -574,6 +606,28 @@ class TestTargetProp:
             assert layer["repr_mse"] is not None
             assert layer["repr_perturbed_mse"] is not None
             assert torch.isfinite(torch.tensor(layer["repr_perturbed_mse"]))
+
+    def test_tp_hidden_feasibility_backoff_rescales_hidden_targets(self):
+        g = torch.Generator().manual_seed(24)
+        x = torch.randn(64, 4, generator=g)
+        targets = torch.randn(64, 2, generator=g) * 10
+        net = _make_net(d_in=4, d_out=2, hidden=[8], output_n=10, activation="relu")
+        net.fit_target_prop(
+            x,
+            targets,
+            n_iters=1,
+            lr=1e-3,
+            eta=1.0,
+            normalize_step=False,
+            hidden_max_infeasible_fraction=0.0,
+            collect_diagnostics=True,
+        )
+        diag = net.last_target_prop_diagnostics
+        assert diag is not None
+        assert any(
+            layer["applied_step_scale"] < layer["requested_step_scale"]
+            for layer in diag[0]["layers"][:-1]
+        )
 
     def test_repr_decoder_quality(self):
         """Representational decoders should reconstruct inputs reasonably."""

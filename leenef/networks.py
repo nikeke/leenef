@@ -1,5 +1,7 @@
 """NEFNetwork — multi-layer NEF networks with multiple training strategies."""
 
+import math
+
 import torch
 import torch.nn as nn
 from torch import Tensor
@@ -16,6 +18,7 @@ def _ce_targets(targets: Tensor) -> Tensor:
 
 
 _NONNEGATIVE_TARGET_ACTIVATIONS = {"abs", "relu"}
+_TP_ETA_SCHEDULES = {"constant", "linear_decay", "cosine_decay"}
 
 
 def _project_activity_target(target: Tensor, activation: str) -> Tensor:
@@ -159,6 +162,33 @@ def _bounded_target_update(
     target = _project_activity_target(raw_target, activation) if project else raw_target
     post_fraction = _infeasible_fraction(target, activation)
     return target, effective_scale, pre_fraction, post_fraction
+
+
+def _scheduled_step_scale(
+    base_scale: float,
+    iteration: int,
+    n_iters: int,
+    *,
+    schedule: str,
+    final_fraction: float,
+) -> float:
+    """Schedule a TP step scale over iterations."""
+    if schedule not in _TP_ETA_SCHEDULES:
+        raise ValueError(
+            f"Unknown eta_schedule {schedule!r}. Available: {sorted(_TP_ETA_SCHEDULES)}"
+        )
+    if not 0 <= final_fraction <= 1:
+        raise ValueError(f"eta_final_fraction must be in [0, 1], got {final_fraction}")
+    if schedule == "constant" or n_iters <= 1:
+        return base_scale
+
+    progress = iteration / max(n_iters - 1, 1)
+    if schedule == "linear_decay":
+        multiplier = (1 - progress) + progress * final_fraction
+    else:
+        cosine = 0.5 * (1 + math.cos(math.pi * progress))
+        multiplier = final_fraction + (1 - final_fraction) * cosine
+    return base_scale * multiplier
 
 
 class NEFNetwork(nn.Module):
@@ -518,6 +548,9 @@ class NEFNetwork(nn.Module):
         collect_diagnostics: bool = False,
         diagnostic_noise_std: float = 0.1,
         max_infeasible_fraction: float | None = None,
+        hidden_max_infeasible_fraction: float | None = None,
+        eta_schedule: str = "constant",
+        eta_final_fraction: float = 1.0,
         **solver_kw,
     ) -> None:
         """Analytical target propagation using NEF representational decoders.
@@ -575,6 +608,18 @@ class NEFNetwork(nn.Module):
                             region.  Works with or without ``project_targets``.
                             ``None`` (default) disables backoff and uses the
                             requested step size directly.
+            hidden_max_infeasible_fraction:
+                            optional feasibility budget for hidden-layer DTP
+                            targets.  When set, each hidden correction is
+                            adaptively rescaled so the requested budget is met
+                            before optional projection.
+            eta_schedule:
+                            schedule for the TP output step across iterations:
+                            ``"constant"`` (default), ``"linear_decay"``, or
+                            ``"cosine_decay"``.
+            eta_final_fraction:
+                            final TP eta as a fraction of the initial ``eta``
+                            when ``eta_schedule`` is not ``"constant"``.
         """
         if repr_noise_std < 0:
             raise ValueError(f"repr_noise_std must be >= 0, got {repr_noise_std}")
@@ -586,6 +631,20 @@ class NEFNetwork(nn.Module):
             raise ValueError(
                 f"max_infeasible_fraction must be in [0, 1), got {max_infeasible_fraction}"
             )
+        if (
+            hidden_max_infeasible_fraction is not None
+            and not 0 <= hidden_max_infeasible_fraction < 1
+        ):
+            raise ValueError(
+                "hidden_max_infeasible_fraction must be in [0, 1), got "
+                f"{hidden_max_infeasible_fraction}"
+            )
+        if eta_schedule not in _TP_ETA_SCHEDULES:
+            raise ValueError(
+                f"Unknown eta_schedule {eta_schedule!r}. Available: {sorted(_TP_ETA_SCHEDULES)}"
+            )
+        if not 0 <= eta_final_fraction <= 1:
+            raise ValueError(f"eta_final_fraction must be in [0, 1], got {eta_final_fraction}")
 
         all_layers = list(self.hidden) + [self.output]
         n_layers = len(all_layers)
@@ -604,7 +663,7 @@ class NEFNetwork(nn.Module):
                 for opt in optimizers
             ]
 
-        for _ in range(n_iters):
+        for iteration in range(n_iters):
             # ── Forward pass WITH grad, detach at layer boundaries ─
             # Each layer's activities are connected to its own encoder
             # params only, so we can reuse them for the local loss
@@ -673,10 +732,17 @@ class NEFNetwork(nn.Module):
                 grad_norm = grad.norm()
                 if grad_norm > 0:
                     grad = grad / grad_norm * a_out.norm()
+            iteration_eta = _scheduled_step_scale(
+                eta,
+                iteration,
+                n_iters,
+                schedule=eta_schedule,
+                final_fraction=eta_final_fraction,
+            )
             target_out, output_scale, pre_out_frac, post_out_frac = _bounded_target_update(
                 a_out,
                 -grad,
-                step_scale=eta,
+                step_scale=iteration_eta,
                 activation=self._activation,
                 max_infeasible_fraction=max_infeasible_fraction,
                 project=project_targets,
@@ -687,7 +753,7 @@ class NEFNetwork(nn.Module):
             post_projection_fractions = [0.0] * n_layers
             applied_scales = [1.0] * n_layers
             requested_scales = [1.0] * n_layers
-            requested_scales[-1] = eta
+            requested_scales[-1] = iteration_eta
             applied_scales[-1] = output_scale
             pre_projection_fractions[-1] = pre_out_frac
             post_projection_fractions[-1] = post_out_frac
@@ -696,15 +762,18 @@ class NEFNetwork(nn.Module):
             for idx in range(n_layers - 2, -1, -1):
                 a_det = activities[idx + 1].detach()
                 delta = layer_targets[idx + 1] - a_det
-                raw_target = activities[idx].detach() + delta @ repr_decoders[idx + 1]
-                pre_projection_fractions[idx] = _infeasible_fraction(raw_target, self._activation)
-                layer_targets[idx] = (
-                    _project_activity_target(raw_target, self._activation)
-                    if project_targets
-                    else raw_target
-                )
-                post_projection_fractions[idx] = _infeasible_fraction(
-                    layer_targets[idx], self._activation
+                (
+                    layer_targets[idx],
+                    applied_scales[idx],
+                    pre_projection_fractions[idx],
+                    post_projection_fractions[idx],
+                ) = _bounded_target_update(
+                    activities[idx].detach(),
+                    delta @ repr_decoders[idx + 1],
+                    step_scale=1.0,
+                    activation=self._activation,
+                    max_infeasible_fraction=hidden_max_infeasible_fraction,
+                    project=project_targets,
                 )
 
             if collect_diagnostics:
@@ -746,7 +815,7 @@ class NEFNetwork(nn.Module):
                     {
                         "raw_grad_norm": raw_grad_norm,
                         "applied_grad_norm": grad.norm().item(),
-                        "requested_output_step_scale": eta,
+                        "requested_output_step_scale": iteration_eta,
                         "applied_output_step_scale": output_scale,
                         "output_activity_norm": a_out.norm().item(),
                         "layers": iteration_layers,

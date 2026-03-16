@@ -305,6 +305,9 @@ def run_nef_multi(
     tp_normalize: bool = True,
     tp_project_targets: bool = False,
     tp_max_infeasible_fraction: float | None = None,
+    tp_hidden_max_infeasible_fraction: float | None = None,
+    tp_eta_schedule: str = "constant",
+    tp_eta_final_fraction: float = 1.0,
     tp_schedule: bool = False,
     tp_e2e_epochs: int = 20,
     tp_e2e_lr: float = 1e-3,
@@ -385,6 +388,9 @@ def run_nef_multi(
             normalize_step=tp_normalize,
             project_targets=tp_project_targets,
             max_infeasible_fraction=tp_max_infeasible_fraction,
+            hidden_max_infeasible_fraction=tp_hidden_max_infeasible_fraction,
+            eta_schedule=tp_eta_schedule,
+            eta_final_fraction=tp_eta_final_fraction,
             schedule=tp_schedule,
             **solver_kwargs,
         )
@@ -403,6 +409,9 @@ def run_nef_multi(
             normalize_step=tp_normalize,
             project_targets=tp_project_targets,
             max_infeasible_fraction=tp_max_infeasible_fraction,
+            hidden_max_infeasible_fraction=tp_hidden_max_infeasible_fraction,
+            eta_schedule=tp_eta_schedule,
+            eta_final_fraction=tp_eta_final_fraction,
             schedule=tp_schedule,
             **solver_kwargs,
         )
@@ -579,6 +588,24 @@ def build_benchmark_parser() -> argparse.ArgumentParser:
         help="Optional adaptive-eta budget on the fraction of infeasible output targets",
     )
     parser.add_argument(
+        "--tp-hidden-max-infeasible-fraction",
+        type=float,
+        default=None,
+        help="Optional feasibility budget on hidden-layer DTP targets",
+    )
+    parser.add_argument(
+        "--tp-eta-schedule",
+        default="constant",
+        choices=["constant", "linear_decay", "cosine_decay"],
+        help="Schedule for TP eta across TP iterations",
+    )
+    parser.add_argument(
+        "--tp-eta-final-fraction",
+        type=float,
+        default=1.0,
+        help="Final TP eta as a fraction of the initial eta when using a TP eta schedule",
+    )
+    parser.add_argument(
         "--tp-e2e-epochs",
         type=int,
         default=20,
@@ -676,6 +703,9 @@ def main(argv: list[str] | None = None) -> int:
                         tp_normalize=not args.tp_no_normalize,
                         tp_project_targets=args.tp_project_targets,
                         tp_max_infeasible_fraction=args.tp_max_infeasible_fraction,
+                        tp_hidden_max_infeasible_fraction=args.tp_hidden_max_infeasible_fraction,
+                        tp_eta_schedule=args.tp_eta_schedule,
+                        tp_eta_final_fraction=args.tp_eta_final_fraction,
                         tp_e2e_epochs=args.tp_e2e_epochs,
                         tp_e2e_lr=args.tp_e2e_lr,
                         tp_e2e_eta=args.tp_e2e_eta,
