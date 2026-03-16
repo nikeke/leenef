@@ -203,20 +203,20 @@ the model generalises well, with test MSE within 1% of training MSE.
 | Model             | MNIST    | Fashion  | CIFAR-10 | Time (MNIST) |
 |-------------------|----------|----------|----------|--------------|
 | Linear baseline   | 85.3%    | 81.0%    | 39.6%    |     2s       |
-| NEFLayer          | 95.6%    | 85.5%    | 47.8%    |     2s       |
-| NEFNet-greedy     | 95.1%    | 85.5%    | 45.8%    |     3s       |
-| NEFNet-hybrid     | 98.5%    | 90.0%    | 51.7%    |   315s       |
-| NEFNet-target-prop| 98.6%    | 90.1%    | 51.0%    |   371s       |
-| NEFNet-e2e        | 98.4%    | 90.3%    | 57.8%    |   240s       |
-| NEFNet-hybrid→E2E |**98.6%** |**91.0%** | 58.1%    |   412s       |
-| NEFNet-TP→E2E     | 98.6%    | 90.6%    |**58.5%** |   470s       |
-| MLP (2×1000)      | 98.1%    | 90.2%    | 54.6%    |    84s       |
+| NEFLayer          | 95.7%    | 85.9%    | 47.8%    |     2s       |
+| NEFNet-greedy     | 95.0%    | 85.4%    | 45.6%    |     3s       |
+| NEFNet-hybrid     | 98.6%    | 90.2%    | 52.7%    |   318s       |
+| NEFNet-target-prop| 98.6%    | 90.1%    | 51.0%    |   378s       |
+| NEFNet-e2e        | 98.5%    | 90.3%    | 58.5%    |   241s       |
+| NEFNet-hybrid→E2E |**98.6%** |**90.6%** | 58.4%    |   402s       |
+| NEFNet-TP→E2E     | 98.5%    | 90.6%    |**58.5%** |   464s       |
+| MLP (2×1000)      | 98.5%    | 89.7%    | 52.7%    |    83s       |
 
 All multi-layer models use propagated data-driven biases: training data is
 forwarded through each layer, and the resulting activations are used as
 centers for the next layer's bias computation.  This is especially important
 for greedy, which has no gradient learning — propagated centers lifted
-greedy from 94.0% → 95.1% on MNIST and 84.0% → 85.5% on Fashion-MNIST.
+greedy from 94.0% → 95.0% on MNIST and 84.0% → 85.4% on Fashion-MNIST.
 
 The default hybrid configuration uses 50 iterations with α = 10⁻³ for the
 decoder solver.  These were found via a systematic sweep over iterations
@@ -236,10 +236,10 @@ encoder state, producing noisy gradients that destabilise encoder learning.
 At α = 10⁻⁵ results collapse entirely (96.4% MNIST, 32.7% CIFAR-10).
 
 **Warm-started E2E remains a strong option.**  `fit_target_prop_e2e`
-reaches 98.6% / 90.6% / 58.5% with a gentler `eta=0.01` TP warm start,
-keeping it competitive with `fit_hybrid_e2e` while still edging ahead on
-CIFAR-10.  The hybrid→E2E warm start keeps the best Fashion-MNIST number and
-a slight MNIST edge, so it remains the safest general-purpose choice overall.
+reaches 98.5% / 90.6% / 58.5% with a gentler `eta=0.01` TP warm start,
+keeping it competitive with `fit_hybrid_e2e`, which lands at
+98.6% / 90.6% / 58.4%.  The hybrid→E2E warm start keeps the slight
+MNIST/Fashion edge, while TP→E2E still edges ahead on CIFAR-10.
 
 **Plain target propagation benefits from a moderate fixed step.**
 `fit_target_prop` still avoids cross-layer backprop entirely: it solves
@@ -251,8 +251,12 @@ Strict target projection (`project_targets=True`) is still available for
 experiments, but a later seeded full plain-TP rerun with projection fell to
 98.3% / 88.4% / 48.9%, so projection remains opt-in.  Adaptive
 infeasible-target backoff (`max_infeasible_fraction=...`) also remains
-available for experiments, but the fixed defaults were more reliable on the
-current benchmark configuration.
+available for experiments, and the new `eta_schedule` /
+`hidden_max_infeasible_fraction` controls widen that experimental surface.
+However, representative `3k` / `1k` seeded slice searches still did not produce
+a clean across-seed replacement for the fixed plain-TP default: the best hidden
+feasibility budget (`0.01`) was essentially tied with the baseline on average,
+so the fixed defaults remain the published path.
 
 **Target propagation eta sweep** (historical broad sweep; 50 iterations,
 lr=10⁻³, normalised step):
@@ -449,7 +453,9 @@ slightly from 32.8% to 33.3%.  That makes predictive state targets the main
 recurrent TP gain, projected targets a smaller follow-on improvement, and
 auxiliary timestep labels an experiment worth keeping opt-in only.
 
-**Why abs fails for recurrence:**  In feedforward, abs doubles
+### Why abs fails for recurrence
+
+In feedforward, abs doubles
 representational capacity by responding to both directions.  In recurrent
 BPTT, abs has gradient sign(x) ∈ {−1, +1} at every neuron, meaning the
 recurrent Jacobian has no sparsity to damp gradient magnitudes.  Over 28
@@ -480,8 +486,8 @@ also save JSON / CSV outputs for reproducible reruns and future plot refreshes.
    random directions matters.
 
 2. **Single-layer NEF is remarkably effective but hits a ceiling.**  With
-   2000 neurons and a 2-second analytic solve, it reaches 95.6% on MNIST
-   and 85.5% on Fashion-MNIST — within 3% of a fully-trained MLP on
+   2000 neurons and a 2-second analytic solve, it reaches 95.7% on MNIST
+   and 85.9% on Fashion-MNIST — within 3% of a fully-trained MLP on
    MNIST.  Even
    with 30000 neurons and 394 seconds of compute (comparable to hybrid),
    single-layer tops out at 98.3% / 89.8% / 51.8% — learned features in
@@ -502,14 +508,14 @@ also save JSON / CSV outputs for reproducible reruns and future plot refreshes.
    MNIST).
 
 5. **Hybrid→E2E remains the best balanced feed-forward strategy.**  Running
-   hybrid then E2E reaches 98.6% / 91.0% / 58.1% — best on Fashion-MNIST,
-   tied for best on MNIST, and only 0.4 points behind TP→E2E on CIFAR-10.
-   The hybrid phase learns encoder orientations with analytic decoders; the
-   E2E phase unlocks full gradient training without giving back the strong
-   Fashion result.
+   hybrid then E2E reaches 98.6% / 90.6% / 58.4% — best on Fashion-MNIST,
+   tied for best on MNIST within rounding, and only 0.1 points behind
+   TP→E2E on CIFAR-10.  The hybrid phase learns encoder orientations with
+   analytic decoders; the E2E phase unlocks full gradient training without
+   giving back the strong Fashion result.
 
 6. **Hybrid alone remains a strong analytic-gradient compromise.**  With 50
-   iterations and α = 10⁻³, pure hybrid reaches 98.5% / 90.0% / 51.7%
+   iterations and α = 10⁻³, pure hybrid reaches 98.6% / 90.2% / 52.7%
    while preserving analytic decoders.  Iteration count dominates the
    other hybrid hyperparameters.
 
@@ -527,7 +533,8 @@ also save JSON / CSV outputs for reproducible reruns and future plot refreshes.
 9. **Propagated data-driven biases rescue greedy.**  Without them, greedy
    multi-layer was worse than single-layer (94.0% vs 95.5% MNIST).
    Forwarding training data through each layer and using activations as
-   centers for the next layer's biases narrows the gap to 0.5%, though
+   centers for the next layer's biases narrows the current seeded gap to
+   0.7%, though
    greedy still cannot match gradient-trained strategies.
 
 10. **Per-neuron gain U(0.5, 2.0) is the default.**  In canonical NEF,
@@ -540,14 +547,14 @@ also save JSON / CSV outputs for reproducible reruns and future plot refreshes.
     giving the population a richer representation from the start.
 
 11. **Target propagation stays competitive without cross-layer backprop.**
-    Using NEF representational decoders as analytical inverse models and a
-    normalised activity-space step, plain TP reaches 98.6% / 90.1% / 51.0%
-    using only single-layer gradients.  A short TP→E2E fine-tune pushes
-    that to 98.6% / 90.6% / 58.5%.  The current seeded defaults now split
-    `eta` by strategy — `0.03` for plain TP, `0.01` for TP→E2E — because a
-    single shared step was not the best trade-off.  Strict target
-    projection remains an opt-in experimental control rather than the
-    default path.
+   Using NEF representational decoders as analytical inverse models and a
+   normalised activity-space step, plain TP reaches 98.6% / 90.1% / 51.0%
+   using only single-layer gradients.  A short TP→E2E fine-tune pushes
+   that to 98.5% / 90.6% / 58.5%.  The current seeded defaults now split
+   `eta` by strategy — `0.03` for plain TP, `0.01` for TP→E2E — because a
+   single shared step was not the best trade-off.  Strict target
+   projection plus the newer eta-schedule / hidden-feasibility controls
+   remain opt-in experimental paths rather than the default one.
 
 12. **Recurrent warm starts are now real full-scale results, not just
     spot-check curiosities.**  On seeded full row-wise sMNIST reruns, recurrent

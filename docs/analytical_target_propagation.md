@@ -138,6 +138,12 @@ Strict activity projection (`project_targets=True`) and adaptive step backoff
 infeasible targets, but the current feed-forward benchmark reruns preferred the
 fixed defaults above.
 
+Feed-forward TP now also exposes experimental `eta_schedule`,
+`eta_final_fraction`, and `hidden_max_infeasible_fraction` controls.  Seeded
+`3k` / `1k` slice searches did not produce a clean across-seed replacement for
+the fixed plain-TP default, though a small hidden-target feasibility budget was
+competitive enough to keep as an opt-in experiment.
+
 Recurrent TP now exposes the same `project_targets` control plus experimental
 `state_target` and `auxiliary_weight` knobs.  On the current row-wise sMNIST
 slices, predictive decoded-state targets were the main win, auxiliary timestep
