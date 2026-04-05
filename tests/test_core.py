@@ -4,7 +4,7 @@ import pytest
 import torch
 
 from leenef.activations import LIFRate, make_activation
-from leenef.encoders import gaussian, make_encoders, sparse, uniform_hypersphere
+from leenef.encoders import gaussian, make_encoders, receptive_field, sparse, uniform_hypersphere
 from leenef.layers import NEFLayer
 from leenef.solvers import lstsq, normal_equations, solve_decoders, tikhonov
 
@@ -37,6 +37,63 @@ class TestEncoders:
         e1 = make_encoders(50, 10, rng=g1)
         e2 = make_encoders(50, 10, rng=g2)
         assert torch.equal(e1, e2)
+
+
+class TestReceptiveFieldEncoders:
+    def test_shape(self):
+        e = receptive_field(100, 784, patch_size=5, image_shape=(28, 28))
+        assert e.shape == (100, 784)
+
+    def test_sparsity_pattern(self):
+        """Each neuron should have exactly patch_size² nonzero entries."""
+        e = receptive_field(200, 784, patch_size=5, image_shape=(28, 28))
+        nnz_per_row = (e != 0).sum(dim=1)
+        assert (nnz_per_row == 25).all()
+
+    def test_unit_norm_within_patch(self):
+        """Nonzero entries of each encoder should have unit norm."""
+        e = receptive_field(200, 784, patch_size=7, image_shape=(28, 28))
+        norms = e.norm(dim=1)
+        assert torch.allclose(norms, torch.ones(200), atol=1e-5)
+
+    def test_locality(self):
+        """Nonzero indices should form a contiguous spatial patch."""
+        e = receptive_field(50, 784, patch_size=5, image_shape=(28, 28))
+        W = 28
+        for i in range(50):
+            nz = e[i].nonzero(as_tuple=True)[0]
+            rows = nz // W
+            cols = nz % W
+            # Should span exactly patch_size rows and patch_size cols
+            assert rows.max() - rows.min() == 4  # patch_size - 1
+            assert cols.max() - cols.min() == 4
+
+    def test_multichannel(self):
+        """CIFAR-10: dim=3072 = 32×32×3, each neuron has patch_size²×3 nonzeros."""
+        e = receptive_field(100, 3072, patch_size=5, image_shape=(32, 32))
+        nnz_per_row = (e != 0).sum(dim=1)
+        assert (nnz_per_row == 75).all()  # 25 * 3 channels
+        norms = e.norm(dim=1)
+        assert torch.allclose(norms, torch.ones(100), atol=1e-5)
+
+    def test_rng_reproducibility(self):
+        g1 = torch.Generator().manual_seed(99)
+        g2 = torch.Generator().manual_seed(99)
+        e1 = receptive_field(50, 784, rng=g1)
+        e2 = receptive_field(50, 784, rng=g2)
+        assert torch.equal(e1, e2)
+
+    def test_bad_dim(self):
+        with pytest.raises(ValueError, match="divisible"):
+            receptive_field(10, 100, image_shape=(28, 28))
+
+    def test_bad_patch_size(self):
+        with pytest.raises(ValueError, match="exceeds"):
+            receptive_field(10, 784, patch_size=30, image_shape=(28, 28))
+
+    def test_make_encoders_dispatch(self):
+        e = make_encoders(50, 784, strategy="receptive_field", image_shape=(28, 28))
+        assert e.shape == (50, 784)
 
 
 # ── Activations ───────────────────────────────────────────────────────
