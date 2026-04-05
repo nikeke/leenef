@@ -12,8 +12,8 @@ pytest tests/test_core.py::TestNEFLayer -q    # single test class
 pytest -k test_fit_identity -q                # single test by name
 
 # Lint
-ruff check leenef/ tests/ benchmarks/        # lint (E/F/W/I rules)
-ruff format --check leenef/ tests/ benchmarks/  # format check
+ruff check src/leenef/ tests/ benchmarks/        # lint (E/F/W/I rules)
+ruff format --check src/leenef/ tests/ benchmarks/  # format check
 
 # Install after changing pyproject.toml
 pip install -e '.[dev]'

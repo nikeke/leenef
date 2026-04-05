@@ -60,6 +60,9 @@ net.fit_hybrid_e2e(x, targets)  # best balanced strategy
 
 Requires Python 3.12+.
 
+The repository uses a standard `src/` layout; the main package lives in
+`src/leenef/`.
+
 ```bash
 python3 -m venv venv
 source venv/bin/activate
@@ -110,13 +113,13 @@ analysis, and competitive context.
 
 | Module | Purpose |
 |--------|---------|
-| `leenef/layers.py` | `NEFLayer` — encode → activate → decode |
-| `leenef/ensemble.py` | `NEFEnsemble` — ensemble of NEFLayers |
-| `leenef/networks.py` | `NEFNetwork` — multi-layer (greedy / hybrid / TP / E2E / hybrid→E2E / TP→E2E) |
-| `leenef/recurrent.py` | `RecurrentNEFLayer` — temporal decode-then-re-encode loop |
-| `leenef/encoders.py` | Encoder strategies (hypersphere, Gaussian, sparse, receptive field) |
-| `leenef/activations.py` | Activations (abs, relu, softplus, lif_rate) |
-| `leenef/solvers.py` | Decoder solvers (Tikhonov, Cholesky, lstsq, normal equations) |
+| `src/leenef/layers.py` | `NEFLayer` — encode → activate → decode |
+| `src/leenef/ensemble.py` | `NEFEnsemble` — ensemble of NEFLayers |
+| `src/leenef/networks.py` | `NEFNetwork` — multi-layer (greedy / hybrid / TP / E2E / hybrid→E2E / TP→E2E) |
+| `src/leenef/recurrent.py` | `RecurrentNEFLayer` — temporal decode-then-re-encode loop |
+| `src/leenef/encoders.py` | Encoder strategies (hypersphere, Gaussian, sparse, receptive field) |
+| `src/leenef/activations.py` | Activations (abs, relu, softplus, lif_rate) |
+| `src/leenef/solvers.py` | Decoder solvers (Tikhonov, Cholesky, lstsq, normal equations) |
 | `benchmarks/` | Benchmark harnesses and plotting |
 | `docs/technical_report.md` | Full technical report |
 

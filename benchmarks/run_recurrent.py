@@ -9,10 +9,11 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 
-# Ensure project root is on path when run as a script
-_root = str(Path(__file__).resolve().parent.parent)
-if _root not in sys.path:
-    sys.path.insert(0, _root)
+# Ensure the checkout root and src layout are importable when run as a script.
+_project_root = Path(__file__).resolve().parent.parent
+for _path in (str(_project_root), str(_project_root / "src")):
+    if _path not in sys.path:
+        sys.path.insert(0, _path)
 
 from benchmarks.run import (  # noqa: E402
     BenchmarkResult,

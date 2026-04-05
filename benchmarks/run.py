@@ -4,6 +4,7 @@ import argparse
 import csv
 import json
 import random
+import sys
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -13,9 +14,14 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 
-from leenef.ensemble import NEFEnsemble
-from leenef.layers import NEFLayer
-from leenef.networks import NEFNetwork
+# Ensure the src layout is importable when run as a script from the checkout.
+_SRC = str(Path(__file__).resolve().parent.parent / "src")
+if _SRC not in sys.path:
+    sys.path.insert(0, _SRC)
+
+from leenef.ensemble import NEFEnsemble  # noqa: E402
+from leenef.layers import NEFLayer  # noqa: E402
+from leenef.networks import NEFNetwork  # noqa: E402
 
 
 @dataclass
