@@ -13,6 +13,7 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 
+from leenef.ensemble import NEFEnsemble
 from leenef.layers import NEFLayer
 from leenef.networks import NEFNetwork
 
@@ -184,6 +185,72 @@ def run_nef_classification(
         name="NEFLayer",
         dataset=dataset_name,
         n_neurons=n_neurons,
+        activation=activation,
+        encoder_strategy=encoder_strategy,
+        solver=solver,
+        solver_kwargs=solver_kwargs,
+        metric_name="accuracy",
+        train_metric=train_acc,
+        test_metric=test_acc,
+        fit_time=fit_time,
+    )
+
+
+def run_nef_ensemble(
+    dataset_name: str,
+    n_neurons: int = 2000,
+    n_members: int = 10,
+    activation: str = "abs",
+    encoder_strategy: str = "hypersphere",
+    encoder_kwargs: dict | None = None,
+    solver: str = "tikhonov",
+    solver_kwargs: dict | None = None,
+    combine: str = "mean",
+    data_root: str = "./data",
+    use_centers: bool = True,
+    gain: float | tuple[float, float] = (0.5, 2.0),
+    seed: int | None = 0,
+) -> BenchmarkResult:
+    """Run an ensemble NEF classification benchmark."""
+    solver_kwargs = solver_kwargs or {"alpha": 1e-2}
+    set_benchmark_seed(seed)
+
+    (x_train, y_train), (x_test, y_test) = load_vision_dataset(dataset_name, root=data_root)
+    n_classes = int(y_train.max().item()) + 1
+    targets = one_hot(y_train, n_classes)
+
+    centers = x_train if use_centers else None
+    base_seed = 0 if seed is None else seed
+    ens = NEFEnsemble(
+        d_in=x_train.shape[1],
+        n_neurons=n_neurons,
+        d_out=n_classes,
+        n_members=n_members,
+        base_seed=base_seed,
+        combine=combine,
+        activation=activation,
+        encoder_strategy=encoder_strategy,
+        encoder_kwargs=encoder_kwargs,
+        gain=gain,
+        centers=centers,
+    )
+
+    t0 = time.perf_counter()
+    ens.fit(x_train, targets, solver=solver, **solver_kwargs)
+    fit_time = time.perf_counter() - t0
+
+    with torch.no_grad():
+        train_acc = classification_accuracy(ens(x_train), y_train)
+        test_acc = classification_accuracy(ens(x_test), y_test)
+
+    name = f"NEFEnsemble-{n_members}"
+    if encoder_strategy != "hypersphere":
+        name += f"-{encoder_strategy}"
+
+    return BenchmarkResult(
+        name=name,
+        dataset=dataset_name,
+        n_neurons=n_neurons * n_members,
         activation=activation,
         encoder_strategy=encoder_strategy,
         solver=solver,
@@ -631,6 +698,18 @@ def build_benchmark_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--multi", action="store_true", help="Run multi-layer benchmarks")
     parser.add_argument("--mlp", action="store_true", help="Run MLP baseline")
+    parser.add_argument("--ensemble", action="store_true", help="Run ensemble benchmarks")
+    parser.add_argument(
+        "--ensemble-members",
+        type=int,
+        default=10,
+        help="Number of ensemble members (default: 10)",
+    )
+    parser.add_argument(
+        "--ensemble-receptive-field",
+        action="store_true",
+        help="Also run ensemble with receptive_field encoders",
+    )
     parser.add_argument(
         "--seed",
         type=int,
@@ -718,6 +797,48 @@ def main(argv: list[str] | None = None) -> int:
         if args.mlp:
             print(f"Running MLP baseline on {ds}...")
             results.append(run_mlp_baseline(ds, data_root=args.data_root, seed=args.seed))
+
+        if args.ensemble:
+            for n in args.neurons:
+                print(f"Running NEFEnsemble ({args.ensemble_members}×{n}) on {ds}...")
+                results.append(
+                    run_nef_ensemble(
+                        ds,
+                        n_neurons=n,
+                        n_members=args.ensemble_members,
+                        activation=args.activation,
+                        encoder_strategy=args.encoder,
+                        solver=args.solver,
+                        solver_kwargs={"alpha": args.alpha},
+                        data_root=args.data_root,
+                        use_centers=use_centers,
+                        seed=args.seed,
+                    )
+                )
+                if args.ensemble_receptive_field:
+                    # Infer image shape from dataset
+                    img_shapes = {
+                        "mnist": (28, 28),
+                        "fashion_mnist": (28, 28),
+                        "cifar10": (32, 32),
+                    }
+                    img_shape = img_shapes.get(ds, (28, 28))
+                    print(f"Running NEFEnsemble-RF ({args.ensemble_members}×{n}) on {ds}...")
+                    results.append(
+                        run_nef_ensemble(
+                            ds,
+                            n_neurons=n,
+                            n_members=args.ensemble_members,
+                            activation=args.activation,
+                            encoder_strategy="receptive_field",
+                            encoder_kwargs={"image_shape": img_shape},
+                            solver=args.solver,
+                            solver_kwargs={"alpha": args.alpha},
+                            data_root=args.data_root,
+                            use_centers=use_centers,
+                            seed=args.seed,
+                        )
+                    )
 
     if args.regression:
         print("Running NEF regression on California Housing...")
