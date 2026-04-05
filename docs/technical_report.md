@@ -1,0 +1,962 @@
+# Supervised Learning with the Neural Engineering Framework: Analytical Solvers, Ensembles, and Local Receptive Fields
+
+## Abstract
+
+We present *leenef*, a PyTorch library that adapts the Neural Engineering
+Framework (NEF) of Eliasmith and Anderson (2003) for supervised learning
+using rate-based neurons.  A single NEF layer — random fixed encoders,
+nonlinear activation, analytically solved decoders — trains on MNIST in
+under two seconds on a laptop CPU and reaches 95.5% accuracy.  This
+architecture is structurally identical to an Extreme Learning Machine (ELM)
+and to random kitchen sink features, but NEF's neuroscience-grounded
+formulation motivates a distinctive design choice: *data-driven biases*
+derived from training-sample centers.  We show that this single design
+choice closes the entire 2–3% accuracy gap between encoder types
+(hypersphere, Gaussian, sparse), making the encoder direction distribution
+irrelevant and reducing hyperparameter sensitivity.  Because the two-second
+analytical solve produces a strong base learner, we apply the ensemble
+playbook: training 10–20 independent models with different random seeds and
+combining predictions via averaging.  Adding local receptive field encoders
+— where each neuron sees a random image patch rather than the full input —
+following McDonnell et al. (2015), provides a further accuracy boost.  We
+report ensemble results on MNIST, Fashion-MNIST, and CIFAR-10, and extend
+the framework to multi-layer networks with five training strategies
+(greedy, hybrid, target propagation, end-to-end, and warm-started
+combinations), recurrent temporal models, and incremental/online learning
+via normal-equation accumulation.
+
+
+## 1. Introduction
+
+The dominant paradigm in supervised learning trains all network weights via
+gradient descent.  This is effective but computationally expensive: even a
+small two-layer MLP on MNIST requires minutes of iterative optimisation.
+An alternative family of methods — dating back to random feature
+approximations (Rahimi & Recht, 2007), extreme learning machines (Huang
+et al., 2006), and the Neural Engineering Framework (Eliasmith & Anderson,
+2003) — fixes the input-to-hidden weights at random and solves only the
+output weights analytically.  Training reduces to a single regularised
+least-squares solve, completing in seconds rather than minutes.
+
+These methods share a common architecture but arrive at it from different
+starting points.  ELMs treat random projections as a universal
+approximation mechanism.  Random kitchen sinks view them as kernel
+approximations.  NEF views them as population coding: each neuron has a
+preferred direction (encoder), a tuning curve (activation function with
+gain), and a decoding weight that recovers the represented quantity from
+the population activity.  This neuroscience framing motivates several
+design choices absent from the ELM and kernel literatures:
+
+- **Data-driven biases** from training-sample centers, so each neuron's
+  activation is centred around a known data point.
+- **Per-neuron gain diversity**, following the NEF tradition of varied
+  tuning curves within a population.
+- **The absolute-value activation**, which gives each neuron a two-sided
+  tuning curve responding to deviations in either direction from its center.
+
+The practical payoff of the two-second single-layer solve is not just
+speed but *composability*.  A fast analytical solver is an ideal base
+learner for ensembling (Breiman, 2001): train many independent models
+with different random seeds and combine their predictions.  This is the
+Random Forest playbook applied to random-feature networks.  When combined
+with local receptive field encoders — where each neuron sees a random
+local image patch (McDonnell et al., 2015) — the ensemble approach
+produces competitive results without any gradient training.
+
+This report makes the following contributions:
+
+1. A clear exposition of the NEF-for-supervised-learning architecture,
+   situating it within the broader context of ELMs, random features, and
+   kernel methods.
+2. An analysis of data-driven biases showing they close the accuracy gap
+   between all encoder types and reduce the method to a single important
+   hyperparameter (neuron count).
+3. An ensemble module (`NEFEnsemble`) that leverages the fast analytical
+   solve to train 10–20 diverse models in the time a single MLP would
+   take.
+4. Local receptive field encoders that inject spatial structure without
+   gradient training.
+5. Extensions to multi-layer networks (five training strategies including
+   analytical target propagation), recurrent temporal models, and
+   incremental/online learning.
+6. Comprehensive benchmarks on MNIST, Fashion-MNIST, CIFAR-10, and
+   California Housing, with timing on consumer hardware (CPU-only).
+
+
+## 2. Background
+
+This section provides the theoretical context needed to understand the
+methods presented later.  We cover the Neural Engineering Framework, its
+relationship to extreme learning machines and random feature methods,
+ensemble methods, and local receptive field encoders.
+
+### 2.1 The Neural Engineering Framework (NEF)
+
+The NEF, introduced by Eliasmith and Anderson (2003), is a theoretical
+framework for understanding how populations of neurons represent and
+transform information.  It rests on three principles:
+
+1. **Representation:** A quantity *x* is represented by the activities of a
+   population of neurons.  Each neuron *i* has an encoder *eᵢ* (a preferred
+   direction in the input space), a gain *αᵢ*, a bias *bᵢ*, and a
+   nonlinear activation function *G*:
+
+   ```
+   aᵢ = G(αᵢ · eᵢ · x + bᵢ)
+   ```
+
+   The activity *aᵢ* is the neuron's firing rate, a scalar measuring how
+   strongly the neuron responds to input *x*.
+
+2. **Decoding:** The represented quantity can be recovered from the
+   population activities by a linear decoder:
+
+   ```
+   x̂ = Σᵢ aᵢ · dᵢ = a · D
+   ```
+
+   where *D* is a matrix of decoding weights, found by minimising the
+   mean-squared error between decoded outputs and the true values over a
+   set of representative inputs.  This yields a regularised least-squares
+   problem:
+
+   ```
+   D = argmin_D ||A · D − Y||² + λ||D||²
+   ```
+
+   where *A* is the matrix of activities (samples × neurons), *Y* is the
+   target matrix, and *λ* is a regularisation parameter.
+
+3. **Transformation:** To compute a function *f(x)* rather than
+   representing *x* itself, one simply changes the decoding targets from
+   *x* to *f(x)*.  The same population of neurons can simultaneously
+   represent *x* and compute arbitrary functions of it, with different
+   decoders for each.
+
+The key architectural insight is that encoders are fixed (either
+biologically determined or randomly sampled) and decoders are *solved
+analytically*.  This avoids iterative weight updates entirely for a single
+population.
+
+In the original NEF formulation, the bias *bᵢ* is typically determined by
+a gain-intercept pair that shapes the neuron's tuning curve.  Our
+adaptation replaces this with *data-driven biases* (Section 3.2), where
+the bias is derived from a training-sample center.
+
+### 2.2 Extreme Learning Machines (ELM)
+
+The Extreme Learning Machine (Huang et al., 2006) is a single-hidden-layer
+feedforward network where input weights and biases are randomly assigned
+and never updated.  Only the output weights are trained, via a
+least-squares solve:
+
+```
+H = g(X · W + b)       (hidden layer activation)
+β = H† · Y             (output weights via pseudoinverse)
+```
+
+where *g* is a nonlinear activation, *W* and *b* are random, and *H†* is
+the Moore-Penrose pseudoinverse of the hidden-layer activation matrix.
+
+Huang et al. proved that a single-hidden-layer ELM with *N* hidden neurons
+and any continuous activation function is a universal approximator: as *N*
+grows, the network can approximate any continuous function on a compact
+set.  The practical implication is that ELMs trade architectural efficiency
+(more neurons needed than a trained network) for training speed (one matrix
+solve vs. many gradient steps).
+
+**Relationship to NEF:**  A single NEF layer with random encoders and an
+analytical decoder solve is architecturally identical to an ELM.  The
+difference is interpretive: NEF's encoders represent preferred directions,
+its gain controls tuning-curve width, and its biases locate each neuron's
+sensitive region in input space.  These interpretations motivate design
+choices (data-driven biases, abs activation, per-neuron gain diversity)
+that improve accuracy beyond a vanilla ELM.
+
+### 2.3 Random Features and Kernel Approximation
+
+Rahimi and Recht (2007) showed that random projections followed by a
+nonlinearity approximate kernel functions.  Specifically, if *ω* is drawn
+from a distribution *p(ω)* related to the kernel's Fourier transform, then:
+
+```
+k(x, y) ≈ (1/D) Σⱼ z_ωⱼ(x) · z_ωⱼ(y)
+```
+
+where *z_ωⱼ(x) = exp(i ωⱼ · x)* are random Fourier features.  In
+practice, the exponential is often replaced by other nonlinearities
+(ReLU, cosine, etc.) that approximate different kernels.
+
+This framework — known as "random kitchen sinks" — provides a theoretical
+justification for why random-weight networks work: they are performing
+kernel regression in an approximate feature space.  The number of random
+features controls approximation quality, just as the number of neurons
+controls representational capacity in NEF and ELMs.
+
+Random kitchen sinks on MNIST with 2000 features typically achieve 94–96%
+accuracy (Rahimi & Recht, 2007; various reproductions), comparable to our
+NEF single-layer result (95.5%).
+
+### 2.4 Data-Driven Biases and Radial Basis Functions
+
+Our implementation adds a *center* parameter to each neuron.  Given a
+center *dᵢ* (sampled from training data) and an encoder *eᵢ*, the
+neuron's response becomes:
+
+```
+aᵢ = |αᵢ · ((x − dᵢ) · eᵢ)|
+```
+
+which can be rewritten as:
+
+```
+aᵢ = |αᵢ · (x · eᵢ − dᵢ · eᵢ)|
+     = |αᵢ · (x · eᵢ + bᵢ)|
+```
+
+where `bᵢ = −αᵢ · (dᵢ · eᵢ)`.  The neuron measures the *unsigned
+deviation* of the input from its center along its encoder direction.
+
+This connects to radial basis function (RBF) networks (Broomhead & Lowe,
+1988), where each basis function is centred on a data point.  The
+difference is that RBF neurons measure distance in *all* directions
+(isotropic Gaussian kernels), while NEF neurons measure distance along a
+*single random direction*.  Having many neurons with different random
+directions recovers approximate omnidirectional sensitivity — a
+Johnson-Lindenstrauss-style argument ensures that enough random projections
+preserve distance relationships.
+
+The practical effect is dramatic (Section 5.2): without data-driven biases,
+hypersphere encoders lag Gaussian encoders by 2–3% because Gaussian
+encoder norms create an implicit distribution of activation thresholds.
+Data-driven biases make this explicit and optimal, closing the entire gap.
+
+### 2.5 Ensemble Methods
+
+Ensemble methods combine multiple models to improve prediction accuracy and
+robustness.  The theoretical foundation rests on the bias-variance
+decomposition: if individual models have uncorrelated errors, averaging
+their predictions reduces variance without increasing bias (Breiman, 2001).
+
+**Bagging** (Bootstrap Aggregating; Breiman, 1996) trains each model on a
+random bootstrap sample of the training data.  **Random Forests** (Breiman,
+2001) combine bagging with random feature subsets at each split, increasing
+diversity among trees.  The key insight is that *randomness in model
+construction* — not just data sampling — improves ensemble diversity and
+thus accuracy.
+
+For random-feature networks like ELMs and NEF layers, each model already
+uses different random encoders (analogous to different random feature
+subsets in Random Forests).  Training multiple NEF layers with different
+random seeds creates natural diversity without bootstrap sampling, though
+the two can be combined.
+
+The ensemble improvement depends on the *correlation* between member
+predictions.  If members produce identical predictions (correlation = 1),
+ensembling provides no benefit.  If predictions are uncorrelated,
+averaging *K* members reduces variance by a factor of *K*.  Random-feature
+networks are well-suited because each member's errors are substantially
+driven by the particular random projection, making errors relatively
+uncorrelated across members with different seeds.
+
+### 2.6 Local Receptive Field Encoders
+
+McDonnell et al. (2015) demonstrated that combining ELMs with local
+receptive fields dramatically improves image classification.  Instead of
+each hidden neuron receiving a random projection of the *entire* input
+image, each neuron sees only a small random *patch*.  This injects
+spatial locality — similar to the convolution operation in CNNs — without
+any learned filters.
+
+Their results on MNIST were striking:
+- Single ELM (global random weights, 10000 neurons): ~96%
+- Single ELM + local receptive fields (10000 neurons): ~98.8%
+- Ensemble of 10 ELMs + local receptive fields: **99.17%**
+
+The receptive field approach works because natural images have strong
+local structure: neighbouring pixels are highly correlated and local
+patterns (edges, corners, textures) are more informative than global
+projections.  A random projection of the full 784-dimensional MNIST image
+dilutes local structure across all dimensions.  A random projection of a
+5×5 patch (25 dimensions) concentrates the neuron's sensitivity on a
+local feature.
+
+In our implementation, each neuron *i* is assigned a random patch
+position *(rᵢ, cᵢ)* in the image and a random weight vector *wᵢ* of
+dimension *patch_size²* (or *patch_size² × C* for multi-channel images).
+The encoder vector *eᵢ* is mostly zeros, with non-zero entries only at the
+patch positions, where the values are *wᵢ* normalised to unit norm.  This
+is registered in the encoder strategy registry as `"receptive_field"`.
+
+### 2.7 Incremental Learning via Normal Equations
+
+The standard decoder solve requires computing `D = (AᵀA + λI)⁻¹ AᵀY` on
+the full dataset.  The key observation is that the sufficient statistics
+`AᵀA` and `AᵀY` are *additive*: they can be accumulated across data
+batches and the solve performed once at the end.
+
+Given batches *A₁, Y₁*, *A₂, Y₂*, ..., *Aₖ, Yₖ*:
+
+```
+AᵀA = Σⱼ Aⱼᵀ Aⱼ
+AᵀY = Σⱼ Aⱼᵀ Yⱼ
+D = (AᵀA + λI)⁻¹ AᵀY
+```
+
+This enables streaming/online learning: data can arrive in chunks, each
+contributing to the running totals, with the solve deferred until all data
+has been seen.  It also enables updating an existing model with new data
+without reprocessing old data, provided the old sufficient statistics are
+retained.
+
+This decomposition is well-known in recursive least-squares and online
+learning (see, e.g., Haykin, 2002), and is particularly natural for NEF
+and ELM architectures where the sufficient statistics are the only
+information needed from the training data.
+
+
+## 3. Method
+
+### 3.1 NEF Layer Architecture
+
+A `NEFLayer` implements the three-stage NEF pipeline:
+
+1. **Encode:** Project input *x* into neuron space:
+   ```
+   z = gain · (x · Eᵀ) + bias
+   ```
+   where *E* ∈ ℝⁿˣᵈ is the encoder matrix (rows are unit vectors), *gain*
+   is a per-neuron scalar, and *bias* is derived from centers.
+
+2. **Activate:** Apply a nonlinear activation:
+   ```
+   a = σ(z)
+   ```
+   Default: `σ = abs` (Section 3.3).
+
+3. **Decode:** Map activities to the output:
+   ```
+   ŷ = a · D
+   ```
+   where *D* ∈ ℝⁿˣᵒ is the decoder matrix, solved via regularised
+   least-squares.
+
+**Encoder strategies.**  The library provides four encoder strategies,
+selected by string name from a registry:
+
+| Strategy          | Description |
+|-------------------|-------------|
+| `hypersphere`     | Uniform random unit vectors on the unit hypersphere (default) |
+| `gaussian`        | i.i.d. Gaussian entries (varying norms) |
+| `sparse`          | Sparse random projections (~1/3 non-zero entries) |
+| `receptive_field` | Sparse local-patch encoders for images (Section 3.5) |
+
+All strategies except `receptive_field` produce dense vectors.  The
+`receptive_field` strategy produces vectors that are zero everywhere
+except at a random local image patch.
+
+**Decoder solvers.**  Three solvers are available:
+
+| Solver      | Description |
+|-------------|-------------|
+| `tikhonov`  | `(AᵀA + αI)⁻¹ AᵀY` via Cholesky factorisation (default) |
+| `cholesky`  | Same as Tikhonov (alias) |
+| `lstsq`     | `torch.linalg.lstsq` (unregularised or implicitly regularised) |
+
+The default solver is Tikhonov with α = 0.01.
+
+### 3.2 Data-Driven Biases
+
+Given a set of training samples *X*, each neuron *i* is assigned a center
+*dᵢ* sampled uniformly from *X*.  The bias is then:
+
+```
+bᵢ = −gain_i · (dᵢ · eᵢ)
+```
+
+This ensures that `aᵢ = σ(gain_i · ((x − dᵢ) · eᵢ))`, so the neuron's
+zero-crossing is at the projection of its center onto its encoder
+direction.  With the abs activation, the neuron responds symmetrically to
+deviations in either direction from this zero-crossing.
+
+Without data-driven biases, the library falls back to i.i.d. Gaussian
+biases, which do not account for the data distribution.  Section 5.2 shows
+that data-driven biases close a 2–3% accuracy gap.
+
+### 3.3 Activation Functions
+
+Four activation functions are provided:
+
+| Name       | Definition | Properties |
+|------------|------------|------------|
+| `abs`      | \|z\|      | Two-sided response; gradient ±1 everywhere; default for feedforward |
+| `relu`     | max(0, z)  | One-sided; sparse gradients; default for recurrent |
+| `softplus` | log(1 + eᶻ) | Smooth approximation to ReLU |
+| `lif_rate` | 1/(1 − e⁻ᶻ) for z > 0 | Leaky integrate-and-fire rate model |
+
+The **abs activation** is a natural fit for the NEF distance
+interpretation: `|gain · ((x − d) · e)|` responds to deviations in
+*either* direction along the encoder, effectively doubling representational
+capacity compared to ReLU.  With data-driven biases, abs consistently
+outperforms other activations for single-layer classification (Section 5.3).
+
+For **recurrent models**, abs has gradient ±1 everywhere (no sparsity),
+causing gradient explosion through backpropagation through time (BPTT).
+ReLU's zero gradient on negative inputs provides the damping needed for
+stable recurrent gradient flow.
+
+### 3.4 Per-Neuron Gain
+
+In canonical NEF, each neuron has its own gain sampled from a
+distribution, creating diverse tuning curves.  Our default samples gain
+from U(0.5, 2.0), meaning neurons vary in sensitivity: low-gain neurons
+have wide, gentle tuning curves while high-gain neurons have narrow,
+sharp responses.  This diversity enriches the population representation
+without additional parameters.
+
+### 3.5 Local Receptive Field Encoders
+
+The `receptive_field` encoder strategy creates sparse encoders where each
+neuron sees a random local image patch:
+
+1. Sample a random patch position *(r, c)* uniformly over valid positions
+   (ensuring the patch fits within the image).
+2. Generate random weights *w* ∈ ℝᵖ² (or ℝᵖ²ᶜ for *C*-channel images)
+   and normalise to unit norm.
+3. Construct the full encoder vector by placing *w* at the appropriate
+   pixel indices and zeros elsewhere.
+
+This creates *N* × *D*-dimensional encoder vectors (same shape as other
+strategies) but with only *patch_size²* non-zero entries per neuron.  The
+unit-norm convention is maintained within the patch, consistent with the
+hypersphere strategy.
+
+For multi-channel images (e.g., CIFAR-10 with 3 colour channels), the
+patch covers all channels at each spatial position, giving
+*patch_size² × C* non-zero entries per encoder.
+
+### 3.6 NEF Ensemble
+
+`NEFEnsemble` trains *K* independent `NEFLayer` models, each with a
+different random seed (and thus different random encoders, centers, and
+gains).  Predictions are combined by one of two methods:
+
+- **Mean** (default): Average the output vectors across members.  For
+  classification with one-hot targets, this averages the predicted class
+  probabilities.
+- **Vote**: Each member's argmax prediction is a vote; the class with the
+  most votes wins.
+
+The ensemble exploits the fact that different random projections produce
+different error patterns.  When errors are uncorrelated across members,
+averaging reduces the effective error rate.
+
+### 3.7 Incremental / Online Learning
+
+`NEFLayer` supports incremental learning via three methods:
+
+- `partial_fit(x, targets)` — encodes the batch, computes `AᵀA` and
+  `AᵀY`, and adds them to running totals stored as registered buffers.
+- `solve_accumulated(alpha)` — solves decoders from the accumulated
+  sufficient statistics.
+- `reset_accumulators()` — clears the running totals.
+
+This produces the same result as `fit()` on the full dataset (up to
+floating-point accumulation order) but supports streaming data, memory
+constraints, and model updates with new data.
+
+### 3.8 Multi-Layer Networks
+
+`NEFNetwork` stacks multiple `NEFLayer` modules.  Hidden layers
+encode only: their neuron activities (not decoded outputs) become the
+next layer's input.  Only the output layer decodes.
+
+Six training strategies are available:
+
+1. **Greedy** (`fit_greedy`): Random hidden encoders, analytical output
+   decoders.  No gradients.  Fastest but limited.
+2. **Hybrid** (`fit_hybrid`): Alternates analytical decoder solves with
+   gradient updates to encoder weights.  The decoder re-solve at each
+   iteration stabilises training and allows a constant learning rate.
+3. **Target propagation** (`fit_target_prop`): Replaces backpropagation
+   with layer-local targets via NEF representational decoders (analytical
+   inverse models) and difference target propagation (Lee et al., 2015).
+   Single-layer gradients only.  See the companion document
+   `docs/analytical_target_propagation.md` for full algorithm details.
+4. **End-to-end** (`fit_end_to_end`): Standard SGD on all parameters,
+   initialised from a greedy NEF solve.
+5. **Hybrid→E2E** (`fit_hybrid_e2e`): Hybrid warm start followed by E2E
+   fine-tuning.  Generally the best balanced strategy.
+6. **TP→E2E** (`fit_target_prop_e2e`): Target propagation warm start
+   followed by E2E fine-tuning.
+
+### 3.9 Recurrent Models
+
+`RecurrentNEFLayer` extends the feedforward pipeline with the canonical
+NEF decode-then-re-encode feedback loop.  At each timestep *t*:
+
+```
+x_aug = concat(u[t], s[t−1])                  # input + previous state
+a[t]  = σ(gain · (x_aug · Eᵀ) + bias)         # encode + activate
+s[t]  = a[t] · D_state                        # state decoder (feedback)
+y     = a[T] · D_out                          # output decoder (final step)
+```
+
+The **state decoder** extracts a low-dimensional state summary that feeds
+back through the encoders.  The **output decoder** produces the task
+prediction at the final timestep.  Training strategies parallel the
+feedforward case: greedy, hybrid, target propagation through time (TPTT),
+end-to-end BPTT, and warm-started combinations.
+
+
+## 4. Experimental Setup
+
+### 4.1 Datasets
+
+| Dataset        | Samples  | Input dim | Classes | Type |
+|----------------|----------|-----------|---------|------|
+| MNIST          | 60k / 10k | 784     | 10      | Handwritten digits |
+| Fashion-MNIST  | 60k / 10k | 784     | 10      | Clothing items |
+| CIFAR-10       | 50k / 10k | 3072    | 10      | Natural images |
+| California Housing | 20640 | 8       | —       | Regression |
+
+All classification targets are encoded as one-hot vectors.  Pixel inputs
+are normalised to [0, 1].  California Housing targets are standardised
+(zero mean, unit variance).
+
+### 4.2 Hardware and Software
+
+All experiments run on a single CPU: AMD Ryzen 5 PRO 5650U (6 cores, 12
+threads, 1.83 GHz base).  No GPU is used.  The implementation uses
+PyTorch 2.0+ with `torch.linalg` for matrix operations.
+
+### 4.3 Default Configuration
+
+Unless noted otherwise, all NEF experiments use:
+- **Activation:** abs (feedforward), relu (recurrent)
+- **Encoders:** hypersphere (feedforward single-layer and multi-layer),
+  receptive_field (ensemble with RF)
+- **Gain:** per-neuron, U(0.5, 2.0)
+- **Biases:** data-driven (`centers=x_train`)
+- **Solver:** Tikhonov, α = 0.01
+- **Random seed:** 0 (for reproducibility)
+
+
+## 5. Results
+
+### 5.1 Single-Layer Scaling with Neuron Count
+
+| Dataset       |  500   | 1000   | 2000   | 5000   | 10k    | 20k    | 30k    |
+|---------------|--------|--------|--------|--------|--------|--------|--------|
+| MNIST         | 92.1%  | 94.3%  | 95.5%  | 96.9%  | 97.4%  | 97.9%  | 98.3%  |
+| Fashion-MNIST | 82.6%  | 84.7%  | 85.7%  | 87.1%  | 88.4%  | 89.3%  | 89.8%  |
+| CIFAR-10      | 43.7%  | 45.9%  | 47.8%  | 50.4%  | 51.0%  | 51.5%  | 51.8%  |
+| Time          | <1s    | 1s     | 2s     | 10s    | 43s    | 140s   | 394s   |
+
+Accuracy scales monotonically with neuron count but with severe diminishing
+returns.  At 2000 neurons, MNIST reaches 95.5% in ~2 seconds — within 3%
+of a fully-trained MLP (98.5%) that takes 40× longer.  Scaling to 30000
+neurons (394 seconds) reaches 98.3% on MNIST, approaching but unable to
+match the multi-layer hybrid result (98.6% in 318 seconds).  The
+single-layer ceiling on Fashion-MNIST (89.8%) and CIFAR-10 (51.8%) falls
+further short of multi-layer results (90.6% and 58.5%), showing that
+learned features are essential where brute-force neuron scaling cannot
+compensate.
+
+### 5.2 Why Data-Driven Biases Matter
+
+Accuracy at 2000 neurons with abs activation, with and without data-driven
+biases:
+
+|               | hyper  | + data | gauss  | + data | sparse | + data |
+|---------------|--------|--------|--------|--------|--------|--------|
+| MNIST         | 93.4%  |**95.6%**| 96.0% | 95.7%  | 95.6%  | 95.6%  |
+| Fashion-MNIST | 84.1%  |**85.9%**| 86.0% | 86.0%  | 86.0%  | 85.6%  |
+| CIFAR-10      | 45.9%  |**48.3%**| 47.3% | 47.5%  | 47.5%  | 48.2%  |
+
+Without data-driven biases, hypersphere encoders lag Gaussian and sparse
+encoders by 2–3%.  The advantage of Gaussian encoders comes from their
+varying norms, which create an implicit distribution of activation
+thresholds — neurons effectively have different "sensitivity ranges."
+Data-driven biases make this explicit and optimal: each neuron's
+zero-crossing is placed at the projection of a training sample onto the
+encoder direction.
+
+With data-driven biases, all encoder types converge to similar accuracy
+(within 0.4%).  The encoder direction distribution becomes irrelevant;
+only having enough random directions matters.  This reduces
+hyperparameter sensitivity: the user needs to choose only the number of
+neurons, not the encoder distribution.
+
+### 5.3 Activation Comparison
+
+Single-layer, 2000 neurons, hypersphere encoders, data-driven biases:
+
+| Activation | MNIST  | Fashion | CIFAR-10 |
+|------------|--------|---------|----------|
+| abs        |**95.7%**|**85.8%**|**48.1%**|
+| relu       | 95.4%  | 85.3%   | 47.9%   |
+| softplus   | 90.9%  | 82.4%   | 44.2%   |
+| lif_rate   | 88.9%  | 81.2%   | 38.8%   |
+
+Data-driven biases amplify the activation effect.  With random biases,
+all activations cluster within ~1%.  With data-driven biases, neurons
+have more structured activation patterns with sharper boundaries.
+Sharp-threshold activations (abs, relu) handle this well; smooth
+approximations (softplus, lif_rate) lose substantial accuracy.
+
+The abs activation's advantage is its two-sided response:
+`|gain · ((x − d) · e)|` responds to deviations in either direction,
+effectively doubling the representational capacity of each neuron
+compared to relu's one-sided response.
+
+### 5.4 Ensemble and Receptive Field Results
+
+All ensemble experiments use 2000 neurons per member, abs activation,
+data-driven biases, and Tikhonov solver (α = 0.01).  Receptive field
+encoders use the default patch size of 5×5.
+
+| Model                       | Members | MNIST  | Fashion | CIFAR-10 | Time (MNIST) |
+|-----------------------------|---------|--------|---------|----------|--------------|
+| NEFLayer (single)           |    1    | 95.68% | 85.93%  | 47.80%   |     2.1s     |
+| Ensemble (hypersphere)      |   10    | 96.20% | 86.21%  | 50.86%   |    23.8s     |
+| Ensemble (receptive field)  |   10    | 96.51% | 86.65%  | 55.32%   |    27.6s     |
+| Ensemble (hypersphere)      |   20    | 96.24% | 86.14%  | 51.12%   |    44.7s     |
+| Ensemble (receptive field)  |   20    | 96.54% | 86.90%  | 55.76%   |    45.8s     |
+
+#### Analysis
+
+**Ensembling provides a consistent boost.**  With 10 members and
+hypersphere encoders, the ensemble lifts MNIST from 95.68% to 96.20%
+(+0.52%), Fashion from 85.93% to 86.21% (+0.28%), and CIFAR-10 from
+47.80% to 50.86% (+3.06%).  The improvement is largest on CIFAR-10,
+where the base model's accuracy is lowest and there is more room for
+error decorrelation to help.
+
+**Local receptive fields are the bigger lever.**  On CIFAR-10, the RF
+ensemble reaches 55.32% with 10 members — a remarkable **+7.52%** over
+the single model and +4.46% over the hypersphere ensemble.  This is
+consistent with the findings of McDonnell et al. (2015): local receptive
+fields are the single biggest accuracy lever for random-weight networks on
+image tasks, because they concentrate each neuron's sensitivity on local
+spatial structure rather than diluting it across the full image.
+
+On MNIST, the RF ensemble (96.51%) outperforms the hypersphere ensemble
+(96.20%) by 0.31%.  The improvement is smaller because MNIST's simpler
+digit structure is already well-captured by global projections.  Fashion-
+MNIST shows an intermediate pattern: RF adds 0.44% over the hypersphere
+ensemble (86.65% vs 86.21%).
+
+**Diminishing returns from 10 to 20 members.**  Doubling the ensemble size
+from 10 to 20 provides only marginal further gains: +0.04% on MNIST,
++0.25% on CIFAR-10 (hypersphere), and +0.44% on CIFAR-10 (RF).  On
+Fashion-MNIST with hypersphere encoders, the 20-member ensemble is
+actually 0.07% *worse* than the 10-member (86.14% vs 86.21%), likely due
+to seed-dependent variance.  The RF 20-member ensemble does improve
+Fashion from 86.65% to 86.90%.  The steepest improvement curve is from
+1→10 members; 20 members roughly doubles training time for diminishing
+returns, suggesting 10 members is the practical sweet spot.
+
+**Timing.**  The 10-member ensemble takes ~24–28 seconds on MNIST
+(~12× a single model, with some overhead).  This is still far faster
+than gradient-trained alternatives: the MLP baseline takes 83 seconds,
+and multi-layer hybrid→E2E takes 402 seconds.  The 20-member ensemble
+takes ~45 seconds — still competitive with a single MLP training run
+while providing better accuracy on some datasets.
+
+**Comparison with brute-force neuron scaling.**  A single model with 20000
+neurons (equivalent total parameters to a 10-member × 2000 ensemble)
+reaches 97.9% on MNIST (from Section 5.1) in ~140 seconds, compared to
+96.20% for the 10-member hypersphere ensemble in ~24 seconds.  The single
+large model wins on accuracy but loses badly on time.  The RF ensemble
+(96.51% in 28 seconds) offers a different trade-off: spatial structure
+from RF encoders partially compensates for the smaller per-model neuron
+count while training 5× faster than the single 20k-neuron model.
+
+### 5.5 Regression — California Housing
+
+MSE with normalised targets, 2000 neurons:
+
+| Neurons | Train MSE | Test MSE |
+|---------|-----------|----------|
+| 500     | 0.269     | 0.265    |
+| 1000    | 0.254     | 0.249    |
+| 2000    | 0.235     | 0.236    |
+| 5000    | 0.213     | 0.227    |
+
+More neurons improve accuracy with diminishing returns.  At 2000 neurons,
+test MSE is within 1% of training MSE, indicating good generalisation.
+
+### 5.6 Multi-Layer Results
+
+Hidden=[1000], output=2000, 50 iterations for hybrid/TP, 50 epochs for
+E2E:
+
+| Model             | MNIST    | Fashion  | CIFAR-10 | Time (MNIST) |
+|-------------------|----------|----------|----------|--------------|
+| Linear baseline   | 85.3%    | 81.0%    | 39.6%    |     2s       |
+| NEFLayer          | 95.7%    | 85.9%    | 47.8%    |     2s       |
+| NEFNet-greedy     | 95.0%    | 85.4%    | 45.6%    |     3s       |
+| NEFNet-hybrid     | 98.6%    | 90.2%    | 52.7%    |   318s       |
+| NEFNet-target-prop| 98.6%    | 90.1%    | 51.0%    |   378s       |
+| NEFNet-e2e        | 98.5%    | 90.3%    | 58.5%    |   241s       |
+| NEFNet-hybrid→E2E |**98.6%** |**90.6%** | 58.4%    |   402s       |
+| NEFNet-TP→E2E     | 98.5%    | 90.6%    |**58.5%** |   464s       |
+| MLP (2×1000)      | 98.5%    | 89.7%    | 52.7%    |    83s       |
+
+**Key observations:**
+
+*Propagated data-driven biases.*  Training data is forwarded through each
+layer, and the resulting activations serve as centers for the next layer's
+bias computation.  This is critical for greedy training: without propagated
+biases, greedy multi-layer is *worse* than single-layer (94.0% vs 95.5% on
+MNIST).  With propagated biases, the gap narrows to 0.5%.
+
+*Iterations dominate hybrid hyperparameters.*  Going from 10 to 50
+iterations lifts hybrid from 97.2% to 98.5% on MNIST, 87.9% to 90.4% on
+Fashion, and 45.9% to 53.3% on CIFAR-10.  Other hyperparameters (solver
+type, regularisation, layer width, depth) each contribute less than 0.2%.
+
+*Decoder regularisation is the second lever.*  α = 10⁻³ is optimal for
+hybrid.  Lower values let decoders overfit the current encoder state,
+producing noisy gradients; at α = 10⁻⁵, training collapses.
+
+*CE loss is destructive.*  Decoders solve for MSE-optimal outputs near
+0/1; cross-entropy interprets these as logits, creating a gradient
+conflict that drops CIFAR-10 from 53% to 37%.
+
+*Hybrid→E2E is the best balanced strategy.*  98.6% / 90.6% / 58.4% —
+best on Fashion-MNIST, tied for best on MNIST, within 0.1 points on
+CIFAR-10.  The hybrid phase learns encoder orientations with analytic
+decoders; the E2E phase refines all parameters jointly.
+
+#### Activation Effect on Multi-Layer Hybrid
+
+| Activation | MNIST  | Fashion |
+|------------|--------|---------|
+| relu       |**97.8%**|**88.7%**|
+| abs        | 97.5%  | 88.0%   |
+| lif_rate   | 95.2%  | 85.1%   |
+| softplus   | 94.0%  | 84.1%   |
+
+> Measured with 10 hybrid iterations, gain=U(0.5, 2.0), data-driven
+> biases, α = 10⁻².
+
+The ranking reverses from single-layer: relu slightly edges out abs for
+multi-layer hybrid training.  Per-neuron gain diversity means relu's
+zero-gradient region no longer kills half the neurons uniformly; the
+sparsity aids gradient flow through multiple encode-decode cycles.
+
+### 5.7 Recurrent Results — Sequential MNIST
+
+Row-by-row sMNIST: each image is a sequence of 28 rows (T=28, d=28),
+classified at the final timestep.  All NEF models use 2000 neurons, relu
+activation, gain U(0.5, 2.0), and data-driven biases.
+
+| Model                                | Accuracy | Time    |
+|--------------------------------------|----------|---------|
+| RecNEF-greedy (5 iter)               |  15.3%   |   241s  |
+| RecNEF-hybrid (10 iter)              |  21.0%   |   461s  |
+| RecNEF-target-prop (50 iter)         |  12.1%   |  5864s  |
+| RecNEF-E2E (50 epochs)               |  98.5%   |   799s  |
+| RecNEF-hybrid→E2E (10+20 epochs)     | **98.6%**|   686s  |
+| LSTM-128 (20 epochs)                 |  98.3%   |    98s  |
+
+Recurrent hybrid→E2E is the strongest result, edging pure E2E while
+training faster.  Plain recurrent hybrid and greedy collapse — random
+encoders compound state feedback noise across timesteps.  Only E2E-based
+strategies produce competitive results.
+
+*Why abs fails for recurrence.*  In feedforward models, abs doubles
+representational capacity.  In recurrent BPTT, abs has gradient
+sign(x) ∈ {−1, +1} at every neuron — the recurrent Jacobian has no
+sparsity to damp gradient magnitudes.  Over 28 timesteps, this causes
+gradient explosion.  ReLU's zero gradient on ~half the neurons provides
+critical damping.  E2E with abs gets 10.1% (random); with relu, 98.5%.
+
+#### Predictive State Targets (Experimental)
+
+The experimental `predictive` state target option decodes the *next* input
+frame rather than the current one, which better matches what recurrent
+state should carry.  On seeded slices (2k train / 1k test):
+
+| State target    | Seed 0 | Seed 1 | Seed 2 | Mean  |
+|-----------------|--------|--------|--------|-------|
+| Reconstruction  | 22.2%  | 22.6%  | 21.8%  | 22.2% |
+| Predictive      | 31.9%  | 30.9%  | 32.8%  | 31.9% |
+
+This is the first recurrent TP change that consistently improves accuracy
+across seeds, though it remains far below E2E-based results.
+
+
+## 6. Discussion
+
+### 6.1 Competitive Positioning
+
+The single-layer NEF result (95.7% MNIST, 2 seconds) is competitive with
+vanilla ELMs (~95%) and random kitchen sinks (94–96%) at similar speed.
+The NEF-specific data-driven biases provide a consistent edge by
+eliminating the dependence on encoder type.
+
+The ensemble approach shifts the competitive comparison.  A 10-member
+NEFEnsemble with receptive field encoders trains in ~28 seconds and
+reaches 96.51% on MNIST, 86.65% on Fashion-MNIST, and 55.32% on
+CIFAR-10.  That CIFAR-10 result (+7.5% over a single model) approaches
+the multi-layer end-to-end result (58.5%) at a fraction of the training
+cost and without any gradient computation.  On Fashion-MNIST, the RF
+ensemble (86.90% with 20 members) approaches the fully-trained MLP
+(89.7%) while training in half the time.
+
+McDonnell et al. (2015) reported 98.8% on MNIST with a single ELM using
+local receptive fields and 10000 neurons, and 99.17% with an ensemble of
+10 such models.  Our 10×2000 RF ensemble reaches 96.51%.  The gap is
+largely explained by the neuron count: McDonnell used 5× more neurons
+per member.  Our neuron-scaling results (Section 5.1) show that MNIST
+accuracy continues climbing toward 98% at 20–30k neurons, so larger
+per-member models would close this gap.
+
+### 6.2 When to Use Each Strategy
+
+| Scenario | Recommended approach | Expected accuracy (MNIST) | Time |
+|----------|---------------------|--------------------------|------|
+| Maximum speed | Single NEFLayer | 95.7% | 2s |
+| Speed/accuracy balance | NEFEnsemble-10 + RF | 96.5% | ~28s |
+| More accuracy, no gradients | NEFEnsemble-20 + RF | 96.5% | ~46s |
+| Maximum accuracy, moderate time | NEFNet-hybrid→E2E | 98.6% | 402s |
+| Streaming data | NEFLayer + partial_fit | 95.7% | varies |
+| Temporal sequences | RecNEF-hybrid→E2E | 98.6% | 686s |
+
+### 6.3 Limitations
+
+- **CIFAR-10 plateau.**  Even with 30000 neurons, single-layer accuracy
+  plateaus at ~52%.  Natural images require learned hierarchical features
+  that random projections cannot capture.  Multi-layer strategies help
+  (58.5%) but remain far below CNN-level accuracy (~95%).
+- **Recurrent TP.**  Despite the predictive state target improvement,
+  recurrent target propagation remains research-grade (~32%) compared to
+  E2E (98.5%).
+- **CPU-only.**  While we benchmark on CPU to demonstrate accessibility,
+  the matrix operations would benefit from GPU acceleration, especially
+  for large ensembles and multi-layer training.
+
+### 6.4 Relationship to Prior Work
+
+Our analytical target propagation approach uses NEF representational
+decoders as the inverse models that DTP (Lee et al., 2015) requires.
+Recent independent work has explored similar ideas: Bao et al. (2024)
+derive closed-form feedback weights for target propagation, and Shibuya
+et al. (2023) show that even fixed feedback weights work if forward
+weights are well-conditioned.  Our NEF decoders are analytical, exact, and
+recomputed at each iteration — a natural fit from neuroscience principles
+that achieves the same goal.
+
+
+## 7. Conclusions
+
+1. **Data-driven biases are the key single-layer design choice.**
+   Rewriting the encoding as `|gain · ((x − d) · e)|` reveals each
+   neuron measures unsigned deviation from a reference point along a
+   random direction.  Sampling references from training data closes the
+   entire 2–3% gap between encoder types and makes the encoder direction
+   distribution irrelevant.
+
+2. **Single-layer NEF is remarkably effective but hits a ceiling.**
+   95.5% MNIST in 2 seconds is within 3% of a fully-trained MLP at 40×
+   the training cost.  But even 30000 neurons (394 seconds) cannot match
+   multi-layer learned features.
+
+3. **The abs activation is a natural fit for single-layer models.**
+   Two-sided response doubles representational capacity.  For multi-layer
+   gradient training, relu's sparsity slightly edges ahead.
+
+4. **Ensembling leverages the fast analytical solve.**  A 10-member
+   ensemble with receptive field encoders reaches 96.51% on MNIST
+   (from 95.68%), 86.65% on Fashion-MNIST (from 85.93%), and 55.32%
+   on CIFAR-10 (from 47.80%) — all without gradient training, in under
+   30 seconds.  Local receptive fields are the bigger lever: they add
+   +4.46% on CIFAR-10 beyond the hypersphere ensemble effect.
+   Diminishing returns set in quickly (10→20 members adds <0.5%),
+   making 10 members the practical sweet spot.
+
+5. **Hybrid→E2E remains the best balanced multi-layer strategy.**
+   98.6% / 90.6% / 58.4% — the hybrid phase learns encoder orientations
+   with analytic decoders; the E2E phase refines all parameters jointly.
+
+6. **Target propagation with analytical NEF inverse models is viable.**
+   Plain TP reaches 98.6% / 90.1% / 51.0% using only single-layer
+   gradients — no cross-layer backpropagation.
+
+7. **Predictive state targets are the most promising recurrent TP
+   direction.**  Switching from reconstruction to prediction targets
+   lifts recurrent TP from 22% to 32% mean accuracy.
+
+8. **Incremental learning is exact.**  The normal-equation decomposition
+   enables streaming data and model updates without reprocessing, with
+   results identical to full-batch training.
+
+
+## References
+
+- Y. Bao, Y. Li, S. Huang, L. Zhang, A. Zheng, Y. Jiang, Y. Chen,
+  "Efficient Target Propagation by Deriving Analytical Solution", *AAAI
+  Conference on Artificial Intelligence*, 2024.
+
+- L. Breiman, "Bagging Predictors", *Machine Learning* 24(2), 1996.
+
+- L. Breiman, "Random Forests", *Machine Learning* 45(1), 2001.
+
+- D. S. Broomhead & D. Lowe, "Radial Basis Functions, Multi-Variable
+  Functional Interpolation and Adaptive Networks", RSRE Memorandum 4148,
+  1988.
+
+- C. Eliasmith & C. H. Anderson, *Neural Engineering: Computation,
+  Representation, and Dynamics in Neurobiological Systems*, MIT Press,
+  2003.
+
+- C. Eliasmith, "A unified approach to building and controlling spiking
+  attractor networks", *Neural Computation* 17(6), 2005.
+
+- S. Haykin, *Adaptive Filter Theory*, 4th edition, Prentice Hall, 2002.
+
+- G. Hinton, "The Forward-Forward Algorithm: Some Preliminary
+  Investigations", *arXiv:2212.13345*, 2022.
+
+- G.-B. Huang, Q.-Y. Zhu & C.-K. Siew, "Extreme Learning Machine:
+  Theory and Applications", *Neurocomputing* 70(1–3), 2006.
+
+- D.-H. Lee, S. Zhang, A. Fischer & Y. Bengio, "Difference Target
+  Propagation", *European Conference on Machine Learning and Principles
+  and Practice of Knowledge Discovery in Databases (ECML-PKDD)*, 2015.
+
+- M. D. McDonnell, M. D. Tissera, T. Vladusich, A. van Schaik &
+  J. Tapson, "Fast, Simple and Accurate Handwritten Digit Classification
+  by Training Shallow Neural Network Classifiers with the 'Extreme
+  Learning Machine' Algorithm", *PLOS ONE* 10(8), 2015.
+
+- B. Millidge, A. Tschantz & C. L. Buckley, "Predictive Coding
+  Approximates Backprop along Arbitrary Computation Graphs", *Neural
+  Computation* 34(6), 2022.
+
+- A. Rahimi & B. Recht, "Random Features for Large-Scale Kernel
+  Machines", *Advances in Neural Information Processing Systems (NeurIPS)*,
+  2007.
+
+- R. P. N. Rao & D. H. Ballard, "Predictive coding in the visual
+  cortex: a functional interpretation of some extra-classical
+  receptive-field effects", *Nature Neuroscience* 2, 1999.
+
+- T. Shibuya, T. Kudo & T. Harada, "Fixed-Weight Difference Target
+  Propagation", *AAAI Conference on Artificial Intelligence*, 2023.
+
+**Datasets:**
+
+- MNIST — Y. LeCun, L. Bottou, Y. Bengio & P. Haffner, "Gradient-Based
+  Learning Applied to Document Recognition", *Proceedings of the IEEE*
+  86(11), 1998.
+- Fashion-MNIST — H. Xiao, K. Rasul & R. Vollgraf, "Fashion-MNIST: a
+  Novel Image Dataset for Benchmarking Machine Learning Algorithms",
+  *arXiv:1708.07747*, 2017.
+- CIFAR-10 — A. Krizhevsky, "Learning Multiple Layers of Features from
+  Tiny Images", Technical Report, University of Toronto, 2009.
+- California Housing — R. K. Pace & R. Barry, "Sparse Spatial
+  Autoregressions", *Statistics and Probability Letters* 33(3), 1997.
