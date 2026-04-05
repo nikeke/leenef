@@ -658,6 +658,9 @@ further short of multi-layer results (90.6% and 58.5%), showing that
 learned features are essential where brute-force neuron scaling cannot
 compensate.
 
+![Accuracy and time scaling with neuron count](figures/neuron_scaling.png)
+*Figure 1. Left: test accuracy saturates logarithmically with neuron count across all three datasets. Right: training time scales as O(n²), dominated by the AᵀA computation.*
+
 ### 5.2 Why Data-Driven Biases Matter
 
 Accuracy at 2000 neurons with abs activation, with and without data-driven
@@ -824,6 +827,9 @@ projection.
 the MLP baseline (52.70%) at every configuration tested.  MNIST and
 Fashion remain short of the MLP by 0.72% and 1.90% respectively.
 
+![MNIST neuron–patch heatmap](figures/neuron_patch_heatmap.png)
+*Figure 2. MNIST accuracy as a function of neuron count and RF patch size (α = 0.01).  The optimum shifts toward larger patches as neuron count increases.  Missing cells were not measured.*
+
 #### 5.5.2 Single Large RF Layer vs Ensemble
 
 The ensemble of small members leaves total neuron capacity split across
@@ -895,6 +901,9 @@ more complex visual patterns need slightly more regularisation (α ≈
 1–2×10⁻³) to prevent overfitting.  CIFAR-10's 3-channel colour images
 with the ensemble approach work best at α ≈ 1×10⁻⁴.
 
+![Regularisation tuning curves](figures/alpha_tuning.png)
+*Figure 3. Test accuracy vs Tikhonov α for the best configuration on each dataset.  The dashed line marks the MLP baseline.  Reducing α from the default 10⁻² to the optimum lifts accuracy by 0.24–1.50 percentage points.*
+
 #### 5.5.4 Summary: Final Results vs MLP Baseline
 
 | Method | MNIST | Fashion | CIFAR-10 | Time |
@@ -917,6 +926,9 @@ No gradient computation is used.  Training consists of constructing
 random receptive field encoders, computing neuron activities, and solving
 a single Tikhonov-regularised least-squares problem.  The entire pipeline
 is embarrassingly parallelisable across neurons and ensemble members.
+
+![Speed vs accuracy comparison](figures/speed_accuracy.png)
+*Figure 4. NEF single-layer RF models (blue/green) vs gradient-trained MLP (orange) on all three benchmarks.  NEF matches or exceeds MLP accuracy at equal or lower training time on commodity CPU hardware.*
 
 ### 5.6 Regression — California Housing
 
@@ -991,6 +1003,9 @@ The ranking reverses from single-layer: relu slightly edges out abs for
 multi-layer hybrid training.  Per-neuron gain diversity means relu's
 zero-gradient region no longer kills half the neurons uniformly; the
 sparsity aids gradient flow through multiple encode-decode cycles.
+
+![Method comparison across all training strategies](figures/method_comparison.png)
+*Figure 5. Accuracy across all training strategies and all three datasets.  "NEF RF+α\*" uses the best single-layer RF configuration per dataset; it matches multi-layer strategies on MNIST/Fashion and the MLP baseline on CIFAR-10 — without any gradient computation.*
 
 ### 5.8 Recurrent Results — Sequential MNIST
 
