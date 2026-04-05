@@ -345,3 +345,64 @@ class TestAbs:
         x = torch.tensor([-2.0, -1.0, 0.0, 1.0, 2.0])
         expected = torch.tensor([2.0, 1.0, 0.0, 1.0, 2.0])
         assert torch.equal(act(x), expected)
+
+
+# ── Incremental fit ──────────────────────────────────────────────────
+
+
+class TestIncrementalFit:
+    def test_equivalence_with_full_fit(self):
+        """partial_fit over the full dataset should match fit()."""
+        torch.manual_seed(50)
+        x = torch.linspace(-1, 1, 200).unsqueeze(1)
+        y = x**2
+
+        rng1 = torch.Generator().manual_seed(200)
+        layer_full = NEFLayer(1, 500, 1, rng=rng1)
+        layer_full.fit(x, y, solver="tikhonov", alpha=1e-2)
+
+        rng2 = torch.Generator().manual_seed(200)
+        layer_inc = NEFLayer(1, 500, 1, rng=rng2)
+        layer_inc.partial_fit(x, y)
+        layer_inc.solve_accumulated(alpha=1e-2)
+
+        assert torch.allclose(layer_full.decoders.data, layer_inc.decoders.data, atol=1e-4)
+
+    def test_chunked_accumulation(self):
+        """Accumulating in chunks should equal a single full pass."""
+        torch.manual_seed(51)
+        x = torch.randn(200, 3)
+        y = torch.randn(200, 2)
+
+        # Both layers from same seed → identical encoders/biases
+        rng1 = torch.Generator().manual_seed(100)
+        layer_one = NEFLayer(3, 300, 2, rng=rng1)
+        layer_one.partial_fit(x, y)
+        layer_one.solve_accumulated(alpha=1e-2)
+
+        rng2 = torch.Generator().manual_seed(100)
+        layer_chunked = NEFLayer(3, 300, 2, rng=rng2)
+        for chunk_x, chunk_y in zip(x.split(50), y.split(50)):
+            layer_chunked.partial_fit(chunk_x, chunk_y)
+        layer_chunked.solve_accumulated(alpha=1e-2)
+
+        assert torch.allclose(layer_one.decoders.data, layer_chunked.decoders.data, atol=1e-3)
+
+    def test_reset_accumulators(self):
+        """reset_accumulators should clear state so solve_accumulated fails."""
+        torch.manual_seed(52)
+        layer = NEFLayer(2, 100, 1)
+        layer.partial_fit(torch.randn(10, 2), torch.randn(10, 1))
+        layer.reset_accumulators()
+        with pytest.raises(RuntimeError, match="No accumulated"):
+            layer.solve_accumulated()
+
+    def test_partial_fit_sample_mismatch(self):
+        layer = NEFLayer(3, 100, 2)
+        with pytest.raises(ValueError, match="same number of samples"):
+            layer.partial_fit(torch.randn(10, 3), torch.randn(20, 2))
+
+    def test_solve_without_partial_fit(self):
+        layer = NEFLayer(3, 100, 2)
+        with pytest.raises(RuntimeError, match="No accumulated"):
+            layer.solve_accumulated()

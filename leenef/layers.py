@@ -6,7 +6,7 @@ from torch import Tensor
 
 from .activations import make_activation
 from .encoders import make_encoders
-from .solvers import solve_decoders
+from .solvers import solve_decoders, solve_from_normal_equations
 
 
 def _make_gain(
@@ -124,3 +124,54 @@ class NEFLayer(nn.Module):
         A = self.encode(x)
         D = solve_decoders(A, targets, method=solver, **solver_kwargs)
         self.decoders.data.copy_(D)
+
+    # ── Incremental / online fit ──────────────────────────────────────
+
+    @torch.no_grad()
+    def partial_fit(self, x: Tensor, targets: Tensor) -> None:
+        """Accumulate normal-equation statistics for an incremental solve.
+
+        Call repeatedly with data chunks, then call :meth:`solve_accumulated`
+        once to set decoders.  This avoids materialising the full activity
+        matrix when data arrives in batches or streams.
+
+        Args:
+            x:       (N, d_in) input data batch
+            targets: (N, d_out) target batch
+        """
+        if x.shape[0] != targets.shape[0]:
+            raise ValueError(
+                f"x and targets must have same number of samples, "
+                f"got {x.shape[0]} vs {targets.shape[0]}"
+            )
+        A = self.encode(x)
+        ata = A.T @ A
+        aty = A.T @ targets
+
+        if not hasattr(self, "_ata") or self._ata is None:
+            self.register_buffer("_ata", ata)
+            self.register_buffer("_aty", aty)
+        else:
+            self._ata.add_(ata)
+            self._aty.add_(aty)
+
+    @torch.no_grad()
+    def solve_accumulated(self, alpha: float = 1e-2) -> None:
+        """Solve decoders from accumulated normal-equation statistics.
+
+        Must be called after one or more :meth:`partial_fit` calls.
+
+        Args:
+            alpha: Tikhonov regularisation strength.
+        """
+        if not hasattr(self, "_ata") or self._ata is None:
+            raise RuntimeError("No accumulated statistics — call partial_fit() first")
+        D = solve_from_normal_equations(self._ata, self._aty, alpha=alpha)
+        self.decoders.data.copy_(D)
+
+    def reset_accumulators(self) -> None:
+        """Clear accumulated normal-equation statistics."""
+        if hasattr(self, "_ata"):
+            self._ata = None
+        if hasattr(self, "_aty"):
+            self._aty = None
