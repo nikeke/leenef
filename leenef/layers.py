@@ -53,6 +53,7 @@ class NEFLayer(nn.Module):
         gain: float | tuple[float, float] | Tensor = (0.5, 2.0),
         rng: torch.Generator | None = None,
         centers: Tensor | None = None,
+        encoder_kwargs: dict | None = None,
         **act_kwargs,
     ):
         super().__init__()
@@ -65,7 +66,9 @@ class NEFLayer(nn.Module):
         self.register_buffer("_gain", _make_gain(gain, n_neurons, rng))
 
         # Encoders
-        enc = make_encoders(n_neurons, d_in, strategy=encoder_strategy, rng=rng)
+        enc = make_encoders(
+            n_neurons, d_in, strategy=encoder_strategy, rng=rng, **(encoder_kwargs or {})
+        )
 
         # Biases — data-driven or random
         if centers is not None:
