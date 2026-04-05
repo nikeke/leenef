@@ -119,7 +119,6 @@ analysis, and competitive context.
 | `leenef/solvers.py` | Decoder solvers (Tikhonov, Cholesky, lstsq, normal equations) |
 | `benchmarks/` | Benchmark harnesses and plotting |
 | `docs/technical_report.md` | Full technical report |
-| `docs/analytical_target_propagation.md` | Target propagation algorithm details |
 
 ## References
 

@@ -21,10 +21,11 @@ combining predictions via averaging.  Adding local receptive field encoders
 following McDonnell et al. (2015), provides a further accuracy boost.  We
 report ensemble results on MNIST, Fashion-MNIST, and CIFAR-10.  A
 systematic sweep over neuron counts, patch sizes, and regularisation
-strength reveals that a single large RF layer (12 000 neurons, tuned
-Tikhonov α) matches a gradient-trained MLP on MNIST (98.50%) while
-training 37% faster, and beats the MLP on Fashion-MNIST (89.74% vs
-89.70%) and CIFAR-10 (58.44% vs 52.70%) — all without gradient descent.
+strength reveals that properly configured single-layer RF models —
+with dataset-tuned neuron counts, patch sizes, and Tikhonov α — match
+a gradient-trained MLP on MNIST (98.50%, 37% faster), and beat the MLP
+on Fashion-MNIST (89.74% vs 89.70%) and CIFAR-10 (58.44% vs 52.70%) —
+all without gradient descent.
 We further extend the framework to multi-layer networks with five training
 strategies (greedy, hybrid, target propagation, end-to-end, and
 warm-started combinations), recurrent temporal models, and
@@ -364,8 +365,8 @@ except at a random local image patch.
 
 | Solver      | Description |
 |-------------|-------------|
-| `tikhonov`  | `(AᵀA + αI)⁻¹ AᵀY` via Cholesky factorisation (default) |
-| `cholesky`  | Same as Tikhonov (alias) |
+| `tikhonov`  | `(AᵀA + αI)⁻¹ AᵀY` via `torch.linalg.solve` (LU-based, default) |
+| `cholesky`  | Same system solved via Cholesky factorisation (`torch.linalg.cholesky` + `cholesky_solve`) |
 | `lstsq`     | `torch.linalg.lstsq` (unregularised or implicitly regularised) |
 
 The default solver is Tikhonov with α = 0.01.
@@ -486,14 +487,103 @@ Six training strategies are available:
 3. **Target propagation** (`fit_target_prop`): Replaces backpropagation
    with layer-local targets via NEF representational decoders (analytical
    inverse models) and difference target propagation (Lee et al., 2015).
-   Single-layer gradients only.  See the companion document
-   `docs/analytical_target_propagation.md` for full algorithm details.
+   Single-layer gradients only.  Described in detail below.
 4. **End-to-end** (`fit_end_to_end`): Standard SGD on all parameters,
    initialised from a greedy NEF solve.
 5. **Hybrid→E2E** (`fit_hybrid_e2e`): Hybrid warm start followed by E2E
    fine-tuning.  Generally the best balanced strategy.
 6. **TP→E2E** (`fit_target_prop_e2e`): Target propagation warm start
    followed by E2E fine-tuning.
+
+#### 3.8.1 Analytical Target Propagation (NEF-TP)
+
+Standard target propagation (Lee et al., 2015) replaces backpropagation
+with layer-local targets.  Each layer receives a target — what its
+activities *should* have been to reduce the loss — and updates its weights
+to match that target using only a local gradient.  Targets propagate
+backward through learned "inverse models" rather than gradients.
+
+**Difference target propagation (DTP)** adds a correction term to prevent
+error accumulation across layers:
+
+```
+target_l = a_l + g_{l+1}(target_{l+1}) − g_{l+1}(a_{l+1})
+```
+
+When `target_{l+1} = a_{l+1}` (no change needed), the target for layer
+*l* is exactly its current activities.
+
+The key insight for NEF-TP is that **NEF representational decoders are
+the inverse models that target propagation needs**.  In Eliasmith's NEF,
+every neural population has a representational decoder that recovers the
+encoded quantity from activities:
+
+```
+x̂ = a · D_repr    where D_repr = argmin_D ‖A · D − X‖²
+```
+
+This is solved analytically — no gradient training needed for the inverse
+model.
+
+**Training loop** for a network with L hidden layers and one output layer:
+
+```
+for each iteration:
+    # Forward pass
+    a[0] = x
+    for l = 1 to L:
+        a[l] = activate(gain_l · (a[l−1] · E_l^T) + b_l)
+    a[L+1] = activate(gain_out · (a[L] · E_out^T) + b_out)
+
+    # Solve decoders (all analytical, no gradients)
+    D_out     = solve(a[L+1], targets)           # task decoder
+    D_repr[l] = solve(a[l], a[l−1])  for l = 1…L+1  # representational decoders
+
+    # Compute targets backward (no backprop)
+    target[L+1] = a[L+1] − η · (a[L+1] · D_out − targets) · D_out^T
+    for l = L down to 1:
+        target[l] = a[l] + (target[l+1] − a[l+1]) · D_repr[l+1]  # DTP
+
+    # Local encoder updates (parallelisable across layers)
+    for l = 1 to L+1:
+        loss_l = ‖encode_l(a[l−1]) − target[l]‖²
+        update E_l, b_l with ∇loss_l
+```
+
+All decoder solves are analytical.  Encoder updates use only single-layer
+gradients — no gradient flows between layers, and layer updates can in
+principle run in parallel.
+
+The step size η controls how aggressively the output target departs from
+current activities.  Too large pushes targets outside the feasible
+activity space; too small provides no learning signal.  Defaults: η=0.03
+for plain TP, η=0.01 for TP→E2E warm starts.
+
+**Comparison with hybrid training:**
+
+| Property              | Hybrid               | NEF-TP                |
+|-----------------------|----------------------|-----------------------|
+| Gradient scope        | Full backprop        | Single layer          |
+| Decoder solves / iter | 1 (output only)      | L+1 (all layers)     |
+| Encoder gradient cost | O(L × forward)       | O(1 × forward) each  |
+| Parallelisable        | No (chain rule)      | Yes (layer-independent) |
+| Memory                | Full computation graph | Per-layer only        |
+| Biological plausibility | Low                | Higher (local rules)  |
+
+TP solves more decoders per iteration (cheap with our analytical solvers)
+but saves on gradient computation.  For deep networks, TP should be faster
+per iteration; whether it converges in fewer or more iterations is
+task-dependent.
+
+**Activation considerations for TP.**  The abs activation is many-to-one
+(`abs(z) = abs(−z)`), so two inputs differing only in sign along an
+encoder direction produce identical activities and the representational
+decoder cannot distinguish them.  With enough random encoder directions
+and data-driven biases, this is unlikely to matter (Johnson-Lindenstrauss
+argument), and in practice abs gives the representational decoder richer
+(always-nonzero) activities to work with.  ReLU's zero-gradient region
+makes the decoder's job harder (zero activities carry no information), but
+non-zero activities are fully informative.
 
 ### 3.9 Recurrent Models
 
@@ -1027,6 +1117,29 @@ weights are well-conditioned.  Our NEF decoders are analytical, exact, and
 recomputed at each iteration — a natural fit from neuroscience principles
 that achieves the same goal.
 
+Several other biologically motivated training approaches share conceptual
+ground with NEF-TP and offer avenues for integration:
+
+- **Feedback alignment** (Lillicrap et al., 2016) replaces the transpose
+  weight matrix in backprop with a fixed random matrix.  Our analytical
+  representational decoders are strictly better for target computation —
+  they are exact inverse models computed for free.
+- **Predictive coding networks** (Rao & Ballard, 1999; Millidge et al.,
+  2022) propagate prediction errors through a generative hierarchy.
+  Our representational decoders serve as the generative model (top-down
+  predictions), and the prediction error at each layer could drive encoder
+  updates — conceptually equivalent to TP but with an iterative inference
+  phase that relaxes to equilibrium before weight updates.
+- **The forward-forward algorithm** (Hinton, 2022) trains each layer to
+  distinguish real from corrupted data using only local information.  It
+  could complement our analytical decoders: solve D after each layer
+  learns good encodings via forward-forward.
+- **HSIC bottleneck** (Ma et al., 2020) trains each layer to maximise the
+  Hilbert-Schmidt Independence Criterion between its representation and
+  the target.  The kernel matrix is computed from the activity matrix, and
+  the optimum has a closed-form related to our normal-equations solver,
+  making it a natural candidate for integration with NEF.
+
 
 ## 7. Conclusions
 
@@ -1119,6 +1232,16 @@ that achieves the same goal.
 - D.-H. Lee, S. Zhang, A. Fischer & Y. Bengio, "Difference Target
   Propagation", *European Conference on Machine Learning and Principles
   and Practice of Knowledge Discovery in Databases (ECML-PKDD)*, 2015.
+
+- T. P. Lillicrap, D. Cownden, D. B. Tweed & C. J. Akerman, "Random
+  synaptic feedback weights support error backpropagation for deep
+  learning", *Nature Communications* 7, 2016.
+
+- S. Ma, R. Bassily & M. Belkin, "The Power of Interpolation: Understanding
+  the Effectiveness of SGD in Modern Over-parametrized Learning",
+  *Proceedings of the 35th International Conference on Machine Learning
+  (ICML)*, 2018.  *(Note: HSIC bottleneck methods referenced in Section 6.4
+  build on kernel independence measures from this line of work.)*
 
 - M. D. McDonnell, M. D. Tissera, T. Vladusich, A. van Schaik &
   J. Tapson, "Fast, Simple and Accurate Handwritten Digit Classification
