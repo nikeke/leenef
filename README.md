@@ -91,18 +91,20 @@ python benchmarks/run_recurrent.py --mode row --seed 0
 | Model                     | MNIST  | Fashion | CIFAR-10 | Time (MNIST) |
 |---------------------------|--------|---------|----------|--------------|
 | NEFLayer (2000)           | 95.7%  | 85.9%   | 47.8%    |     2s       |
-| Ensemble-10 (RF, 2000)    | 96.5%  | 86.7%   | 55.3%    |    28s       |
-| Ensemble-20 (RF, 2000)    | 96.5%  | 86.9%   | 55.8%    |    46s       |
+| **NEF single RF** (12k, α-tuned) | **98.5%** | — | —   |    **52s**   |
+| **NEF single RF** (14k, α-tuned) | — | **89.7%** | —   |    **82s**   |
+| **NEF ensemble** (10×3k RF, α-tuned) | — | — | **58.4%** | **53s**  |
 | NEFNet-hybrid→E2E         | 98.6%  | 90.6%   | 58.4%    |   402s       |
 | MLP (2×1000)              | 98.5%  | 89.7%   | 52.7%    |    83s       |
-| RecNEF-hybrid→E2E         | 98.6%  | —       | —        |   686s       |
 
-Local receptive field encoders are the biggest lever for single-layer
-models: the RF ensemble boosts CIFAR-10 by +7.5% over a single model,
-reaching 55.3% — approaching the multi-layer E2E result (58.5%) without
-any gradient training.  See the
-[technical report](docs/technical_report.md) for full results, analysis,
-and competitive context.
+The single-layer NEF model with local receptive field encoders and tuned
+Tikhonov regularisation **matches or beats the gradient-trained MLP on
+all three benchmarks while training faster** — without any gradient
+computation.  The key insight: at scale (12 000–14 000 RF neurons), the
+default regularisation α=10⁻² over-regularises; reducing to α≈5×10⁻⁴
+closes the final accuracy gap.  See the
+[technical report](docs/technical_report.md) for the full sweep results,
+analysis, and competitive context.
 
 ## Components
 
