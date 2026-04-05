@@ -34,6 +34,7 @@ all plugging into standard PyTorch workflows:
 
 ```python
 from leenef.layers import NEFLayer
+from leenef.ensemble import NEFEnsemble
 from leenef.networks import NEFNetwork
 from leenef.recurrent import RecurrentNEFLayer
 
@@ -41,6 +42,25 @@ from leenef.recurrent import RecurrentNEFLayer
 layer = NEFLayer(d_in=784, n_neurons=2000, d_out=10, centers=x_train)
 layer.fit(x_train, y_train)
 predictions = layer(x_test)
+
+# Ensemble — multiple diverse single-layer models, still pure analytic
+ens = NEFEnsemble(d_in=784, n_neurons=2000, d_out=10,
+                  n_members=20, centers=x_train)
+ens.fit(x_train, y_train)  # 20 × 2s = ~40s, still faster than one MLP
+ensemble_predictions = ens(x_test)
+
+# Ensemble with local receptive fields (McDonnell et al. 2015)
+ens_rf = NEFEnsemble(d_in=784, n_neurons=2000, d_out=10,
+                     n_members=20, encoder_strategy="receptive_field",
+                     encoder_kwargs={"image_shape": (28, 28)},
+                     centers=x_train)
+ens_rf.fit(x_train, y_train)
+
+# Incremental / online learning — stream data in chunks
+layer = NEFLayer(d_in=784, n_neurons=2000, d_out=10, centers=x_train)
+for batch_x, batch_y in data_stream:
+    layer.partial_fit(batch_x, batch_y)
+layer.solve_accumulated(alpha=1e-2)
 
 # Multi-layer — six training strategies
 net = NEFNetwork(d_in=784, d_out=10, hidden_neurons=[1000],
@@ -117,6 +137,10 @@ python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
 python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
        --neurons 2000 --multi --mlp --seed 0 \
        --save-csv results/feedforward-multi.csv
+python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
+       --neurons 2000 --ensemble --ensemble-members 20 \
+       --ensemble-receptive-field --seed 0 \
+       --save-json results/ensemble.json
 python benchmarks/run_recurrent.py --mode row \
        --strategies greedy hybrid target_prop e2e hybrid_e2e --seed 0 \
        --save-json results/recurrent-row.json
@@ -145,6 +169,44 @@ seconds, but unable to match it despite using 10× more neurons.  The
 single-layer ceiling on Fashion-MNIST (89.8%) and CIFAR-10 (51.8%) falls
 further short of multi-layer results (91.0% / 58.1%), showing that learned
 features are essential where brute-force neuron scaling cannot compensate.
+
+#### Ensemble and receptive field encoders
+
+Instead of scaling neurons in a single model, the 2-second analytic solve
+makes NEFLayer an ideal base learner for ensembling.  `NEFEnsemble` trains
+N independent models with different random seeds and combines predictions
+via probability averaging or majority voting.
+
+**Receptive field encoders** (``encoder_strategy="receptive_field"``) give
+each neuron a random local patch of the image rather than a global
+projection.  This injects spatial locality — like a randomised convolution
+— without any gradient training.  Following McDonnell et al. (2015), local
+receptive fields are the single biggest accuracy lever for random-weight
+single-layer networks on image tasks.
+
+Ensemble benchmarks can be run with:
+
+```bash
+python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
+       --neurons 2000 --ensemble --ensemble-members 20 \
+       --ensemble-receptive-field --seed 0
+```
+
+#### Incremental / online learning
+
+`NEFLayer` supports incremental learning via normal-equation accumulation.
+Instead of loading all data at once, data can be streamed in chunks:
+
+```python
+layer = NEFLayer(d_in=784, n_neurons=2000, d_out=10, centers=x_train)
+for batch_x, batch_y in data_stream:
+    layer.partial_fit(batch_x, batch_y)  # accumulates AᵀA and AᵀY
+layer.solve_accumulated(alpha=1e-2)      # solve once from totals
+```
+
+This produces the same result as `fit()` on the full dataset (up to
+floating-point accumulation order), but works with data that doesn't fit in
+memory or arrives over time.  Call `reset_accumulators()` to start fresh.
 
 #### Why data-driven biases matter (2000 neurons, abs activation)
 

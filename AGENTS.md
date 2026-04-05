@@ -20,6 +20,7 @@ pip install -e '.[dev]'
 
 # Benchmarks (use --seed 0 so reruns stay comparable)
 python benchmarks/run.py --multi --seed 0
+python benchmarks/run.py --ensemble --ensemble-members 20 --ensemble-receptive-field --seed 0
 python benchmarks/run_recurrent.py --seed 0
 ```
 
@@ -68,15 +69,24 @@ output layer decodes.  Five training strategies are supported:
 
 - `encoders.py` — encoder generation strategies, each registered in
   `ENCODER_STRATEGIES` dict.  Use `make_encoders(n, dim, strategy=...)`.
+  Strategies: `hypersphere` (default), `gaussian`, `sparse`,
+  `receptive_field` (local image patches for spatial locality).
 - `activations.py` — rate neuron models, registered in `ACTIVATIONS` dict.
   Use `make_activation(name, ...)`.
 - `solvers.py` — decoder solvers, registered in `SOLVERS` dict.
   Use `solve_decoders(A, targets, method=...)`.
 - `layers.py` — `NEFLayer(nn.Module)` ties them together.
   `forward()` runs the full pipeline; `fit()` solves decoders analytically.
+  `partial_fit()` / `solve_accumulated()` enable incremental/online learning
+  via normal-equation accumulation.
   Accepts optional `centers=` training data to derive data-driven biases
   (`bias = -gain * (d · e)`), placing each neuron around a training sample.
   Gain can be scalar, range tuple, or per-neuron tensor (`_gain` buffer).
+  `encoder_kwargs=` dict passes strategy-specific args (e.g. `image_shape`).
+- `ensemble.py` — `NEFEnsemble(nn.Module)` wraps N independent NEFLayers
+  with different random seeds.  Combines via probability averaging (`mean`)
+  or majority voting (`vote`).  Ideal for exploiting the fast analytic
+  solve: 20 members × 2s = 40s, still faster than one gradient-trained MLP.
 - `networks.py` — `NEFNetwork(nn.Module)` stacks NEFLayers with the five
   training strategies above.  Also supports `hybrid_e2e` (hybrid → E2E).
 - `recurrent.py` — `RecurrentNEFLayer(nn.Module)` implements the NEF
