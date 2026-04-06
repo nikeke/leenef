@@ -47,12 +47,12 @@ If this fails, fix the environment before attempting longer suites.
 Provides two predefined suites:
 
 - `row_focus` — the first recommended Colab run
-  - StreamNEF on row-wise sMNIST at a fast config
-  - StreamNEF on row-wise sMNIST at a stronger config
+  - StreamNEF 2k (Woodbury and accumulate) on row-wise sMNIST
+  - StreamNEF 8k (Woodbury and accumulate) on row-wise sMNIST
   - LSTM baseline on row-wise sMNIST
 - `sequential_hard` — the longer-sequence follow-up
-  - StreamNEF on pixel sMNIST
-  - StreamNEF on permuted-pixel sMNIST
+  - StreamNEF on pixel sMNIST (accumulate, GPU-friendly)
+  - StreamNEF on permuted-pixel sMNIST (accumulate)
   - LSTM baselines on both
 
 Both suites support `--quick` for a much smaller validation run.
@@ -105,30 +105,35 @@ and whether it stays competitive against an LSTM baseline.
 
 ## Interpreting the likely outcome
 
-One caveat matters:
+The `row_focus` suite now runs both Woodbury (float64) and accumulate
+(float32) variants for each configuration, making the dtype impact
+directly measurable.
+
+Key caveats:
 
 - `continuous_fit()` uses a **float64 Woodbury inverse** for stability.
+  Consumer GPUs deliver only ~1/32 of float32 throughput in float64.
+- `accumulate()` + `solve()` is **pure float32**, avoiding the GPU
+  bottleneck.  It produces mathematically equivalent results but cannot
+  provide online decoder updates during training.
 
-That is numerically necessary, but Colab GPUs are not especially fast at
-float64.  So the strongest GPU story may not be “Woodbury becomes
-dramatically faster,” but rather:
-
-- larger sequence tasks become practical,
-- larger sweeps become easier to run,
-- and the comparison against gradient-trained baselines becomes cleaner.
+The strongest GPU story is the accumulate path: it should show
+significantly better speedups than the Woodbury path, especially at
+8000 neurons where the float64 inverse dominates wall-clock time.
 
 ## GPU vs TPU
 
 Prefer a **CUDA GPU** for now.
 
 The current Colab path is plain PyTorch and does **not** include a
-`torch_xla` TPU execution path.  Also, the continuous Woodbury update uses
-float64 for numerical stability, which is a better fit for CPU / GPU than
-for TPU-focused mixed-precision workflows.
+`torch_xla` TPU execution path.  The accumulate+solve path is pure
+float32 and should work well on any GPU.  The continuous Woodbury path
+uses float64, which is a better fit for CPU / GPU than for TPU.
 
 So for the current repository state:
 
-- **T4 / L4 GPU:** recommended
+- **T4 / L4 GPU:** recommended (use `--suite row_focus` for both
+  Woodbury and accumulate comparison)
 - **TPU v5e:** not currently a priority target
 
 ## Comparing results later
