@@ -205,7 +205,29 @@ class NEFLayer(nn.Module):
                 f"x and targets must have same number of samples, "
                 f"got {x.shape[0]} vs {targets.shape[0]}"
             )
-        A = self.encode(x)  # (k, n)
+        A = self.encode(x)
+        self.continuous_fit_encoded(A, targets, alpha=alpha)
+
+    @torch.no_grad()
+    def continuous_fit_encoded(
+        self, activities: Tensor, targets: Tensor, alpha: float = 1e-2
+    ) -> None:
+        """Like :meth:`continuous_fit` but from pre-encoded activities.
+
+        Useful when the activity matrix has already been computed externally
+        (e.g. after temporal pooling in a streaming classifier).
+
+        Args:
+            activities: (N, n_neurons) pre-encoded neuron activities.
+            targets:    (N, d_out) target batch.
+            alpha:      Fixed Tikhonov regularisation strength.
+        """
+        if activities.shape[0] != targets.shape[0]:
+            raise ValueError(
+                f"activities and targets must have same number of samples, "
+                f"got {activities.shape[0]} vs {targets.shape[0]}"
+            )
+        A = activities  # (k, n)
         ata = A.T @ A
         aty = A.T @ targets
 
@@ -218,25 +240,16 @@ class NEFLayer(nn.Module):
             self._aty.add_(aty)
 
         if not hasattr(self, "_M_inv") or self._M_inv is None:
-            # Start from the regulariser-only inverse: M₀ = αI, M₀⁻¹ = (1/α)I.
-            # Every batch — including the first — is then a Woodbury update.
-            # This is more numerically stable than inverting the first-batch
-            # system, which is ill-conditioned when k < n.
             n = A.shape[1]
             self._M_inv = torch.eye(n, device=A.device, dtype=A.dtype) / alpha
             self._woodbury_alpha = alpha
 
         k, n = A.shape
         if k >= n:
-            # Batch at least as large as the neuron count — a direct solve
-            # of the (n×n) system is both faster and more numerically stable
-            # than the (k×k) Woodbury auxiliary solve.
             M = self._ata.clone()
             M.diagonal().add_(alpha)
             self._M_inv = torch.linalg.inv(M)
         else:
-            # Woodbury rank-k update:
-            # M_new⁻¹ = M⁻¹ − M⁻¹ Aᵀ (I_k + A M⁻¹ Aᵀ)⁻¹ A M⁻¹
             V = A @ self._M_inv              # (k, n)
             C = torch.eye(k, device=A.device, dtype=A.dtype)
             C.addmm_(A, V.T)                 # I_k + A M⁻¹ Aᵀ  (k, k)
