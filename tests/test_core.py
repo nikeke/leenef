@@ -406,3 +406,116 @@ class TestIncrementalFit:
         layer = NEFLayer(3, 100, 2)
         with pytest.raises(RuntimeError, match="No accumulated"):
             layer.solve_accumulated()
+
+
+# ── Continuous fit (Woodbury) ─────────────────────────────────────────
+
+
+class TestContinuousFit:
+    def test_single_batch_matches_manual_solve(self):
+        """Single continuous_fit call should match manual fixed-alpha solve."""
+        torch.manual_seed(60)
+        x = torch.randn(300, 4)
+        y = torch.randn(300, 2)
+        alpha = 1e-2
+
+        rng1 = torch.Generator().manual_seed(300)
+        layer = NEFLayer(4, 200, 2, rng=rng1)
+        layer.continuous_fit(x, y, alpha=alpha)
+
+        # Manual solve with same fixed alpha (no trace scaling)
+        rng2 = torch.Generator().manual_seed(300)
+        layer_ref = NEFLayer(4, 200, 2, rng=rng2)
+        A = layer_ref.encode(x)
+        ATA = A.T @ A
+        ATA.diagonal().add_(alpha)
+        expected = torch.linalg.solve(ATA, A.T @ y)
+
+        # inv() and solve() take different numerical paths in float32
+        assert torch.allclose(layer.decoders.data, expected, atol=5e-3)
+
+    def test_refresh_corrects_woodbury_drift(self):
+        """After chunked Woodbury updates, refresh_inverse recovers exact solution."""
+        torch.manual_seed(61)
+        x = torch.randn(400, 5)
+        y = torch.randn(400, 3)
+        alpha = 1e-2
+
+        # Chunked via Woodbury (50 < 200 triggers rank-k path)
+        rng1 = torch.Generator().manual_seed(310)
+        layer = NEFLayer(5, 200, 3, rng=rng1)
+        for cx, cy in zip(x.split(50), y.split(50)):
+            layer.continuous_fit(cx, cy, alpha=alpha)
+
+        decoders_woodbury = layer.decoders.data.clone()
+
+        # Refresh recomputes inv(ATA + αI) exactly from accumulators
+        layer.refresh_inverse(alpha=alpha)
+        decoders_refreshed = layer.decoders.data.clone()
+
+        # Also compute expected result manually from the same accumulators
+        M = layer._ata.clone()
+        M.diagonal().add_(alpha)
+        expected = torch.linalg.inv(M) @ layer._aty
+
+        # Refreshed should match the manual result very closely
+        assert torch.allclose(decoders_refreshed, expected, atol=1e-4)
+
+        # Woodbury should be close but not exact (FP drift)
+        drift = (decoders_woodbury - decoders_refreshed).abs().max().item()
+        assert drift < 1.0  # bounded drift
+
+    def test_model_usable_after_each_call(self):
+        """Decoders should be updated after every continuous_fit call."""
+        torch.manual_seed(62)
+        w = torch.randn(3, 1)
+        x = torch.randn(200, 3)
+        y = (x @ w).sign()
+
+        layer = NEFLayer(3, 500, 1, rng=torch.Generator().manual_seed(320))
+        accuracies = []
+        for cx, cy in zip(x.split(50), y.split(50)):
+            layer.continuous_fit(cx, cy)
+            preds = layer(x).sign()
+            acc = (preds == y).float().mean().item()
+            accuracies.append(acc)
+
+        assert accuracies[-1] > 0.7
+
+    def test_accumulators_match_partial_fit(self):
+        """continuous_fit and partial_fit should accumulate identical ATA/ATY."""
+        torch.manual_seed(63)
+        x = torch.randn(300, 4)
+        y = torch.randn(300, 2)
+
+        rng1 = torch.Generator().manual_seed(330)
+        layer_inc = NEFLayer(4, 200, 2, rng=rng1)
+        for cx, cy in zip(x.split(30), y.split(30)):
+            layer_inc.partial_fit(cx, cy)
+
+        rng2 = torch.Generator().manual_seed(330)
+        layer_cont = NEFLayer(4, 200, 2, rng=rng2)
+        for cx, cy in zip(x.split(30), y.split(30)):
+            layer_cont.continuous_fit(cx, cy)
+
+        assert torch.allclose(layer_inc._ata, layer_cont._ata, atol=1e-4)
+        assert torch.allclose(layer_inc._aty, layer_cont._aty, atol=1e-4)
+
+    def test_reset_continuous(self):
+        """reset_continuous should clear all state."""
+        layer = NEFLayer(3, 100, 2)
+        layer.continuous_fit(torch.randn(20, 3), torch.randn(20, 2))
+        layer.reset_continuous()
+        assert layer._ata is None
+        assert layer._M_inv is None
+        assert not hasattr(layer, "_woodbury_alpha")
+
+    def test_continuous_fit_sample_mismatch(self):
+        layer = NEFLayer(3, 100, 2)
+        with pytest.raises(ValueError, match="same number of samples"):
+            layer.continuous_fit(torch.randn(10, 3), torch.randn(20, 2))
+
+    def test_refresh_without_data(self):
+        layer = NEFLayer(3, 100, 2)
+        with pytest.raises(RuntimeError, match="No accumulated"):
+            layer.refresh_inverse()

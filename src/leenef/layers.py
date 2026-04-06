@@ -178,3 +178,102 @@ class NEFLayer(nn.Module):
             self._ata = None
         if hasattr(self, "_aty"):
             self._aty = None
+
+    # ── Continuous fit (Woodbury rank-k updates) ──────────────────────
+
+    @torch.no_grad()
+    def continuous_fit(self, x: Tensor, targets: Tensor, alpha: float = 1e-2) -> None:
+        """Accumulate new data and update decoders via rank-k Woodbury update.
+
+        On the first call (or after :meth:`reset_continuous`), performs an
+        initial solve and caches the system inverse.  Subsequent calls apply
+        the Sherman-Morrison-Woodbury identity for *O(n²k)* updates (where
+        *k* is the batch size) instead of the *O(n³)* full re-solve.
+
+        The method also maintains ``_ata`` / ``_aty`` accumulators so that
+        :meth:`refresh_inverse` can periodically perform an exact re-solve
+        to bound accumulated floating-point drift.
+
+        Args:
+            x:       (N, d_in) input data batch.
+            targets: (N, d_out) target batch.
+            alpha:   Fixed Tikhonov regularisation strength (not trace-scaled,
+                     to keep the cached inverse consistent across updates).
+        """
+        if x.shape[0] != targets.shape[0]:
+            raise ValueError(
+                f"x and targets must have same number of samples, "
+                f"got {x.shape[0]} vs {targets.shape[0]}"
+            )
+        A = self.encode(x)  # (k, n)
+        ata = A.T @ A
+        aty = A.T @ targets
+
+        # Accumulate normal equations (for refresh_inverse / solve_accumulated)
+        if not hasattr(self, "_ata") or self._ata is None:
+            self.register_buffer("_ata", ata)
+            self.register_buffer("_aty", aty)
+        else:
+            self._ata.add_(ata)
+            self._aty.add_(aty)
+
+        if not hasattr(self, "_M_inv") or self._M_inv is None:
+            # Start from the regulariser-only inverse: M₀ = αI, M₀⁻¹ = (1/α)I.
+            # Every batch — including the first — is then a Woodbury update.
+            # This is more numerically stable than inverting the first-batch
+            # system, which is ill-conditioned when k < n.
+            n = A.shape[1]
+            self._M_inv = torch.eye(n, device=A.device, dtype=A.dtype) / alpha
+            self._woodbury_alpha = alpha
+
+        k, n = A.shape
+        if k >= n:
+            # Batch at least as large as the neuron count — a direct solve
+            # of the (n×n) system is both faster and more numerically stable
+            # than the (k×k) Woodbury auxiliary solve.
+            M = self._ata.clone()
+            M.diagonal().add_(alpha)
+            self._M_inv = torch.linalg.inv(M)
+        else:
+            # Woodbury rank-k update:
+            # M_new⁻¹ = M⁻¹ − M⁻¹ Aᵀ (I_k + A M⁻¹ Aᵀ)⁻¹ A M⁻¹
+            V = A @ self._M_inv              # (k, n)
+            C = torch.eye(k, device=A.device, dtype=A.dtype)
+            C.addmm_(A, V.T)                 # I_k + A M⁻¹ Aᵀ  (k, k)
+            C_inv_V = torch.linalg.solve(C, V)  # (k, n)
+            self._M_inv.sub_(V.T @ C_inv_V)  # in-place (n, n)
+
+        self.decoders.data.copy_(self._M_inv @ self._aty)
+
+    @torch.no_grad()
+    def refresh_inverse(self, alpha: float | None = None) -> None:
+        """Recompute the Woodbury inverse exactly from accumulated statistics.
+
+        Call periodically during long streaming runs to bound numerical
+        drift.  Requires at least one prior :meth:`partial_fit` or
+        :meth:`continuous_fit` call.
+
+        Args:
+            alpha: Tikhonov α.  Defaults to the value used in the last
+                   :meth:`continuous_fit` call.
+        """
+        if not hasattr(self, "_ata") or self._ata is None:
+            raise RuntimeError("No accumulated statistics — call continuous_fit() first")
+        if alpha is None:
+            if hasattr(self, "_woodbury_alpha"):
+                alpha = self._woodbury_alpha
+            else:
+                alpha = 1e-2
+        M = self._ata.clone()
+        M.diagonal().add_(alpha)
+        self._M_inv = torch.linalg.inv(M)
+        self._woodbury_alpha = alpha
+        self.decoders.data.copy_(self._M_inv @ self._aty)
+
+    def reset_continuous(self) -> None:
+        """Clear Woodbury inverse, accumulators, and decoders."""
+        self.reset_accumulators()
+        if hasattr(self, "_M_inv"):
+            self._M_inv = None
+        if hasattr(self, "_woodbury_alpha"):
+            del self._woodbury_alpha
