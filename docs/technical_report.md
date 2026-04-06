@@ -549,23 +549,30 @@ The Woodbury path's float64 requirement is a significant bottleneck on
 consumer GPUs.  The Tesla T4, for example, delivers only 1/32 of its
 float32 throughput in float64.  For workloads where online decoder updates
 are not required — i.e. the model only needs to be accurate *after* seeing
-all data — the library provides a pure float32 alternative:
+all data — the library provides a lighter alternative:
 
-- `accumulate(x, targets)` — encodes the batch and updates AᵀA/AᵀY in
-  float32.  No inverse is maintained; cost is O(n²k) per batch.
+- `accumulate(x, targets)` — encodes the batch in float32, then
+  accumulates AᵀA/AᵀY in float64.  No inverse is maintained; cost is
+  O(n²k) per batch.  The encoding itself (the expensive part on GPU)
+  stays in float32; only the small n×n and n×d_out accumulator matrices
+  are promoted to float64.
 - `solve(alpha)` — performs a single Tikhonov-regularised solve from the
-  accumulated statistics.  Cost is O(n³), once.
+  accumulated statistics in float64, then casts decoders back to float32.
+  Cost is O(n³), once.
 
-This is mathematically equivalent to batch `fit()` applied to the full
-dataset, but processes data in chunks to control peak memory.  On a T4:
+The key advantage over Woodbury is **no n×n inverse maintenance**: the
+Woodbury path performs O(n²k) float64 work *per batch* to update the
+inverse, while accumulate performs O(n²k) float64 work per batch only
+for the outer products, and a single O(n³) float64 solve at the end.
 
-- **2000 neurons:** the accumulate path replaces 120 float64 Woodbury
-  updates (O(n²k) each) with 120 float32 AᵀA accumulations plus one
-  float32 solve (O(n³)).  The 32× dtype speedup more than compensates
-  for the single cubic solve.
-- **8000 neurons:** the crossover is tighter (the O(n³) solve is 16×
-  more work than a single Woodbury update), but the dtype advantage
-  still wins by roughly 2×.
+On a T4 GPU (sMNIST-row, 120 batches):
+
+| Config | Woodbury | Accumulate | Speedup |
+|--------|----------|------------|---------|
+| 2000n w=10 | 8.1s / 97.24% | 1.0s / 97.24%* | **8×** |
+| 8000n w=10 | 92.2s / 98.30% | 6.2s / 98.30%* | **15×** |
+
+*Accuracy after fixing regularisation parity (see below).
 
 Both paths share the same AᵀA/AᵀY accumulators, so they can be mixed:
 use `accumulate()` for the main data pass, then switch to `continuous_fit()`
@@ -1467,10 +1474,11 @@ ground with NEF-TP and offer avenues for integration:
     (98.3%) and RecNEF-E2E (98.5%) — without any gradient computation.
     Float64 arithmetic for the inverse is essential; float32 drift
     causes catastrophic failure at ≥4000 neurons.  For GPU deployment,
-    the accumulate + solve path (Section 3.7.2) avoids float64 entirely
-    by deferring the solve to a single float32 Cholesky factorisation,
-    yielding identical accuracy with better hardware utilisation on
-    consumer GPUs.
+    the accumulate + solve path (Section 3.7.2) avoids per-batch
+    inverse maintenance by accumulating AᵀA/AᵀY (with float64
+    outer products only) and performing a single solve at the end.
+    On a T4 GPU this yields 8–15× speedup over Woodbury while
+    matching accuracy.
 
 12. **The delay-line reservoir sidesteps the recurrent gradient-free
     bottleneck.**  Gradient-free recurrent models (RecNEF-greedy: 15%)
