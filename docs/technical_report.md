@@ -551,19 +551,21 @@ float32 throughput in float64.  For workloads where online decoder updates
 are not required — i.e. the model only needs to be accurate *after* seeing
 all data — the library provides a lighter alternative:
 
-- `accumulate(x, targets)` — encodes the batch in float32, then
-  accumulates AᵀA/AᵀY in float64.  No inverse is maintained; cost is
-  O(n²k) per batch.  The encoding itself (the expensive part on GPU)
-  stays in float32; only the small n×n and n×d_out accumulator matrices
-  are promoted to float64.
+- `accumulate(x, targets)` — encodes the batch and computes AᵀA/AᵀY
+  entirely in float32, then promotes the n×n and n×d_out results to
+  float64 for accumulation.  No inverse is maintained; cost is O(n²k)
+  float32 matmul per batch plus an O(n²) dtype cast.
 - `solve(alpha)` — performs a single Tikhonov-regularised solve from the
   accumulated statistics in float64, then casts decoders back to float32.
   Cost is O(n³), once.
 
-The key advantage over Woodbury is **no n×n inverse maintenance**: the
-Woodbury path performs O(n²k) float64 work *per batch* to update the
-inverse, while accumulate performs O(n²k) float64 work per batch only
-for the outer products, and a single O(n³) float64 solve at the end.
+The key advantage over Woodbury is that **all O(n²k) matmuls are
+float32**: Woodbury performs O(n²k) *float64* work per batch to update
+the inverse, while accumulate does O(n²k) *float32* work per batch (fast
+GPU tensor cores) and only uses float64 for the O(n²) accumulator
+additions and the single final solve.  A single batch's outer product
+has sufficient precision in float32; the running sum across batches is
+where float64 matters.
 
 On a T4 GPU (sMNIST-row, 120 batches):
 
@@ -1367,11 +1369,11 @@ is competitive as a real-time temporal classifier on commodity hardware.
 - **GPU dtype tradeoff.**  The Woodbury continuous-fit path requires
   float64 for numerical stability, but consumer GPUs (T4, L4) deliver
   only 1/32 of their float32 throughput in float64.  The accumulate +
-  solve path (Section 3.7.2) works entirely in float32, but sacrifices
-  online decoder updates.  Initial T4 measurements show StreamNEF-8k
-  at 92s (Woodbury, float64) vs LSTM-128 at 21s — a 2.4× CPU→GPU
-  speedup compared to LSTM's 4.7×.  The accumulate path should close
-  this gap significantly.
+  solve path (Section 3.7.2) keeps all O(n²k) matmuls in float32 and
+  uses float64 only for O(n²) accumulator additions and the single
+  final solve — yielding 8–15× speedup over Woodbury on a T4 while
+  matching accuracy.  The tradeoff is that online decoder updates
+  are not available; the model must see all data before solving.
 
 ### 6.4 Relationship to Prior Work
 
@@ -1474,11 +1476,10 @@ ground with NEF-TP and offer avenues for integration:
     (98.3%) and RecNEF-E2E (98.5%) — without any gradient computation.
     Float64 arithmetic for the inverse is essential; float32 drift
     causes catastrophic failure at ≥4000 neurons.  For GPU deployment,
-    the accumulate + solve path (Section 3.7.2) avoids per-batch
-    inverse maintenance by accumulating AᵀA/AᵀY (with float64
-    outer products only) and performing a single solve at the end.
-    On a T4 GPU this yields 8–15× speedup over Woodbury while
-    matching accuracy.
+    the accumulate + solve path (Section 3.7.2) keeps all expensive
+    matmuls in float32 and uses float64 only for small accumulator
+    sums and the single final solve.  On a T4 GPU this yields 8–15×
+    speedup over Woodbury while matching accuracy.
 
 12. **The delay-line reservoir sidesteps the recurrent gradient-free
     bottleneck.**  Gradient-free recurrent models (RecNEF-greedy: 15%)
