@@ -507,18 +507,24 @@ def run_lstm_baseline(
 
     if verbose:
         print("    evaluating", flush=True)
+
+    # LSTM memory scales with sequence length — reduce eval batch for long
+    # sequences to avoid GPU OOM (e.g. pixel mode: T=784).
+    T = x_train_seq.shape[1]
+    lstm_eval_batch = max(64, eval_batch_size * 28 // max(T, 1))
+
     train_acc = batched_classification_accuracy(
         model,
         x_train_seq,
         y_train,
-        batch_size=eval_batch_size,
+        batch_size=lstm_eval_batch,
         move_to_device=runtime_device,
     )
     test_acc = batched_classification_accuracy(
         model,
         x_test_seq,
         y_test,
-        batch_size=eval_batch_size,
+        batch_size=lstm_eval_batch,
         move_to_device=runtime_device,
     )
 
