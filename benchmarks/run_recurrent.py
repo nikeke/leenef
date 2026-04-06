@@ -308,7 +308,7 @@ def run_streaming_nef(
     batch_size: int = 1000,
     data_root: str = "./data",
     seed: int | None = 0,
-    streaming: bool = True,
+    solve_mode: str = "woodbury",
     device: str = "cpu",
     eval_batch_size: int = 2048,
     verbose: bool = False,
@@ -321,9 +321,15 @@ def run_streaming_nef(
 
     Args:
         mode:            ``"row"``, ``"pixel"``, or ``"pixel_permuted"``.
-        streaming:       If True, trains with continuous_fit (Woodbury).
-                         If False, trains with batch fit.
+        solve_mode:      Training strategy:
+                         ``"woodbury"`` — streaming with Woodbury rank-k
+                         updates (float64 inverse, true online learning).
+                         ``"accumulate"`` — streaming accumulate + final
+                         solve (float32-safe, GPU-friendly).
+                         ``"batch"`` — full-dataset fit in one shot.
     """
+    if solve_mode not in ("woodbury", "accumulate", "batch"):
+        raise ValueError(f"Unknown solve_mode {solve_mode!r}")
     set_benchmark_seed(seed)
     runtime_device = resolve_benchmark_device(device)
     data_seed = 0 if seed is None else seed
@@ -355,16 +361,15 @@ def run_streaming_nef(
     targets = targets.to(runtime_device)
 
     if verbose:
-        strategy_name = "streaming" if streaming else "batch"
         print(
-            f"  StreamNEF-{strategy_name}: mode={mode}, neurons={n_neurons}, "
+            f"  StreamNEF-{solve_mode}: mode={mode}, neurons={n_neurons}, "
             f"window={window_size}, alpha={alpha}, device={runtime_device}",
             flush=True,
         )
 
     synchronize_if_cuda(runtime_device)
     t0 = time.perf_counter()
-    if streaming:
+    if solve_mode == "woodbury":
         n_batches = (len(x_train_seq) + batch_size - 1) // batch_size
         log_every = max(1, n_batches // 10)
         for batch_idx, i in enumerate(range(0, len(x_train_seq), batch_size), start=1):
@@ -380,6 +385,21 @@ def run_streaming_nef(
         if verbose:
             print("    refreshing inverse", flush=True)
         clf.refresh_inverse(alpha=alpha)
+    elif solve_mode == "accumulate":
+        n_batches = (len(x_train_seq) + batch_size - 1) // batch_size
+        log_every = max(1, n_batches // 10)
+        for batch_idx, i in enumerate(range(0, len(x_train_seq), batch_size), start=1):
+            clf.accumulate(
+                x_train_seq[i : i + batch_size],
+                targets[i : i + batch_size],
+            )
+            if verbose and (
+                batch_idx == 1 or batch_idx == n_batches or batch_idx % log_every == 0
+            ):
+                print(f"    batch {batch_idx}/{n_batches}", flush=True)
+        if verbose:
+            print("    solving decoders (float32)", flush=True)
+        clf.solve(alpha=alpha)
     else:
         if verbose:
             print("    solving batch decoder", flush=True)
@@ -394,14 +414,13 @@ def run_streaming_nef(
     )
     test_acc = batched_classification_accuracy(clf, x_test_seq, y_test, batch_size=eval_batch_size)
 
-    strategy_name = "streaming" if streaming else "batch"
     return BenchmarkResult(
-        name=f"StreamNEF-{strategy_name}",
+        name=f"StreamNEF-{solve_mode}",
         dataset=f"sMNIST-{mode}",
         n_neurons=n_neurons,
         activation=activation,
         encoder_strategy=encoder_strategy,
-        solver=f"woodbury-α{alpha}" if streaming else f"tikhonov-α{alpha}",
+        solver=f"{solve_mode}-α{alpha}",
         solver_kwargs={"alpha": alpha, "window_size": window_size, "batch_size": batch_size},
         metric_name="accuracy",
         train_metric=train_acc,
@@ -590,6 +609,13 @@ def build_recurrent_benchmark_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Also run the streaming NEF (delay-line reservoir) benchmark",
     )
+    parser.add_argument(
+        "--streaming-solve-mode",
+        nargs="+",
+        default=["woodbury"],
+        choices=["woodbury", "accumulate", "batch"],
+        help="Solve mode(s) for streaming benchmark (default: woodbury)",
+    )
     parser.add_argument("--streaming-window", type=int, default=5, help="Delay-line window size")
     parser.add_argument(
         "--streaming-neurons",
@@ -673,9 +699,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.streaming:
         stream_neurons = args.streaming_neurons or args.neurons
-        for streaming_mode in (True, False):
-            label = "streaming" if streaming_mode else "batch"
-            print(f"Running StreamNEF-{label} on sMNIST-{args.mode}...")
+        for sm in args.streaming_solve_mode:
+            print(f"Running StreamNEF-{sm} on sMNIST-{args.mode}...")
             results.append(
                 run_streaming_nef(
                     mode=args.mode,
@@ -686,9 +711,10 @@ def main(argv: list[str] | None = None) -> int:
                     use_centers=use_centers,
                     data_root=args.data_root,
                     seed=args.seed,
-                    streaming=streaming_mode,
+                    solve_mode=sm,
                     device=args.device,
                     eval_batch_size=args.eval_batch,
+                    verbose=args.verbose,
                 )
             )
 

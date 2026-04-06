@@ -158,3 +158,39 @@ class TestStreamingNEFClassifier:
         assert out1.shape == (5, 3)
         assert out2.shape == (5, 3)
         assert out3.shape == (5, 3)
+
+    def test_accumulate_solve_matches_batch_fit(self):
+        """accumulate() + solve() should produce same decoders as batch fit()."""
+        torch.manual_seed(80)
+        N, T, d = 100, 8, 2
+        x_seq = torch.randn(N, T, d)
+        targets = torch.randn(N, 3)
+        alpha = 1e-2
+
+        rng1 = torch.Generator().manual_seed(800)
+        clf_batch = StreamingNEFClassifier(d, 150, 3, window_size=4, rng=rng1)
+        clf_batch.fit(x_seq, targets, alpha=alpha)
+
+        rng2 = torch.Generator().manual_seed(800)
+        clf_acc = StreamingNEFClassifier(d, 150, 3, window_size=4, rng=rng2)
+        # Accumulate in two chunks, then solve
+        clf_acc.accumulate(x_seq[:50], targets[:50])
+        clf_acc.accumulate(x_seq[50:], targets[50:])
+        clf_acc.solve(alpha=alpha)
+
+        assert torch.allclose(clf_batch.decoders.data, clf_acc.decoders.data, atol=1e-3)
+
+    def test_accumulate_solve_no_float64(self):
+        """accumulate + solve should not create any float64 tensors."""
+        torch.manual_seed(81)
+        clf = StreamingNEFClassifier(2, 100, 3, window_size=3)
+        clf.accumulate(torch.randn(20, 5, 2), torch.randn(20, 3))
+        clf.solve(alpha=1e-2)
+
+        # _M_inv should not exist (no Woodbury)
+        assert not hasattr(clf, "_M_inv") or clf._M_inv is None
+        # ATA and ATY should be float32
+        assert clf._ata.dtype == torch.float32
+        assert clf._aty.dtype == torch.float32
+        # Decoders should be float32
+        assert clf.decoders.dtype == torch.float32

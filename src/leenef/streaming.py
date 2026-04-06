@@ -14,7 +14,7 @@ from torch import Tensor
 from .activations import make_activation
 from .encoders import make_encoders
 from .layers import _make_gain
-from .solvers import solve_decoders
+from .solvers import solve_decoders, solve_from_normal_equations
 
 
 class StreamingNEFClassifier(nn.Module):
@@ -208,6 +208,44 @@ class StreamingNEFClassifier(nn.Module):
             self._M_inv.sub_(V.T @ C_inv_V)
 
         self.decoders.data.copy_((self._M_inv @ self._aty.double()).to(self.decoders.dtype))
+
+    @torch.no_grad()
+    def accumulate(self, x_seq: Tensor, targets: Tensor) -> None:
+        """Accumulate normal-equation statistics without solving.
+
+        GPU-friendly alternative to :meth:`continuous_fit`.  Accumulates
+        AᵀA and AᵀY in the model's working dtype (float32) — no float64.
+        Call :meth:`solve` when you want updated decoders.
+
+        Args:
+            x_seq:   (N, T, d) input sequences.
+            targets: (N, d_out) target values.
+        """
+        A = self.encode_sequence(x_seq)  # (N, n)
+        ata = A.T @ A
+        aty = A.T @ targets
+
+        if not hasattr(self, "_ata") or self._ata is None:
+            self.register_buffer("_ata", ata)
+            self.register_buffer("_aty", aty)
+        else:
+            self._ata.add_(ata)
+            self._aty.add_(aty)
+
+    @torch.no_grad()
+    def solve(self, alpha: float = 1e-2) -> None:
+        """Solve decoders from accumulated statistics.  Float32-safe.
+
+        Must be called after one or more :meth:`accumulate` calls
+        (or :meth:`continuous_fit` calls — they share the same AᵀA/AᵀY).
+
+        Args:
+            alpha: Tikhonov regularisation strength (trace-scaled).
+        """
+        if not hasattr(self, "_ata") or self._ata is None:
+            raise RuntimeError("No accumulated statistics — call accumulate() first")
+        D = solve_from_normal_equations(self._ata, self._aty, alpha=alpha)
+        self.decoders.data.copy_(D)
 
     @torch.no_grad()
     def refresh_inverse(self, alpha: float | None = None) -> None:
