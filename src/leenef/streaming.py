@@ -50,8 +50,9 @@ class StreamingNEFClassifier(nn.Module):
         encoder_strategy:  Encoder strategy for the temporal encoders.
         gain:              Per-neuron gain specification.
         rng:               Optional ``torch.Generator`` for reproducibility.
-        centers:           Optional (N, T, d) training sequences for
-                           data-driven biases (first window is used).
+        centers:           Optional (N, T, d) training sequences from which
+                           delay-line windows are sampled for data-driven
+                           biases.
         encoder_kwargs:    Extra keyword arguments for the encoder strategy.
     """
 
@@ -85,13 +86,14 @@ class StreamingNEFClassifier(nn.Module):
         self.register_buffer("encoders", enc)
         self.activation = make_activation(activation, **act_kwargs)
 
-        # Data-driven biases from delay-line features of training sequences
+        # Data-driven biases from sampled delay-line windows of the training
+        # sequences. Sampling the flattened window indices directly avoids
+        # materializing the full (N, T, K*d) tensor for large sequential tasks.
         if centers is not None:
-            delay = self._delay_features(centers)
-            # Flatten all timesteps and subsample for centers
-            flat = delay.reshape(-1, d_in)
-            idx = torch.randint(len(flat), (n_neurons,), generator=rng)
-            bias = -self._gain * (flat[idx].float() * enc).sum(dim=1)
+            total_windows = centers.shape[0] * centers.shape[1]
+            idx = torch.randint(total_windows, (n_neurons,), generator=rng)
+            sampled = self._flat_delay_windows(centers, idx)
+            bias = -self._gain * (sampled.float() * enc).sum(dim=1)
         else:
             bias = torch.randn(n_neurons, generator=rng)
         self.register_buffer("bias", bias)
@@ -111,6 +113,18 @@ class StreamingNEFClassifier(nn.Module):
             x_seq.shape[0], x_seq.shape[1], K * self.d_timestep
         )
 
+    def _flat_delay_windows(self, x_seq: Tensor, flat_idx: Tensor) -> Tensor:
+        """Gather selected delay-line windows by flattened ``(sample, timestep)`` index."""
+        K = self.window_size
+        _, n_steps, _ = x_seq.shape
+        flat_idx = flat_idx.to(x_seq.device)
+        sample_idx = torch.div(flat_idx, n_steps, rounding_mode="floor")
+        step_idx = torch.remainder(flat_idx, n_steps)
+        padded = F.pad(x_seq, (0, 0, K - 1, 0))
+        offsets = torch.arange(K, device=x_seq.device)
+        windows = padded[sample_idx.unsqueeze(1), step_idx.unsqueeze(1) + offsets]
+        return windows.reshape(len(flat_idx), K * self.d_timestep)
+
     def _encode_flat(self, x_flat: Tensor) -> Tensor:
         """Encode flat delay-line features (M, K*d) → activities (M, n)."""
         return self.activation(self._gain * (x_flat @ self.encoders.T) + self.bias)
@@ -121,17 +135,19 @@ class StreamingNEFClassifier(nn.Module):
         Processes in chunks when N*T exceeds *max_tokens* to limit peak
         memory (the intermediate activity tensor is (N*T, n_neurons)).
         """
-        delay = self._delay_features(x_seq)  # (N, T, K*d)
-        N, T, Kd = delay.shape
+        N, T, _ = x_seq.shape
         total = N * T
         if total <= max_tokens:
+            delay = self._delay_features(x_seq)  # (N, T, K*d)
+            _, _, Kd = delay.shape
             acts = self._encode_flat(delay.reshape(total, Kd))
             return acts.reshape(N, T, -1).mean(dim=1)
         chunk = max(1, max_tokens // T)
         pooled = []
         for i in range(0, N, chunk):
-            d_chunk = delay[i : i + chunk]
+            d_chunk = self._delay_features(x_seq[i : i + chunk])
             Nc = d_chunk.shape[0]
+            Kd = d_chunk.shape[2]
             a = self._encode_flat(d_chunk.reshape(Nc * T, Kd))
             pooled.append(a.reshape(Nc, T, -1).mean(dim=1))
         return torch.cat(pooled, dim=0)

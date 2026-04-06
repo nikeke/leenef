@@ -29,6 +29,23 @@ class TestStreamingNEFClassifier:
         expected = torch.cat([x_seq[0, 7], x_seq[0, 8], x_seq[0, 9]])
         assert torch.allclose(delay[0, 9], expected)
 
+    def test_flat_delay_windows_matches_materialized_delay(self):
+        """Sampled delay windows should match the materialized flattened tensor."""
+        clf = StreamingNEFClassifier(2, 100, 1, window_size=3)
+        x_seq = torch.randn(4, 5, 2)
+        idx = torch.tensor([0, 3, 7, 12, 19])
+        expected = clf._delay_features(x_seq).reshape(-1, 6)[idx]
+        actual = clf._flat_delay_windows(x_seq, idx)
+        assert torch.allclose(actual, expected)
+
+    def test_encode_sequence_chunked_matches_unchunked(self):
+        """Chunked sequence encoding should match the unchunked path."""
+        x_seq = torch.randn(20, 10, 3)
+        clf = StreamingNEFClassifier(3, 120, 2, window_size=4)
+        full = clf.encode_sequence(x_seq, max_tokens=1_000_000)
+        chunked = clf.encode_sequence(x_seq, max_tokens=50)
+        assert torch.allclose(chunked, full, atol=1e-6)
+
     def test_batch_fit(self):
         """fit() should train decoders to reasonable accuracy on a simple task."""
         torch.manual_seed(70)

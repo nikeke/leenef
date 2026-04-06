@@ -15,11 +15,24 @@ from benchmarks.run import format_results, save_results_csv, save_results_json  
 from benchmarks.run_recurrent import run_lstm_baseline, run_streaming_nef  # noqa: E402
 
 
+def _run_labeled(label: str, fn, /, **kwargs):
+    """Run one suite item with explicit progress messages."""
+    print(f"Running {label}...", flush=True)
+    result = fn(**kwargs)
+    print(
+        f"Finished {label}: test={result.test_metric:.2%}, fit_time={result.fit_time:.2f}s",
+        flush=True,
+    )
+    return result
+
+
 def run_row_focus_suite(args: argparse.Namespace) -> list:
     """Run the row-wise sMNIST suite."""
     if args.quick:
         return [
-            run_streaming_nef(
+            _run_labeled(
+                "StreamNEF row quick",
+                run_streaming_nef,
                 mode="row",
                 n_neurons=512,
                 window_size=5,
@@ -30,8 +43,11 @@ def run_row_focus_suite(args: argparse.Namespace) -> list:
                 streaming=True,
                 device=args.device,
                 eval_batch_size=args.eval_batch,
+                verbose=True,
             ),
-            run_lstm_baseline(
+            _run_labeled(
+                "LSTM row quick",
+                run_lstm_baseline,
                 mode="row",
                 hidden_size=64,
                 n_epochs=1,
@@ -40,11 +56,14 @@ def run_row_focus_suite(args: argparse.Namespace) -> list:
                 seed=args.seed,
                 device=args.device,
                 eval_batch_size=args.eval_batch,
+                verbose=True,
             ),
         ]
 
     return [
-        run_streaming_nef(
+        _run_labeled(
+            "StreamNEF row 2k",
+            run_streaming_nef,
             mode="row",
             n_neurons=2000,
             window_size=10,
@@ -55,8 +74,11 @@ def run_row_focus_suite(args: argparse.Namespace) -> list:
             streaming=True,
             device=args.device,
             eval_batch_size=args.eval_batch,
+            verbose=True,
         ),
-        run_streaming_nef(
+        _run_labeled(
+            "StreamNEF row 8k",
+            run_streaming_nef,
             mode="row",
             n_neurons=8000,
             window_size=10,
@@ -67,8 +89,11 @@ def run_row_focus_suite(args: argparse.Namespace) -> list:
             streaming=True,
             device=args.device,
             eval_batch_size=args.eval_batch,
+            verbose=True,
         ),
-        run_lstm_baseline(
+        _run_labeled(
+            "LSTM row 128",
+            run_lstm_baseline,
             mode="row",
             hidden_size=128,
             n_epochs=args.lstm_epochs,
@@ -77,6 +102,7 @@ def run_row_focus_suite(args: argparse.Namespace) -> list:
             seed=args.seed,
             device=args.device,
             eval_batch_size=args.eval_batch,
+            verbose=True,
         ),
     ]
 
@@ -85,7 +111,9 @@ def run_sequential_hard_suite(args: argparse.Namespace) -> list:
     """Run the longer-sequence sMNIST pixel suites."""
     if args.quick:
         return [
-            run_streaming_nef(
+            _run_labeled(
+                "StreamNEF pixel quick",
+                run_streaming_nef,
                 mode="pixel",
                 n_neurons=512,
                 window_size=28,
@@ -96,8 +124,11 @@ def run_sequential_hard_suite(args: argparse.Namespace) -> list:
                 streaming=True,
                 device=args.device,
                 eval_batch_size=args.eval_batch,
+                verbose=True,
             ),
-            run_lstm_baseline(
+            _run_labeled(
+                "LSTM pixel quick",
+                run_lstm_baseline,
                 mode="pixel",
                 hidden_size=64,
                 n_epochs=1,
@@ -106,11 +137,14 @@ def run_sequential_hard_suite(args: argparse.Namespace) -> list:
                 seed=args.seed,
                 device=args.device,
                 eval_batch_size=args.eval_batch,
+                verbose=True,
             ),
         ]
 
     return [
-        run_streaming_nef(
+        _run_labeled(
+            "StreamNEF pixel w28",
+            run_streaming_nef,
             mode="pixel",
             n_neurons=4000,
             window_size=28,
@@ -121,8 +155,11 @@ def run_sequential_hard_suite(args: argparse.Namespace) -> list:
             streaming=True,
             device=args.device,
             eval_batch_size=args.eval_batch,
+            verbose=True,
         ),
-        run_streaming_nef(
+        _run_labeled(
+            "StreamNEF pixel w56",
+            run_streaming_nef,
             mode="pixel",
             n_neurons=4000,
             window_size=56,
@@ -133,8 +170,11 @@ def run_sequential_hard_suite(args: argparse.Namespace) -> list:
             streaming=True,
             device=args.device,
             eval_batch_size=args.eval_batch,
+            verbose=True,
         ),
-        run_streaming_nef(
+        _run_labeled(
+            "StreamNEF permuted w56",
+            run_streaming_nef,
             mode="pixel_permuted",
             n_neurons=4000,
             window_size=56,
@@ -145,8 +185,11 @@ def run_sequential_hard_suite(args: argparse.Namespace) -> list:
             streaming=True,
             device=args.device,
             eval_batch_size=args.eval_batch,
+            verbose=True,
         ),
-        run_lstm_baseline(
+        _run_labeled(
+            "LSTM pixel 128",
+            run_lstm_baseline,
             mode="pixel",
             hidden_size=128,
             n_epochs=args.lstm_epochs,
@@ -155,8 +198,11 @@ def run_sequential_hard_suite(args: argparse.Namespace) -> list:
             seed=args.seed,
             device=args.device,
             eval_batch_size=args.eval_batch,
+            verbose=True,
         ),
-        run_lstm_baseline(
+        _run_labeled(
+            "LSTM permuted 128",
+            run_lstm_baseline,
             mode="pixel_permuted",
             hidden_size=128,
             n_epochs=args.lstm_epochs,
@@ -165,6 +211,7 @@ def run_sequential_hard_suite(args: argparse.Namespace) -> list:
             seed=args.seed,
             device=args.device,
             eval_batch_size=args.eval_batch,
+            verbose=True,
         ),
     ]
 

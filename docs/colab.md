@@ -12,6 +12,9 @@ source of experiment logic.
 4. If that looks good, run the **hard sequential suite**.
 5. Save the produced JSON / CSV files and share them back.
 
+Longer suites print explicit progress now, so a cell that stays quiet for
+minutes is no longer expected behaviour.
+
 ## What each artifact does
 
 ### `notebooks/colab_launcher.ipynb`
@@ -53,6 +56,12 @@ Provides two predefined suites:
   - LSTM baselines on both
 
 Both suites support `--quick` for a much smaller validation run.
+
+The suite runner prints:
+
+- benchmark start / finish lines,
+- streaming batch progress for long StreamNEF runs,
+- and epoch progress for LSTM runs.
 
 ## Suggested first Colab runs
 
@@ -107,6 +116,20 @@ dramatically faster,” but rather:
 - larger sequence tasks become practical,
 - larger sweeps become easier to run,
 - and the comparison against gradient-trained baselines becomes cleaner.
+
+## GPU vs TPU
+
+Prefer a **CUDA GPU** for now.
+
+The current Colab path is plain PyTorch and does **not** include a
+`torch_xla` TPU execution path.  Also, the continuous Woodbury update uses
+float64 for numerical stability, which is a better fit for CPU / GPU than
+for TPU-focused mixed-precision workflows.
+
+So for the current repository state:
+
+- **T4 / L4 GPU:** recommended
+- **TPU v5e:** not currently a priority target
 
 ## Comparing results later
 

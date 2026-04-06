@@ -311,6 +311,7 @@ def run_streaming_nef(
     streaming: bool = True,
     device: str = "cpu",
     eval_batch_size: int = 2048,
+    verbose: bool = False,
 ) -> BenchmarkResult:
     """Run a streaming NEF benchmark on Sequential MNIST.
 
@@ -353,21 +354,41 @@ def run_streaming_nef(
     y_test = y_test.to(runtime_device)
     targets = targets.to(runtime_device)
 
+    if verbose:
+        strategy_name = "streaming" if streaming else "batch"
+        print(
+            f"  StreamNEF-{strategy_name}: mode={mode}, neurons={n_neurons}, "
+            f"window={window_size}, alpha={alpha}, device={runtime_device}",
+            flush=True,
+        )
+
     synchronize_if_cuda(runtime_device)
     t0 = time.perf_counter()
     if streaming:
-        for i in range(0, len(x_train_seq), batch_size):
+        n_batches = (len(x_train_seq) + batch_size - 1) // batch_size
+        log_every = max(1, n_batches // 10)
+        for batch_idx, i in enumerate(range(0, len(x_train_seq), batch_size), start=1):
             clf.continuous_fit(
                 x_train_seq[i : i + batch_size],
                 targets[i : i + batch_size],
                 alpha=alpha,
             )
+            if verbose and (
+                batch_idx == 1 or batch_idx == n_batches or batch_idx % log_every == 0
+            ):
+                print(f"    batch {batch_idx}/{n_batches}", flush=True)
+        if verbose:
+            print("    refreshing inverse", flush=True)
         clf.refresh_inverse(alpha=alpha)
     else:
+        if verbose:
+            print("    solving batch decoder", flush=True)
         clf.fit(x_train_seq, targets, alpha=alpha)
     synchronize_if_cuda(runtime_device)
     fit_time = time.perf_counter() - t0
 
+    if verbose:
+        print("    evaluating", flush=True)
     train_acc = batched_classification_accuracy(
         clf, x_train_seq, y_train, batch_size=eval_batch_size
     )
@@ -418,6 +439,7 @@ def run_lstm_baseline(
     seed: int | None = 0,
     device: str = "cpu",
     eval_batch_size: int = 2048,
+    verbose: bool = False,
 ) -> BenchmarkResult:
     """Train an LSTM baseline on Sequential MNIST."""
     set_benchmark_seed(seed)
@@ -440,9 +462,17 @@ def run_lstm_baseline(
         generator=torch.Generator().manual_seed(data_seed),
     )
 
+    if verbose:
+        print(
+            f"  LSTM-{hidden_size}: mode={mode}, epochs={n_epochs}, batch={batch_size}, "
+            f"device={runtime_device}",
+            flush=True,
+        )
+
     synchronize_if_cuda(runtime_device)
     t0 = time.perf_counter()
-    for _ in range(n_epochs):
+    log_every = max(1, n_epochs // 10)
+    for epoch in range(1, n_epochs + 1):
         for xb, yb in loader:
             xb = xb.to(runtime_device)
             yb = yb.to(runtime_device)
@@ -451,9 +481,13 @@ def run_lstm_baseline(
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+        if verbose and (epoch == 1 or epoch == n_epochs or epoch % log_every == 0):
+            print(f"    epoch {epoch}/{n_epochs}", flush=True)
     synchronize_if_cuda(runtime_device)
     fit_time = time.perf_counter() - t0
 
+    if verbose:
+        print("    evaluating", flush=True)
     train_acc = batched_classification_accuracy(
         model,
         x_train_seq,
@@ -538,6 +572,7 @@ def build_recurrent_benchmark_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--data-root", default="./data")
     parser.add_argument("--device", default="cpu", choices=["cpu", "cuda", "auto"])
+    parser.add_argument("--verbose", action="store_true", help="Print per-benchmark progress")
     parser.add_argument(
         "--eval-batch",
         type=int,
@@ -614,6 +649,7 @@ def main(argv: list[str] | None = None) -> int:
                 seed=args.seed,
                 device=args.device,
                 eval_batch_size=args.eval_batch,
+                verbose=args.verbose,
             )
         )
 
@@ -631,6 +667,7 @@ def main(argv: list[str] | None = None) -> int:
                 seed=args.seed,
                 device=args.device,
                 eval_batch_size=args.eval_batch,
+                verbose=args.verbose,
             )
         )
 
