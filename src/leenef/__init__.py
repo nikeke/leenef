@@ -7,12 +7,14 @@ from .layers import NEFLayer
 from .networks import NEFNetwork
 from .recurrent import RecurrentNEFLayer
 from .solvers import SOLVERS, solve_decoders, solve_from_normal_equations
+from .streaming import StreamingNEFClassifier
 
 __all__ = [
     "NEFLayer",
     "NEFEnsemble",
     "NEFNetwork",
     "RecurrentNEFLayer",
+    "StreamingNEFClassifier",
     "make_encoders",
     "ENCODER_STRATEGIES",
     "make_activation",
