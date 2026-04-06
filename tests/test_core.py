@@ -428,10 +428,11 @@ class TestContinuousFit:
         layer_ref = NEFLayer(4, 200, 2, rng=rng2)
         A = layer_ref.encode(x)
         ATA = A.T @ A
-        ATA.diagonal().add_(alpha)
-        expected = torch.linalg.solve(ATA, A.T @ y)
+        ATA_d = ATA.double()
+        ATA_d.diagonal().add_(alpha)
+        expected = (torch.linalg.inv(ATA_d) @ (A.T @ y).double()).float()
 
-        # inv() and solve() take different numerical paths in float32
+        # float64-inverse path vs float32-solve reference: close but not identical
         assert torch.allclose(layer.decoders.data, expected, atol=5e-3)
 
     def test_refresh_corrects_woodbury_drift(self):
@@ -454,9 +455,10 @@ class TestContinuousFit:
         decoders_refreshed = layer.decoders.data.clone()
 
         # Also compute expected result manually from the same accumulators
-        M = layer._ata.clone()
+        # (using float64 to match the code path in refresh_inverse)
+        M = layer._ata.double()
         M.diagonal().add_(alpha)
-        expected = torch.linalg.inv(M) @ layer._aty
+        expected = (torch.linalg.inv(M) @ layer._aty.double()).float()
 
         # Refreshed should match the manual result very closely
         assert torch.allclose(decoders_refreshed, expected, atol=1e-4)

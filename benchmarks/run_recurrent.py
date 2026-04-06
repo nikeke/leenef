@@ -462,14 +462,20 @@ def build_recurrent_benchmark_parser() -> argparse.ArgumentParser:
     parser.add_argument("--lstm-lr", type=float, default=1e-3)
     parser.add_argument("--lstm-batch", type=int, default=256)
     parser.add_argument(
-        "--streaming", action="store_true",
+        "--streaming",
+        action="store_true",
         help="Also run the streaming NEF (delay-line reservoir) benchmark",
     )
     parser.add_argument("--streaming-window", type=int, default=5, help="Delay-line window size")
-    parser.add_argument("--streaming-neurons", type=int, default=None,
-                        help="Neurons for streaming (default: same as --neurons)")
-    parser.add_argument("--streaming-batch", type=int, default=1000,
-                        help="Batch size for streaming continuous_fit")
+    parser.add_argument(
+        "--streaming-neurons",
+        type=int,
+        default=None,
+        help="Neurons for streaming (default: same as --neurons)",
+    )
+    parser.add_argument(
+        "--streaming-batch", type=int, default=1000, help="Batch size for streaming continuous_fit"
+    )
     parser.add_argument(
         "--save-json", type=Path, default=None, help="Write results to a JSON file"
     )

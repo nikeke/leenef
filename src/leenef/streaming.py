@@ -115,12 +115,26 @@ class StreamingNEFClassifier(nn.Module):
         """Encode flat delay-line features (M, K*d) → activities (M, n)."""
         return self.activation(self._gain * (x_flat @ self.encoders.T) + self.bias)
 
-    def encode_sequence(self, x_seq: Tensor) -> Tensor:
-        """Encode sequence to mean-pooled activities. (N, T, d) → (N, n)."""
+    def encode_sequence(self, x_seq: Tensor, max_tokens: int = 50_000) -> Tensor:
+        """Encode sequence to mean-pooled activities. (N, T, d) → (N, n).
+
+        Processes in chunks when N*T exceeds *max_tokens* to limit peak
+        memory (the intermediate activity tensor is (N*T, n_neurons)).
+        """
         delay = self._delay_features(x_seq)  # (N, T, K*d)
         N, T, Kd = delay.shape
-        acts = self._encode_flat(delay.reshape(N * T, Kd))  # (N*T, n)
-        return acts.reshape(N, T, -1).mean(dim=1)  # (N, n)
+        total = N * T
+        if total <= max_tokens:
+            acts = self._encode_flat(delay.reshape(total, Kd))
+            return acts.reshape(N, T, -1).mean(dim=1)
+        chunk = max(1, max_tokens // T)
+        pooled = []
+        for i in range(0, N, chunk):
+            d_chunk = delay[i : i + chunk]
+            Nc = d_chunk.shape[0]
+            a = self._encode_flat(d_chunk.reshape(Nc * T, Kd))
+            pooled.append(a.reshape(Nc, T, -1).mean(dim=1))
+        return torch.cat(pooled, dim=0)
 
     def forward(self, x_seq: Tensor) -> Tensor:
         """Forward pass: encode sequence → decode. (N, T, d) → (N, d_out)."""
@@ -161,22 +175,23 @@ class StreamingNEFClassifier(nn.Module):
 
         if not hasattr(self, "_M_inv") or self._M_inv is None:
             n = A.shape[1]
-            self._M_inv = torch.eye(n, device=A.device, dtype=A.dtype) / alpha
+            self._M_inv = torch.eye(n, device=A.device, dtype=torch.float64) / alpha
             self._woodbury_alpha = alpha
 
         k, n = A.shape
         if k >= n:
-            M = self._ata.clone()
+            M = self._ata.double()
             M.diagonal().add_(alpha)
             self._M_inv = torch.linalg.inv(M)
         else:
-            V = A @ self._M_inv
-            C = torch.eye(k, device=A.device, dtype=A.dtype)
-            C.addmm_(A, V.T)
+            A_d = A.double()
+            V = A_d @ self._M_inv
+            C = torch.eye(k, device=A.device, dtype=torch.float64)
+            C.addmm_(A_d, V.T)
             C_inv_V = torch.linalg.solve(C, V)
             self._M_inv.sub_(V.T @ C_inv_V)
 
-        self.decoders.data.copy_(self._M_inv @ self._aty)
+        self.decoders.data.copy_((self._M_inv @ self._aty.double()).to(self.decoders.dtype))
 
     @torch.no_grad()
     def refresh_inverse(self, alpha: float | None = None) -> None:
@@ -185,11 +200,11 @@ class StreamingNEFClassifier(nn.Module):
             raise RuntimeError("No accumulated statistics — call continuous_fit() first")
         if alpha is None:
             alpha = getattr(self, "_woodbury_alpha", 1e-2)
-        M = self._ata.clone()
+        M = self._ata.double()
         M.diagonal().add_(alpha)
         self._M_inv = torch.linalg.inv(M)
         self._woodbury_alpha = alpha
-        self.decoders.data.copy_(self._M_inv @ self._aty)
+        self.decoders.data.copy_((self._M_inv @ self._aty.double()).to(self.decoders.dtype))
 
     def reset_continuous(self) -> None:
         """Clear all continuous-learning state."""

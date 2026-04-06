@@ -239,24 +239,27 @@ class NEFLayer(nn.Module):
             self._ata.add_(ata)
             self._aty.add_(aty)
 
+        # Woodbury inverse is maintained in float64 to prevent drift
+        # across many rank-k updates in float32.
         if not hasattr(self, "_M_inv") or self._M_inv is None:
             n = A.shape[1]
-            self._M_inv = torch.eye(n, device=A.device, dtype=A.dtype) / alpha
+            self._M_inv = torch.eye(n, device=A.device, dtype=torch.float64) / alpha
             self._woodbury_alpha = alpha
 
         k, n = A.shape
         if k >= n:
-            M = self._ata.clone()
+            M = self._ata.double()
             M.diagonal().add_(alpha)
             self._M_inv = torch.linalg.inv(M)
         else:
-            V = A @ self._M_inv              # (k, n)
-            C = torch.eye(k, device=A.device, dtype=A.dtype)
-            C.addmm_(A, V.T)                 # I_k + A M⁻¹ Aᵀ  (k, k)
+            A_d = A.double()
+            V = A_d @ self._M_inv  # (k, n) float64
+            C = torch.eye(k, device=A.device, dtype=torch.float64)
+            C.addmm_(A_d, V.T)  # I_k + A M⁻¹ Aᵀ  (k, k)
             C_inv_V = torch.linalg.solve(C, V)  # (k, n)
             self._M_inv.sub_(V.T @ C_inv_V)  # in-place (n, n)
 
-        self.decoders.data.copy_(self._M_inv @ self._aty)
+        self.decoders.data.copy_((self._M_inv @ self._aty.double()).to(self.decoders.dtype))
 
     @torch.no_grad()
     def refresh_inverse(self, alpha: float | None = None) -> None:
@@ -277,11 +280,11 @@ class NEFLayer(nn.Module):
                 alpha = self._woodbury_alpha
             else:
                 alpha = 1e-2
-        M = self._ata.clone()
+        M = self._ata.double()
         M.diagonal().add_(alpha)
         self._M_inv = torch.linalg.inv(M)
         self._woodbury_alpha = alpha
-        self.decoders.data.copy_(self._M_inv @ self._aty)
+        self.decoders.data.copy_((self._M_inv @ self._aty.double()).to(self.decoders.dtype))
 
     def reset_continuous(self) -> None:
         """Clear Woodbury inverse, accumulators, and decoders."""

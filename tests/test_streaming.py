@@ -40,7 +40,10 @@ class TestStreamingNEFClassifier:
         targets[torch.arange(N), y] = 1.0
 
         clf = StreamingNEFClassifier(
-            d, 500, 2, window_size=3,
+            d,
+            500,
+            2,
+            window_size=3,
             rng=torch.Generator().manual_seed(700),
         )
         clf.fit(x_seq, targets)
@@ -80,7 +83,10 @@ class TestStreamingNEFClassifier:
         targets[torch.arange(N), y] = 1.0
 
         clf = StreamingNEFClassifier(
-            d, 500, 2, window_size=3,
+            d,
+            500,
+            2,
+            window_size=3,
             rng=torch.Generator().manual_seed(720),
         )
         accuracies = []
@@ -97,7 +103,10 @@ class TestStreamingNEFClassifier:
         """StreamingNEFClassifier should accept centers for data-driven biases."""
         x_seq = torch.randn(50, 10, 4)
         clf = StreamingNEFClassifier(
-            4, 100, 2, window_size=3,
+            4,
+            100,
+            2,
+            window_size=3,
             centers=x_seq,
             rng=torch.Generator().manual_seed(730),
         )
