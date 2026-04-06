@@ -23,6 +23,7 @@ python benchmarks/run.py --multi --seed 0
 python benchmarks/run.py --ensemble --ensemble-members 20 --ensemble-receptive-field --seed 0
 python benchmarks/run_recurrent.py --seed 0
 python benchmarks/run_recurrent.py --streaming --streaming-neurons 4000 --streaming-window 10 --seed 0
+python benchmarks/run_recurrent.py --streaming --streaming-solve-mode accumulate --streaming-neurons 4000 --streaming-window 10 --seed 0
 ```
 
 ## Architecture
@@ -111,7 +112,8 @@ output layer decodes.  Five training strategies are supported:
   variable-length temporal sequences using a delay-line reservoir approach.
   Overlapping windows of K consecutive timesteps are encoded through random
   NEF neurons, mean-pooled over time, and decoded to class labels.
-  Supports batch `fit()` and continuous Woodbury `continuous_fit()`.
+  Supports batch `fit()`, continuous Woodbury `continuous_fit()`, and
+  GPU-friendly `accumulate()` + `solve()` (float32, no Woodbury inverse).
   `encode_sequence()` chunks internally to limit peak memory for large
   models.  Achieves 98.57% on sMNIST-row without gradient descent.
 
