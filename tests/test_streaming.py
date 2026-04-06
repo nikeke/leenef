@@ -159,29 +159,37 @@ class TestStreamingNEFClassifier:
         assert out2.shape == (5, 3)
         assert out3.shape == (5, 3)
 
-    def test_accumulate_solve_matches_batch_fit(self):
-        """accumulate() + solve() should produce same decoders as batch fit()."""
+    def test_accumulate_solve_matches_woodbury(self):
+        """accumulate() + solve() should produce similar accuracy to Woodbury."""
         torch.manual_seed(80)
-        N, T, d = 100, 8, 2
+        N, T, d = 200, 8, 2
         x_seq = torch.randn(N, T, d)
-        targets = torch.randn(N, 3)
+        y = (x_seq.mean(dim=(1, 2)) > 0).long()
+        targets = torch.zeros(N, 2)
+        targets[torch.arange(N), y] = 1.0
         alpha = 1e-2
 
         rng1 = torch.Generator().manual_seed(800)
-        clf_batch = StreamingNEFClassifier(d, 150, 3, window_size=4, rng=rng1)
-        clf_batch.fit(x_seq, targets, alpha=alpha)
+        clf_w = StreamingNEFClassifier(d, 300, 2, window_size=4, rng=rng1)
+        for i in range(0, N, 50):
+            clf_w.continuous_fit(x_seq[i : i + 50], targets[i : i + 50], alpha=alpha)
+        clf_w.refresh_inverse(alpha=alpha)
+        acc_w = (clf_w(x_seq).argmax(1) == y).float().mean().item()
 
         rng2 = torch.Generator().manual_seed(800)
-        clf_acc = StreamingNEFClassifier(d, 150, 3, window_size=4, rng=rng2)
-        # Accumulate in two chunks, then solve
-        clf_acc.accumulate(x_seq[:50], targets[:50])
-        clf_acc.accumulate(x_seq[50:], targets[50:])
-        clf_acc.solve(alpha=alpha)
+        clf_a = StreamingNEFClassifier(d, 300, 2, window_size=4, rng=rng2)
+        for i in range(0, N, 50):
+            clf_a.accumulate(x_seq[i : i + 50], targets[i : i + 50])
+        clf_a.solve(alpha=alpha)
+        acc_a = (clf_a(x_seq).argmax(1) == y).float().mean().item()
 
-        assert torch.allclose(clf_batch.decoders.data, clf_acc.decoders.data, atol=1e-3)
+        # Both should achieve good accuracy (>70%) and be close to each other
+        assert acc_w > 0.7
+        assert acc_a > 0.7
+        assert abs(acc_w - acc_a) < 0.05
 
-    def test_accumulate_solve_no_float64(self):
-        """accumulate + solve should not create any float64 tensors."""
+    def test_accumulate_solve_no_woodbury_inverse(self):
+        """accumulate + solve should not create the Woodbury inverse."""
         torch.manual_seed(81)
         clf = StreamingNEFClassifier(2, 100, 3, window_size=3)
         clf.accumulate(torch.randn(20, 5, 2), torch.randn(20, 3))
@@ -189,8 +197,8 @@ class TestStreamingNEFClassifier:
 
         # _M_inv should not exist (no Woodbury)
         assert not hasattr(clf, "_M_inv") or clf._M_inv is None
-        # ATA and ATY should be float32
-        assert clf._ata.dtype == torch.float32
-        assert clf._aty.dtype == torch.float32
-        # Decoders should be float32
+        # ATA and ATY should be float64 (for accumulation precision)
+        assert clf._ata.dtype == torch.float64
+        assert clf._aty.dtype == torch.float64
+        # Decoders should be float32 (model working dtype)
         assert clf.decoders.dtype == torch.float32

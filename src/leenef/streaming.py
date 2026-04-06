@@ -14,7 +14,7 @@ from torch import Tensor
 from .activations import make_activation
 from .encoders import make_encoders
 from .layers import _make_gain
-from .solvers import solve_decoders, solve_from_normal_equations
+from .solvers import solve_decoders
 
 
 class StreamingNEFClassifier(nn.Module):
@@ -214,16 +214,19 @@ class StreamingNEFClassifier(nn.Module):
         """Accumulate normal-equation statistics without solving.
 
         GPU-friendly alternative to :meth:`continuous_fit`.  Accumulates
-        AᵀA and AᵀY in the model's working dtype (float32) — no float64.
+        AᵀA and AᵀY in float64 for numerical stability, but avoids
+        maintaining the expensive n×n Woodbury inverse.
         Call :meth:`solve` when you want updated decoders.
 
         Args:
             x_seq:   (N, T, d) input sequences.
             targets: (N, d_out) target values.
         """
-        A = self.encode_sequence(x_seq)  # (N, n)
-        ata = A.T @ A
-        aty = A.T @ targets
+        A = self.encode_sequence(x_seq)  # (N, n) — float32 encoding
+        # Accumulate in float64 to avoid loss of precision in the Gram matrix
+        A_d = A.double()
+        ata = A_d.T @ A_d
+        aty = A_d.T @ targets.double()
 
         if not hasattr(self, "_ata") or self._ata is None:
             self.register_buffer("_ata", ata)
@@ -234,18 +237,25 @@ class StreamingNEFClassifier(nn.Module):
 
     @torch.no_grad()
     def solve(self, alpha: float = 1e-2) -> None:
-        """Solve decoders from accumulated statistics.  Float32-safe.
+        """Solve decoders from accumulated statistics.
+
+        Uses fixed (non-trace-scaled) regularisation to match the Woodbury
+        path, so that results are comparable regardless of solve strategy.
+        The solve runs in the accumulator dtype (float64 when fed by
+        :meth:`accumulate`).
 
         Must be called after one or more :meth:`accumulate` calls
         (or :meth:`continuous_fit` calls — they share the same AᵀA/AᵀY).
 
         Args:
-            alpha: Tikhonov regularisation strength (trace-scaled).
+            alpha: Tikhonov regularisation strength (fixed, not trace-scaled).
         """
         if not hasattr(self, "_ata") or self._ata is None:
             raise RuntimeError("No accumulated statistics — call accumulate() first")
-        D = solve_from_normal_equations(self._ata, self._aty, alpha=alpha)
-        self.decoders.data.copy_(D)
+        ATA = self._ata.clone()
+        ATA.diagonal().add_(alpha)
+        D = torch.linalg.solve(ATA, self._aty)
+        self.decoders.data.copy_(D.to(self.decoders.dtype))
 
     @torch.no_grad()
     def refresh_inverse(self, alpha: float | None = None) -> None:
