@@ -17,7 +17,6 @@ for _path in (str(_project_root), str(_project_root / "src")):
 
 from benchmarks.run import (  # noqa: E402
     BenchmarkResult,
-    classification_accuracy,
     format_results,
     one_hot,
     save_results_csv,
@@ -26,6 +25,45 @@ from benchmarks.run import (  # noqa: E402
 )
 from leenef.recurrent import RecurrentNEFLayer  # noqa: E402
 from leenef.streaming import StreamingNEFClassifier  # noqa: E402
+
+
+def resolve_benchmark_device(device: str) -> torch.device:
+    """Resolve ``cpu`` / ``cuda`` / ``auto`` to a concrete device."""
+    if device == "auto":
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if device == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("CUDA requested but not available")
+    return torch.device(device)
+
+
+def synchronize_if_cuda(device: torch.device) -> None:
+    """Synchronize CUDA before/after timing-sensitive regions."""
+    if device.type == "cuda":
+        torch.cuda.synchronize()
+
+
+def batched_classification_accuracy(
+    model: nn.Module,
+    x: Tensor,
+    y: Tensor,
+    *,
+    batch_size: int = 2048,
+    move_to_device: torch.device | None = None,
+) -> float:
+    """Evaluate classification accuracy in chunks to bound peak memory."""
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for i in range(0, len(x), batch_size):
+            xb = x[i : i + batch_size]
+            yb = y[i : i + batch_size]
+            if move_to_device is not None:
+                xb = xb.to(move_to_device)
+                yb = yb.to(move_to_device)
+            pred = model(xb)
+            correct += (pred.argmax(dim=1) == yb).sum().item()
+            total += len(yb)
+    return correct / total
 
 
 def load_sequential_mnist(
@@ -119,6 +157,8 @@ def run_recurrent_nef(
     state_target: str = "reconstruction",
     auxiliary_weight: float = 0.0,
     tp_project_targets: bool = False,
+    device: str = "cpu",
+    eval_batch_size: int = 2048,
 ) -> BenchmarkResult:
     """Run a recurrent NEF benchmark on Sequential MNIST.
 
@@ -130,6 +170,7 @@ def run_recurrent_nef(
     """
     solver_kwargs = solver_kwargs or {"alpha": 1e-2}
     set_benchmark_seed(seed)
+    runtime_device = resolve_benchmark_device(device)
     data_seed = 0 if seed is None else seed
 
     (x_train_seq, _, y_train), (x_test_seq, _, y_test) = load_sequential_mnist(
@@ -149,8 +190,15 @@ def run_recurrent_nef(
         encoder_strategy=encoder_strategy,
         gain=gain,
         centers=centers,
-    )
+    ).to(runtime_device)
 
+    x_train_seq = x_train_seq.to(runtime_device)
+    x_test_seq = x_test_seq.to(runtime_device)
+    y_train = y_train.to(runtime_device)
+    y_test = y_test.to(runtime_device)
+    targets = targets.to(runtime_device)
+
+    synchronize_if_cuda(runtime_device)
     t0 = time.perf_counter()
     if strategy == "greedy":
         layer.fit_greedy(
@@ -218,11 +266,15 @@ def run_recurrent_nef(
         )
     else:
         raise ValueError(f"Unknown strategy {strategy!r}")
+    synchronize_if_cuda(runtime_device)
     fit_time = time.perf_counter() - t0
 
-    with torch.no_grad():
-        train_acc = classification_accuracy(layer(x_train_seq), y_train)
-        test_acc = classification_accuracy(layer(x_test_seq), y_test)
+    train_acc = batched_classification_accuracy(
+        layer, x_train_seq, y_train, batch_size=eval_batch_size
+    )
+    test_acc = batched_classification_accuracy(
+        layer, x_test_seq, y_test, batch_size=eval_batch_size
+    )
 
     return BenchmarkResult(
         name=f"RecNEF-{strategy}",
@@ -257,6 +309,8 @@ def run_streaming_nef(
     data_root: str = "./data",
     seed: int | None = 0,
     streaming: bool = True,
+    device: str = "cpu",
+    eval_batch_size: int = 2048,
 ) -> BenchmarkResult:
     """Run a streaming NEF benchmark on Sequential MNIST.
 
@@ -270,6 +324,7 @@ def run_streaming_nef(
                          If False, trains with batch fit.
     """
     set_benchmark_seed(seed)
+    runtime_device = resolve_benchmark_device(device)
     data_seed = 0 if seed is None else seed
 
     (x_train_seq, _, y_train), (x_test_seq, _, y_test) = load_sequential_mnist(
@@ -290,8 +345,15 @@ def run_streaming_nef(
         gain=gain,
         rng=rng,
         centers=x_train_seq if use_centers else None,
-    )
+    ).to(runtime_device)
 
+    x_train_seq = x_train_seq.to(runtime_device)
+    x_test_seq = x_test_seq.to(runtime_device)
+    y_train = y_train.to(runtime_device)
+    y_test = y_test.to(runtime_device)
+    targets = targets.to(runtime_device)
+
+    synchronize_if_cuda(runtime_device)
     t0 = time.perf_counter()
     if streaming:
         for i in range(0, len(x_train_seq), batch_size):
@@ -303,11 +365,13 @@ def run_streaming_nef(
         clf.refresh_inverse(alpha=alpha)
     else:
         clf.fit(x_train_seq, targets, alpha=alpha)
+    synchronize_if_cuda(runtime_device)
     fit_time = time.perf_counter() - t0
 
-    with torch.no_grad():
-        train_acc = classification_accuracy(clf(x_train_seq), y_train)
-        test_acc = classification_accuracy(clf(x_test_seq), y_test)
+    train_acc = batched_classification_accuracy(
+        clf, x_train_seq, y_train, batch_size=eval_batch_size
+    )
+    test_acc = batched_classification_accuracy(clf, x_test_seq, y_test, batch_size=eval_batch_size)
 
     strategy_name = "streaming" if streaming else "batch"
     return BenchmarkResult(
@@ -352,16 +416,19 @@ def run_lstm_baseline(
     batch_size: int = 256,
     data_root: str = "./data",
     seed: int | None = 0,
+    device: str = "cpu",
+    eval_batch_size: int = 2048,
 ) -> BenchmarkResult:
     """Train an LSTM baseline on Sequential MNIST."""
     set_benchmark_seed(seed)
+    runtime_device = resolve_benchmark_device(device)
     data_seed = 0 if seed is None else seed
     (x_train_seq, _, y_train), (x_test_seq, _, y_test) = load_sequential_mnist(
         mode=mode, root=data_root, seed=data_seed
     )
     _, _, d_in = x_train_seq.shape
 
-    model = _LSTMClassifier(d_in, hidden_size, n_classes=10, n_layers=n_layers)
+    model = _LSTMClassifier(d_in, hidden_size, n_classes=10, n_layers=n_layers).to(runtime_device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     loss_fn = nn.CrossEntropyLoss()
 
@@ -373,19 +440,34 @@ def run_lstm_baseline(
         generator=torch.Generator().manual_seed(data_seed),
     )
 
+    synchronize_if_cuda(runtime_device)
     t0 = time.perf_counter()
     for _ in range(n_epochs):
         for xb, yb in loader:
+            xb = xb.to(runtime_device)
+            yb = yb.to(runtime_device)
             pred = model(xb)
             loss = loss_fn(pred, yb)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+    synchronize_if_cuda(runtime_device)
     fit_time = time.perf_counter() - t0
 
-    with torch.no_grad():
-        train_acc = classification_accuracy(model(x_train_seq), y_train)
-        test_acc = classification_accuracy(model(x_test_seq), y_test)
+    train_acc = batched_classification_accuracy(
+        model,
+        x_train_seq,
+        y_train,
+        batch_size=eval_batch_size,
+        move_to_device=runtime_device,
+    )
+    test_acc = batched_classification_accuracy(
+        model,
+        x_test_seq,
+        y_test,
+        batch_size=eval_batch_size,
+        move_to_device=runtime_device,
+    )
 
     return BenchmarkResult(
         name=f"LSTM-{hidden_size}",
@@ -455,6 +537,13 @@ def build_recurrent_benchmark_parser() -> argparse.ArgumentParser:
         help="Random seed for reproducible benchmark runs (default: 0)",
     )
     parser.add_argument("--data-root", default="./data")
+    parser.add_argument("--device", default="cpu", choices=["cpu", "cuda", "auto"])
+    parser.add_argument(
+        "--eval-batch",
+        type=int,
+        default=2048,
+        help="Batch size for chunked evaluation (default: 2048)",
+    )
     parser.add_argument("--lstm", action="store_true", help="Also run the LSTM baseline")
     parser.add_argument("--lstm-hidden-size", type=int, default=128)
     parser.add_argument("--lstm-layers", type=int, default=1)
@@ -523,6 +612,8 @@ def main(argv: list[str] | None = None) -> int:
                 data_root=args.data_root,
                 grad_clip=args.grad_clip,
                 seed=args.seed,
+                device=args.device,
+                eval_batch_size=args.eval_batch,
             )
         )
 
@@ -538,6 +629,8 @@ def main(argv: list[str] | None = None) -> int:
                 batch_size=args.lstm_batch,
                 data_root=args.data_root,
                 seed=args.seed,
+                device=args.device,
+                eval_batch_size=args.eval_batch,
             )
         )
 
@@ -557,6 +650,8 @@ def main(argv: list[str] | None = None) -> int:
                     data_root=args.data_root,
                     seed=args.seed,
                     streaming=streaming_mode,
+                    device=args.device,
+                    eval_batch_size=args.eval_batch,
                 )
             )
 
