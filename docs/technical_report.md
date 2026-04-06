@@ -571,10 +571,12 @@ On a T4 GPU (sMNIST-row, 120 batches):
 
 | Config | Woodbury | Accumulate | Speedup |
 |--------|----------|------------|---------|
-| 2000n w=10 | 8.1s / 97.24% | 1.0s / 97.24%* | **8×** |
-| 8000n w=10 | 92.2s / 98.30% | 6.2s / 98.30%* | **15×** |
+| 2000n w=10 | 8.1s / 97.24% | 1.1s / 97.22% | **7×** |
+| 8000n w=10 | 93.2s / 98.30% | 8.3s / 98.54% | **11×** |
 
-*Accuracy after fixing regularisation parity (see below).
+At 8000 neurons the accumulate path is slightly *more* accurate than
+Woodbury (98.54% vs 98.30%): the clean single-solve avoids numerical
+drift that accumulates over 120 Woodbury inverse updates.
 
 Both paths share the same AᵀA/AᵀY accumulators, so they can be mixed:
 use `accumulate()` for the main data pass, then switch to `continuous_fit()`
@@ -1290,6 +1292,41 @@ through the feedback loop) by replacing recurrence with temporal pooling.
 This trades sequence modelling flexibility for robust gradient-free
 training.
 
+#### 5.9.3 GPU Results (T4)
+
+The accumulate + solve path (Section 3.7.2) enables efficient GPU
+execution.  All timing below is on a Tesla T4 (15 GB, float32 peak
+65 TFLOPS, float64 peak 2 TFLOPS).
+
+**sMNIST-row (28-step sequences):**
+
+| Model | Test Acc | Time | Gradients? |
+|---|---:|---:|---|
+| StreamNEF-accumulate 2000n | 97.22% | **1.1s** | No |
+| StreamNEF-accumulate 8000n | **98.54%** | **8.3s** | No |
+| StreamNEF-woodbury 8000n | 98.30% | 93.2s | No |
+| LSTM-128 (20 epochs) | 98.57% | 22.3s | Yes |
+
+StreamNEF-accumulate 8k matches LSTM (98.54% vs 98.57%) in **2.7×
+less time** — 8.3 seconds vs 22.3 seconds — with no gradient computation.
+The accumulate path is 11× faster than Woodbury on the same GPU, and
+slightly more accurate (the single-solve avoids drift from 120 inverse
+updates).
+
+**sMNIST pixel-by-pixel (784-step sequences):**
+
+| Model | Dataset | Test Acc | Time |
+|---|---|---:|---:|
+| StreamNEF-accumulate 4000n w=56 | permuted | **91.42%** | **29.6s** |
+| LSTM-128 (20 epochs) | permuted | 82.32% | 284.7s |
+| StreamNEF-accumulate 4000n w=56 | pixel | 51.61% | 29.5s |
+| LSTM-128 (20 epochs) | pixel | 11.54% | 283.9s |
+
+On permuted pixel-order, StreamNEF beats LSTM by **+9.1%** while being
+**9.6× faster**.  Both models fail on raw pixel-order (spatial structure
+is critical for row-mode but absent here); StreamNEF at least reaches
+52% with a 2-row delay window vs LSTM's 11.5%.
+
 ### 6.1 Competitive Positioning
 
 The single-layer NEF result (95.7% MNIST, 2 seconds) is competitive with
@@ -1332,25 +1369,28 @@ Two experimental insights emerged from the sweep:
    feature spaces can tolerate less regularisation before overfitting.
 
 The streaming NEF classifier (Section 5.9) extends this competitive
-positioning to temporal data.  At 8000 neurons with window K=10, the
-gradient-free streaming classifier reaches 98.56% on sMNIST-row — matching
-the LSTM baseline (98.3%) and rivalling RecNEF-E2E (98.5%), which requires
-full backpropagation through time.  The 2000-neuron variant (97.22% in 23s)
-is competitive as a real-time temporal classifier on commodity hardware.
+positioning to temporal data.  On CPU, the 8000-neuron streaming classifier
+reaches 98.56% on sMNIST-row — matching the LSTM (98.3%) while remaining
+gradient-free.  On a T4 GPU with the accumulate path, the same model
+reaches 98.54% in **8.3 seconds** — 2.7× faster than LSTM (22.3s) with
+zero gradient computation.  On permuted pixel-by-pixel sMNIST (784
+timesteps), StreamNEF reaches 91.42% vs LSTM's 82.32%, 9.6× faster.
 
 ### 6.2 When to Use Each Strategy
 
 | Scenario | Recommended approach | Expected accuracy (MNIST/sMNIST) | Time |
 |----------|---------------------|--------------------------|------|
-| Maximum speed | Single NEFLayer | 95.7% | 2s |
-| Speed/accuracy balance | Single RF NEFLayer (12k, α=5×10⁻⁴) | 98.5% | ~52s |
-| Beat MLP, no gradients | Single RF layer, tuned α | 98.5% / 89.7% / 58.4% | 52–82s |
-| Maximum accuracy, moderate time | NEFNet-hybrid→E2E | 98.6% | 402s |
+| Maximum speed | Single NEFLayer | 95.7% | 2s CPU |
+| Speed/accuracy balance | Single RF NEFLayer (12k, α=5×10⁻⁴) | 98.5% | ~52s CPU |
+| Beat MLP, no gradients | Single RF layer, tuned α | 98.5% / 89.7% / 58.4% | 52–82s CPU |
+| Maximum accuracy, moderate time | NEFNet-hybrid→E2E | 98.6% | 402s CPU |
 | Streaming data (online) | NEFLayer + continuous_fit (Woodbury) | 95.7% | varies |
 | Streaming data (GPU) | NEFLayer + accumulate + solve | 95.7% | varies |
-| Temporal sequences (fast) | StreamNEF (2000n, w=10) | 97.2% (sMNIST) | 23s |
-| Temporal sequences (accurate) | StreamNEF (8000n, w=10) | 98.6% (sMNIST) | 222s |
-| Temporal sequences (best) | RecNEF-hybrid→E2E | 98.6% (sMNIST) | 686s |
+| Temporal sequences (CPU, fast) | StreamNEF (2000n, w=10) | 97.2% (sMNIST) | 23s CPU |
+| Temporal sequences (CPU, accurate) | StreamNEF (8000n, w=10) | 98.6% (sMNIST) | 222s CPU |
+| **Temporal sequences (GPU, fast)** | **StreamNEF-accumulate (2000n)** | **97.2% (sMNIST)** | **1.1s T4** |
+| **Temporal sequences (GPU, accurate)** | **StreamNEF-accumulate (8000n)** | **98.5% (sMNIST)** | **8.3s T4** |
+| Temporal sequences (best) | RecNEF-hybrid→E2E | 98.6% (sMNIST) | 686s CPU |
 
 ### 6.3 Limitations
 
@@ -1371,9 +1411,10 @@ is competitive as a real-time temporal classifier on commodity hardware.
   only 1/32 of their float32 throughput in float64.  The accumulate +
   solve path (Section 3.7.2) keeps all O(n²k) matmuls in float32 and
   uses float64 only for O(n²) accumulator additions and the single
-  final solve — yielding 8–15× speedup over Woodbury on a T4 while
-  matching accuracy.  The tradeoff is that online decoder updates
-  are not available; the model must see all data before solving.
+  final solve — yielding 7–11× speedup over Woodbury on a T4 while
+  matching or exceeding accuracy (98.54% vs 98.30% at 8k neurons).
+  The tradeoff is that online decoder updates are not available; the
+  model must see all data before solving.
 
 ### 6.4 Relationship to Prior Work
 
@@ -1478,15 +1519,17 @@ ground with NEF-TP and offer avenues for integration:
     causes catastrophic failure at ≥4000 neurons.  For GPU deployment,
     the accumulate + solve path (Section 3.7.2) keeps all expensive
     matmuls in float32 and uses float64 only for small accumulator
-    sums and the single final solve.  On a T4 GPU this yields 8–15×
-    speedup over Woodbury while matching accuracy.
+    sums and the single final solve.  On a T4 GPU this yields 7–11×
+    speedup over Woodbury (8.3s vs 93.2s at 8k neurons) while slightly
+    exceeding accuracy (98.54% vs 98.30%).
 
 12. **The delay-line reservoir sidesteps the recurrent gradient-free
     bottleneck.**  Gradient-free recurrent models (RecNEF-greedy: 15%)
     fail because random encoders compound state feedback noise.  The
     streaming classifier replaces recurrence with temporal pooling,
-    achieving 97% in 23 seconds (2000 neurons) — a viable
-    real-time temporal classifier on commodity hardware.
+    achieving 97% in 23 seconds CPU (1.1s T4 GPU) at 2000 neurons.
+    On permuted pixel-by-pixel sMNIST (784 timesteps), StreamNEF
+    reaches 91.42% vs LSTM's 82.32% while being 9.6× faster.
 
 
 ## References
