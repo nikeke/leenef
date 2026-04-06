@@ -25,6 +25,7 @@ from benchmarks.run import (  # noqa: E402
     set_benchmark_seed,
 )
 from leenef.recurrent import RecurrentNEFLayer  # noqa: E402
+from leenef.streaming import StreamingNEFClassifier  # noqa: E402
 
 
 def load_sequential_mnist(
@@ -239,6 +240,92 @@ def run_recurrent_nef(
 
 
 # ------------------------------------------------------------------
+# Streaming NEF benchmark (delay-line reservoir)
+# ------------------------------------------------------------------
+
+
+def run_streaming_nef(
+    mode: str = "row",
+    n_neurons: int = 2000,
+    window_size: int = 5,
+    activation: str = "abs",
+    encoder_strategy: str = "hypersphere",
+    gain: float | tuple[float, float] = (0.5, 2.0),
+    use_centers: bool = True,
+    alpha: float = 1e-2,
+    batch_size: int = 1000,
+    data_root: str = "./data",
+    seed: int | None = 0,
+    streaming: bool = True,
+) -> BenchmarkResult:
+    """Run a streaming NEF benchmark on Sequential MNIST.
+
+    Uses a delay-line reservoir: overlapping windows of consecutive timesteps
+    are encoded through random NEF neurons, mean-pooled over time, and decoded
+    to class labels.
+
+    Args:
+        mode:            ``"row"``, ``"pixel"``, or ``"pixel_permuted"``.
+        streaming:       If True, trains with continuous_fit (Woodbury).
+                         If False, trains with batch fit.
+    """
+    set_benchmark_seed(seed)
+    data_seed = 0 if seed is None else seed
+
+    (x_train_seq, _, y_train), (x_test_seq, _, y_test) = load_sequential_mnist(
+        mode=mode, root=data_root, seed=data_seed
+    )
+    n_classes = 10
+    targets = one_hot(y_train, n_classes)
+
+    _, _, d_in = x_train_seq.shape
+    rng = torch.Generator().manual_seed(data_seed)
+    clf = StreamingNEFClassifier(
+        d_timestep=d_in,
+        n_neurons=n_neurons,
+        d_out=n_classes,
+        window_size=window_size,
+        activation=activation,
+        encoder_strategy=encoder_strategy,
+        gain=gain,
+        rng=rng,
+        centers=x_train_seq if use_centers else None,
+    )
+
+    t0 = time.perf_counter()
+    if streaming:
+        for i in range(0, len(x_train_seq), batch_size):
+            clf.continuous_fit(
+                x_train_seq[i : i + batch_size],
+                targets[i : i + batch_size],
+                alpha=alpha,
+            )
+        clf.refresh_inverse(alpha=alpha)
+    else:
+        clf.fit(x_train_seq, targets, alpha=alpha)
+    fit_time = time.perf_counter() - t0
+
+    with torch.no_grad():
+        train_acc = classification_accuracy(clf(x_train_seq), y_train)
+        test_acc = classification_accuracy(clf(x_test_seq), y_test)
+
+    strategy_name = "streaming" if streaming else "batch"
+    return BenchmarkResult(
+        name=f"StreamNEF-{strategy_name}",
+        dataset=f"sMNIST-{mode}",
+        n_neurons=n_neurons,
+        activation=activation,
+        encoder_strategy=encoder_strategy,
+        solver=f"woodbury-α{alpha}" if streaming else f"tikhonov-α{alpha}",
+        solver_kwargs={"alpha": alpha, "window_size": window_size, "batch_size": batch_size},
+        metric_name="accuracy",
+        train_metric=train_acc,
+        test_metric=test_acc,
+        fit_time=fit_time,
+    )
+
+
+# ------------------------------------------------------------------
 # LSTM baseline
 # ------------------------------------------------------------------
 
@@ -375,6 +462,15 @@ def build_recurrent_benchmark_parser() -> argparse.ArgumentParser:
     parser.add_argument("--lstm-lr", type=float, default=1e-3)
     parser.add_argument("--lstm-batch", type=int, default=256)
     parser.add_argument(
+        "--streaming", action="store_true",
+        help="Also run the streaming NEF (delay-line reservoir) benchmark",
+    )
+    parser.add_argument("--streaming-window", type=int, default=5, help="Delay-line window size")
+    parser.add_argument("--streaming-neurons", type=int, default=None,
+                        help="Neurons for streaming (default: same as --neurons)")
+    parser.add_argument("--streaming-batch", type=int, default=1000,
+                        help="Batch size for streaming continuous_fit")
+    parser.add_argument(
         "--save-json", type=Path, default=None, help="Write results to a JSON file"
     )
     parser.add_argument("--save-csv", type=Path, default=None, help="Write results to a CSV file")
@@ -438,6 +534,25 @@ def main(argv: list[str] | None = None) -> int:
                 seed=args.seed,
             )
         )
+
+    if args.streaming:
+        stream_neurons = args.streaming_neurons or args.neurons
+        for streaming_mode in (True, False):
+            label = "streaming" if streaming_mode else "batch"
+            print(f"Running StreamNEF-{label} on sMNIST-{args.mode}...")
+            results.append(
+                run_streaming_nef(
+                    mode=args.mode,
+                    n_neurons=stream_neurons,
+                    window_size=args.streaming_window,
+                    alpha=args.alpha,
+                    batch_size=args.streaming_batch,
+                    use_centers=use_centers,
+                    data_root=args.data_root,
+                    seed=args.seed,
+                    streaming=streaming_mode,
+                )
+            )
 
     print()
     print(format_results(results))
