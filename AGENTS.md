@@ -22,6 +22,7 @@ pip install -e '.[dev]'
 python benchmarks/run.py --multi --seed 0
 python benchmarks/run.py --ensemble --ensemble-members 20 --ensemble-receptive-field --seed 0
 python benchmarks/run_recurrent.py --seed 0
+python benchmarks/run_recurrent.py --streaming --streaming-neurons 4000 --streaming-window 10 --seed 0
 ```
 
 ## Architecture
@@ -79,6 +80,11 @@ output layer decodes.  Five training strategies are supported:
   `forward()` runs the full pipeline; `fit()` solves decoders analytically.
   `partial_fit()` / `solve_accumulated()` enable incremental/online learning
   via normal-equation accumulation.
+  `continuous_fit()` / `continuous_fit_encoded()` apply rank-k Woodbury
+  updates to the cached system inverse, producing up-to-date decoders
+  after every batch.  The inverse is stored in float64 to prevent drift.
+  `refresh_inverse()` recomputes the inverse exactly from accumulated
+  statistics; `reset_continuous()` clears all Woodbury state.
   Accepts optional `centers=` training data to derive data-driven biases
   (`bias = -gain * (d · e)`), placing each neuron around a training sample.
   Gain can be scalar, range tuple, or per-neuron tensor (`_gain` buffer).
@@ -101,6 +107,13 @@ output layer decodes.  Five training strategies are supported:
   materialising the full T×B activity matrix during greedy solve.
   Supports data-driven biases via `centers=` (first timestep + zero
   state).
+- `streaming.py` — `StreamingNEFClassifier(nn.Module)` classifies
+  variable-length temporal sequences using a delay-line reservoir approach.
+  Overlapping windows of K consecutive timesteps are encoded through random
+  NEF neurons, mean-pooled over time, and decoded to class labels.
+  Supports batch `fit()` and continuous Woodbury `continuous_fit()`.
+  `encode_sequence()` chunks internally to limit peak memory for large
+  models.  Achieves 98.57% on sMNIST-row without gradient descent.
 
 ## Conventions
 
