@@ -213,8 +213,9 @@ class StreamingNEFClassifier(nn.Module):
     def accumulate(self, x_seq: Tensor, targets: Tensor) -> None:
         """Accumulate normal-equation statistics without solving.
 
-        GPU-friendly alternative to :meth:`continuous_fit`.  Accumulates
-        AᵀA and AᵀY in float64 for numerical stability, but avoids
+        GPU-friendly alternative to :meth:`continuous_fit`.  Computes
+        AᵀA and AᵀY matmuls in float32 (fast on GPU), then promotes
+        the n×n / n×d_out results to float64 for accumulation.  Avoids
         maintaining the expensive n×n Woodbury inverse.
         Call :meth:`solve` when you want updated decoders.
 
@@ -223,10 +224,11 @@ class StreamingNEFClassifier(nn.Module):
             targets: (N, d_out) target values.
         """
         A = self.encode_sequence(x_seq)  # (N, n) — float32 encoding
-        # Accumulate in float64 to avoid loss of precision in the Gram matrix
-        A_d = A.double()
-        ata = A_d.T @ A_d
-        aty = A_d.T @ targets.double()
+        # Matmul in float32 (fast on GPU), promote result to float64
+        # for accumulation.  A single batch's outer product is fine in
+        # float32; the precision issue is the running sum across batches.
+        ata = (A.T @ A).double()
+        aty = (A.T @ targets).double()
 
         if not hasattr(self, "_ata") or self._ata is None:
             self.register_buffer("_ata", ata)
