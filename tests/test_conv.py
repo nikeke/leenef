@@ -448,6 +448,42 @@ class TestConvNEFPipeline:
         # Vote counts should sum to n_members for each sample
         assert (pred.sum(dim=1) == 2).all()
 
+    def test_diverse_member_stages(self):
+        """Ensemble with per-member stage configs works."""
+        g = torch.Generator().manual_seed(55)
+        images = torch.randn(40, 1, 8, 8, generator=g)
+        targets = F.one_hot(torch.randint(0, 3, (40,), generator=g), 3).float()
+        ens = ConvNEFEnsemble(
+            n_members=3,
+            stages=[{"n_filters": 4, "patch_size": 3, "pool_size": 1}],
+            n_neurons=30,
+            pool_levels=[1, 2],
+            member_stages=[
+                [{"n_filters": 4, "patch_size": 3, "pool_size": 1}],
+                [{"n_filters": 4, "patch_size": 5, "pool_size": 1}],
+                [{"n_filters": 4, "patch_size": 7, "pool_size": 1}],
+            ],
+        )
+        ens.fit(images, targets, fit_subsample=40, batch_size=20)
+        pred = ens.predict(images, batch_size=20)
+        assert pred.shape == (40, 3)
+        # Check members have different filter sizes
+        sizes = [m.stages[0].patch_size for m in ens.members]
+        assert sizes == [3, 5, 7]
+
+    def test_member_stages_length_mismatch(self):
+        """member_stages length must match n_members."""
+        with pytest.raises(ValueError, match="n_members"):
+            ConvNEFEnsemble(
+                n_members=3,
+                stages=[{"n_filters": 4, "patch_size": 3, "pool_size": 1}],
+                n_neurons=30,
+                member_stages=[
+                    [{"n_filters": 4, "patch_size": 3, "pool_size": 1}],
+                    [{"n_filters": 4, "patch_size": 5, "pool_size": 1}],
+                ],
+            )
+
 
 # ── Local contrast normalization tests ─────────────────────────────────
 

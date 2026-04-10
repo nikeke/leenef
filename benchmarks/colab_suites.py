@@ -275,6 +275,7 @@ def _run_conv_config(
     lcn_kernel: int | None = None,
     gcn: bool = False,
     parallel: bool = False,
+    member_stages: list[list[dict]] | None = None,
     **nef_kwargs,
 ) -> BenchmarkResult:
     """Run one ConvNEF configuration and return a BenchmarkResult."""
@@ -336,6 +337,7 @@ def _run_conv_config(
             lcn_kernel=lcn_kernel,
             gcn=gcn,
             parallel=parallel,
+            member_stages=member_stages,
             **nef_kwargs,
         )
         model.fit(
@@ -829,6 +831,47 @@ def run_conv_cifar_suite(args: argparse.Namespace) -> list:
             gcn=True,
             standardize=True,
             encoder_strategy="whitened",
+            **common,
+        ),
+        # ── Diverse ensemble (different patch sizes per member) ───────
+        _run_conv_config(
+            "PCA diverse(p3/p5/p7) spp124 10k ×6 +gcn +std",
+            stages=[{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=6,
+            gcn=True,
+            standardize=True,
+            member_stages=[
+                [{"n_filters": 64, "patch_size": 3, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 3, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 7, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 7, "pool_size": 1}],
+            ],
+            **common,
+        ),
+        _run_conv_config(
+            "PCA diverse(p3/p5/p7) spp124 10k ×6 +patchnorm +gcn +std",
+            stages=[{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=6,
+            gcn=True,
+            standardize=True,
+            member_stages=[
+                [{"n_filters": 64, "patch_size": 3, "pool_size": 1, "normalize_patches": True}],
+                [{"n_filters": 64, "patch_size": 3, "pool_size": 1, "normalize_patches": True}],
+                [{"n_filters": 64, "patch_size": 5, "pool_size": 1, "normalize_patches": True}],
+                [{"n_filters": 64, "patch_size": 5, "pool_size": 1, "normalize_patches": True}],
+                [{"n_filters": 64, "patch_size": 7, "pool_size": 1, "normalize_patches": True}],
+                [{"n_filters": 64, "patch_size": 7, "pool_size": 1, "normalize_patches": True}],
+            ],
             **common,
         ),
     ]

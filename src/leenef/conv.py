@@ -650,14 +650,23 @@ class ConvNEFEnsemble(nn.Module):
     averaging (softmax then mean).  Exploits the fast analytical solve:
     10 members × 20s = 200s total, still gradient-free.
 
+    For diverse ensembles, pass ``member_stages`` — a list of stage
+    configs per member — instead of ``stages``.  This allows each
+    member to use different patch sizes, filter counts, or strategies,
+    increasing ensemble diversity.
+
     Args:
         n_members: number of ensemble members.
-        stages: list of dicts passed to each member's stages.
+        stages: list of dicts passed to each member's stages.  Ignored
+            when ``member_stages`` is provided.
         n_neurons: neurons per member's NEF head.
         pool_levels: spatial pyramid pool sizes (passed to each member).
         pool_order: pooling order (passed to each member).
         combine: ``'mean'`` for probability averaging (default),
             ``'vote'`` for majority voting.
+        member_stages: optional list of ``n_members`` stage config lists.
+            When provided, ``member_stages[i]`` is used as the stages
+            for member ``i``, enabling diverse configurations.
         nef_kwargs: additional keyword arguments for :class:`NEFLayer`.
     """
 
@@ -673,14 +682,25 @@ class ConvNEFEnsemble(nn.Module):
         lcn_kernel: int | None = None,
         gcn: bool = False,
         parallel: bool = False,
+        member_stages: list[list[dict]] | None = None,
         **nef_kwargs,
     ):
         super().__init__()
         self.n_members = n_members
         self.combine = combine
+        if member_stages is not None:
+            if len(member_stages) != n_members:
+                raise ValueError(
+                    f"member_stages has {len(member_stages)} entries but "
+                    f"n_members={n_members}"
+                )
+            per_member = member_stages
+        else:
+            per_member = [[{**s} for s in stages] for _ in range(n_members)]
+
         self.members = nn.ModuleList(
             ConvNEFPipeline(
-                stages=[{**s} for s in stages],
+                stages=ms,
                 n_neurons=n_neurons,
                 pool_levels=pool_levels,
                 pool_order=pool_order,
@@ -690,7 +710,7 @@ class ConvNEFEnsemble(nn.Module):
                 parallel=parallel,
                 **nef_kwargs,
             )
-            for _ in range(n_members)
+            for ms in per_member
         )
 
     def fit(
