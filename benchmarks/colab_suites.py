@@ -299,9 +299,7 @@ def _run_conv_config(
         # Subsample centers
         g = torch.Generator(device=x_train.device).manual_seed(seed)
         sub_n = min(fit_subsample, flat_train.shape[0])
-        sub_idx = torch.randperm(flat_train.shape[0], generator=g, device=x_train.device)[
-            :sub_n
-        ]
+        sub_idx = torch.randperm(flat_train.shape[0], generator=g, device=x_train.device)[:sub_n]
         centers = flat_train[sub_idx]
 
         head = NEFLayer(d_in, n_neurons, 10, centers=centers, **nef_kwargs)
@@ -385,8 +383,7 @@ def _run_conv_config(
         train_acc = (pred_train.argmax(1) == y_train).float().mean().item()
 
     print(
-        f"Finished {label}: test={test_acc:.2%}, train={train_acc:.2%}, "
-        f"fit_time={fit_time:.2f}s",
+        f"Finished {label}: test={test_acc:.2%}, train={train_acc:.2%}, fit_time={fit_time:.2f}s",
         flush=True,
     )
 
@@ -436,9 +433,7 @@ def run_conv_cifar_suite(args: argparse.Namespace) -> list:
         dev = "cuda" if torch.cuda.is_available() else "cpu"
     set_benchmark_seed(args.seed)
 
-    x_train, y_train, x_test, y_test, targets_train = _load_cifar10(
-        args.data_root, dev
-    )
+    x_train, y_train, x_test, y_test, targets_train = _load_cifar10(args.data_root, dev)
     common = dict(
         x_train=x_train,
         y_train=y_train,
@@ -759,9 +754,7 @@ def run_conv_cifar_suite(args: argparse.Namespace) -> list:
         # ── Per-patch contrast normalization ──────────────────────────
         _run_conv_config(
             "PCA 64f p5 spp124 10k +patchnorm",
-            stages=[
-                {"n_filters": 64, "patch_size": 5, "pool_size": 1, "normalize_patches": True}
-            ],
+            stages=[{"n_filters": 64, "patch_size": 5, "pool_size": 1, "normalize_patches": True}],
             n_neurons=10_000,
             pool_levels=[1, 2, 4],
             alpha=1e-2,
@@ -770,9 +763,7 @@ def run_conv_cifar_suite(args: argparse.Namespace) -> list:
         ),
         _run_conv_config(
             "PCA 64f p5 spp124 10k +patchnorm +gcn +std",
-            stages=[
-                {"n_filters": 64, "patch_size": 5, "pool_size": 1, "normalize_patches": True}
-            ],
+            stages=[{"n_filters": 64, "patch_size": 5, "pool_size": 1, "normalize_patches": True}],
             n_neurons=10_000,
             pool_levels=[1, 2, 4],
             alpha=1e-2,
@@ -796,9 +787,7 @@ def run_conv_cifar_suite(args: argparse.Namespace) -> list:
         ),
         _run_conv_config(
             "PCA 64f p5 spp124 10k ×5 +patchnorm +gcn +std +hflip",
-            stages=[
-                {"n_filters": 64, "patch_size": 5, "pool_size": 1, "normalize_patches": True}
-            ],
+            stages=[{"n_filters": 64, "patch_size": 5, "pool_size": 1, "normalize_patches": True}],
             n_neurons=10_000,
             pool_levels=[1, 2, 4],
             alpha=1e-2,
@@ -822,9 +811,7 @@ def run_conv_cifar_suite(args: argparse.Namespace) -> list:
         ),
         _run_conv_config(
             "PCA 64f p5 spp124 10k +patchnorm +gcn +std +whitened",
-            stages=[
-                {"n_filters": 64, "patch_size": 5, "pool_size": 1, "normalize_patches": True}
-            ],
+            stages=[{"n_filters": 64, "patch_size": 5, "pool_size": 1, "normalize_patches": True}],
             n_neurons=10_000,
             pool_levels=[1, 2, 4],
             alpha=1e-2,

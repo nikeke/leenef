@@ -19,9 +19,7 @@ from .activations import make_activation
 from .layers import NEFLayer
 
 
-def local_contrast_normalize(
-    x: Tensor, kernel_size: int = 5, eps: float = 1e-6
-) -> Tensor:
+def local_contrast_normalize(x: Tensor, kernel_size: int = 5, eps: float = 1e-6) -> Tensor:
     """Apply local contrast normalization to images.
 
     Subtracts the local mean and divides by the local standard deviation
@@ -641,9 +639,7 @@ class ConvNEFPipeline(nn.Module):
                 x_aug = self._preprocess(augment_fn(images[i : i + batch_size]))
                 x_conv_aug = self._apply_stages(x_aug)
                 del x_aug
-                features_aug = self._standardize_features(
-                    self._pool_features(x_conv_aug)
-                )
+                features_aug = self._standardize_features(self._pool_features(x_conv_aug))
                 del x_conv_aug
                 self.head.partial_fit(features_aug, t_batch)
                 del features_aug
@@ -723,8 +719,7 @@ class ConvNEFEnsemble(nn.Module):
         if member_stages is not None:
             if len(member_stages) != n_members:
                 raise ValueError(
-                    f"member_stages has {len(member_stages)} entries but "
-                    f"n_members={n_members}"
+                    f"member_stages has {len(member_stages)} entries but n_members={n_members}"
                 )
             per_member = member_stages
         else:
