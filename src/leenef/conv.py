@@ -19,6 +19,34 @@ from .activations import make_activation
 from .layers import NEFLayer
 
 
+def local_contrast_normalize(
+    x: Tensor, kernel_size: int = 5, eps: float = 1e-6
+) -> Tensor:
+    """Apply local contrast normalization to images.
+
+    Subtracts the local mean and divides by the local standard deviation
+    using a uniform box filter.  Operates per-channel.
+
+    Args:
+        x: ``(N, C, H, W)`` input tensor.
+        kernel_size: spatial size of the local neighbourhood (default 5).
+        eps: stability constant added to the local std.
+
+    Returns:
+        Normalized tensor of the same shape.
+    """
+    C = x.shape[1]
+    pad = kernel_size // 2
+    ones = torch.ones(C, 1, kernel_size, kernel_size, device=x.device, dtype=x.dtype)
+    area = kernel_size * kernel_size
+
+    local_mean = F.conv2d(x, ones / area, padding=pad, groups=C)
+    centered = x - local_mean
+    local_sq = F.conv2d(centered * centered, ones / area, padding=pad, groups=C)
+    local_std = local_sq.clamp(min=0).sqrt() + eps
+    return centered / local_std
+
+
 class ConvNEFStage(nn.Module):
     """Convolutional feature extraction stage with PCA or k-means filters.
 
@@ -272,6 +300,9 @@ class ConvNEFPipeline(nn.Module):
             append per-channel variance in each spatial block.
         standardize: if ``True``, standardize pooled features to zero
             mean and unit variance before the NEF head (default ``False``).
+        lcn_kernel: if set, apply local contrast normalization with this
+            kernel size as a preprocessing step on the input images
+            (default ``None`` = disabled).
         nef_kwargs: additional keyword arguments for :class:`NEFLayer`
             (e.g. ``encoder_strategy``, ``activation``, ``gain``).
     """
@@ -283,6 +314,7 @@ class ConvNEFPipeline(nn.Module):
         pool_levels: list[int] | None = None,
         pool_order: int = 1,
         standardize: bool = False,
+        lcn_kernel: int | None = None,
         **nef_kwargs,
     ):
         super().__init__()
@@ -291,6 +323,7 @@ class ConvNEFPipeline(nn.Module):
         self.pool_levels = pool_levels
         self.pool_order = pool_order
         self.standardize = standardize
+        self.lcn_kernel = lcn_kernel
         self.nef_kwargs = nef_kwargs
         self.head: NEFLayer | None = None
         self._feat_mean: Tensor | None = None
@@ -332,6 +365,12 @@ class ConvNEFPipeline(nn.Module):
             self._feat_std = features.std(dim=0).clamp(min=1e-6)
         assert self._feat_mean is not None
         return (features - self._feat_mean) / self._feat_std
+
+    def _preprocess(self, x: Tensor) -> Tensor:
+        """Apply optional preprocessing (LCN) to input images."""
+        if self.lcn_kernel is not None:
+            return local_contrast_normalize(x, kernel_size=self.lcn_kernel)
+        return x
 
     def fit(
         self,
@@ -375,7 +414,7 @@ class ConvNEFPipeline(nn.Module):
         # Subsample indices for stage fitting and center selection
         sub_n = min(fit_subsample, N)
         sub_idx = torch.randperm(N, generator=g, device=images.device)[:sub_n]
-        sub_images = images[sub_idx]
+        sub_images = self._preprocess(images[sub_idx])
 
         # Fit stages sequentially on subsample
         x_sub = sub_images
@@ -400,7 +439,7 @@ class ConvNEFPipeline(nn.Module):
         # Accumulate normal equations over full dataset in chunks
         self.head.reset_accumulators()
         for i in range(0, N, batch_size):
-            x_batch = images[i : i + batch_size]
+            x_batch = self._preprocess(images[i : i + batch_size])
             t_batch = targets[i : i + batch_size]
             x_conv = x_batch
             for stage in self.stages:
@@ -409,7 +448,7 @@ class ConvNEFPipeline(nn.Module):
             self.head.partial_fit(features, t_batch)
 
             if augment_fn is not None:
-                x_aug = augment_fn(x_batch)
+                x_aug = self._preprocess(augment_fn(images[i : i + batch_size]))
                 x_conv_aug = x_aug
                 for stage in self.stages:
                     x_conv_aug = stage(x_conv_aug)
@@ -423,6 +462,7 @@ class ConvNEFPipeline(nn.Module):
     @torch.no_grad()
     def forward(self, x: Tensor) -> Tensor:
         """Forward pass through all stages and classification head."""
+        x = self._preprocess(x)
         for stage in self.stages:
             x = stage(x)
         features = self._standardize_features(self._pool_features(x))
@@ -472,6 +512,7 @@ class ConvNEFEnsemble(nn.Module):
         pool_order: int = 1,
         combine: str = "mean",
         standardize: bool = False,
+        lcn_kernel: int | None = None,
         **nef_kwargs,
     ):
         super().__init__()
@@ -484,6 +525,7 @@ class ConvNEFEnsemble(nn.Module):
                 pool_levels=pool_levels,
                 pool_order=pool_order,
                 standardize=standardize,
+                lcn_kernel=lcn_kernel,
                 **nef_kwargs,
             )
             for _ in range(n_members)

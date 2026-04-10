@@ -4,7 +4,12 @@ import pytest
 import torch
 import torch.nn.functional as F
 
-from leenef.conv import ConvNEFEnsemble, ConvNEFPipeline, ConvNEFStage
+from leenef.conv import (
+    ConvNEFEnsemble,
+    ConvNEFPipeline,
+    ConvNEFStage,
+    local_contrast_normalize,
+)
 
 # ── ConvNEFStage tests ─────────────────────────────────────────────────
 
@@ -386,3 +391,36 @@ class TestConvNEFEnsemble:
         assert pred.shape == (40, 4)
         # Vote counts should sum to n_members for each sample
         assert (pred.sum(dim=1) == 2).all()
+
+
+# ── Local contrast normalization tests ─────────────────────────────────
+
+
+class TestLocalContrastNormalize:
+    def test_output_shape(self):
+        x = torch.randn(4, 3, 16, 16)
+        out = local_contrast_normalize(x, kernel_size=5)
+        assert out.shape == x.shape
+
+    def test_approximately_zero_mean(self):
+        """After LCN, local mean should be approximately zero."""
+        g = torch.Generator().manual_seed(42)
+        x = torch.randn(2, 1, 32, 32, generator=g) * 5 + 3
+        out = local_contrast_normalize(x, kernel_size=5)
+        # The global mean should be near zero (not exact due to edges)
+        assert out.mean().abs() < 0.5
+
+    def test_pipeline_with_lcn(self):
+        """Pipeline with lcn_kernel preprocesses correctly."""
+        g = torch.Generator().manual_seed(42)
+        images = torch.randn(50, 3, 16, 16, generator=g)
+        targets = F.one_hot(torch.randint(0, 3, (50,), generator=g), 3).float()
+        pipe = ConvNEFPipeline(
+            stages=[{"n_filters": 4, "patch_size": 3, "pool_size": 1}],
+            n_neurons=30,
+            pool_levels=[1, 2],
+            lcn_kernel=5,
+        )
+        pipe.fit(images, targets, fit_subsample=50, batch_size=25)
+        pred = pipe(images[:5])
+        assert pred.shape == (5, 3)
