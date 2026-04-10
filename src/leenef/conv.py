@@ -8,6 +8,8 @@ hierarchical feature learning pipeline.
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -320,6 +322,7 @@ class ConvNEFPipeline(nn.Module):
         fit_subsample: int = 10_000,
         batch_size: int = 1000,
         seed: int = 0,
+        augment_fn: "Callable[[Tensor], Tensor] | None" = None,
     ) -> None:
         """Fit all stages and the classification head.
 
@@ -327,6 +330,11 @@ class ConvNEFPipeline(nn.Module):
         The full dataset is then processed in chunks through all stages
         using :meth:`~NEFLayer.partial_fit` to accumulate normal-equation
         statistics without storing all features in memory.
+
+        When ``augment_fn`` is provided, augmented copies of each batch
+        are also accumulated during the decoder solve (but not used for
+        stage fitting or center selection).  This effectively trains on
+        a larger dataset without gradient descent.
 
         Args:
             images: ``(N, C, H, W)`` training images.
@@ -336,6 +344,10 @@ class ConvNEFPipeline(nn.Module):
                 selection.
             batch_size: chunk size for incremental feature extraction.
             seed: random seed for subsampling reproducibility.
+            augment_fn: optional function ``(batch) -> augmented_batch``
+                producing augmented copies.  Called once per batch during
+                decoder accumulation.  The augmented batch inherits the
+                same targets.
         """
         N = images.shape[0]
         g = torch.Generator(device=images.device).manual_seed(seed)
@@ -368,10 +380,20 @@ class ConvNEFPipeline(nn.Module):
         self.head.reset_accumulators()
         for i in range(0, N, batch_size):
             x_batch = images[i : i + batch_size]
+            t_batch = targets[i : i + batch_size]
+            x_conv = x_batch
             for stage in self.stages:
-                x_batch = stage(x_batch)
-            features = self._pool_features(x_batch)
-            self.head.partial_fit(features, targets[i : i + batch_size])
+                x_conv = stage(x_conv)
+            features = self._pool_features(x_conv)
+            self.head.partial_fit(features, t_batch)
+
+            if augment_fn is not None:
+                x_aug = augment_fn(x_batch)
+                x_conv_aug = x_aug
+                for stage in self.stages:
+                    x_conv_aug = stage(x_conv_aug)
+                features_aug = self._pool_features(x_conv_aug)
+                self.head.partial_fit(features_aug, t_batch)
 
         self.head.solve_accumulated(alpha=alpha)
 
@@ -451,6 +473,7 @@ class ConvNEFEnsemble(nn.Module):
         fit_subsample: int = 10_000,
         batch_size: int = 1000,
         base_seed: int = 0,
+        augment_fn: "Callable[[Tensor], Tensor] | None" = None,
     ) -> None:
         """Fit all ensemble members with different random seeds.
 
@@ -462,6 +485,8 @@ class ConvNEFEnsemble(nn.Module):
             batch_size: chunk size for incremental feature extraction.
             base_seed: seed for the first member; subsequent members
                 use ``base_seed + i``.
+            augment_fn: optional augmentation function passed to each
+                member's :meth:`ConvNEFPipeline.fit`.
         """
         for i, member in enumerate(self.members):
             member.fit(
@@ -471,6 +496,7 @@ class ConvNEFEnsemble(nn.Module):
                 fit_subsample=fit_subsample,
                 batch_size=batch_size,
                 seed=base_seed + i,
+                augment_fn=augment_fn,
             )
 
     def predict(self, images: Tensor, batch_size: int = 1000) -> Tensor:
