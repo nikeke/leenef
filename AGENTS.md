@@ -24,6 +24,11 @@ python benchmarks/run.py --ensemble --ensemble-members 20 --ensemble-receptive-f
 python benchmarks/run_recurrent.py --seed 0
 python benchmarks/run_recurrent.py --streaming --streaming-neurons 4000 --streaming-window 10 --seed 0
 python benchmarks/run_recurrent.py --streaming --streaming-solve-mode accumulate --streaming-neurons 4000 --streaming-window 10 --seed 0
+
+# Colab suites (GPU)
+python benchmarks/colab_suites.py --suite row_focus --device auto --output-dir results/colab
+python benchmarks/colab_suites.py --suite sequential_hard --device auto --output-dir results/colab
+python benchmarks/colab_suites.py --suite conv_cifar --device auto --output-dir results/colab
 ```
 
 ## Architecture
@@ -72,7 +77,10 @@ output layer decodes.  Five training strategies are supported:
 - `encoders.py` — encoder generation strategies, each registered in
   `ENCODER_STRATEGIES` dict.  Use `make_encoders(n, dim, strategy=...)`.
   Strategies: `hypersphere` (default), `gaussian`, `sparse`,
-  `receptive_field` (local image patches for spatial locality).
+  `receptive_field` (local image patches for spatial locality),
+  `whitened` (PCA-subspace projection adapts to data covariance),
+  `class_contrast` (directions from one class to nearest other class),
+  `local_pca` (top eigenvector of each neuron's local neighbourhood).
 - `activations.py` — rate neuron models, registered in `ACTIVATIONS` dict.
   Use `make_activation(name, ...)`.
 - `solvers.py` — decoder solvers, registered in `SOLVERS` dict.
@@ -116,6 +124,18 @@ output layer decodes.  Five training strategies are supported:
   GPU-friendly `accumulate()` + `solve()` (float32, no Woodbury inverse).
   `encode_sequence()` chunks internally to limit peak memory for large
   models.  Achieves 98.57% on sMNIST-row without gradient descent.
+- `conv.py` — gradient-free convolutional feature extraction pipeline.
+  `ConvNEFStage` learns PCA (or k-means) filters from data patches and
+  applies them as fixed conv2d filters + abs activation + pool.
+  `ConvNEFPipeline` stacks stages (sequential or parallel) with spatial
+  pyramid pooling and a NEFLayer classification head.  Supports feature
+  standardization (`standardize=True`), global contrast normalization
+  (`gcn=True`), local contrast normalization (`lcn_kernel=5`), and
+  data augmentation (`augment_fn`).  `parallel=True` enables multi-scale
+  extraction with different patch sizes concatenated along the channel
+  dimension.  `ConvNEFEnsemble` wraps N pipelines with different seeds.
+  All gradient-free: PCA filters are data-derived buffers, decoders are
+  solved analytically via partial_fit/solve_accumulated.
 
 ## Conventions
 
