@@ -806,6 +806,31 @@ def run_conv_cifar_suite(args: argparse.Namespace) -> list:
             augment_flip=True,
             **common,
         ),
+        # ── Whitened head encoders ────────────────────────────────────
+        _run_conv_config(
+            "PCA 64f p5 spp124 10k +whitened",
+            stages=[{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            encoder_strategy="whitened",
+            **common,
+        ),
+        _run_conv_config(
+            "PCA 64f p5 spp124 10k +patchnorm +gcn +std +whitened",
+            stages=[
+                {"n_filters": 64, "patch_size": 5, "pool_size": 1, "normalize_patches": True}
+            ],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            gcn=True,
+            standardize=True,
+            encoder_strategy="whitened",
+            **common,
+        ),
     ]
 
 

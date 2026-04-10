@@ -579,13 +579,24 @@ class ConvNEFPipeline(nn.Module):
         centers = self._standardize_features(centers, fit=True)
         feat_dim = centers.shape[1]
 
-        # Create NEF classification head
+        # Create NEF classification head.
+        # When the encoder strategy needs training data (whitened,
+        # class_contrast, local_pca), inject the subsample features.
+        head_kwargs = dict(self.nef_kwargs)
+        strategy = head_kwargs.get("encoder_strategy", "hypersphere")
+        data_strategies = {"whitened", "class_contrast", "local_pca"}
+        if strategy in data_strategies:
+            ek = dict(head_kwargs.get("encoder_kwargs", {}) or {})
+            if "train_data" not in ek:
+                ek["train_data"] = centers
+            head_kwargs["encoder_kwargs"] = ek
+
         self.head = NEFLayer(
             feat_dim,
             self.n_neurons,
             targets.shape[1],
             centers=centers,
-            **self.nef_kwargs,
+            **head_kwargs,
         )
 
         # Accumulate normal equations over full dataset in chunks

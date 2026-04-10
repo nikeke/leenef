@@ -385,8 +385,21 @@ class TestConvNEFPipeline:
         assert pred.shape == (5, 3)
         assert torch.isfinite(pred).all()
 
-
-class TestConvNEFEnsemble:
+    def test_whitened_head_encoders(self):
+        """Pipeline auto-injects train_data for whitened encoders."""
+        g = torch.Generator().manual_seed(101)
+        images = torch.randn(50, 3, 8, 8, generator=g)
+        targets = F.one_hot(torch.randint(0, 3, (50,), generator=g), 3).float()
+        pipe = ConvNEFPipeline(
+            stages=[{"n_filters": 4, "patch_size": 3, "pool_size": 1}],
+            n_neurons=30,
+            pool_levels=[1, 2],
+            encoder_strategy="whitened",
+        )
+        pipe.fit(images, targets, fit_subsample=50, batch_size=25)
+        pred = pipe(images[:5])
+        assert pred.shape == (5, 3)
+        assert torch.isfinite(pred).all()
     def test_fit_and_predict(self):
         """Ensemble fits all members and produces correct output shape."""
         g = torch.Generator().manual_seed(42)
