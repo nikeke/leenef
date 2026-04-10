@@ -1,9 +1,10 @@
-"""Predefined Colab experiment suites for GPU-friendly sequential benchmarks."""
+"""Predefined Colab experiment suites for GPU-friendly benchmarks."""
 
 from __future__ import annotations
 
 import argparse
 import sys
+import time
 from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -11,7 +12,13 @@ for _path in (str(_PROJECT_ROOT), str(_PROJECT_ROOT / "src")):
     if _path not in sys.path:
         sys.path.insert(0, _path)
 
-from benchmarks.run import format_results, save_results_csv, save_results_json  # noqa: E402
+from benchmarks.run import (  # noqa: E402
+    BenchmarkResult,
+    format_results,
+    save_results_csv,
+    save_results_json,
+    set_benchmark_seed,
+)
 from benchmarks.run_recurrent import run_lstm_baseline, run_streaming_nef  # noqa: E402
 
 
@@ -246,9 +253,337 @@ def run_sequential_hard_suite(args: argparse.Namespace) -> list:
     ]
 
 
+def _run_conv_config(
+    label: str,
+    *,
+    x_train,
+    y_train,
+    x_test,
+    y_test,
+    targets_train,
+    stages: list[dict],
+    n_neurons: int,
+    pool_levels: list[int] | None = None,
+    pool_order: int = 1,
+    alpha: float = 1e-2,
+    fit_subsample: int = 10_000,
+    batch_size: int = 2000,
+    seed: int = 0,
+    n_members: int = 1,
+    augment_flip: bool = False,
+    **nef_kwargs,
+) -> BenchmarkResult:
+    """Run one ConvNEF configuration and return a BenchmarkResult."""
+    import torch
+
+    from leenef.conv import ConvNEFEnsemble, ConvNEFPipeline
+
+    aug_fn = (lambda x: x.flip(-1)) if augment_flip else None
+
+    print(f"Running {label}...", flush=True)
+    t0 = time.time()
+
+    if not stages:
+        # Flat pixel baseline: NEFLayer on flattened input
+        from leenef.layers import NEFLayer
+
+        flat_train = x_train.reshape(x_train.shape[0], -1)
+        flat_test = x_test.reshape(x_test.shape[0], -1)
+        d_in = flat_train.shape[1]
+
+        # Subsample centers
+        g = torch.Generator(device=x_train.device).manual_seed(seed)
+        sub_n = min(fit_subsample, flat_train.shape[0])
+        sub_idx = torch.randperm(flat_train.shape[0], generator=g, device=x_train.device)[
+            :sub_n
+        ]
+        centers = flat_train[sub_idx]
+
+        head = NEFLayer(d_in, n_neurons, 10, centers=centers, **nef_kwargs)
+        head.reset_accumulators()
+        for i in range(0, flat_train.shape[0], batch_size):
+            head.partial_fit(
+                flat_train[i : i + batch_size],
+                targets_train[i : i + batch_size],
+            )
+        head.solve_accumulated(alpha=alpha)
+        fit_time = time.time() - t0
+
+        with torch.no_grad():
+            preds = []
+            for i in range(0, flat_test.shape[0], batch_size):
+                preds.append(head(flat_test[i : i + batch_size]))
+            pred = torch.cat(preds)
+            test_acc = (pred.argmax(1) == y_test).float().mean().item()
+
+            preds_train = []
+            for i in range(0, flat_train.shape[0], batch_size):
+                preds_train.append(head(flat_train[i : i + batch_size]))
+            pred_train = torch.cat(preds_train)
+            train_acc = (pred_train.argmax(1) == y_train).float().mean().item()
+    elif n_members > 1:
+        model = ConvNEFEnsemble(
+            n_members=n_members,
+            stages=stages,
+            n_neurons=n_neurons,
+            pool_levels=pool_levels,
+            pool_order=pool_order,
+            **nef_kwargs,
+        )
+        model.fit(
+            x_train,
+            targets_train,
+            alpha=alpha,
+            fit_subsample=fit_subsample,
+            batch_size=batch_size,
+            base_seed=seed,
+            augment_fn=aug_fn,
+        )
+
+        fit_time = time.time() - t0
+        pred = model.predict(x_test, batch_size=batch_size)
+        test_acc = (pred.argmax(1) == y_test).float().mean().item()
+        pred_train = model.predict(x_train, batch_size=batch_size)
+        train_acc = (pred_train.argmax(1) == y_train).float().mean().item()
+    else:
+        model = ConvNEFPipeline(
+            stages=stages,
+            n_neurons=n_neurons,
+            pool_levels=pool_levels,
+            pool_order=pool_order,
+            **nef_kwargs,
+        )
+        model.fit(
+            x_train,
+            targets_train,
+            alpha=alpha,
+            fit_subsample=fit_subsample,
+            batch_size=batch_size,
+            seed=seed,
+            augment_fn=aug_fn,
+        )
+
+        fit_time = time.time() - t0
+        pred = model.predict(x_test, batch_size=batch_size)
+        test_acc = (pred.argmax(1) == y_test).float().mean().item()
+        pred_train = model.predict(x_train, batch_size=batch_size)
+        train_acc = (pred_train.argmax(1) == y_train).float().mean().item()
+
+    print(
+        f"Finished {label}: test={test_acc:.2%}, train={train_acc:.2%}, "
+        f"fit_time={fit_time:.2f}s",
+        flush=True,
+    )
+
+    return BenchmarkResult(
+        name=label,
+        dataset="cifar10",
+        n_neurons=n_neurons,
+        activation="abs",
+        encoder_strategy="hypersphere",
+        solver="ridge",
+        solver_kwargs={"alpha": alpha},
+        metric_name="accuracy",
+        train_metric=train_acc,
+        test_metric=test_acc,
+        fit_time=fit_time,
+    )
+
+
+def _load_cifar10(data_root: str, device: str):
+    """Load CIFAR-10 onto the target device."""
+    import torch
+    import torch.nn.functional as F
+    import torchvision
+    import torchvision.transforms as T
+
+    transform = T.Compose([T.ToTensor()])
+    train_ds = torchvision.datasets.CIFAR10(
+        data_root, train=True, download=True, transform=transform
+    )
+    test_ds = torchvision.datasets.CIFAR10(
+        data_root, train=False, download=True, transform=transform
+    )
+    x_train = torch.stack([img for img, _ in train_ds]).to(device)
+    y_train = torch.tensor([lbl for _, lbl in train_ds]).to(device)
+    x_test = torch.stack([img for img, _ in test_ds]).to(device)
+    y_test = torch.tensor([lbl for _, lbl in test_ds]).to(device)
+    targets_train = F.one_hot(y_train, 10).float()
+    return x_train, y_train, x_test, y_test, targets_train
+
+
+def run_conv_cifar_suite(args: argparse.Namespace) -> list:
+    """Run convolutional NEF benchmark on CIFAR-10."""
+    import torch
+
+    dev = args.device
+    if dev == "auto":
+        dev = "cuda" if torch.cuda.is_available() else "cpu"
+    set_benchmark_seed(args.seed)
+
+    x_train, y_train, x_test, y_test, targets_train = _load_cifar10(
+        args.data_root, dev
+    )
+    common = dict(
+        x_train=x_train,
+        y_train=y_train,
+        x_test=x_test,
+        y_test=y_test,
+        targets_train=targets_train,
+        seed=args.seed,
+    )
+
+    if args.quick:
+        return [
+            _run_conv_config(
+                "ConvNEF quick",
+                stages=[{"n_filters": 16, "patch_size": 5, "pool_size": 1}],
+                n_neurons=500,
+                pool_levels=[1, 2],
+                alpha=1e-2,
+                fit_subsample=1000,
+                batch_size=500,
+                **common,
+            ),
+        ]
+
+    return [
+        # ── Baseline: flat pixel NEF ──────────────────────────────────
+        _run_conv_config(
+            "Flat pixel 5k",
+            stages=[],
+            n_neurons=5000,
+            pool_levels=None,
+            alpha=1e-2,
+            fit_subsample=10_000,
+            **common,
+        ),
+        # ── PCA filters ───────────────────────────────────────────────
+        _run_conv_config(
+            "PCA 32f p5 spp124 5k",
+            stages=[{"n_filters": 32, "patch_size": 5, "pool_size": 1}],
+            n_neurons=5000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            **common,
+        ),
+        _run_conv_config(
+            "PCA 64f p5 spp124 5k",
+            stages=[{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+            n_neurons=5000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            **common,
+        ),
+        _run_conv_config(
+            "PCA 64f p5 spp124 10k",
+            stages=[{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            **common,
+        ),
+        _run_conv_config(
+            "PCA 128f p5 spp124 10k",
+            stages=[{"n_filters": 128, "patch_size": 5, "pool_size": 1}],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            **common,
+        ),
+        _run_conv_config(
+            "PCA 256f p5 spp124 10k",
+            stages=[{"n_filters": 256, "patch_size": 5, "pool_size": 1}],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=5e-3,
+            fit_subsample=10_000,
+            **common,
+        ),
+        # ── Different patch sizes ─────────────────────────────────────
+        _run_conv_config(
+            "PCA 64f p3 spp124 10k",
+            stages=[{"n_filters": 64, "patch_size": 3, "pool_size": 1}],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            **common,
+        ),
+        _run_conv_config(
+            "PCA 64f p7 spp124 10k",
+            stages=[{"n_filters": 64, "patch_size": 7, "pool_size": 1}],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            **common,
+        ),
+        # ── With augmentation ─────────────────────────────────────────
+        _run_conv_config(
+            "PCA 64f p5 spp124 10k +hflip",
+            stages=[{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            augment_flip=True,
+            **common,
+        ),
+        # ── Ensemble ──────────────────────────────────────────────────
+        _run_conv_config(
+            "PCA 64f p5 spp124 5k ×5",
+            stages=[{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+            n_neurons=5000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            **common,
+        ),
+        _run_conv_config(
+            "PCA 64f p5 spp124 10k ×5",
+            stages=[{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            **common,
+        ),
+        _run_conv_config(
+            "PCA 64f p5 spp124 10k ×10",
+            stages=[{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=10,
+            **common,
+        ),
+        # ── Ensemble + augmentation ───────────────────────────────────
+        _run_conv_config(
+            "PCA 64f p5 spp124 10k ×5 +hflip",
+            stages=[{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            augment_flip=True,
+            **common,
+        ),
+    ]
+
+
 SUITES = {
     "row_focus": run_row_focus_suite,
     "sequential_hard": run_sequential_hard_suite,
+    "conv_cifar": run_conv_cifar_suite,
 }
 
 
