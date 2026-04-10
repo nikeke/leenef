@@ -103,39 +103,45 @@ def whitened(
     dim: int,
     *,
     train_data: Tensor,
+    variance_ratio: float = 0.95,
     rng: torch.Generator | None = None,
 ) -> Tensor:
-    """Random encoders adapted to data covariance via ZCA whitening.
+    """Random encoders projected into the principal subspace of the data.
 
-    Generates random unit-hypersphere directions and transforms them by the
-    inverse square root of the data covariance matrix (ZCA whitening).  This
-    decorrelates the input dimensions and scales random directions so that
-    high-variance data directions receive proportionally more encoder coverage.
-
-    The transformed encoders are re-normalised to unit norm.
+    Computes PCA of the training data and retains the top eigenvectors that
+    explain at least ``variance_ratio`` of total variance.  Random unit
+    encoders are generated in the reduced-dimension subspace and projected
+    back to the original space.  This concentrates encoder diversity in the
+    informative dimensions and avoids wasting capacity on dead or
+    near-constant features (e.g. border pixels in MNIST).
 
     Args:
         n_neurons: number of encoder vectors to generate.
         dim: input dimensionality.
         train_data: ``(N, dim)`` training data used to estimate the covariance.
+        variance_ratio: fraction of variance to retain (default 0.95).
         rng: optional ``torch.Generator`` for reproducibility.
     """
     X = train_data.float()
-    mean = X.mean(dim=0)
-    X_centered = X - mean
+    X_centered = X - X.mean(dim=0)
     cov = (X_centered.T @ X_centered) / X.shape[0]
 
-    # Eigendecomposition — clamp small eigenvalues for numerical stability
     eigenvalues, eigenvectors = torch.linalg.eigh(cov)
-    eigenvalues = eigenvalues.clamp(min=1e-5)
+    # eigh returns ascending order; flip to descending
+    eigenvalues = eigenvalues.flip(0)
+    eigenvectors = eigenvectors.flip(1)
 
-    # ZCA whitening matrix: V @ diag(1/sqrt(λ)) @ Vᵀ
-    W = eigenvectors @ torch.diag(1.0 / eigenvalues.sqrt()) @ eigenvectors.T
+    # Retain top-k eigenvectors explaining >= variance_ratio of variance
+    cumvar = eigenvalues.cumsum(0) / eigenvalues.sum()
+    k = int((cumvar < variance_ratio).sum().item()) + 1
+    k = max(k, 1)
+    V_k = eigenvectors[:, :k]  # (dim, k)
 
-    e_random = uniform_hypersphere(n_neurons, dim, rng=rng)
-    e_whitened = e_random @ W
-    e_whitened = e_whitened / e_whitened.norm(dim=1, keepdim=True)
-    return e_whitened
+    # Random encoders in the k-dimensional subspace, projected to full space
+    e_sub = uniform_hypersphere(n_neurons, k, rng=rng)
+    e_proj = e_sub @ V_k.T  # (n_neurons, dim)
+    # V_k columns are orthonormal, so e_proj already has unit norm
+    return e_proj
 
 
 def class_contrast(

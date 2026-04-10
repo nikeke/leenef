@@ -152,6 +152,32 @@ class TestWhitenedEncoders:
         norms = e.norm(dim=1)
         assert torch.allclose(norms, torch.ones(100), atol=1e-5)
 
+    def test_subspace_dimension(self):
+        """Encoders lie in the principal subspace of the data."""
+        g = torch.Generator().manual_seed(42)
+        # Data with variance only in 3 of 10 dimensions
+        data = torch.zeros(500, 10)
+        data[:, :3] = torch.randn(500, 3, generator=g)
+        e = whitened(50, 10, train_data=data, variance_ratio=0.99)
+        # Encoders should have near-zero weight on dead dimensions 3-9
+        dead_energy = e[:, 3:].norm(dim=1)
+        assert (dead_energy < 1e-4).all()
+
+    def test_variance_ratio_controls_rank(self):
+        """Lower variance_ratio retains fewer components."""
+        g = torch.Generator().manual_seed(42)
+        # Data with linearly decaying variance across 20 dims
+        scales = torch.linspace(10, 0.1, 20)
+        data = torch.randn(500, 20, generator=g) * scales
+        e_wide = whitened(50, 20, train_data=data, variance_ratio=0.99)
+        e_narrow = whitened(50, 20, train_data=data, variance_ratio=0.50)
+        # e_narrow should have lower effective rank (more near-zero dims)
+        _, s_wide, _ = torch.linalg.svd(e_wide, full_matrices=False)
+        _, s_narrow, _ = torch.linalg.svd(e_narrow, full_matrices=False)
+        rank_wide = (s_wide > 1e-4).sum()
+        rank_narrow = (s_narrow > 1e-4).sum()
+        assert rank_narrow < rank_wide
+
 
 class TestClassContrastEncoders:
     @pytest.fixture
