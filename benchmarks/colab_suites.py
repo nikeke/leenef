@@ -274,6 +274,7 @@ def _run_conv_config(
     standardize: bool = False,
     lcn_kernel: int | None = None,
     gcn: bool = False,
+    parallel: bool = False,
     **nef_kwargs,
 ) -> BenchmarkResult:
     """Run one ConvNEF configuration and return a BenchmarkResult."""
@@ -334,6 +335,7 @@ def _run_conv_config(
             standardize=standardize,
             lcn_kernel=lcn_kernel,
             gcn=gcn,
+            parallel=parallel,
             **nef_kwargs,
         )
         model.fit(
@@ -360,6 +362,7 @@ def _run_conv_config(
             standardize=standardize,
             lcn_kernel=lcn_kernel,
             gcn=gcn,
+            parallel=parallel,
             **nef_kwargs,
         )
         model.fit(
@@ -701,6 +704,53 @@ def run_conv_cifar_suite(args: argparse.Namespace) -> list:
             lcn_kernel=5,
             standardize=True,
             augment_flip=True,
+            **common,
+        ),
+        # ── Multi-scale parallel stages ───────────────────────────────
+        _run_conv_config(
+            "PCA multi(32p3+32p5+32p7) spp124 10k",
+            stages=[
+                {"n_filters": 32, "patch_size": 3, "pool_size": 1},
+                {"n_filters": 32, "patch_size": 5, "pool_size": 1},
+                {"n_filters": 32, "patch_size": 7, "pool_size": 1},
+            ],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            **common,
+        ),
+        _run_conv_config(
+            "PCA multi(32p3+32p5+32p7) spp124 10k +gcn +std",
+            stages=[
+                {"n_filters": 32, "patch_size": 3, "pool_size": 1},
+                {"n_filters": 32, "patch_size": 5, "pool_size": 1},
+                {"n_filters": 32, "patch_size": 7, "pool_size": 1},
+            ],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            gcn=True,
+            standardize=True,
+            **common,
+        ),
+        _run_conv_config(
+            "PCA multi(64p3+64p5+64p7) spp124 10k +gcn +std",
+            stages=[
+                {"n_filters": 64, "patch_size": 3, "pool_size": 1},
+                {"n_filters": 64, "patch_size": 5, "pool_size": 1},
+                {"n_filters": 64, "patch_size": 7, "pool_size": 1},
+            ],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            gcn=True,
+            standardize=True,
             **common,
         ),
     ]

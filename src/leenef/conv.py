@@ -312,7 +312,11 @@ class ConvNEFPipeline(nn.Module):
 
     Args:
         stages: list of dicts, each passed as kwargs to
-            :class:`ConvNEFStage`.
+            :class:`ConvNEFStage`.  When ``parallel=True``, all stages
+            process the original input independently and their feature
+            maps are concatenated along the channel dimension before
+            pooling.  When ``parallel=False`` (default), stages are
+            applied sequentially (hierarchical).
         n_neurons: number of neurons in the NEF classification head.
         pool_levels: optional list of spatial pool sizes for pyramid
             pooling (e.g. ``[1, 2, 4]``).  ``None`` flattens directly.
@@ -326,6 +330,11 @@ class ConvNEFPipeline(nn.Module):
         gcn: if ``True``, apply global contrast normalization (per-image
             mean/std normalisation) as a preprocessing step.  Applied
             before LCN when both are enabled (default ``False``).
+        parallel: if ``True``, stages run in parallel on the same input
+            and their outputs are concatenated.  Useful for multi-scale
+            feature extraction with different patch sizes.  Feature maps
+            are resized to a common spatial size before concatenation
+            (default ``False``).
         nef_kwargs: additional keyword arguments for :class:`NEFLayer`
             (e.g. ``encoder_strategy``, ``activation``, ``gain``).
     """
@@ -339,6 +348,7 @@ class ConvNEFPipeline(nn.Module):
         standardize: bool = False,
         lcn_kernel: int | None = None,
         gcn: bool = False,
+        parallel: bool = False,
         **nef_kwargs,
     ):
         super().__init__()
@@ -349,6 +359,7 @@ class ConvNEFPipeline(nn.Module):
         self.standardize = standardize
         self.lcn_kernel = lcn_kernel
         self.gcn = gcn
+        self.parallel = parallel
         self.nef_kwargs = nef_kwargs
         self.head: NEFLayer | None = None
         self._feat_mean: Tensor | None = None
@@ -399,6 +410,31 @@ class ConvNEFPipeline(nn.Module):
             x = local_contrast_normalize(x, kernel_size=self.lcn_kernel)
         return x
 
+    def _apply_stages(self, x: Tensor) -> Tensor:
+        """Run conv stages on the input.
+
+        In sequential mode (default), stages are chained: each takes
+        the output of the previous stage.  In parallel mode, all stages
+        independently process the same input and their feature maps
+        are concatenated along the channel dimension.  When parallel
+        stages produce different spatial sizes, they are resized to
+        the minimum spatial dimensions using adaptive average pooling.
+        """
+        if self.parallel and len(self.stages) > 1:
+            outs = [stage(x) for stage in self.stages]
+            min_h = min(o.shape[2] for o in outs)
+            min_w = min(o.shape[3] for o in outs)
+            aligned = []
+            for o in outs:
+                if o.shape[2] != min_h or o.shape[3] != min_w:
+                    o = F.adaptive_avg_pool2d(o, (min_h, min_w))
+                aligned.append(o)
+            return torch.cat(aligned, dim=1)
+        else:
+            for stage in self.stages:
+                x = stage(x)
+            return x
+
     def fit(
         self,
         images: Tensor,
@@ -443,11 +479,16 @@ class ConvNEFPipeline(nn.Module):
         sub_idx = torch.randperm(N, generator=g, device=images.device)[:sub_n]
         sub_images = self._preprocess(images[sub_idx])
 
-        # Fit stages sequentially on subsample
-        x_sub = sub_images
-        for stage in self.stages:
-            stage.fit(x_sub)
-            x_sub = stage(x_sub)
+        # Fit stages on subsample
+        if self.parallel:
+            for stage in self.stages:
+                stage.fit(sub_images)
+        else:
+            x_sub = sub_images
+            for stage in self.stages:
+                stage.fit(x_sub)
+                x_sub = stage(x_sub)
+        x_sub = self._apply_stages(sub_images)
 
         # Pool features and standardize / use as centers
         centers = self._pool_features(x_sub)
@@ -468,17 +509,13 @@ class ConvNEFPipeline(nn.Module):
         for i in range(0, N, batch_size):
             x_batch = self._preprocess(images[i : i + batch_size])
             t_batch = targets[i : i + batch_size]
-            x_conv = x_batch
-            for stage in self.stages:
-                x_conv = stage(x_conv)
+            x_conv = self._apply_stages(x_batch)
             features = self._standardize_features(self._pool_features(x_conv))
             self.head.partial_fit(features, t_batch)
 
             if augment_fn is not None:
                 x_aug = self._preprocess(augment_fn(images[i : i + batch_size]))
-                x_conv_aug = x_aug
-                for stage in self.stages:
-                    x_conv_aug = stage(x_conv_aug)
+                x_conv_aug = self._apply_stages(x_aug)
                 features_aug = self._standardize_features(
                     self._pool_features(x_conv_aug)
                 )
@@ -490,8 +527,7 @@ class ConvNEFPipeline(nn.Module):
     def forward(self, x: Tensor) -> Tensor:
         """Forward pass through all stages and classification head."""
         x = self._preprocess(x)
-        for stage in self.stages:
-            x = stage(x)
+        x = self._apply_stages(x)
         features = self._standardize_features(self._pool_features(x))
         return self.head(features)
 
@@ -541,6 +577,7 @@ class ConvNEFEnsemble(nn.Module):
         standardize: bool = False,
         lcn_kernel: int | None = None,
         gcn: bool = False,
+        parallel: bool = False,
         **nef_kwargs,
     ):
         super().__init__()
@@ -555,6 +592,7 @@ class ConvNEFEnsemble(nn.Module):
                 standardize=standardize,
                 lcn_kernel=lcn_kernel,
                 gcn=gcn,
+                parallel=parallel,
                 **nef_kwargs,
             )
             for _ in range(n_members)

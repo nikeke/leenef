@@ -458,3 +458,39 @@ class TestGlobalContrastNormalize:
         pipe.fit(images, targets, fit_subsample=50, batch_size=25)
         pred = pipe(images[:5])
         assert pred.shape == (5, 3)
+
+
+class TestParallelStages:
+    def test_parallel_multi_scale(self):
+        """Parallel stages at different patch sizes produce correct output."""
+        g = torch.Generator().manual_seed(42)
+        images = torch.randn(50, 3, 16, 16, generator=g)
+        targets = F.one_hot(torch.randint(0, 3, (50,), generator=g), 3).float()
+        pipe = ConvNEFPipeline(
+            stages=[
+                {"n_filters": 4, "patch_size": 3, "pool_size": 1},
+                {"n_filters": 4, "patch_size": 5, "pool_size": 1},
+            ],
+            n_neurons=30,
+            pool_levels=[1, 2],
+            parallel=True,
+        )
+        pipe.fit(images, targets, fit_subsample=50, batch_size=25)
+        pred = pipe(images[:5])
+        assert pred.shape == (5, 3)
+        # 4+4=8 channels, SPP [1,2] -> 8*(1+4)=40 features
+        assert pipe.head.d_in == 40
+
+    def test_parallel_single_stage(self):
+        """Parallel with one stage should still produce valid output."""
+        g = torch.Generator().manual_seed(42)
+        images = torch.randn(50, 1, 8, 8, generator=g)
+        targets = F.one_hot(torch.randint(0, 2, (50,), generator=g), 2).float()
+        pipe = ConvNEFPipeline(
+            stages=[{"n_filters": 4, "patch_size": 3, "pool_size": 1}],
+            n_neurons=30,
+            parallel=True,
+        )
+        pipe.fit(images, targets, fit_subsample=50, batch_size=50, seed=7)
+        pred = pipe(images[:5])
+        assert pred.shape == (5, 2)
