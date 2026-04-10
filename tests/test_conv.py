@@ -243,3 +243,25 @@ class TestConvNEFPipeline:
         pred = pipe.predict(images, batch_size=100)
         acc = (pred.argmax(dim=1) == labels).float().mean().item()
         assert acc > 0.5, f"accuracy {acc:.2%} not above chance"
+
+    def test_second_order_pooling_shape(self):
+        """pool_order=2 doubles the SPP feature dimension."""
+        images = torch.randn(20, 1, 8, 8)
+        targets = F.one_hot(torch.randint(0, 3, (20,)), 3).float()
+        pipe1 = ConvNEFPipeline(
+            stages=[{"n_filters": 4, "patch_size": 3, "pool_size": 1}],
+            n_neurons=50,
+            pool_levels=[1, 2],
+            pool_order=1,
+        )
+        pipe1.fit(images, targets, fit_subsample=20, batch_size=20)
+        pipe2 = ConvNEFPipeline(
+            stages=[{"n_filters": 4, "patch_size": 3, "pool_size": 1}],
+            n_neurons=50,
+            pool_levels=[1, 2],
+            pool_order=2,
+        )
+        pipe2.fit(images, targets, fit_subsample=20, batch_size=20)
+        # Order-1: 4*(1+4)=20; Order-2: 4*(1+4)*2=40
+        assert pipe1.head.d_in == 20
+        assert pipe2.head.d_in == 40

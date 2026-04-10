@@ -144,6 +144,8 @@ class ConvNEFPipeline(nn.Module):
         n_neurons: number of neurons in the NEF classification head.
         pool_levels: optional list of spatial pool sizes for pyramid
             pooling (e.g. ``[1, 2, 4]``).  ``None`` flattens directly.
+        pool_order: ``1`` for mean-only pooling (default), ``2`` to
+            append per-channel variance in each spatial block.
         nef_kwargs: additional keyword arguments for :class:`NEFLayer`
             (e.g. ``encoder_strategy``, ``activation``, ``gain``).
     """
@@ -153,12 +155,14 @@ class ConvNEFPipeline(nn.Module):
         stages: list[dict],
         n_neurons: int,
         pool_levels: list[int] | None = None,
+        pool_order: int = 1,
         **nef_kwargs,
     ):
         super().__init__()
         self.stages = nn.ModuleList(ConvNEFStage(**cfg) for cfg in stages)
         self.n_neurons = n_neurons
         self.pool_levels = pool_levels
+        self.pool_order = pool_order
         self.nef_kwargs = nef_kwargs
         self.head: NEFLayer | None = None
 
@@ -167,6 +171,8 @@ class ConvNEFPipeline(nn.Module):
 
         If ``pool_levels`` is set, applies spatial pyramid pooling
         (adaptive average pool at each level, concatenated).
+        When ``pool_order`` is 2, appends per-channel variance in each
+        spatial block for second-order statistics.
         Otherwise, simply flattens.
         """
         if self.pool_levels is None:
@@ -175,6 +181,12 @@ class ConvNEFPipeline(nn.Module):
         for level in self.pool_levels:
             pooled = F.adaptive_avg_pool2d(x, level)
             parts.append(pooled.reshape(x.shape[0], -1))
+            if self.pool_order >= 2:
+                # Per-channel variance in each spatial block
+                x_sq = x * x
+                mean_sq = F.adaptive_avg_pool2d(x_sq, level)
+                var = mean_sq - pooled * pooled
+                parts.append(var.reshape(x.shape[0], -1))
         return torch.cat(parts, dim=1)
 
     def fit(
