@@ -273,6 +273,7 @@ def _run_conv_config(
     augment_flip: bool = False,
     standardize: bool = False,
     lcn_kernel: int | None = None,
+    gcn: bool = False,
     **nef_kwargs,
 ) -> BenchmarkResult:
     """Run one ConvNEF configuration and return a BenchmarkResult."""
@@ -332,6 +333,7 @@ def _run_conv_config(
             pool_order=pool_order,
             standardize=standardize,
             lcn_kernel=lcn_kernel,
+            gcn=gcn,
             **nef_kwargs,
         )
         model.fit(
@@ -357,6 +359,7 @@ def _run_conv_config(
             pool_order=pool_order,
             standardize=standardize,
             lcn_kernel=lcn_kernel,
+            gcn=gcn,
             **nef_kwargs,
         )
         model.fit(
@@ -658,6 +661,43 @@ def run_conv_cifar_suite(args: argparse.Namespace) -> list:
             alpha=1e-2,
             fit_subsample=10_000,
             n_members=5,
+            lcn_kernel=5,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        # ── Global contrast normalization ─────────────────────────────
+        _run_conv_config(
+            "PCA 64f p5 spp124 10k +gcn",
+            stages=[{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            gcn=True,
+            **common,
+        ),
+        _run_conv_config(
+            "PCA 64f p5 spp124 10k +gcn +lcn +std",
+            stages=[{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            gcn=True,
+            lcn_kernel=5,
+            standardize=True,
+            **common,
+        ),
+        _run_conv_config(
+            "PCA 64f p5 spp124 10k ×5 +gcn +lcn +std +hflip",
+            stages=[{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            gcn=True,
             lcn_kernel=5,
             standardize=True,
             augment_flip=True,

@@ -47,6 +47,26 @@ def local_contrast_normalize(
     return centered / local_std
 
 
+def global_contrast_normalize(x: Tensor, eps: float = 1e-6) -> Tensor:
+    """Apply global contrast normalization to images.
+
+    For each image, subtracts the global mean and divides by the
+    global standard deviation.  This normalises brightness and
+    contrast across the dataset.
+
+    Args:
+        x: ``(N, C, H, W)`` or ``(N, D)`` input tensor.
+        eps: stability constant added to the standard deviation.
+
+    Returns:
+        Normalized tensor of the same shape.
+    """
+    flat = x.reshape(x.shape[0], -1)
+    mean = flat.mean(dim=1, keepdim=True)
+    std = flat.std(dim=1, keepdim=True).clamp(min=eps)
+    return ((flat - mean) / std).reshape(x.shape)
+
+
 class ConvNEFStage(nn.Module):
     """Convolutional feature extraction stage with PCA or k-means filters.
 
@@ -303,6 +323,9 @@ class ConvNEFPipeline(nn.Module):
         lcn_kernel: if set, apply local contrast normalization with this
             kernel size as a preprocessing step on the input images
             (default ``None`` = disabled).
+        gcn: if ``True``, apply global contrast normalization (per-image
+            mean/std normalisation) as a preprocessing step.  Applied
+            before LCN when both are enabled (default ``False``).
         nef_kwargs: additional keyword arguments for :class:`NEFLayer`
             (e.g. ``encoder_strategy``, ``activation``, ``gain``).
     """
@@ -315,6 +338,7 @@ class ConvNEFPipeline(nn.Module):
         pool_order: int = 1,
         standardize: bool = False,
         lcn_kernel: int | None = None,
+        gcn: bool = False,
         **nef_kwargs,
     ):
         super().__init__()
@@ -324,6 +348,7 @@ class ConvNEFPipeline(nn.Module):
         self.pool_order = pool_order
         self.standardize = standardize
         self.lcn_kernel = lcn_kernel
+        self.gcn = gcn
         self.nef_kwargs = nef_kwargs
         self.head: NEFLayer | None = None
         self._feat_mean: Tensor | None = None
@@ -367,9 +392,11 @@ class ConvNEFPipeline(nn.Module):
         return (features - self._feat_mean) / self._feat_std
 
     def _preprocess(self, x: Tensor) -> Tensor:
-        """Apply optional preprocessing (LCN) to input images."""
+        """Apply optional preprocessing (GCN, LCN) to input images."""
+        if self.gcn:
+            x = global_contrast_normalize(x)
         if self.lcn_kernel is not None:
-            return local_contrast_normalize(x, kernel_size=self.lcn_kernel)
+            x = local_contrast_normalize(x, kernel_size=self.lcn_kernel)
         return x
 
     def fit(
@@ -513,6 +540,7 @@ class ConvNEFEnsemble(nn.Module):
         combine: str = "mean",
         standardize: bool = False,
         lcn_kernel: int | None = None,
+        gcn: bool = False,
         **nef_kwargs,
     ):
         super().__init__()
@@ -526,6 +554,7 @@ class ConvNEFEnsemble(nn.Module):
                 pool_order=pool_order,
                 standardize=standardize,
                 lcn_kernel=lcn_kernel,
+                gcn=gcn,
                 **nef_kwargs,
             )
             for _ in range(n_members)

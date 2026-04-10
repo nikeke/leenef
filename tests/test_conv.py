@@ -8,6 +8,7 @@ from leenef.conv import (
     ConvNEFEnsemble,
     ConvNEFPipeline,
     ConvNEFStage,
+    global_contrast_normalize,
     local_contrast_normalize,
 )
 
@@ -420,6 +421,39 @@ class TestLocalContrastNormalize:
             n_neurons=30,
             pool_levels=[1, 2],
             lcn_kernel=5,
+        )
+        pipe.fit(images, targets, fit_subsample=50, batch_size=25)
+        pred = pipe(images[:5])
+        assert pred.shape == (5, 3)
+
+
+class TestGlobalContrastNormalize:
+    def test_output_shape(self):
+        x = torch.randn(4, 3, 16, 16)
+        out = global_contrast_normalize(x)
+        assert out.shape == x.shape
+
+    def test_unit_stats(self):
+        """After GCN, each image should have ~zero mean, ~unit std."""
+        g = torch.Generator().manual_seed(42)
+        x = torch.randn(8, 3, 32, 32, generator=g) * 5 + 3
+        out = global_contrast_normalize(x)
+        flat = out.reshape(out.shape[0], -1)
+        means = flat.mean(dim=1)
+        stds = flat.std(dim=1)
+        assert means.abs().max() < 1e-5
+        assert (stds - 1.0).abs().max() < 1e-4
+
+    def test_pipeline_with_gcn(self):
+        """Pipeline with gcn=True preprocesses correctly."""
+        g = torch.Generator().manual_seed(42)
+        images = torch.randn(50, 3, 16, 16, generator=g)
+        targets = F.one_hot(torch.randint(0, 3, (50,), generator=g), 3).float()
+        pipe = ConvNEFPipeline(
+            stages=[{"n_filters": 4, "patch_size": 3, "pool_size": 1}],
+            n_neurons=30,
+            pool_levels=[1, 2],
+            gcn=True,
         )
         pipe.fit(images, targets, fit_subsample=50, batch_size=25)
         pred = pipe(images[:5])
