@@ -1280,11 +1280,266 @@ def run_conv_cifar_v2_suite(args: argparse.Namespace) -> list:
     ]
 
 
+def run_conv_cifar_v3_suite(args: argparse.Namespace) -> list:
+    """Phase-3 CIFAR-10 sweep: crop augmentation, n_augment, large ensembles."""
+    import torch
+
+    dev = args.device
+    if dev == "auto":
+        dev = "cuda" if torch.cuda.is_available() else "cpu"
+    set_benchmark_seed(args.seed)
+
+    x_train, y_train, x_test, y_test, targets_train = _load_cifar10(args.data_root, dev)
+    common = dict(
+        x_train=x_train,
+        y_train=y_train,
+        x_test=x_test,
+        y_test=y_test,
+        targets_train=targets_train,
+        seed=args.seed,
+    )
+
+    if args.quick:
+        return [
+            _run_conv_config(
+                "v3 quick",
+                stages=[{"n_filters": 32, "patch_size": 5, "pool_size": 1}],
+                n_neurons=2000,
+                pool_levels=[1, 2, 4],
+                alpha=1e-2,
+                fit_subsample=2000,
+                batch_size=500,
+                standardize=True,
+                augment_fn=_augment_crop_flip,
+                **common,
+            ),
+        ]
+
+    ms32 = [
+        {"n_filters": 32, "patch_size": 3, "pool_size": 1},
+        {"n_filters": 32, "patch_size": 5, "pool_size": 1},
+        {"n_filters": 32, "patch_size": 7, "pool_size": 1},
+    ]
+    ms_p3 = [{"n_filters": 64, "patch_size": 3, "pool_size": 1}]
+    ms_p5 = [{"n_filters": 64, "patch_size": 5, "pool_size": 1}]
+    ms_p7 = [{"n_filters": 64, "patch_size": 7, "pool_size": 1}]
+
+    return [
+        # ── Group 1: Random crop augmentation (single model baselines) ──
+        _run_conv_config(
+            "Multi 32×3 10k +std +crop",
+            stages=ms32,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 32×3 10k +std +crop+flip",
+            stages=ms32,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            **common,
+        ),
+        # ── Group 2: n_augment sweep (more augmented copies per batch) ──
+        _run_conv_config(
+            "Multi 32×3 10k +std +crop+flip n_aug=2",
+            stages=ms32,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            n_augment=2,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 32×3 10k +std +crop+flip n_aug=3",
+            stages=ms32,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            n_augment=3,
+            **common,
+        ),
+        # ── Group 3: 20k neurons + crop augmentation ────────────────────
+        _run_conv_config(
+            "Multi 32×3 20k +std +crop+flip",
+            stages=ms32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 32×3 20k +std +crop+flip n_aug=2",
+            stages=ms32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            n_augment=2,
+            **common,
+        ),
+        # ── Group 4: Ensemble ×5 + crop augmentation ────────────────────
+        _run_conv_config(
+            "Multi 32×3 ×5 +std +crop+flip",
+            stages=ms32,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 32×3 ×5 +std +crop+flip n_aug=2",
+            stages=ms32,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            n_augment=2,
+            **common,
+        ),
+        # ── Group 5: Large ensembles ────────────────────────────────────
+        _run_conv_config(
+            "Multi 32×3 ×10 +std +hflip",
+            stages=ms32,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=10,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 32×3 ×10 +std +crop+flip",
+            stages=ms32,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=10,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 32×3 ×20 +std +crop+flip",
+            stages=ms32,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=20,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            **common,
+        ),
+        # ── Group 6: Diverse ensemble + crop ────────────────────────────
+        _run_conv_config(
+            "Diverse(p3/p5/p7) ×6 +std +crop+flip",
+            stages=ms32,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=6,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            member_stages=[
+                [ms_p3[0]],
+                [ms_p5[0]],
+                [ms_p7[0]],
+                [ms_p3[0]],
+                [ms_p5[0]],
+                [ms_p7[0]],
+            ],
+            **common,
+        ),
+        _run_conv_config(
+            "Diverse(p3/p5/p7) ×9 +std +crop+flip",
+            stages=ms32,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=9,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            member_stages=[
+                [ms_p3[0]],
+                [ms_p5[0]],
+                [ms_p7[0]],
+                [ms_p3[0]],
+                [ms_p5[0]],
+                [ms_p7[0]],
+                [ms_p3[0]],
+                [ms_p5[0]],
+                [ms_p7[0]],
+            ],
+            **common,
+        ),
+        # ── Group 7: 20k + ensemble (combine best single + ensemble) ───
+        _run_conv_config(
+            "Multi 32×3 20k ×5 +std +crop+flip",
+            stages=ms32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            **common,
+        ),
+    ]
+
+
 SUITES = {
     "row_focus": run_row_focus_suite,
     "sequential_hard": run_sequential_hard_suite,
     "conv_cifar": run_conv_cifar_suite,
     "conv_cifar_v2": run_conv_cifar_v2_suite,
+    "conv_cifar_v3": run_conv_cifar_v3_suite,
 }
 
 
