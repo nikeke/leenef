@@ -397,3 +397,114 @@ class ConvNEFPipeline(nn.Module):
         for i in range(0, images.shape[0], batch_size):
             chunks.append(self.forward(images[i : i + batch_size]))
         return torch.cat(chunks, dim=0)
+
+
+class ConvNEFEnsemble(nn.Module):
+    """Ensemble of :class:`ConvNEFPipeline` members with different seeds.
+
+    Each member independently learns PCA (or k-means) convolutional
+    filters and NEF decoders.  Predictions are combined by probability
+    averaging (softmax then mean).  Exploits the fast analytical solve:
+    10 members × 20s = 200s total, still gradient-free.
+
+    Args:
+        n_members: number of ensemble members.
+        stages: list of dicts passed to each member's stages.
+        n_neurons: neurons per member's NEF head.
+        pool_levels: spatial pyramid pool sizes (passed to each member).
+        pool_order: pooling order (passed to each member).
+        combine: ``'mean'`` for probability averaging (default),
+            ``'vote'`` for majority voting.
+        nef_kwargs: additional keyword arguments for :class:`NEFLayer`.
+    """
+
+    def __init__(
+        self,
+        n_members: int,
+        stages: list[dict],
+        n_neurons: int,
+        pool_levels: list[int] | None = None,
+        pool_order: int = 1,
+        combine: str = "mean",
+        **nef_kwargs,
+    ):
+        super().__init__()
+        self.n_members = n_members
+        self.combine = combine
+        self.members = nn.ModuleList(
+            ConvNEFPipeline(
+                stages=[{**s} for s in stages],
+                n_neurons=n_neurons,
+                pool_levels=pool_levels,
+                pool_order=pool_order,
+                **nef_kwargs,
+            )
+            for _ in range(n_members)
+        )
+
+    def fit(
+        self,
+        images: Tensor,
+        targets: Tensor,
+        *,
+        alpha: float = 1e-2,
+        fit_subsample: int = 10_000,
+        batch_size: int = 1000,
+        base_seed: int = 0,
+    ) -> None:
+        """Fit all ensemble members with different random seeds.
+
+        Args:
+            images: ``(N, C, H, W)`` training images.
+            targets: ``(N, n_classes)`` one-hot target matrix.
+            alpha: Tikhonov regularisation for decoder solves.
+            fit_subsample: max samples for stage fitting per member.
+            batch_size: chunk size for incremental feature extraction.
+            base_seed: seed for the first member; subsequent members
+                use ``base_seed + i``.
+        """
+        for i, member in enumerate(self.members):
+            member.fit(
+                images,
+                targets,
+                alpha=alpha,
+                fit_subsample=fit_subsample,
+                batch_size=batch_size,
+                seed=base_seed + i,
+            )
+
+    def predict(self, images: Tensor, batch_size: int = 1000) -> Tensor:
+        """Ensemble prediction via probability averaging or voting.
+
+        Args:
+            images: ``(N, C, H, W)`` input images.
+            batch_size: chunk size for processing.
+
+        Returns:
+            ``(N, n_classes)`` combined predictions.
+        """
+        if self.combine == "vote":
+            votes = torch.zeros(
+                images.shape[0],
+                self.members[0].head.d_out,
+                device=images.device,
+            )
+            for member in self.members:
+                pred = member.predict(images, batch_size=batch_size)
+                votes.scatter_add_(
+                    1,
+                    pred.argmax(1, keepdim=True),
+                    torch.ones(images.shape[0], 1, device=images.device),
+                )
+            return votes
+
+        # Probability averaging (default)
+        total = None
+        for member in self.members:
+            pred = member.predict(images, batch_size=batch_size)
+            probs = torch.softmax(pred, dim=1)
+            if total is None:
+                total = probs
+            else:
+                total = total + probs
+        return total / self.n_members

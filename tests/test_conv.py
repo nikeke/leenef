@@ -4,7 +4,7 @@ import pytest
 import torch
 import torch.nn.functional as F
 
-from leenef.conv import ConvNEFPipeline, ConvNEFStage
+from leenef.conv import ConvNEFEnsemble, ConvNEFPipeline, ConvNEFStage
 
 # ── ConvNEFStage tests ─────────────────────────────────────────────────
 
@@ -298,3 +298,56 @@ class TestConvNEFPipeline:
         # Order-1: 4*(1+4)=20; Order-2: 4*(1+4)*2=40
         assert pipe1.head.d_in == 20
         assert pipe2.head.d_in == 40
+
+
+# ── ConvNEFEnsemble tests ─────────────────────────────────────────────
+
+
+class TestConvNEFEnsemble:
+    def test_fit_and_predict(self):
+        """Ensemble fits all members and produces correct output shape."""
+        g = torch.Generator().manual_seed(42)
+        images = torch.randn(100, 1, 8, 8, generator=g)
+        labels = torch.randint(0, 3, (100,), generator=g)
+        targets = F.one_hot(labels, 3).float()
+        ens = ConvNEFEnsemble(
+            n_members=3,
+            stages=[{"n_filters": 4, "patch_size": 3, "pool_size": 1}],
+            n_neurons=50,
+            pool_levels=[1, 2],
+        )
+        ens.fit(images, targets, fit_subsample=100, batch_size=50)
+        pred = ens.predict(images, batch_size=50)
+        assert pred.shape == (100, 3)
+
+    def test_members_differ(self):
+        """Different seeds produce different decoders."""
+        g = torch.Generator().manual_seed(7)
+        images = torch.randn(80, 1, 8, 8, generator=g)
+        targets = F.one_hot(torch.randint(0, 2, (80,), generator=g), 2).float()
+        ens = ConvNEFEnsemble(
+            n_members=2,
+            stages=[{"n_filters": 4, "patch_size": 3, "pool_size": 1}],
+            n_neurons=30,
+        )
+        ens.fit(images, targets, fit_subsample=80, batch_size=40)
+        d0 = ens.members[0].head.decoders.data
+        d1 = ens.members[1].head.decoders.data
+        assert not torch.allclose(d0, d1)
+
+    def test_vote_combine(self):
+        """Voting combination produces valid output."""
+        g = torch.Generator().manual_seed(99)
+        images = torch.randn(40, 1, 8, 8, generator=g)
+        targets = F.one_hot(torch.randint(0, 4, (40,), generator=g), 4).float()
+        ens = ConvNEFEnsemble(
+            n_members=2,
+            stages=[{"n_filters": 4, "patch_size": 3, "pool_size": 1}],
+            n_neurons=30,
+            combine="vote",
+        )
+        ens.fit(images, targets, fit_subsample=40, batch_size=20)
+        pred = ens.predict(images, batch_size=20)
+        assert pred.shape == (40, 4)
+        # Vote counts should sum to n_members for each sample
+        assert (pred.sum(dim=1) == 2).all()
