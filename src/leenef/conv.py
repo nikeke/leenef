@@ -572,11 +572,19 @@ class ConvNEFPipeline(nn.Module):
             for stage in self.stages:
                 stage.fit(x_sub)
                 x_sub = stage(x_sub)
-        x_sub = self._apply_stages(sub_images)
 
-        # Pool features and standardize / use as centers
-        centers = self._pool_features(x_sub)
-        centers = self._standardize_features(centers, fit=True)
+        # Extract conv features for centers in chunks to limit peak memory
+        center_chunks = []
+        for i in range(0, sub_n, batch_size):
+            chunk = self._apply_stages(sub_images[i : i + batch_size])
+            center_chunks.append(self._pool_features(chunk))
+            del chunk
+        x_sub = torch.cat(center_chunks, dim=0)
+        del center_chunks
+
+        # Standardize pooled features and use as centers
+        centers = self._standardize_features(x_sub, fit=True)
+        del x_sub
         feat_dim = centers.shape[1]
 
         # Create NEF classification head.
@@ -606,16 +614,22 @@ class ConvNEFPipeline(nn.Module):
             x_batch = self._preprocess(images[i : i + batch_size])
             t_batch = targets[i : i + batch_size]
             x_conv = self._apply_stages(x_batch)
+            del x_batch
             features = self._standardize_features(self._pool_features(x_conv))
+            del x_conv
             self.head.partial_fit(features, t_batch)
+            del features
 
             if augment_fn is not None:
                 x_aug = self._preprocess(augment_fn(images[i : i + batch_size]))
                 x_conv_aug = self._apply_stages(x_aug)
+                del x_aug
                 features_aug = self._standardize_features(
                     self._pool_features(x_conv_aug)
                 )
+                del x_conv_aug
                 self.head.partial_fit(features_aug, t_batch)
+                del features_aug
 
         self.head.solve_accumulated(alpha=alpha)
 
