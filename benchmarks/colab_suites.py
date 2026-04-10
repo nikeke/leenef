@@ -253,6 +253,29 @@ def run_sequential_hard_suite(args: argparse.Namespace) -> list:
     ]
 
 
+def _augment_crop(x, pad: int = 4):
+    """Random crop with reflection padding (standard CIFAR-10 augmentation)."""
+    import torch
+    import torch.nn.functional as F
+
+    x_pad = F.pad(x, [pad] * 4, mode="reflect")
+    _, _, h, w = x.shape
+    ph, pw = x_pad.shape[2], x_pad.shape[3]
+    top = torch.randint(0, ph - h + 1, (1,)).item()
+    left = torch.randint(0, pw - w + 1, (1,)).item()
+    return x_pad[:, :, top : top + h, left : left + w]
+
+
+def _augment_crop_flip(x, pad: int = 4):
+    """Random crop + random horizontal flip."""
+    import torch
+
+    x = _augment_crop(x, pad)
+    if torch.rand(1).item() > 0.5:
+        x = x.flip(-1)
+    return x
+
+
 def _run_conv_config(
     label: str,
     *,
@@ -271,6 +294,8 @@ def _run_conv_config(
     seed: int = 0,
     n_members: int = 1,
     augment_flip: bool = False,
+    augment_fn=None,
+    n_augment: int = 1,
     standardize: bool = False,
     lcn_kernel: int | None = None,
     gcn: bool = False,
@@ -283,7 +308,9 @@ def _run_conv_config(
 
     from leenef.conv import ConvNEFEnsemble, ConvNEFPipeline
 
-    aug_fn = (lambda x: x.flip(-1)) if augment_flip else None
+    if augment_fn is None and augment_flip:
+        augment_fn = lambda x: x.flip(-1)  # noqa: E731
+    aug_fn = augment_fn
 
     print(f"Running {label}...", flush=True)
     t0 = time.time()
@@ -348,6 +375,7 @@ def _run_conv_config(
             batch_size=batch_size,
             base_seed=seed,
             augment_fn=aug_fn,
+            n_augment=n_augment,
         )
 
         fit_time = time.time() - t0
@@ -375,6 +403,7 @@ def _run_conv_config(
             batch_size=batch_size,
             seed=seed,
             augment_fn=aug_fn,
+            n_augment=n_augment,
         )
 
         fit_time = time.time() - t0
