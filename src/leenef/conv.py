@@ -338,47 +338,59 @@ class ConvNEFStage(nn.Module):
         Unfolds input into patches, normalises each patch to zero mean
         and unit L2 norm, subtracts the population mean, then computes
         inner products with the learned filters.
+
+        Processes in chunks to limit peak memory from the unfolded
+        patch tensor (N × L × patch_dim can exceed GPU capacity).
         """
         N, C, H, W = x.shape
         p = self.patch_size
         pad = p // 2
         k = self.filters.shape[0]
+        patch_dim = C * p * p
+        L = H * W  # spatial positions (with same-padding)
         filters_flat = self.filters.reshape(k, -1)  # (k, patch_dim)
 
-        # Unfold: (N, patch_dim, H*W)
-        patches = F.unfold(x, kernel_size=p, stride=1, padding=pad)
-        # (N, H*W, patch_dim)
-        patches = patches.permute(0, 2, 1).contiguous()
+        # Chunk size: keep unfolded tensor under ~1 GB
+        bytes_per_image = L * patch_dim * 4  # float32
+        max_bytes = 1 * 1024**3
+        chunk_n = max(1, max_bytes // bytes_per_image)
 
-        # Per-patch contrast normalization
-        patches -= patches.mean(dim=2, keepdim=True)
-        norms = patches.norm(dim=2, keepdim=True).clamp(min=1e-8)
-        patches /= norms
+        out_chunks = []
+        for start in range(0, N, chunk_n):
+            xc = x[start : start + chunk_n]
+            Nc = xc.shape[0]
 
-        # Subtract population mean and compute inner products with filters
-        patches = patches - self._patch_mean.unsqueeze(0).unsqueeze(0)
-        # (N, L, k) = (N, L, d) @ (d, k)
-        out = patches @ filters_flat.T
-        # Reshape to spatial: (N, k, H, W)
-        out = out.permute(0, 2, 1).reshape(N, k, H, W)
+            patches = F.unfold(xc, kernel_size=p, stride=1, padding=pad)
+            patches = patches.permute(0, 2, 1).contiguous()
 
-        if self.filter_strategy == "kmeans":
-            # Triangle activation on normalised patches
-            dist_sq = (
-                patches.pow(2).sum(2, keepdim=True)  # (N, L, 1)
-                - 2 * (patches @ filters_flat.T)  # (N, L, k)
-                + filters_flat.pow(2).sum(1).unsqueeze(0).unsqueeze(0)  # (1, 1, k)
-            )
-            dist = dist_sq.clamp(min=0).sqrt()
-            mean_dist = dist.mean(dim=2, keepdim=True)
-            out = (mean_dist - dist).clamp(min=0)
-            out = out.permute(0, 2, 1).reshape(N, k, H, W)
-        else:
-            out = self.act(out)
+            # Per-patch contrast normalization
+            patches -= patches.mean(dim=2, keepdim=True)
+            norms = patches.norm(dim=2, keepdim=True).clamp(min=1e-8)
+            patches /= norms
 
-        if self.pool_size > 1:
-            out = F.avg_pool2d(out, self.pool_size, ceil_mode=True)
-        return out
+            patches = patches - self._patch_mean.unsqueeze(0).unsqueeze(0)
+
+            if self.filter_strategy == "kmeans":
+                dist_sq = (
+                    patches.pow(2).sum(2, keepdim=True)
+                    - 2 * (patches @ filters_flat.T)
+                    + filters_flat.pow(2).sum(1).unsqueeze(0).unsqueeze(0)
+                )
+                dist = dist_sq.clamp(min=0).sqrt()
+                mean_dist = dist.mean(dim=2, keepdim=True)
+                chunk_out = (mean_dist - dist).clamp(min=0)
+                chunk_out = chunk_out.permute(0, 2, 1).reshape(Nc, k, H, W)
+            else:
+                chunk_out = patches @ filters_flat.T
+                chunk_out = chunk_out.permute(0, 2, 1).reshape(Nc, k, H, W)
+                chunk_out = self.act(chunk_out)
+
+            if self.pool_size > 1:
+                chunk_out = F.avg_pool2d(chunk_out, self.pool_size, ceil_mode=True)
+            out_chunks.append(chunk_out)
+            del patches
+
+        return torch.cat(out_chunks, dim=0)
 
 
 class ConvNEFPipeline(nn.Module):
@@ -571,7 +583,12 @@ class ConvNEFPipeline(nn.Module):
             x_sub = sub_images
             for stage in self.stages:
                 stage.fit(x_sub)
-                x_sub = stage(x_sub)
+                # Forward through fitted stage in chunks to limit memory
+                chunks = []
+                for j in range(0, x_sub.shape[0], batch_size):
+                    chunks.append(stage(x_sub[j : j + batch_size]))
+                x_sub = torch.cat(chunks, dim=0)
+                del chunks
 
         # Extract conv features for centers in chunks to limit peak memory
         center_chunks = []
