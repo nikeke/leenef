@@ -140,6 +140,31 @@ class TestConvNEFStage:
         with pytest.raises(ValueError, match="magic"):
             stage.fit(torch.randn(10, 1, 8, 8))
 
+    def test_normalize_patches_shape(self, images):
+        """Per-patch normalization produces correct output shape."""
+        stage = ConvNEFStage(8, patch_size=5, pool_size=2, normalize_patches=True)
+        stage.fit(images)
+        out = stage(images)
+        assert out.shape == (100, 8, 8, 8)
+        assert torch.isfinite(out).all()
+
+    def test_normalize_patches_nonneg(self, images):
+        """abs activation still produces non-negative output with normalization."""
+        stage = ConvNEFStage(8, patch_size=5, pool_size=1, normalize_patches=True)
+        stage.fit(images)
+        out = stage(images)
+        assert (out >= 0).all()
+
+    def test_normalize_patches_differs_from_raw(self, images):
+        """Normalized output differs from non-normalized."""
+        raw = ConvNEFStage(8, patch_size=5, pool_size=1, max_patches=200_000)
+        norm = ConvNEFStage(8, patch_size=5, pool_size=1, max_patches=200_000, normalize_patches=True)
+        raw.fit(images)
+        norm.fit(images)
+        out_raw = raw(images[:10])
+        out_norm = norm(images[:10])
+        assert not torch.allclose(out_raw, out_norm, atol=1e-3)
+
 
 # ── ConvNEFPipeline tests ──────────────────────────────────────────────
 
@@ -342,6 +367,23 @@ class TestConvNEFPipeline:
         assert pred.shape == (5, 3)
         # Standardisation stats should have correct dimension
         assert pipe._feat_mean.shape[0] == pipe.head.d_in
+
+    def test_normalize_patches_pipeline(self):
+        """Pipeline works with per-patch contrast normalization."""
+        g = torch.Generator().manual_seed(99)
+        images = torch.randn(50, 3, 8, 8, generator=g)
+        targets = F.one_hot(torch.randint(0, 3, (50,), generator=g), 3).float()
+        pipe = ConvNEFPipeline(
+            stages=[
+                {"n_filters": 4, "patch_size": 3, "pool_size": 1, "normalize_patches": True}
+            ],
+            n_neurons=30,
+            pool_levels=[1, 2],
+        )
+        pipe.fit(images, targets, fit_subsample=50, batch_size=25)
+        pred = pipe(images[:5])
+        assert pred.shape == (5, 3)
+        assert torch.isfinite(pred).all()
 
 
 class TestConvNEFEnsemble:

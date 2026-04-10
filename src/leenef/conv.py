@@ -95,6 +95,11 @@ class ConvNEFStage(nn.Module):
         kmeans_iter: number of k-means iterations (default 20).
         whiten_patches: if ``True``, ZCA-whiten patches before k-means.
             Only used when ``filter_strategy='kmeans'``.
+        normalize_patches: if ``True``, apply per-patch contrast
+            normalization: subtract each patch's mean and divide by its
+            L2 norm.  This removes brightness variation and focuses
+            PCA/k-means on texture/edge patterns (Coates & Ng 2012).
+            Applied both during filter learning and at inference time.
     """
 
     def __init__(
@@ -107,6 +112,7 @@ class ConvNEFStage(nn.Module):
         filter_strategy: str = "pca",
         kmeans_iter: int = 20,
         whiten_patches: bool = False,
+        normalize_patches: bool = False,
     ):
         super().__init__()
         if patch_size % 2 == 0:
@@ -119,6 +125,7 @@ class ConvNEFStage(nn.Module):
         self.filter_strategy = filter_strategy
         self.kmeans_iter = kmeans_iter
         self.whiten_patches = whiten_patches
+        self.normalize_patches = normalize_patches
         # Populated by fit()
         self.register_buffer("filters", torch.empty(0))
         self.register_buffer("conv_bias", torch.empty(0))
@@ -153,6 +160,25 @@ class ConvNEFStage(nn.Module):
         if patches.shape[0] > self.max_patches:
             idx = torch.randperm(patches.shape[0], device=patches.device)[: self.max_patches]
             patches = patches[idx]
+        return patches
+
+    @staticmethod
+    def _normalize_patches_inplace(patches: Tensor, eps: float = 1e-8) -> Tensor:
+        """Per-patch contrast normalization: zero mean, unit L2 norm.
+
+        Removes brightness variation so that PCA/k-means focus on
+        texture and edge patterns rather than overall intensity.
+
+        Args:
+            patches: ``(n, d)`` patch matrix, modified in-place.
+            eps: stability constant for near-zero-norm patches.
+
+        Returns:
+            The normalised patches tensor (same object as input).
+        """
+        patches -= patches.mean(dim=1, keepdim=True)
+        norms = patches.norm(dim=1, keepdim=True).clamp(min=eps)
+        patches /= norms
         return patches
 
     @staticmethod
@@ -209,6 +235,8 @@ class ConvNEFStage(nn.Module):
         p = self.patch_size
 
         patches = self._extract_patches(images)
+        if self.normalize_patches:
+            self._normalize_patches_inplace(patches)
         mean = patches.mean(dim=0)
         patches_centered = patches - mean
 
@@ -258,12 +286,20 @@ class ConvNEFStage(nn.Module):
         ``max(0, mean_dist - dist_k)`` where ``dist_k`` is the distance
         from each spatial patch to centroid k.
 
+        When ``normalize_patches=True``, patches are extracted, normalised
+        per-patch (zero mean, unit L2 norm), and then inner-producted with
+        filters.  This matches the preprocessing used during filter
+        learning and removes brightness variation at each spatial position.
+
         Args:
             x: ``(N, C, H, W)`` input images or feature maps.
 
         Returns:
             ``(N, n_filters, H_out, W_out)`` output feature maps.
         """
+        if self.normalize_patches:
+            return self._forward_normalized(x)
+
         pad = self.patch_size // 2
         if self.filter_strategy == "kmeans":
             # Triangle activation: max(0, mean_dist - dist_k)
@@ -292,6 +328,54 @@ class ConvNEFStage(nn.Module):
         else:
             out = F.conv2d(x, self.filters, bias=self.conv_bias, padding=pad)
             out = self.act(out)
+        if self.pool_size > 1:
+            out = F.avg_pool2d(out, self.pool_size, ceil_mode=True)
+        return out
+
+    def _forward_normalized(self, x: Tensor) -> Tensor:
+        """Forward pass with per-patch contrast normalization.
+
+        Unfolds input into patches, normalises each patch to zero mean
+        and unit L2 norm, subtracts the population mean, then computes
+        inner products with the learned filters.
+        """
+        N, C, H, W = x.shape
+        p = self.patch_size
+        pad = p // 2
+        k = self.filters.shape[0]
+        filters_flat = self.filters.reshape(k, -1)  # (k, patch_dim)
+
+        # Unfold: (N, patch_dim, H*W)
+        patches = F.unfold(x, kernel_size=p, stride=1, padding=pad)
+        # (N, H*W, patch_dim)
+        patches = patches.permute(0, 2, 1).contiguous()
+
+        # Per-patch contrast normalization
+        patches -= patches.mean(dim=2, keepdim=True)
+        norms = patches.norm(dim=2, keepdim=True).clamp(min=1e-8)
+        patches /= norms
+
+        # Subtract population mean and compute inner products with filters
+        patches = patches - self._patch_mean.unsqueeze(0).unsqueeze(0)
+        # (N, L, k) = (N, L, d) @ (d, k)
+        out = patches @ filters_flat.T
+        # Reshape to spatial: (N, k, H, W)
+        out = out.permute(0, 2, 1).reshape(N, k, H, W)
+
+        if self.filter_strategy == "kmeans":
+            # Triangle activation on normalised patches
+            dist_sq = (
+                patches.pow(2).sum(2, keepdim=True)  # (N, L, 1)
+                - 2 * (patches @ filters_flat.T)  # (N, L, k)
+                + filters_flat.pow(2).sum(1).unsqueeze(0).unsqueeze(0)  # (1, 1, k)
+            )
+            dist = dist_sq.clamp(min=0).sqrt()
+            mean_dist = dist.mean(dim=2, keepdim=True)
+            out = (mean_dist - dist).clamp(min=0)
+            out = out.permute(0, 2, 1).reshape(N, k, H, W)
+        else:
+            out = self.act(out)
+
         if self.pool_size > 1:
             out = F.avg_pool2d(out, self.pool_size, ceil_mode=True)
         return out

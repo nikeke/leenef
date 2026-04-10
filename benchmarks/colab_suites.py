@@ -753,6 +753,59 @@ def run_conv_cifar_suite(args: argparse.Namespace) -> list:
             standardize=True,
             **common,
         ),
+        # ── Per-patch contrast normalization ──────────────────────────
+        _run_conv_config(
+            "PCA 64f p5 spp124 10k +patchnorm",
+            stages=[
+                {"n_filters": 64, "patch_size": 5, "pool_size": 1, "normalize_patches": True}
+            ],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            **common,
+        ),
+        _run_conv_config(
+            "PCA 64f p5 spp124 10k +patchnorm +gcn +std",
+            stages=[
+                {"n_filters": 64, "patch_size": 5, "pool_size": 1, "normalize_patches": True}
+            ],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            gcn=True,
+            standardize=True,
+            **common,
+        ),
+        _run_conv_config(
+            "PCA 128f p5 spp124 10k +patchnorm +gcn +std",
+            stages=[
+                {"n_filters": 128, "patch_size": 5, "pool_size": 1, "normalize_patches": True}
+            ],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            gcn=True,
+            standardize=True,
+            **common,
+        ),
+        _run_conv_config(
+            "PCA 64f p5 spp124 10k ×5 +patchnorm +gcn +std +hflip",
+            stages=[
+                {"n_filters": 64, "patch_size": 5, "pool_size": 1, "normalize_patches": True}
+            ],
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            gcn=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
     ]
 
 
