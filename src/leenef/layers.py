@@ -116,22 +116,25 @@ class NEFLayer(nn.Module):
         self.d_out = d_out
         self._rng = rng
 
-        # 1. Create encoders — some strategies return (encoders, centers) tuples
+        # 1. Create encoders — some strategies return (encoders, centers) tuples.
+        #    Move to CPU; buffers are relocated to the target device via .to().
         result = make_encoders(
             n_neurons, d_in, strategy=encoder_strategy, rng=rng, **(encoder_kwargs or {})
         )
         if isinstance(result, tuple):
-            enc, encoder_centers = result
+            enc, encoder_centers = result[0].cpu(), result[1].cpu()
         else:
-            enc = result
+            enc = result.cpu()
             encoder_centers = None
 
-        # 2. Resolve per-neuron center points for bias and gain computation
+        # 2. Resolve per-neuron center points for bias and gain computation.
+        #    Move to CPU so bias arithmetic matches encoder device; buffers
+        #    are relocated to the target device later via .to(device).
         if encoder_centers is not None:
-            selected_centers = encoder_centers
+            selected_centers = encoder_centers.cpu()
         elif centers is not None:
             idx = torch.randint(len(centers), (n_neurons,), generator=rng)
-            selected_centers = centers[idx]
+            selected_centers = centers[idx].cpu()
         else:
             selected_centers = None
 
@@ -143,7 +146,7 @@ class NEFLayer(nn.Module):
                 n_neurons,
                 rng,
                 selected_centers=selected_centers,
-                all_centers=centers,
+                all_centers=centers.cpu() if centers is not None else None,
             ),
         )
 
