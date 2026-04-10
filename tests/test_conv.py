@@ -101,6 +101,39 @@ class TestConvNEFStage:
         # Should clamp to min(20, 9) = 9
         assert stage.filters.shape[0] == 9
 
+    def test_kmeans_fit_sets_filters(self, images):
+        """K-means strategy produces filters of the correct shape."""
+        stage = ConvNEFStage(8, patch_size=5, filter_strategy="kmeans", kmeans_iter=5)
+        stage.fit(images)
+        assert stage.filters.shape == (8, 3, 5, 5)
+        assert stage.conv_bias.shape == (8,)
+
+    def test_kmeans_forward_shape(self, images):
+        """K-means stage produces correct output shape."""
+        stage = ConvNEFStage(8, patch_size=5, pool_size=2, filter_strategy="kmeans")
+        stage.fit(images)
+        out = stage(images)
+        assert out.shape == (100, 8, 8, 8)
+
+    def test_kmeans_whiten(self, images):
+        """K-means with ZCA-whitened patches produces valid filters."""
+        stage = ConvNEFStage(
+            8,
+            patch_size=5,
+            filter_strategy="kmeans",
+            kmeans_iter=5,
+            whiten_patches=True,
+        )
+        stage.fit(images)
+        assert stage.filters.shape == (8, 3, 5, 5)
+        assert torch.isfinite(stage.filters).all()
+
+    def test_invalid_filter_strategy(self):
+        """Unknown filter_strategy raises ValueError."""
+        stage = ConvNEFStage(8, patch_size=5, filter_strategy="magic")
+        with pytest.raises(ValueError, match="magic"):
+            stage.fit(torch.randn(10, 1, 8, 8))
+
 
 # ── ConvNEFPipeline tests ──────────────────────────────────────────────
 

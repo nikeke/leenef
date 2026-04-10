@@ -1,9 +1,9 @@
-"""Gradient-free convolutional feature extraction via PCA filters.
+"""Gradient-free convolutional feature extraction.
 
-Implements PCANet-style convolutional stages where filters are learned
-from data via PCA of observed patches, without any gradient descent.
-Combined with a NEF classification head, this creates a fully
-gradient-free hierarchical feature learning pipeline.
+Implements convolutional stages where filters are learned from data
+patches (PCA or k-means), without any gradient descent.  Combined
+with a NEF classification head, this creates a fully gradient-free
+hierarchical feature learning pipeline.
 """
 
 from __future__ import annotations
@@ -18,23 +18,33 @@ from .layers import NEFLayer
 
 
 class ConvNEFStage(nn.Module):
-    """PCA-based convolutional feature extraction stage.
+    """Convolutional feature extraction stage with PCA or k-means filters.
 
     Extracts overlapping patches from input images or feature maps,
-    computes PCA of the patch population, and uses the top eigenvectors
-    as fixed convolutional filters.  The result is passed through an
+    learns filters from the patch population, and applies them as
+    fixed convolutional filters.  The result is passed through an
     activation function and spatial average pooling.
+
+    Two filter strategies are supported:
+
+    - ``'pca'``: top eigenvectors of the patch covariance (PCANet-style).
+    - ``'kmeans'``: k-means centroids of the patch population, capturing
+      the most representative local patterns.  Follows Coates & Ng (2012).
 
     Filters are stored as buffers (not parameters) — they are
     data-derived but not gradient-trained.
 
     Args:
-        n_filters: number of PCA filters (eigenvectors) to retain.
+        n_filters: number of filters to learn.
         patch_size: spatial size of square patches (must be odd).
         pool_size: spatial average pooling factor (default 2).
         activation: activation function name (default ``'abs'``).
-        max_patches: maximum patches to subsample for PCA
+        max_patches: maximum patches to subsample for filter learning
             (default 100_000).
+        filter_strategy: ``'pca'`` or ``'kmeans'`` (default ``'pca'``).
+        kmeans_iter: number of k-means iterations (default 20).
+        whiten_patches: if ``True``, ZCA-whiten patches before k-means.
+            Only used when ``filter_strategy='kmeans'``.
     """
 
     def __init__(
@@ -44,6 +54,9 @@ class ConvNEFStage(nn.Module):
         pool_size: int = 2,
         activation: str = "abs",
         max_patches: int = 100_000,
+        filter_strategy: str = "pca",
+        kmeans_iter: int = 20,
+        whiten_patches: bool = False,
     ):
         super().__init__()
         if patch_size % 2 == 0:
@@ -53,34 +66,33 @@ class ConvNEFStage(nn.Module):
         self.pool_size = pool_size
         self.act = make_activation(activation)
         self.max_patches = max_patches
+        self.filter_strategy = filter_strategy
+        self.kmeans_iter = kmeans_iter
+        self.whiten_patches = whiten_patches
         # Populated by fit()
         self.register_buffer("filters", torch.empty(0))
         self.register_buffer("conv_bias", torch.empty(0))
+        self.register_buffer("_patch_mean", torch.empty(0))
+        # For k-means: ||c_k||² after centering, for distance computation
+        self.register_buffer("_centroid_sq", torch.empty(0))
 
-    def fit(self, images: Tensor) -> None:
-        """Learn PCA filters from training images.
+    def _extract_patches(self, images: Tensor) -> Tensor:
+        """Extract and subsample patches from images.
 
-        Extracts all overlapping patches, subsamples if necessary,
-        centers, and computes PCA via eigendecomposition.  The top
-        ``n_filters`` eigenvectors become convolutional filters.
-
-        Args:
-            images: ``(N, C, H, W)`` training images or feature maps.
+        Returns:
+            ``(n_patches, patch_dim)`` mean-centered patches.
         """
         N, C, H, W = images.shape
         p = self.patch_size
         patch_dim = C * p * p
 
-        # Extract patches in chunks to limit memory
         chunk_size = max(1, self.max_patches // ((H - p + 1) * (W - p + 1)))
         chunk_size = min(chunk_size, N)
         all_patches = []
         collected = 0
         for i in range(0, N, chunk_size):
             batch = images[i : i + chunk_size]
-            # (chunk, patch_dim, n_spatial)
             patches = F.unfold(batch, kernel_size=p, stride=1, padding=p // 2)
-            # (chunk * n_spatial, patch_dim)
             patches = patches.permute(0, 2, 1).reshape(-1, patch_dim).float()
             all_patches.append(patches)
             collected += patches.shape[0]
@@ -91,25 +103,110 @@ class ConvNEFStage(nn.Module):
         if patches.shape[0] > self.max_patches:
             idx = torch.randperm(patches.shape[0], device=patches.device)[: self.max_patches]
             patches = patches[idx]
+        return patches
 
-        # Center
+    @staticmethod
+    def _kmeans(patches: Tensor, k: int, n_iter: int = 20, seed: int = 0) -> Tensor:
+        """Pure-PyTorch k-means clustering.
+
+        Args:
+            patches: ``(n, d)`` data points.
+            k: number of clusters.
+            n_iter: number of Lloyd iterations.
+            seed: random seed for centroid initialisation.
+
+        Returns:
+            ``(k, d)`` cluster centroids.
+        """
+        n, d = patches.shape
+        g = torch.Generator(device=patches.device).manual_seed(seed)
+        idx = torch.randperm(n, generator=g, device=patches.device)[:k]
+        centroids = patches[idx].clone()
+
+        chunk = 10_000
+        for _ in range(n_iter):
+            c_sq = centroids.pow(2).sum(1)  # (k,)
+            labels = torch.empty(n, dtype=torch.long, device=patches.device)
+            for i in range(0, n, chunk):
+                batch = patches[i : i + chunk]
+                x_sq = batch.pow(2).sum(1)  # (batch,)
+                xc = batch @ centroids.T  # (batch, k)
+                dist = x_sq.unsqueeze(1) - 2 * xc + c_sq.unsqueeze(0)
+                labels[i : i + batch.shape[0]] = dist.argmin(dim=1)
+
+            sums = torch.zeros(k, d, device=patches.device, dtype=patches.dtype)
+            counts = torch.zeros(k, device=patches.device, dtype=patches.dtype)
+            sums.scatter_add_(0, labels.unsqueeze(1).expand(-1, d), patches)
+            counts.scatter_add_(
+                0, labels, torch.ones(n, device=patches.device, dtype=patches.dtype)
+            )
+            valid = counts > 0
+            centroids[valid] = sums[valid] / counts[valid].unsqueeze(1)
+
+        return centroids
+
+    def fit(self, images: Tensor) -> None:
+        """Learn filters from training images.
+
+        For ``filter_strategy='pca'``, computes PCA of patches and uses
+        the top eigenvectors.  For ``'kmeans'``, runs k-means on patches
+        and uses the cluster centroids.
+
+        Args:
+            images: ``(N, C, H, W)`` training images or feature maps.
+        """
+        C = images.shape[1]
+        p = self.patch_size
+
+        patches = self._extract_patches(images)
         mean = patches.mean(dim=0)
         patches_centered = patches - mean
 
-        # Covariance and PCA
-        cov = (patches_centered.T @ patches_centered) / patches_centered.shape[0]
-        eigenvalues, eigenvectors = torch.linalg.eigh(cov)
-        # Top n_filters eigenvectors (largest eigenvalues at end of eigh output)
-        k = min(self.n_filters, eigenvectors.shape[1])
-        top = eigenvectors[:, -k:].flip(1).T  # (k, patch_dim)
+        if self.filter_strategy == "pca":
+            cov = (patches_centered.T @ patches_centered) / patches_centered.shape[0]
+            eigenvalues, eigenvectors = torch.linalg.eigh(cov)
+            k = min(self.n_filters, eigenvectors.shape[1])
+            top = eigenvectors[:, -k:].flip(1).T  # (k, patch_dim)
+        elif self.filter_strategy == "kmeans":
+            if self.whiten_patches:
+                # ZCA whitening: safe for low-dim patches
+                cov = (patches_centered.T @ patches_centered) / patches_centered.shape[0]
+                eigvals, eigvecs = torch.linalg.eigh(cov)
+                floor = eigvals.max().item() * 0.01
+                eigvals_safe = eigvals.clamp(min=floor)
+                W = eigvecs @ torch.diag(eigvals_safe.rsqrt()) @ eigvecs.T
+                patches_w = patches_centered @ W
+            else:
+                patches_w = patches_centered
+            centroids = self._kmeans(patches_w, self.n_filters, self.kmeans_iter)
+            if self.whiten_patches:
+                # Map centroids back to original space
+                W_inv = eigvecs @ torch.diag(eigvals_safe.sqrt()) @ eigvecs.T
+                top = centroids @ W_inv  # (k, patch_dim)
+            else:
+                top = centroids
+        else:
+            raise ValueError(
+                f"Unknown filter_strategy '{self.filter_strategy}', expected 'pca' or 'kmeans'"
+            )
 
+        k = top.shape[0]
         self.filters = top.reshape(k, C, p, p)
-        # Centering bias: applying filters to centered patches is equivalent
-        # to conv2d(x, filters, bias) where bias_f = -mean · filter_f
         self.conv_bias = -(mean @ top.T)  # (k,)
+        self._patch_mean = mean
+        if self.filter_strategy == "kmeans":
+            # Pre-compute ||c_k - mean||² for distance-based activation
+            self._centroid_sq = top.pow(2).sum(1)  # (k,)
+        else:
+            self._centroid_sq = torch.empty(0)
 
     def forward(self, x: Tensor) -> Tensor:
-        """Apply PCA filters, activation, and pooling.
+        """Apply learned filters, activation, and pooling.
+
+        For PCA filters, uses inner product + configurable activation.
+        For k-means filters, uses triangle activation (Coates & Ng 2012):
+        ``max(0, mean_dist - dist_k)`` where ``dist_k`` is the distance
+        from each spatial patch to centroid k.
 
         Args:
             x: ``(N, C, H, W)`` input images or feature maps.
@@ -118,8 +215,33 @@ class ConvNEFStage(nn.Module):
             ``(N, n_filters, H_out, W_out)`` output feature maps.
         """
         pad = self.patch_size // 2
-        out = F.conv2d(x, self.filters, bias=self.conv_bias, padding=pad)
-        out = self.act(out)
+        if self.filter_strategy == "kmeans":
+            # Triangle activation: max(0, mean_dist - dist_k)
+            # ||x-c||² = ||x||² - 2(x·c) + ||c||²
+            xc = F.conv2d(x, self.filters, bias=self.conv_bias, padding=pad)
+            # ||x||² at each spatial position (sum of squares in each patch)
+            ones_filter = torch.ones(
+                1,
+                x.shape[1],
+                self.patch_size,
+                self.patch_size,
+                device=x.device,
+                dtype=x.dtype,
+            )
+            x_sq = F.conv2d(x * x, ones_filter, padding=pad)  # (N, 1, H, W)
+            # ||x_centered||² = ||x||² - 2*mean·x_patch + ||mean||²
+            mean_filter = self._patch_mean.reshape(1, x.shape[1], self.patch_size, self.patch_size)
+            mean_x = F.conv2d(x, mean_filter, padding=pad)  # (N, 1, H, W)
+            mean_sq = self._patch_mean.pow(2).sum()
+            x_centered_sq = x_sq - 2 * mean_x + mean_sq
+            # dist² = x_centered_sq - 2*xc + ||c||²
+            dist_sq = x_centered_sq - 2 * xc + self._centroid_sq.reshape(1, -1, 1, 1)
+            dist = dist_sq.clamp(min=0).sqrt()
+            mean_dist = dist.mean(dim=1, keepdim=True)
+            out = (mean_dist - dist).clamp(min=0)
+        else:
+            out = F.conv2d(x, self.filters, bias=self.conv_bias, padding=pad)
+            out = self.act(out)
         if self.pool_size > 1:
             out = F.avg_pool2d(out, self.pool_size, ceil_mode=True)
         return out
