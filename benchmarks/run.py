@@ -153,11 +153,12 @@ def run_nef_classification(
     n_neurons: int = 2000,
     activation: str = "abs",
     encoder_strategy: str = "hypersphere",
+    encoder_kwargs: dict | None = None,
     solver: str = "tikhonov",
     solver_kwargs: dict | None = None,
     data_root: str = "./data",
     use_centers: bool = True,
-    gain: float | tuple[float, float] = (0.5, 2.0),
+    gain: float | tuple[float, float] | str = (0.5, 2.0),
     seed: int | None = 0,
 ) -> BenchmarkResult:
     """Run a single NEF classification benchmark."""
@@ -169,12 +170,22 @@ def run_nef_classification(
     targets = one_hot(y_train, n_classes)
 
     centers = x_train if use_centers else None
+
+    # Auto-populate encoder_kwargs for data-driven strategies
+    enc_kw = dict(encoder_kwargs or {})
+    if encoder_strategy in ("whitened", "local_pca"):
+        enc_kw.setdefault("train_data", x_train)
+    elif encoder_strategy == "class_contrast":
+        enc_kw.setdefault("train_data", x_train)
+        enc_kw.setdefault("train_labels", y_train)
+
     layer = NEFLayer(
         x_train.shape[1],
         n_neurons,
         n_classes,
         activation=activation,
         encoder_strategy=encoder_strategy,
+        encoder_kwargs=enc_kw if enc_kw else None,
         gain=gain,
         centers=centers,
     )
@@ -187,8 +198,14 @@ def run_nef_classification(
         train_acc = classification_accuracy(layer(x_train), y_train)
         test_acc = classification_accuracy(layer(x_test), y_test)
 
+    name = "NEFLayer"
+    if encoder_strategy != "hypersphere":
+        name += f"-{encoder_strategy}"
+    if gain == "data_driven":
+        name += "-ddgain"
+
     return BenchmarkResult(
-        name="NEFLayer",
+        name=name,
         dataset=dataset_name,
         n_neurons=n_neurons,
         activation=activation,
@@ -214,7 +231,7 @@ def run_nef_ensemble(
     combine: str = "mean",
     data_root: str = "./data",
     use_centers: bool = True,
-    gain: float | tuple[float, float] = (0.5, 2.0),
+    gain: float | tuple[float, float] | str = (0.5, 2.0),
     seed: int | None = 0,
 ) -> BenchmarkResult:
     """Run an ensemble NEF classification benchmark."""
@@ -226,6 +243,15 @@ def run_nef_ensemble(
     targets = one_hot(y_train, n_classes)
 
     centers = x_train if use_centers else None
+
+    # Auto-populate encoder_kwargs for data-driven strategies
+    enc_kw = dict(encoder_kwargs or {})
+    if encoder_strategy in ("whitened", "local_pca"):
+        enc_kw.setdefault("train_data", x_train)
+    elif encoder_strategy == "class_contrast":
+        enc_kw.setdefault("train_data", x_train)
+        enc_kw.setdefault("train_labels", y_train)
+
     base_seed = 0 if seed is None else seed
     ens = NEFEnsemble(
         d_in=x_train.shape[1],
@@ -236,7 +262,7 @@ def run_nef_ensemble(
         combine=combine,
         activation=activation,
         encoder_strategy=encoder_strategy,
-        encoder_kwargs=encoder_kwargs,
+        encoder_kwargs=enc_kw if enc_kw else None,
         gain=gain,
         centers=centers,
     )
@@ -724,6 +750,11 @@ def build_benchmark_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--data-root", default="./data")
     parser.add_argument(
+        "--data-driven-sweep",
+        action="store_true",
+        help="Run sweep of data-driven encoder strategies (whitened, class_contrast, local_pca, data_driven gain)",
+    )
+    parser.add_argument(
         "--save-json", type=Path, default=None, help="Write results to a JSON file"
     )
     parser.add_argument("--save-csv", type=Path, default=None, help="Write results to a CSV file")
@@ -861,6 +892,35 @@ def main(argv: list[str] | None = None) -> int:
                     seed=args.seed,
                 )
             )
+
+    if args.data_driven_sweep:
+        strategies = [
+            ("hypersphere", (0.5, 2.0), "baseline"),
+            ("whitened", (0.5, 2.0), "whitened"),
+            ("class_contrast", (0.5, 2.0), "class_contrast"),
+            ("local_pca", (0.5, 2.0), "local_pca"),
+            ("hypersphere", "data_driven", "dd_gain"),
+            ("whitened", "data_driven", "whitened+dd_gain"),
+            ("class_contrast", "data_driven", "class_contrast+dd_gain"),
+        ]
+        for ds in args.datasets:
+            for n in args.neurons:
+                for enc_strat, gain_spec, label in strategies:
+                    print(f"  [{label}] NEF {n}n on {ds}...")
+                    results.append(
+                        run_nef_classification(
+                            ds,
+                            n_neurons=n,
+                            activation=args.activation,
+                            encoder_strategy=enc_strat,
+                            solver=args.solver,
+                            solver_kwargs={"alpha": args.alpha},
+                            data_root=args.data_root,
+                            use_centers=True,
+                            gain=gain_spec,
+                            seed=args.seed,
+                        )
+                    )
 
     print()
     print(format_results(results))
