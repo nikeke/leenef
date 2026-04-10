@@ -4,7 +4,15 @@ import pytest
 import torch
 
 from leenef.activations import LIFRate, make_activation
-from leenef.encoders import gaussian, make_encoders, receptive_field, sparse, uniform_hypersphere
+from leenef.encoders import (
+    class_contrast,
+    gaussian,
+    make_encoders,
+    receptive_field,
+    sparse,
+    uniform_hypersphere,
+    whitened,
+)
 from leenef.layers import NEFLayer
 from leenef.solvers import lstsq, normal_equations, solve_decoders, tikhonov
 
@@ -94,6 +102,123 @@ class TestReceptiveFieldEncoders:
     def test_make_encoders_dispatch(self):
         e = make_encoders(50, 784, strategy="receptive_field", image_shape=(28, 28))
         assert e.shape == (50, 784)
+
+
+class TestWhitenedEncoders:
+    @pytest.fixture
+    def train_data(self):
+        g = torch.Generator().manual_seed(100)
+        # Correlated data: x2 = 2*x1 + noise
+        x1 = torch.randn(500, 1, generator=g)
+        x2 = 2 * x1 + 0.1 * torch.randn(500, 1, generator=g)
+        return torch.cat([x1, x2], dim=1)
+
+    def test_shape(self, train_data):
+        e = whitened(100, 2, train_data=train_data)
+        assert e.shape == (100, 2)
+
+    def test_unit_norm(self, train_data):
+        e = whitened(200, 2, train_data=train_data)
+        norms = e.norm(dim=1)
+        assert torch.allclose(norms, torch.ones(200), atol=1e-5)
+
+    def test_differs_from_hypersphere(self, train_data):
+        g1 = torch.Generator().manual_seed(42)
+        g2 = torch.Generator().manual_seed(42)
+        e_plain = uniform_hypersphere(100, 2, rng=g1)
+        e_white = whitened(100, 2, train_data=train_data, rng=g2)
+        # Same rng seed but whitening should produce different directions
+        assert not torch.allclose(e_plain, e_white, atol=1e-3)
+
+    def test_rng_reproducibility(self, train_data):
+        g1 = torch.Generator().manual_seed(42)
+        g2 = torch.Generator().manual_seed(42)
+        e1 = whitened(50, 2, train_data=train_data, rng=g1)
+        e2 = whitened(50, 2, train_data=train_data, rng=g2)
+        assert torch.equal(e1, e2)
+
+    def test_make_encoders_dispatch(self):
+        data = torch.randn(200, 10)
+        e = make_encoders(50, 10, strategy="whitened", train_data=data)
+        assert e.shape == (50, 10)
+
+    def test_high_dim(self):
+        """Whitened encoders work on higher-dimensional data (like images)."""
+        g = torch.Generator().manual_seed(7)
+        data = torch.randn(200, 784, generator=g)
+        e = whitened(100, 784, train_data=data)
+        assert e.shape == (100, 784)
+        norms = e.norm(dim=1)
+        assert torch.allclose(norms, torch.ones(100), atol=1e-5)
+
+
+class TestClassContrastEncoders:
+    @pytest.fixture
+    def labeled_data(self):
+        g = torch.Generator().manual_seed(200)
+        # Three well-separated clusters
+        x = torch.cat(
+            [
+                torch.randn(100, 5, generator=g) + torch.tensor([3.0, 0, 0, 0, 0]),
+                torch.randn(100, 5, generator=g) + torch.tensor([-3.0, 0, 0, 0, 0]),
+                torch.randn(100, 5, generator=g) + torch.tensor([0, 3.0, 0, 0, 0]),
+            ]
+        )
+        labels = torch.cat([torch.zeros(100), torch.ones(100), 2 * torch.ones(100)]).long()
+        return x, labels
+
+    def test_returns_tuple(self, labeled_data):
+        x, y = labeled_data
+        result = class_contrast(50, 5, train_data=x, train_labels=y)
+        assert isinstance(result, tuple)
+        assert len(result) == 2
+
+    def test_shape(self, labeled_data):
+        x, y = labeled_data
+        enc, centers = class_contrast(50, 5, train_data=x, train_labels=y)
+        assert enc.shape == (50, 5)
+        assert centers.shape == (50, 5)
+
+    def test_unit_norm(self, labeled_data):
+        x, y = labeled_data
+        enc, _ = class_contrast(200, 5, train_data=x, train_labels=y)
+        norms = enc.norm(dim=1)
+        assert torch.allclose(norms, torch.ones(200), atol=1e-5)
+
+    def test_directions_point_across_classes(self, labeled_data):
+        """Encoder directions should have nonzero dot product with class separation."""
+        x, y = labeled_data
+        enc, centers = class_contrast(100, 5, train_data=x, train_labels=y)
+        # At minimum, encoders should not be zero vectors
+        assert (enc.norm(dim=1) > 0.99).all()
+
+    def test_rng_reproducibility(self, labeled_data):
+        x, y = labeled_data
+        g1 = torch.Generator().manual_seed(42)
+        g2 = torch.Generator().manual_seed(42)
+        e1, c1 = class_contrast(50, 5, train_data=x, train_labels=y, rng=g1)
+        e2, c2 = class_contrast(50, 5, train_data=x, train_labels=y, rng=g2)
+        assert torch.equal(e1, e2)
+        assert torch.equal(c1, c2)
+
+    def test_make_encoders_returns_tuple(self, labeled_data):
+        x, y = labeled_data
+        result = make_encoders(50, 5, strategy="class_contrast", train_data=x, train_labels=y)
+        assert isinstance(result, tuple)
+
+    def test_nef_layer_integration(self, labeled_data):
+        """NEFLayer should accept class_contrast and use returned centers."""
+        x, y = labeled_data
+        layer = NEFLayer(
+            5,
+            200,
+            3,
+            encoder_strategy="class_contrast",
+            encoder_kwargs={"train_data": x, "train_labels": y},
+        )
+        assert layer.encoders.shape == (200, 5)
+        out = layer(x[:10])
+        assert out.shape == (10, 3)
 
 
 # ── Activations ───────────────────────────────────────────────────────

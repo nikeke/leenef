@@ -65,13 +65,20 @@ class NEFLayer(nn.Module):
         # Per-neuron gain vector, stored as buffer for state_dict
         self.register_buffer("_gain", _make_gain(gain, n_neurons, rng))
 
-        # Encoders
-        enc = make_encoders(
+        # Encoders — some strategies return (encoders, centers) tuples
+        result = make_encoders(
             n_neurons, d_in, strategy=encoder_strategy, rng=rng, **(encoder_kwargs or {})
         )
+        if isinstance(result, tuple):
+            enc, encoder_centers = result
+        else:
+            enc = result
+            encoder_centers = None
 
-        # Biases — data-driven or random
-        if centers is not None:
+        # Biases — prefer encoder-provided centers, then user-supplied, then random
+        if encoder_centers is not None:
+            bias = -self._gain * (encoder_centers.float() * enc).sum(dim=1)
+        elif centers is not None:
             idx = torch.randint(len(centers), (n_neurons,), generator=rng)
             bias = -self._gain * (centers[idx].float() * enc).sum(dim=1)
         else:

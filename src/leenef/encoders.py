@@ -98,11 +98,125 @@ def receptive_field(
     return e
 
 
+def whitened(
+    n_neurons: int,
+    dim: int,
+    *,
+    train_data: Tensor,
+    rng: torch.Generator | None = None,
+) -> Tensor:
+    """Random encoders adapted to data covariance via ZCA whitening.
+
+    Generates random unit-hypersphere directions and transforms them by the
+    inverse square root of the data covariance matrix (ZCA whitening).  This
+    decorrelates the input dimensions and scales random directions so that
+    high-variance data directions receive proportionally more encoder coverage.
+
+    The transformed encoders are re-normalised to unit norm.
+
+    Args:
+        n_neurons: number of encoder vectors to generate.
+        dim: input dimensionality.
+        train_data: ``(N, dim)`` training data used to estimate the covariance.
+        rng: optional ``torch.Generator`` for reproducibility.
+    """
+    X = train_data.float()
+    mean = X.mean(dim=0)
+    X_centered = X - mean
+    cov = (X_centered.T @ X_centered) / X.shape[0]
+
+    # Eigendecomposition — clamp small eigenvalues for numerical stability
+    eigenvalues, eigenvectors = torch.linalg.eigh(cov)
+    eigenvalues = eigenvalues.clamp(min=1e-5)
+
+    # ZCA whitening matrix: V @ diag(1/sqrt(λ)) @ Vᵀ
+    W = eigenvectors @ torch.diag(1.0 / eigenvalues.sqrt()) @ eigenvectors.T
+
+    e_random = uniform_hypersphere(n_neurons, dim, rng=rng)
+    e_whitened = e_random @ W
+    e_whitened = e_whitened / e_whitened.norm(dim=1, keepdim=True)
+    return e_whitened
+
+
+def class_contrast(
+    n_neurons: int,
+    dim: int,
+    *,
+    train_data: Tensor,
+    train_labels: Tensor,
+    n_candidates: int = 5000,
+    rng: torch.Generator | None = None,
+) -> tuple[Tensor, Tensor]:
+    """Encoders pointing from each sample toward nearest different-class sample.
+
+    Each encoder direction is maximally discriminative by construction: it
+    points from a training sample directly toward the nearest sample of a
+    different class.  The source sample serves as the natural center for
+    data-driven bias computation.
+
+    Returns a ``(encoders, centers)`` tuple.  The caller should use the
+    returned centers for bias computation instead of randomly selecting from
+    the training set.
+
+    Args:
+        n_neurons: number of encoder vectors to generate.
+        dim: input dimensionality.
+        train_data: ``(N, dim)`` training data.
+        train_labels: ``(N,)`` integer class labels.
+        n_candidates: number of candidate samples for nearest-neighbor lookup
+            (subsampled from training data for efficiency).
+        rng: optional ``torch.Generator`` for reproducibility.
+    """
+    X = train_data.float()
+    y = train_labels.long()
+    N = X.shape[0]
+
+    # Select random anchor samples
+    anchor_idx = torch.randint(N, (n_neurons,), generator=rng)
+    anchors = X[anchor_idx]
+    anchor_labels = y[anchor_idx]
+
+    # Subsample candidates for neighbor lookup
+    n_cand = min(N, n_candidates)
+    if N > n_cand:
+        cand_idx = torch.randperm(N, generator=rng)[:n_cand]
+        X_cand = X[cand_idx]
+        y_cand = y[cand_idx]
+    else:
+        X_cand = X
+        y_cand = y
+
+    # Process in chunks to bound memory: chunk_size × n_cand distances
+    chunk_size = 1000
+    encoders = torch.empty(n_neurons, dim)
+    for start in range(0, n_neurons, chunk_size):
+        end = min(start + chunk_size, n_neurons)
+        batch_anchors = anchors[start:end]
+        batch_labels = anchor_labels[start:end]
+
+        # Squared distances (avoid sqrt for argmin)
+        dists = torch.cdist(batch_anchors, X_cand)
+        # Mask same-class candidates with inf
+        same_class = batch_labels.unsqueeze(1) == y_cand.unsqueeze(0)
+        dists[same_class] = float("inf")
+
+        nn_idx = dists.argmin(dim=1)
+        nn_points = X_cand[nn_idx]
+
+        direction = nn_points - batch_anchors
+        norms = direction.norm(dim=1, keepdim=True).clamp(min=1e-8)
+        encoders[start:end] = direction / norms
+
+    return encoders, anchors
+
+
 ENCODER_STRATEGIES = {
     "hypersphere": uniform_hypersphere,
     "gaussian": gaussian,
     "sparse": sparse,
     "receptive_field": receptive_field,
+    "whitened": whitened,
+    "class_contrast": class_contrast,
 }
 
 
