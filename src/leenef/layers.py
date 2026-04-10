@@ -10,13 +10,27 @@ from .solvers import solve_decoders, solve_from_normal_equations
 
 
 def _make_gain(
-    spec: float | tuple[float, float] | Tensor, n_neurons: int, rng: torch.Generator | None = None
+    spec: float | tuple[float, float] | Tensor | str,
+    n_neurons: int,
+    rng: torch.Generator | None = None,
+    *,
+    selected_centers: Tensor | None = None,
+    all_centers: Tensor | None = None,
+    k_density: int = 10,
 ) -> Tensor:
     """Build a per-neuron gain vector from a gain specification.
 
     Args:
         spec: ``float`` for uniform gain, ``(low, high)`` tuple for
-              per-neuron uniform sampling, or a pre-built ``Tensor``.
+              per-neuron uniform sampling, ``Tensor(n_neurons,)`` for
+              explicit gains, or ``"data_driven"`` for density-adaptive
+              gains.
+        selected_centers: ``(n_neurons, dim)`` — the center point assigned
+              to each neuron.  Required when ``spec="data_driven"``.
+        all_centers: ``(N, dim)`` — full training data for density
+              estimation.  Required when ``spec="data_driven"``.
+        k_density: number of neighbors for density estimation when
+              ``spec="data_driven"``.
     """
     if isinstance(spec, Tensor):
         if spec.shape != (n_neurons,):
@@ -24,10 +38,50 @@ def _make_gain(
                 f"gain tensor must have shape ({n_neurons},), got {tuple(spec.shape)}"
             )
         return spec.float()
+    if spec == "data_driven":
+        if selected_centers is None or all_centers is None:
+            raise ValueError(
+                "gain='data_driven' requires both selected_centers and "
+                "all_centers (pass centers=train_data to NEFLayer)"
+            )
+        return _density_adaptive_gain(selected_centers, all_centers, k_density)
     if isinstance(spec, tuple):
         lo, hi = spec
         return lo + (hi - lo) * torch.rand(n_neurons, generator=rng)
     return torch.full((n_neurons,), spec, dtype=torch.float32)
+
+
+def _density_adaptive_gain(
+    selected_centers: Tensor,
+    all_centers: Tensor,
+    k: int = 10,
+    gain_range: tuple[float, float] = (0.5, 2.0),
+) -> Tensor:
+    """Per-neuron gains inversely proportional to local data density.
+
+    Dense regions → lower gain (broad tuning curves); sparse regions →
+    higher gain (sharp tuning curves).  Density is estimated by the mean
+    distance to the ``k`` nearest neighbors in the training data.
+    """
+    n = selected_centers.shape[0]
+    k_actual = min(k, all_centers.shape[0] - 1)
+
+    # Process in chunks to bound memory
+    chunk_size = 500
+    mean_dists = torch.empty(n)
+    for start in range(0, n, chunk_size):
+        end = min(start + chunk_size, n)
+        dists = torch.cdist(selected_centers[start:end].float(), all_centers.float())
+        topk_dists, _ = dists.topk(k_actual + 1, dim=1, largest=False)
+        mean_dists[start:end] = topk_dists[:, 1 : k_actual + 1].mean(dim=1)
+
+    lo, hi = gain_range
+    d_min, d_max = mean_dists.min(), mean_dists.max()
+    if d_max > d_min:
+        t = (mean_dists - d_min) / (d_max - d_min)
+    else:
+        t = torch.full_like(mean_dists, 0.5)
+    return lo + (hi - lo) * t
 
 
 class NEFLayer(nn.Module):
@@ -50,7 +104,7 @@ class NEFLayer(nn.Module):
         activation: str = "abs",
         encoder_strategy: str = "hypersphere",
         trainable_encoders: bool = False,
-        gain: float | tuple[float, float] | Tensor = (0.5, 2.0),
+        gain: float | tuple[float, float] | Tensor | str = (0.5, 2.0),
         rng: torch.Generator | None = None,
         centers: Tensor | None = None,
         encoder_kwargs: dict | None = None,
@@ -62,10 +116,7 @@ class NEFLayer(nn.Module):
         self.d_out = d_out
         self._rng = rng
 
-        # Per-neuron gain vector, stored as buffer for state_dict
-        self.register_buffer("_gain", _make_gain(gain, n_neurons, rng))
-
-        # Encoders — some strategies return (encoders, centers) tuples
+        # 1. Create encoders — some strategies return (encoders, centers) tuples
         result = make_encoders(
             n_neurons, d_in, strategy=encoder_strategy, rng=rng, **(encoder_kwargs or {})
         )
@@ -75,12 +126,30 @@ class NEFLayer(nn.Module):
             enc = result
             encoder_centers = None
 
-        # Biases — prefer encoder-provided centers, then user-supplied, then random
+        # 2. Resolve per-neuron center points for bias and gain computation
         if encoder_centers is not None:
-            bias = -self._gain * (encoder_centers.float() * enc).sum(dim=1)
+            selected_centers = encoder_centers
         elif centers is not None:
             idx = torch.randint(len(centers), (n_neurons,), generator=rng)
-            bias = -self._gain * (centers[idx].float() * enc).sum(dim=1)
+            selected_centers = centers[idx]
+        else:
+            selected_centers = None
+
+        # 3. Per-neuron gain — may depend on resolved centers
+        self.register_buffer(
+            "_gain",
+            _make_gain(
+                gain,
+                n_neurons,
+                rng,
+                selected_centers=selected_centers,
+                all_centers=centers,
+            ),
+        )
+
+        # 4. Biases from data-driven centers or random
+        if selected_centers is not None:
+            bias = -self._gain * (selected_centers.float() * enc).sum(dim=1)
         else:
             bias = torch.randn(n_neurons, generator=rng)
 

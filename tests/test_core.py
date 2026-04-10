@@ -448,6 +448,25 @@ class TestNEFLayer:
         assert layer.gain.shape == (100,)
         assert torch.allclose(layer.gain, torch.full((100,), 2.5))
 
+    def test_data_driven_gain(self):
+        """Data-driven gains should vary with local density."""
+        torch.manual_seed(25)
+        # Dense cluster + sparse outliers
+        dense = torch.randn(400, 5) * 0.1
+        sparse_pts = torch.randn(100, 5) * 5.0
+        data = torch.cat([dense, sparse_pts])
+        layer = NEFLayer(5, 200, 2, gain="data_driven", centers=data)
+        assert layer.gain.shape == (200,)
+        assert layer.gain.min() >= 0.5
+        assert layer.gain.max() <= 2.0
+        # Gains should vary (not all the same)
+        assert not torch.all(layer.gain == layer.gain[0])
+
+    def test_data_driven_gain_requires_centers(self):
+        """gain='data_driven' without centers should raise."""
+        with pytest.raises(ValueError, match="data_driven"):
+            NEFLayer(5, 100, 2, gain="data_driven")
+
     def test_set_centers(self):
         """set_centers should change biases."""
         torch.manual_seed(30)
