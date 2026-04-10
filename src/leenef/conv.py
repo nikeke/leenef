@@ -598,6 +598,7 @@ class ConvNEFPipeline(nn.Module):
             centers=centers,
             **head_kwargs,
         )
+        self.head = self.head.to(images.device)
 
         # Accumulate normal equations over full dataset in chunks
         self.head.reset_accumulators()
