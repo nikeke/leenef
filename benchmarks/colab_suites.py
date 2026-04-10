@@ -305,6 +305,7 @@ def _run_conv_config(
         centers = flat_train[sub_idx]
 
         head = NEFLayer(d_in, n_neurons, 10, centers=centers, **nef_kwargs)
+        head = head.to(x_train.device)
         head.reset_accumulators()
         for i in range(0, flat_train.shape[0], batch_size):
             head.partial_fit(
