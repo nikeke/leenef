@@ -122,7 +122,7 @@ def whitened(
         variance_ratio: fraction of variance to retain (default 0.95).
         rng: optional ``torch.Generator`` for reproducibility.
     """
-    X = train_data.float()
+    X = train_data.float().cpu()
     X_centered = X - X.mean(dim=0)
     cov = (X_centered.T @ X_centered) / X.shape[0]
 
@@ -173,8 +173,8 @@ def class_contrast(
             (subsampled from training data for efficiency).
         rng: optional ``torch.Generator`` for reproducibility.
     """
-    X = train_data.float()
-    y = train_labels.long()
+    X = train_data.float().cpu()
+    y = train_labels.long().cpu()
     N = X.shape[0]
 
     # Select random anchor samples
@@ -245,7 +245,7 @@ def local_pca(
         k_neighbors: number of nearest neighbors for local PCA.
         rng: optional ``torch.Generator`` for reproducibility.
     """
-    X = train_data.float()
+    X = train_data.float().cpu()
     N = X.shape[0]
     k = min(k_neighbors, N - 1)
 
