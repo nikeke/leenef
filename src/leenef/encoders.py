@@ -210,6 +210,77 @@ def class_contrast(
     return encoders, anchors
 
 
+def local_pca(
+    n_neurons: int,
+    dim: int,
+    *,
+    train_data: Tensor,
+    k_neighbors: int = 50,
+    rng: torch.Generator | None = None,
+) -> tuple[Tensor, Tensor]:
+    """Encoders aligned with the top local PCA direction near each center.
+
+    For each neuron, a random training sample is chosen as the center.  The
+    ``k_neighbors`` nearest training samples to that center define a local
+    neighborhood.  The encoder direction is the top eigenvector (axis of
+    maximum variance) of that neighborhood.
+
+    Returns a ``(encoders, centers)`` tuple so the chosen centers are reused
+    for data-driven bias computation.
+
+    Works on arbitrarily high-dimensional data by using batched SVD on the
+    ``(k, dim)`` centered neighbor matrices (avoids forming ``dim × dim``
+    covariance matrices).  Neurons are processed in chunks to bound memory.
+
+    Args:
+        n_neurons: number of encoder vectors to generate.
+        dim: input dimensionality.
+        train_data: ``(N, dim)`` training data.
+        k_neighbors: number of nearest neighbors for local PCA.
+        rng: optional ``torch.Generator`` for reproducibility.
+    """
+    X = train_data.float()
+    N = X.shape[0]
+    k = min(k_neighbors, N - 1)
+
+    # Select random center samples
+    center_idx = torch.randint(N, (n_neurons,), generator=rng)
+    centers = X[center_idx]
+
+    # Process in chunks to bound memory: chunk_neurons × N distances
+    # + chunk_neurons × k × dim neighbor gather
+    chunk_size = min(200, n_neurons)
+    encoders = torch.empty(n_neurons, dim)
+
+    for start in range(0, n_neurons, chunk_size):
+        end = min(start + chunk_size, n_neurons)
+        batch_centers = centers[start:end]  # (chunk, dim)
+        chunk_n = end - start
+
+        # Find k nearest neighbors for each center
+        dists = torch.cdist(batch_centers, X)  # (chunk, N)
+        _, nn_indices = dists.topk(k + 1, dim=1, largest=False)
+        # Exclude the center itself (distance 0) — take indices 1..k
+        nn_indices = nn_indices[:, 1 : k + 1]  # (chunk, k)
+
+        # Gather neighbor data: (chunk, k, dim)
+        neighbors = X[nn_indices.reshape(-1)].reshape(chunk_n, k, dim)
+
+        # Local PCA via SVD on centered neighbors
+        centered = neighbors - neighbors.mean(dim=1, keepdim=True)
+        # SVD: centered is (chunk, k, dim), k < dim typically
+        # U: (chunk, k, k), S: (chunk, k), Vh: (chunk, k, dim)
+        _, _, Vh = torch.linalg.svd(centered, full_matrices=False)
+        # Top singular vector = first row of Vh
+        top_dir = Vh[:, 0, :]  # (chunk, dim)
+
+        # Normalise to unit norm
+        norms = top_dir.norm(dim=1, keepdim=True).clamp(min=1e-8)
+        encoders[start:end] = top_dir / norms
+
+    return encoders, centers
+
+
 ENCODER_STRATEGIES = {
     "hypersphere": uniform_hypersphere,
     "gaussian": gaussian,
@@ -217,6 +288,7 @@ ENCODER_STRATEGIES = {
     "receptive_field": receptive_field,
     "whitened": whitened,
     "class_contrast": class_contrast,
+    "local_pca": local_pca,
 }
 
 

@@ -7,6 +7,7 @@ from leenef.activations import LIFRate, make_activation
 from leenef.encoders import (
     class_contrast,
     gaussian,
+    local_pca,
     make_encoders,
     receptive_field,
     sparse,
@@ -218,6 +219,57 @@ class TestClassContrastEncoders:
         )
         assert layer.encoders.shape == (200, 5)
         out = layer(x[:10])
+        assert out.shape == (10, 3)
+
+
+class TestLocalPCAEncoders:
+    @pytest.fixture
+    def train_data(self):
+        g = torch.Generator().manual_seed(300)
+        # Data with local structure: two clusters along different axes
+        x1 = torch.randn(200, 5, generator=g) * torch.tensor([3.0, 0.1, 0.1, 0.1, 0.1])
+        x2 = torch.randn(200, 5, generator=g) * torch.tensor([0.1, 3.0, 0.1, 0.1, 0.1])
+        x2 += torch.tensor([10.0, 0, 0, 0, 0])  # offset to form separate cluster
+        return torch.cat([x1, x2])
+
+    def test_returns_tuple(self, train_data):
+        result = local_pca(50, 5, train_data=train_data)
+        assert isinstance(result, tuple)
+        assert len(result) == 2
+
+    def test_shape(self, train_data):
+        enc, centers = local_pca(50, 5, train_data=train_data)
+        assert enc.shape == (50, 5)
+        assert centers.shape == (50, 5)
+
+    def test_unit_norm(self, train_data):
+        enc, _ = local_pca(100, 5, train_data=train_data)
+        norms = enc.norm(dim=1)
+        assert torch.allclose(norms, torch.ones(100), atol=1e-5)
+
+    def test_rng_reproducibility(self, train_data):
+        g1 = torch.Generator().manual_seed(42)
+        g2 = torch.Generator().manual_seed(42)
+        e1, c1 = local_pca(50, 5, train_data=train_data, rng=g1)
+        e2, c2 = local_pca(50, 5, train_data=train_data, rng=g2)
+        assert torch.equal(e1, e2)
+        assert torch.equal(c1, c2)
+
+    def test_make_encoders_dispatch(self, train_data):
+        result = make_encoders(50, 5, strategy="local_pca", train_data=train_data)
+        assert isinstance(result, tuple)
+
+    def test_nef_layer_integration(self, train_data):
+        """NEFLayer should accept local_pca and use returned centers."""
+        layer = NEFLayer(
+            5,
+            200,
+            3,
+            encoder_strategy="local_pca",
+            encoder_kwargs={"train_data": train_data},
+        )
+        assert layer.encoders.shape == (200, 5)
+        out = layer(train_data[:10])
         assert out.shape == (10, 3)
 
 
