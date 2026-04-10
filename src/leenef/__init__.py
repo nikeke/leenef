@@ -1,6 +1,7 @@
 """leenef — NEF supervised learning experiments."""
 
 from .activations import ACTIVATIONS, make_activation
+from .conv import ConvNEFPipeline, ConvNEFStage
 from .encoders import ENCODER_STRATEGIES, make_encoders
 from .ensemble import NEFEnsemble
 from .layers import NEFLayer
@@ -15,6 +16,8 @@ __all__ = [
     "NEFNetwork",
     "RecurrentNEFLayer",
     "StreamingNEFClassifier",
+    "ConvNEFStage",
+    "ConvNEFPipeline",
     "make_encoders",
     "ENCODER_STRATEGIES",
     "make_activation",
