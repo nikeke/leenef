@@ -270,6 +270,8 @@ class ConvNEFPipeline(nn.Module):
             pooling (e.g. ``[1, 2, 4]``).  ``None`` flattens directly.
         pool_order: ``1`` for mean-only pooling (default), ``2`` to
             append per-channel variance in each spatial block.
+        standardize: if ``True``, standardize pooled features to zero
+            mean and unit variance before the NEF head (default ``False``).
         nef_kwargs: additional keyword arguments for :class:`NEFLayer`
             (e.g. ``encoder_strategy``, ``activation``, ``gain``).
     """
@@ -280,6 +282,7 @@ class ConvNEFPipeline(nn.Module):
         n_neurons: int,
         pool_levels: list[int] | None = None,
         pool_order: int = 1,
+        standardize: bool = False,
         **nef_kwargs,
     ):
         super().__init__()
@@ -287,8 +290,11 @@ class ConvNEFPipeline(nn.Module):
         self.n_neurons = n_neurons
         self.pool_levels = pool_levels
         self.pool_order = pool_order
+        self.standardize = standardize
         self.nef_kwargs = nef_kwargs
         self.head: NEFLayer | None = None
+        self._feat_mean: Tensor | None = None
+        self._feat_std: Tensor | None = None
 
     def _pool_features(self, x: Tensor) -> Tensor:
         """Convert feature maps to flat feature vectors.
@@ -312,6 +318,20 @@ class ConvNEFPipeline(nn.Module):
                 var = mean_sq - pooled * pooled
                 parts.append(var.reshape(x.shape[0], -1))
         return torch.cat(parts, dim=1)
+
+    def _standardize_features(self, features: Tensor, *, fit: bool = False) -> Tensor:
+        """Optionally standardize features to zero mean, unit variance.
+
+        When ``fit=True``, computes and stores the mean/std from the
+        provided features.  Otherwise, uses the stored statistics.
+        """
+        if not self.standardize:
+            return features
+        if fit:
+            self._feat_mean = features.mean(dim=0)
+            self._feat_std = features.std(dim=0).clamp(min=1e-6)
+        assert self._feat_mean is not None
+        return (features - self._feat_mean) / self._feat_std
 
     def fit(
         self,
@@ -363,8 +383,9 @@ class ConvNEFPipeline(nn.Module):
             stage.fit(x_sub)
             x_sub = stage(x_sub)
 
-        # Pool features and use as centers
+        # Pool features and standardize / use as centers
         centers = self._pool_features(x_sub)
+        centers = self._standardize_features(centers, fit=True)
         feat_dim = centers.shape[1]
 
         # Create NEF classification head
@@ -384,7 +405,7 @@ class ConvNEFPipeline(nn.Module):
             x_conv = x_batch
             for stage in self.stages:
                 x_conv = stage(x_conv)
-            features = self._pool_features(x_conv)
+            features = self._standardize_features(self._pool_features(x_conv))
             self.head.partial_fit(features, t_batch)
 
             if augment_fn is not None:
@@ -392,7 +413,9 @@ class ConvNEFPipeline(nn.Module):
                 x_conv_aug = x_aug
                 for stage in self.stages:
                     x_conv_aug = stage(x_conv_aug)
-                features_aug = self._pool_features(x_conv_aug)
+                features_aug = self._standardize_features(
+                    self._pool_features(x_conv_aug)
+                )
                 self.head.partial_fit(features_aug, t_batch)
 
         self.head.solve_accumulated(alpha=alpha)
@@ -402,7 +425,7 @@ class ConvNEFPipeline(nn.Module):
         """Forward pass through all stages and classification head."""
         for stage in self.stages:
             x = stage(x)
-        features = self._pool_features(x)
+        features = self._standardize_features(self._pool_features(x))
         return self.head(features)
 
     def predict(self, images: Tensor, batch_size: int = 1000) -> Tensor:
@@ -448,6 +471,7 @@ class ConvNEFEnsemble(nn.Module):
         pool_levels: list[int] | None = None,
         pool_order: int = 1,
         combine: str = "mean",
+        standardize: bool = False,
         **nef_kwargs,
     ):
         super().__init__()
@@ -459,6 +483,7 @@ class ConvNEFEnsemble(nn.Module):
                 n_neurons=n_neurons,
                 pool_levels=pool_levels,
                 pool_order=pool_order,
+                standardize=standardize,
                 **nef_kwargs,
             )
             for _ in range(n_members)

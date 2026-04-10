@@ -318,8 +318,24 @@ class TestConvNEFPipeline:
         pred = pipe(images[:5])
         assert pred.shape == (5, 3)
 
-
-# ── ConvNEFEnsemble tests ─────────────────────────────────────────────
+    def test_standardize(self):
+        """standardize=True normalizes features before NEF head."""
+        g = torch.Generator().manual_seed(88)
+        images = torch.randn(50, 1, 8, 8, generator=g)
+        targets = F.one_hot(torch.randint(0, 3, (50,), generator=g), 3).float()
+        pipe = ConvNEFPipeline(
+            stages=[{"n_filters": 4, "patch_size": 3, "pool_size": 1}],
+            n_neurons=30,
+            pool_levels=[1, 2],
+            standardize=True,
+        )
+        pipe.fit(images, targets, fit_subsample=50, batch_size=25)
+        assert pipe._feat_mean is not None
+        assert pipe._feat_std is not None
+        pred = pipe(images[:5])
+        assert pred.shape == (5, 3)
+        # Standardisation stats should have correct dimension
+        assert pipe._feat_mean.shape[0] == pipe.head.d_in
 
 
 class TestConvNEFEnsemble:
