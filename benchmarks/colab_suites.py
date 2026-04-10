@@ -866,10 +866,396 @@ def run_conv_cifar_suite(args: argparse.Namespace) -> list:
     ]
 
 
+def run_conv_cifar_v2_suite(args: argparse.Namespace) -> list:
+    """Phase-2 CIFAR-10 sweep: alpha, neurons, multi-scale combos, ensembles."""
+    import torch
+
+    dev = args.device
+    if dev == "auto":
+        dev = "cuda" if torch.cuda.is_available() else "cpu"
+    set_benchmark_seed(args.seed)
+
+    x_train, y_train, x_test, y_test, targets_train = _load_cifar10(args.data_root, dev)
+    common = dict(
+        x_train=x_train,
+        y_train=y_train,
+        x_test=x_test,
+        y_test=y_test,
+        targets_train=targets_train,
+        seed=args.seed,
+    )
+
+    if args.quick:
+        return [
+            _run_conv_config(
+                "v2 quick",
+                stages=[{"n_filters": 32, "patch_size": 5, "pool_size": 1}],
+                n_neurons=2000,
+                pool_levels=[1, 2, 4],
+                alpha=1e-2,
+                fit_subsample=2000,
+                batch_size=500,
+                standardize=True,
+                **common,
+            ),
+        ]
+
+    s5 = [{"n_filters": 64, "patch_size": 5, "pool_size": 1}]
+    ms32 = [
+        {"n_filters": 32, "patch_size": 3, "pool_size": 1},
+        {"n_filters": 32, "patch_size": 5, "pool_size": 1},
+        {"n_filters": 32, "patch_size": 7, "pool_size": 1},
+    ]
+    ms64 = [
+        {"n_filters": 64, "patch_size": 3, "pool_size": 1},
+        {"n_filters": 64, "patch_size": 5, "pool_size": 1},
+        {"n_filters": 64, "patch_size": 7, "pool_size": 1},
+    ]
+
+    return [
+        # ── Group 1: Multi-scale with std (no gcn) and hflip ─────────
+        _run_conv_config(
+            "Multi 32×3 +std",
+            stages=ms32,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 32×3 +std +hflip",
+            stages=ms32,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 64×3 +std",
+            stages=ms64,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 64×3 +std +hflip",
+            stages=ms64,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        # ── Group 2: Alpha sweep on best single (64f p5 +std) ────────
+        _run_conv_config(
+            "64f p5 10k +std a=5e-3",
+            stages=s5,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=5e-3,
+            fit_subsample=10_000,
+            standardize=True,
+            **common,
+        ),
+        _run_conv_config(
+            "64f p5 10k +std a=2e-3",
+            stages=s5,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=2e-3,
+            fit_subsample=10_000,
+            standardize=True,
+            **common,
+        ),
+        _run_conv_config(
+            "64f p5 10k +std a=1e-3",
+            stages=s5,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-3,
+            fit_subsample=10_000,
+            standardize=True,
+            **common,
+        ),
+        _run_conv_config(
+            "64f p5 10k +std a=5e-4",
+            stages=s5,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=5e-4,
+            fit_subsample=10_000,
+            standardize=True,
+            **common,
+        ),
+        # ── Group 3: More neurons (64f p5 +std) ─────────────────────
+        _run_conv_config(
+            "64f p5 15k +std",
+            stages=s5,
+            n_neurons=15_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            standardize=True,
+            **common,
+        ),
+        _run_conv_config(
+            "64f p5 20k +std",
+            stages=s5,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            standardize=True,
+            **common,
+        ),
+        _run_conv_config(
+            "64f p5 30k +std",
+            stages=s5,
+            n_neurons=30_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            standardize=True,
+            **common,
+        ),
+        # ── Group 4: Richer SPP ─────────────────────────────────────
+        _run_conv_config(
+            "64f p5 spp1248 10k +std",
+            stages=s5,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4, 8],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            standardize=True,
+            **common,
+        ),
+        # ── Group 5: Multi-scale with more neurons ───────────────────
+        _run_conv_config(
+            "Multi 32×3 20k +std",
+            stages=ms32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 64×3 20k +std",
+            stages=ms64,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            **common,
+        ),
+        # ── Group 6: Diverse ensemble + hflip ────────────────────────
+        _run_conv_config(
+            "Diverse ×6 +std +hflip",
+            stages=s5,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=6,
+            standardize=True,
+            augment_flip=True,
+            member_stages=[
+                [{"n_filters": 64, "patch_size": 3, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 3, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 7, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 7, "pool_size": 1}],
+            ],
+            **common,
+        ),
+        _run_conv_config(
+            "Diverse ×6 +gcn +std +hflip",
+            stages=s5,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=6,
+            gcn=True,
+            standardize=True,
+            augment_flip=True,
+            member_stages=[
+                [{"n_filters": 64, "patch_size": 3, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 3, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 7, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 7, "pool_size": 1}],
+            ],
+            **common,
+        ),
+        _run_conv_config(
+            "Diverse ×9 +std +hflip",
+            stages=s5,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=9,
+            standardize=True,
+            augment_flip=True,
+            member_stages=[
+                [{"n_filters": 64, "patch_size": 3, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 3, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 3, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 7, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 7, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 7, "pool_size": 1}],
+            ],
+            **common,
+        ),
+        _run_conv_config(
+            "Diverse ×9 +gcn +std +hflip",
+            stages=s5,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=9,
+            gcn=True,
+            standardize=True,
+            augment_flip=True,
+            member_stages=[
+                [{"n_filters": 64, "patch_size": 3, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 3, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 3, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 5, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 7, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 7, "pool_size": 1}],
+                [{"n_filters": 64, "patch_size": 7, "pool_size": 1}],
+            ],
+            **common,
+        ),
+        # ── Group 7: Multi-scale ensemble + hflip ────────────────────
+        _run_conv_config(
+            "Multi 32×3 ×5 +std +hflip",
+            stages=ms32,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 64×3 ×5 +gcn +std +hflip",
+            stages=ms64,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            gcn=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        # ── Group 8: Multi-scale diverse ensemble ────────────────────
+        _run_conv_config(
+            "MS-diverse ×6 +std +hflip",
+            stages=ms32,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=6,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            member_stages=[
+                [
+                    {"n_filters": 32, "patch_size": 3, "pool_size": 1},
+                    {"n_filters": 32, "patch_size": 5, "pool_size": 1},
+                ],
+                [
+                    {"n_filters": 32, "patch_size": 3, "pool_size": 1},
+                    {"n_filters": 32, "patch_size": 7, "pool_size": 1},
+                ],
+                [
+                    {"n_filters": 32, "patch_size": 5, "pool_size": 1},
+                    {"n_filters": 32, "patch_size": 7, "pool_size": 1},
+                ],
+                [
+                    {"n_filters": 32, "patch_size": 3, "pool_size": 1},
+                    {"n_filters": 32, "patch_size": 5, "pool_size": 1},
+                    {"n_filters": 32, "patch_size": 7, "pool_size": 1},
+                ],
+                [
+                    {"n_filters": 64, "patch_size": 3, "pool_size": 1},
+                    {"n_filters": 64, "patch_size": 5, "pool_size": 1},
+                ],
+                [
+                    {"n_filters": 64, "patch_size": 5, "pool_size": 1},
+                    {"n_filters": 64, "patch_size": 7, "pool_size": 1},
+                ],
+            ],
+            **common,
+        ),
+        # ── Group 9: Best single + more neurons + hflip ──────────────
+        _run_conv_config(
+            "64f p5 20k +std +hflip",
+            stages=s5,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 32×3 20k +std +hflip",
+            stages=ms32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+    ]
+
+
 SUITES = {
     "row_focus": run_row_focus_suite,
     "sequential_hard": run_sequential_hard_suite,
     "conv_cifar": run_conv_cifar_suite,
+    "conv_cifar_v2": run_conv_cifar_v2_suite,
 }
 
 
