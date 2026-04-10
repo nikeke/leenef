@@ -207,3 +207,39 @@ class TestConvNEFPipeline:
         out1 = pipe(images[:10])
         out2 = pipe2(images[:10])
         assert torch.allclose(out1, out2, atol=1e-5)
+
+    def test_spatial_pyramid_pooling(self, cifar_like):
+        """Pool levels produce correct feature dimensions."""
+        images, targets = cifar_like
+        pipe = ConvNEFPipeline(
+            stages=[{"n_filters": 8, "patch_size": 3, "pool_size": 1}],
+            n_neurons=50,
+            pool_levels=[1, 2, 4],
+        )
+        pipe.fit(images, targets, fit_subsample=100, batch_size=50)
+        out = pipe(images[:5])
+        assert out.shape == (5, 5)
+        # Feature dim: 8*(1 + 4 + 16) = 168
+        assert pipe.head.d_in == 8 * (1 + 4 + 16)
+
+    def test_spp_above_chance(self):
+        """SPP pipeline achieves above-chance on structured data."""
+        g = torch.Generator().manual_seed(99)
+        images = torch.zeros(500, 1, 8, 8)
+        labels = torch.zeros(500, dtype=torch.long)
+        for c in range(5):
+            start = c * 100
+            images[start : start + 100, 0, c : c + 4, c : c + 4] = 1.0
+            images[start : start + 100] += 0.1 * torch.randn(100, 1, 8, 8, generator=g)
+            labels[start : start + 100] = c
+        targets = F.one_hot(labels, 5).float()
+
+        pipe = ConvNEFPipeline(
+            stages=[{"n_filters": 8, "patch_size": 3, "pool_size": 1}],
+            n_neurons=200,
+            pool_levels=[1, 2, 4],
+        )
+        pipe.fit(images, targets, fit_subsample=500, batch_size=100)
+        pred = pipe.predict(images, batch_size=100)
+        acc = (pred.argmax(dim=1) == labels).float().mean().item()
+        assert acc > 0.5, f"accuracy {acc:.2%} not above chance"

@@ -133,10 +133,17 @@ class ConvNEFPipeline(nn.Module):
     The entire pipeline is gradient-free: PCA filters are learned from
     data patches, and decoders are solved analytically.
 
+    When ``pool_levels`` is set, the final feature maps are processed
+    through spatial pyramid pooling (adaptive average pool at each level)
+    before being passed to the NEF head.  This provides translation
+    invariance at multiple spatial scales.
+
     Args:
         stages: list of dicts, each passed as kwargs to
             :class:`ConvNEFStage`.
         n_neurons: number of neurons in the NEF classification head.
+        pool_levels: optional list of spatial pool sizes for pyramid
+            pooling (e.g. ``[1, 2, 4]``).  ``None`` flattens directly.
         nef_kwargs: additional keyword arguments for :class:`NEFLayer`
             (e.g. ``encoder_strategy``, ``activation``, ``gain``).
     """
@@ -145,13 +152,30 @@ class ConvNEFPipeline(nn.Module):
         self,
         stages: list[dict],
         n_neurons: int,
+        pool_levels: list[int] | None = None,
         **nef_kwargs,
     ):
         super().__init__()
         self.stages = nn.ModuleList(ConvNEFStage(**cfg) for cfg in stages)
         self.n_neurons = n_neurons
+        self.pool_levels = pool_levels
         self.nef_kwargs = nef_kwargs
         self.head: NEFLayer | None = None
+
+    def _pool_features(self, x: Tensor) -> Tensor:
+        """Convert feature maps to flat feature vectors.
+
+        If ``pool_levels`` is set, applies spatial pyramid pooling
+        (adaptive average pool at each level, concatenated).
+        Otherwise, simply flattens.
+        """
+        if self.pool_levels is None:
+            return x.reshape(x.shape[0], -1)
+        parts = []
+        for level in self.pool_levels:
+            pooled = F.adaptive_avg_pool2d(x, level)
+            parts.append(pooled.reshape(x.shape[0], -1))
+        return torch.cat(parts, dim=1)
 
     def fit(
         self,
@@ -193,9 +217,9 @@ class ConvNEFPipeline(nn.Module):
             stage.fit(x_sub)
             x_sub = stage(x_sub)
 
-        # x_sub is (sub_n, C_out, H_out, W_out) — use as centers
-        feat_dim = x_sub.shape[1:].numel()
-        centers = x_sub.reshape(sub_n, feat_dim)
+        # Pool features and use as centers
+        centers = self._pool_features(x_sub)
+        feat_dim = centers.shape[1]
 
         # Create NEF classification head
         self.head = NEFLayer(
@@ -212,7 +236,7 @@ class ConvNEFPipeline(nn.Module):
             x_batch = images[i : i + batch_size]
             for stage in self.stages:
                 x_batch = stage(x_batch)
-            features = x_batch.reshape(x_batch.shape[0], -1)
+            features = self._pool_features(x_batch)
             self.head.partial_fit(features, targets[i : i + batch_size])
 
         self.head.solve_accumulated(alpha=alpha)
@@ -222,7 +246,7 @@ class ConvNEFPipeline(nn.Module):
         """Forward pass through all stages and classification head."""
         for stage in self.stages:
             x = stage(x)
-        features = x.reshape(x.shape[0], -1)
+        features = self._pool_features(x)
         return self.head(features)
 
     def predict(self, images: Tensor, batch_size: int = 1000) -> Tensor:
