@@ -645,6 +645,7 @@ class ConvNEFPipeline(nn.Module):
                 del features_aug
 
         self.head.solve_accumulated(alpha=alpha)
+        self.head.reset_accumulators()
 
     @torch.no_grad()
     def forward(self, x: Tensor) -> Tensor:

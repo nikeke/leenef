@@ -311,6 +311,7 @@ def _run_conv_config(
                 targets_train[i : i + batch_size],
             )
         head.solve_accumulated(alpha=alpha)
+        head.reset_accumulators()
         fit_time = time.time() - t0
 
         with torch.no_grad():
