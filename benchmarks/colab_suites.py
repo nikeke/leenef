@@ -1534,12 +1534,229 @@ def run_conv_cifar_v3_suite(args: argparse.Namespace) -> list:
     ]
 
 
+def run_conv_cifar_v4_suite(args: argparse.Namespace) -> list:
+    """Phase-4 CIFAR-10 sweep: 20k ensembles, alpha tuning, rectangular patches."""
+    import torch
+
+    dev = args.device
+    if dev == "auto":
+        dev = "cuda" if torch.cuda.is_available() else "cpu"
+    set_benchmark_seed(args.seed)
+
+    x_train, y_train, x_test, y_test, targets_train = _load_cifar10(args.data_root, dev)
+    common = dict(
+        x_train=x_train,
+        y_train=y_train,
+        x_test=x_test,
+        y_test=y_test,
+        targets_train=targets_train,
+        seed=args.seed,
+    )
+
+    if args.quick:
+        return [
+            _run_conv_config(
+                "v4 quick",
+                stages=[{"n_filters": 32, "patch_size": 5, "pool_size": 1}],
+                n_neurons=2000,
+                pool_levels=[1, 2, 4],
+                alpha=1e-2,
+                fit_subsample=2000,
+                batch_size=500,
+                standardize=True,
+                augment_fn=_augment_crop_flip,
+                **common,
+            ),
+        ]
+
+    ms32 = [
+        {"n_filters": 32, "patch_size": 3, "pool_size": 1},
+        {"n_filters": 32, "patch_size": 5, "pool_size": 1},
+        {"n_filters": 32, "patch_size": 7, "pool_size": 1},
+    ]
+    # Rectangular patches: horizontal + vertical orientations
+    rect_hv = [
+        {"n_filters": 32, "patch_size": (3, 7), "pool_size": 1},
+        {"n_filters": 32, "patch_size": (7, 3), "pool_size": 1},
+        {"n_filters": 32, "patch_size": 5, "pool_size": 1},
+    ]
+    # 5-branch: square + rectangular
+    mixed5 = [
+        {"n_filters": 24, "patch_size": 3, "pool_size": 1},
+        {"n_filters": 24, "patch_size": 5, "pool_size": 1},
+        {"n_filters": 24, "patch_size": 7, "pool_size": 1},
+        {"n_filters": 24, "patch_size": (3, 7), "pool_size": 1},
+        {"n_filters": 24, "patch_size": (7, 3), "pool_size": 1},
+    ]
+
+    return [
+        # ── Group 1: 20k × larger ensembles (the top lever) ────────────
+        _run_conv_config(
+            "Multi 32×3 20k ×5 +std +hflip",
+            stages=ms32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 32×3 20k ×10 +std +hflip",
+            stages=ms32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=10,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 32×3 20k ×10 +std +crop+flip",
+            stages=ms32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=10,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            **common,
+        ),
+        # ── Group 2: Alpha sweep for 20k ×5 (reduce overfitting) ───────
+        _run_conv_config(
+            "Multi 32×3 20k ×5 +std +crop+flip α=2e-2",
+            stages=ms32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=2e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 32×3 20k ×5 +std +crop+flip α=5e-2",
+            stages=ms32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=5e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            **common,
+        ),
+        # ── Group 3: Rectangular patches (oriented filters) ─────────────
+        _run_conv_config(
+            "Rect(3×7+7×3+5) 10k +std",
+            stages=rect_hv,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Rect(3×7+7×3+5) 10k +std +crop+flip",
+            stages=rect_hv,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            **common,
+        ),
+        _run_conv_config(
+            "Mixed5(3+5+7+3×7+7×3) 10k +std +crop+flip",
+            stages=mixed5,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            **common,
+        ),
+        # ── Group 4: Rectangular + ensemble ─────────────────────────────
+        _run_conv_config(
+            "Rect(3×7+7×3+5) ×5 +std +crop+flip",
+            stages=rect_hv,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            **common,
+        ),
+        _run_conv_config(
+            "Mixed5(3+5+7+3×7+7×3) ×5 +std +crop+flip",
+            stages=mixed5,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            **common,
+        ),
+        # ── Group 5: Rectangular + 20k ×5 (combine all levers) ─────────
+        _run_conv_config(
+            "Rect(3×7+7×3+5) 20k ×5 +std +crop+flip",
+            stages=rect_hv,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            **common,
+        ),
+        _run_conv_config(
+            "Mixed5 20k ×5 +std +crop+flip",
+            stages=mixed5,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_crop_flip,
+            **common,
+        ),
+    ]
+
+
 SUITES = {
     "row_focus": run_row_focus_suite,
     "sequential_hard": run_sequential_hard_suite,
     "conv_cifar": run_conv_cifar_suite,
     "conv_cifar_v2": run_conv_cifar_v2_suite,
     "conv_cifar_v3": run_conv_cifar_v3_suite,
+    "conv_cifar_v4": run_conv_cifar_v4_suite,
 }
 
 
