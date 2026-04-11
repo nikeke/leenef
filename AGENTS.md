@@ -36,6 +36,15 @@ python benchmarks/colab_suites.py --suite sequential_hard --device auto --output
 python benchmarks/colab_suites.py --suite conv_cifar --device auto --output-dir results/colab
 ```
 
+## Colab benchmark suite rules
+
+- If you change a Colab benchmark suite or its launcher workflow, **commit and
+  push immediately** after the relevant checks pass so Colab can rerun against
+  `main` without waiting for later cleanup.
+- Colab suites must **flush result files after every completed experiment**.
+  JSON/CSV outputs should be updated incrementally during the run, not only at
+  the end, so interrupted sweeps still preserve completed results.
+
 ## Technical report maintenance
 
 The technical report (TR) is `docs/technical_report.md`. Treat it as a
