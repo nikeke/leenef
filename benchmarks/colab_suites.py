@@ -1990,6 +1990,220 @@ def run_conv_cifar_v5_suite(args: argparse.Namespace) -> list:
     ]
 
 
+def run_conv_cifar_v6_suite(args: argparse.Namespace) -> list:
+    """Phase-6 CIFAR-10 sweep: k-means filters, 30k ×10, combined best levers."""
+    import torch
+
+    dev = args.device
+    if dev == "auto":
+        dev = "cuda" if torch.cuda.is_available() else "cpu"
+    set_benchmark_seed(args.seed)
+
+    x_train, y_train, x_test, y_test, targets_train = _load_cifar10(args.data_root, dev)
+    common = dict(
+        x_train=x_train,
+        y_train=y_train,
+        x_test=x_test,
+        y_test=y_test,
+        targets_train=targets_train,
+        seed=args.seed,
+    )
+
+    if args.quick:
+        return [
+            _run_conv_config(
+                "v6 quick",
+                stages=[
+                    {"n_filters": 32, "patch_size": 5, "pool_size": 1, "filter_strategy": "kmeans"},
+                ],
+                n_neurons=2000,
+                pool_levels=[1, 2, 4],
+                alpha=1e-2,
+                fit_subsample=2000,
+                batch_size=500,
+                standardize=True,
+                **common,
+            ),
+        ]
+
+    # ── PCA multi-scale (proven best topology) ──────────────────────────
+    ms32 = [
+        {"n_filters": 32, "patch_size": 3, "pool_size": 1},
+        {"n_filters": 32, "patch_size": 5, "pool_size": 1},
+        {"n_filters": 32, "patch_size": 7, "pool_size": 1},
+    ]
+
+    # ── K-means multi-scale ─────────────────────────────────────────────
+    km32 = [
+        {"n_filters": 32, "patch_size": 3, "pool_size": 1, "filter_strategy": "kmeans"},
+        {"n_filters": 32, "patch_size": 5, "pool_size": 1, "filter_strategy": "kmeans"},
+        {"n_filters": 32, "patch_size": 7, "pool_size": 1, "filter_strategy": "kmeans"},
+    ]
+    # K-means with ZCA whitening (Coates & Ng best recipe)
+    km32_w = [
+        {
+            "n_filters": 32,
+            "patch_size": 3,
+            "pool_size": 1,
+            "filter_strategy": "kmeans",
+            "whiten_patches": True,
+        },
+        {
+            "n_filters": 32,
+            "patch_size": 5,
+            "pool_size": 1,
+            "filter_strategy": "kmeans",
+            "whiten_patches": True,
+        },
+        {
+            "n_filters": 32,
+            "patch_size": 7,
+            "pool_size": 1,
+            "filter_strategy": "kmeans",
+            "whiten_patches": True,
+        },
+    ]
+    # PCA with per-patch contrast normalization
+    ms32_pn = [
+        {"n_filters": 32, "patch_size": 3, "pool_size": 1, "normalize_patches": True},
+        {"n_filters": 32, "patch_size": 5, "pool_size": 1, "normalize_patches": True},
+        {"n_filters": 32, "patch_size": 7, "pool_size": 1, "normalize_patches": True},
+    ]
+
+    return [
+        # ── Group 1: 30k ×10 — does ×10 help at 30k? ───────────────────
+        _run_conv_config(
+            "Multi 32×3 30k ×10 +std +hflip α=2e-2",
+            stages=ms32,
+            n_neurons=30_000,
+            pool_levels=[1, 2, 4],
+            alpha=2e-2,
+            fit_subsample=10_000,
+            n_members=10,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        # ── Group 2: K-means filters (fundamentally different features) ─
+        _run_conv_config(
+            "KM 32×3 10k +std",
+            stages=km32,
+            n_neurons=10_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            **common,
+        ),
+        _run_conv_config(
+            "KM 32×3 20k +std +hflip",
+            stages=km32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "KM 32×3 20k ×5 +std +hflip",
+            stages=km32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "KM 32×3 20k ×10 +std +hflip",
+            stages=km32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=10,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        # ── Group 3: K-means + ZCA whitened patches ─────────────────────
+        _run_conv_config(
+            "KMw 32×3 20k +std +hflip",
+            stages=km32_w,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "KMw 32×3 20k ×5 +std +hflip",
+            stages=km32_w,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        # ── Group 4: PCA + per-patch contrast normalization ─────────────
+        _run_conv_config(
+            "PCA-pn 32×3 20k +std +hflip",
+            stages=ms32_pn,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "PCA-pn 32×3 20k ×5 +std +hflip",
+            stages=ms32_pn,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        # ── Group 5: Best PCA config scaled up ──────────────────────────
+        _run_conv_config(
+            "Multi 32×3 30k ×5 +std +hflip α=1.5e-2",
+            stages=ms32,
+            n_neurons=30_000,
+            pool_levels=[1, 2, 4],
+            alpha=1.5e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+    ]
+
+
 SUITES = {
     "row_focus": run_row_focus_suite,
     "sequential_hard": run_sequential_hard_suite,
@@ -1998,6 +2212,7 @@ SUITES = {
     "conv_cifar_v3": run_conv_cifar_v3_suite,
     "conv_cifar_v4": run_conv_cifar_v4_suite,
     "conv_cifar_v5": run_conv_cifar_v5_suite,
+    "conv_cifar_v6": run_conv_cifar_v6_suite,
 }
 
 
