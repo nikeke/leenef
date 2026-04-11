@@ -218,6 +218,7 @@ class NEFNetwork(nn.Module):
         gain: float | tuple[float, float] | Tensor = (0.5, 2.0),
         rng: torch.Generator | None = None,
         centers: Tensor | None = None,
+        encoder_kwargs: dict | None = None,
         **act_kwargs,
     ):
         super().__init__()
@@ -231,6 +232,10 @@ class NEFNetwork(nn.Module):
             # Only the first layer uses data-driven centers at construction;
             # deeper layers get centers via propagate_centers() after init.
             layer_centers = centers if i == 0 else None
+            # Only the first hidden layer uses encoder_kwargs (data-driven
+            # strategies need raw input data; deeper layers operate on
+            # activity space where those kwargs are meaningless).
+            layer_enc_kw = encoder_kwargs if i == 0 else None
             self.hidden.append(
                 NEFLayer(
                     prev_dim,
@@ -242,6 +247,7 @@ class NEFNetwork(nn.Module):
                     gain=gain,
                     rng=rng,
                     centers=layer_centers,
+                    encoder_kwargs=layer_enc_kw,
                     **act_kwargs,
                 )
             )
