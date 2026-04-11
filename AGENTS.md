@@ -127,15 +127,17 @@ output layer decodes.  Five training strategies are supported:
 - `conv.py` — gradient-free convolutional feature extraction pipeline.
   `ConvNEFStage` learns PCA (or k-means) filters from data patches and
   applies them as fixed conv2d filters + abs activation + pool.
-  `ConvNEFPipeline` stacks stages (sequential or parallel) with spatial
-  pyramid pooling and a NEFLayer classification head.  Supports feature
-  standardization (`standardize=True`), global contrast normalization
-  (`gcn=True`), local contrast normalization (`lcn_kernel=5`), and
-  data augmentation (`augment_fn`).  `parallel=True` enables multi-scale
-  extraction with different patch sizes concatenated along the channel
-  dimension.  `ConvNEFEnsemble` wraps N pipelines with different seeds.
-  All gradient-free: PCA filters are data-derived buffers, decoders are
-  solved analytically via partial_fit/solve_accumulated.
+  `patch_size` accepts int (square) or `(h, w)` tuple (rectangular) for
+  oriented filters.  `ConvNEFPipeline` stacks stages (sequential or
+  parallel) with spatial pyramid pooling and a NEFLayer classification
+  head.  Supports feature standardization (`standardize=True`), global
+  contrast normalization (`gcn=True`), local contrast normalization
+  (`lcn_kernel=5`), and data augmentation (`augment_fn`, `n_augment`).
+  `parallel=True` enables multi-scale extraction with different patch
+  sizes concatenated along the channel dimension.  `ConvNEFEnsemble`
+  wraps N pipelines with different seeds.  All gradient-free: PCA
+  filters are data-derived buffers, decoders are solved analytically
+  via partial_fit/solve_accumulated.
 
 ## Conventions
 
