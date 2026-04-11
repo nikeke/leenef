@@ -178,6 +178,15 @@ class TestWhitenedEncoders:
         rank_narrow = (s_narrow > 1e-4).sum()
         assert rank_narrow < rank_wide
 
+    def test_nef_layer_uses_centers_as_train_data(self):
+        """Whitened NEFLayer should infer train_data from centers."""
+        g = torch.Generator().manual_seed(42)
+        data = torch.randn(300, 12, generator=g)
+        layer = NEFLayer(12, 100, 3, encoder_strategy="whitened", centers=data)
+        assert layer.encoders.shape == (100, 12)
+        out = layer(data[:10])
+        assert out.shape == (10, 3)
+
 
 class TestClassContrastEncoders:
     @pytest.fixture
@@ -247,6 +256,21 @@ class TestClassContrastEncoders:
         out = layer(x[:10])
         assert out.shape == (10, 3)
 
+    def test_nef_layer_infers_train_data_from_centers(self, labeled_data):
+        """class_contrast NEFLayer should infer train_data from centers."""
+        x, y = labeled_data
+        layer = NEFLayer(
+            5,
+            200,
+            3,
+            encoder_strategy="class_contrast",
+            centers=x,
+            encoder_kwargs={"train_labels": y},
+        )
+        assert layer.encoders.shape == (200, 5)
+        out = layer(x[:10])
+        assert out.shape == (10, 3)
+
 
 class TestLocalPCAEncoders:
     @pytest.fixture
@@ -294,6 +318,13 @@ class TestLocalPCAEncoders:
             encoder_strategy="local_pca",
             encoder_kwargs={"train_data": train_data},
         )
+        assert layer.encoders.shape == (200, 5)
+        out = layer(train_data[:10])
+        assert out.shape == (10, 3)
+
+    def test_nef_layer_uses_centers_as_train_data(self, train_data):
+        """local_pca NEFLayer should infer train_data from centers."""
+        layer = NEFLayer(5, 200, 3, encoder_strategy="local_pca", centers=train_data)
         assert layer.encoders.shape == (200, 5)
         out = layer(train_data[:10])
         assert out.shape == (10, 3)

@@ -116,11 +116,13 @@ class NEFLayer(nn.Module):
         self.d_out = d_out
         self._rng = rng
 
+        enc_kw = dict(encoder_kwargs or {})
+        if centers is not None and encoder_strategy in {"whitened", "class_contrast", "local_pca"}:
+            enc_kw.setdefault("train_data", centers)
+
         # 1. Create encoders — some strategies return (encoders, centers) tuples.
         #    Move to CPU; buffers are relocated to the target device via .to().
-        result = make_encoders(
-            n_neurons, d_in, strategy=encoder_strategy, rng=rng, **(encoder_kwargs or {})
-        )
+        result = make_encoders(n_neurons, d_in, strategy=encoder_strategy, rng=rng, **enc_kw)
         if isinstance(result, tuple):
             enc, encoder_centers = result[0].cpu(), result[1].cpu()
         else:
