@@ -256,10 +256,7 @@ class StreamingNEFClassifier(nn.Module):
             raise RuntimeError("No accumulated statistics — call accumulate() first")
         ATA = self._ata.clone()
         ATA.diagonal().add_(alpha)
-        try:
-            D = torch.linalg.solve(ATA, self._aty)
-        except torch.OutOfMemoryError:
-            D = torch.linalg.solve(ATA.cpu(), self._aty.cpu()).to(ATA.device)
+        D = torch.linalg.solve(ATA, self._aty)
         self.decoders.data.copy_(D.to(self.decoders.dtype))
 
     @torch.no_grad()
