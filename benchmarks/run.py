@@ -383,6 +383,7 @@ def run_nef_multi(
     output_neurons: int = 2000,
     activation: str = "abs",
     encoder_strategy: str = "hypersphere",
+    encoder_kwargs: dict | None = None,
     solver: str = "tikhonov",
     solver_kwargs: dict | None = None,
     hybrid_iters: int = 50,
@@ -428,6 +429,14 @@ def run_nef_multi(
     n_classes = int(y_train.max().item()) + 1
     targets = one_hot(y_train, n_classes)
 
+    # Auto-populate encoder_kwargs for data-driven strategies
+    enc_kw = dict(encoder_kwargs or {})
+    if encoder_strategy in ("whitened", "local_pca"):
+        enc_kw.setdefault("train_data", x_train)
+    elif encoder_strategy == "class_contrast":
+        enc_kw.setdefault("train_data", x_train)
+        enc_kw.setdefault("train_labels", y_train)
+
     centers = x_train if use_centers else None
     net = NEFNetwork(
         x_train.shape[1],
@@ -438,6 +447,7 @@ def run_nef_multi(
         encoder_strategy=encoder_strategy,
         gain=gain,
         centers=centers,
+        encoder_kwargs=enc_kw if enc_kw else None,
     )
 
     t0 = time.perf_counter()
