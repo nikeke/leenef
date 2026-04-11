@@ -238,41 +238,46 @@ def fig_neuron_scaling(show: bool = False) -> None:
 # Figure 5 — Method comparison overview
 # ═══════════════════════════════════════════════════════════════════════
 def fig_method_comparison(show: bool = False) -> None:
-    """Bar chart: all training strategies + MLP baseline across 3 datasets."""
+    """Bar chart: single-layer anchors, multi-layer strategies, and MLP."""
     methods = [
         "Linear",
-        "NEF 1-layer",
-        "NEF-greedy",
-        "NEF-hybrid",
-        "NEF-TP",
-        "NEF-E2E",
-        "Hybrid→E2E",
-        "NEF RF+α*",
-        "MLP (SGD)",
+        "NEFLayer\n(default)",
+        "Best\nsingle-layer*",
+        "Greedy",
+        "Hybrid",
+        "TP",
+        "E2E",
+        "Hybrid→\nE2E",
+        "TP→\nE2E",
+        "MLP\n(SGD)",
     ]
-    mnist = [85.3, 95.7, 95.0, 98.6, 98.6, 98.5, 98.6, 98.5, 98.5]
-    fashion = [81.0, 85.9, 85.4, 90.2, 90.1, 90.3, 90.6, 89.7, 89.7]
-    cifar = [39.6, 47.8, 45.6, 52.7, 51.0, 58.5, 58.4, 58.4, 52.7]
+    mnist = [85.3, 95.7, 98.5, 95.0, 98.6, 98.6, 98.5, 98.6, 98.5, 98.5]
+    fashion = [81.0, 85.9, 89.7, 85.4, 90.2, 90.1, 90.3, 90.6, 90.6, 89.7]
+    cifar = [39.6, 47.8, 58.4, 45.6, 52.7, 51.0, 58.5, 58.4, 58.5, 52.7]
 
     x = np.arange(len(methods))
     w = 0.25
 
-    fig, ax = plt.subplots(figsize=(11, 4.5))
+    fig, ax = plt.subplots(figsize=(12, 4.8))
     ax.bar(x - w, mnist, w, label="MNIST", color=C_NEF, alpha=0.85)
     ax.bar(x, fashion, w, label="Fashion", color=C_ENS, alpha=0.85)
     ax.bar(x + w, cifar, w, label="CIFAR-10", color=C_MLP, alpha=0.85)
 
-    # Highlight the NEF RF+α and MLP columns
-    for idx in [7, 8]:
-        ax.axvspan(idx - 0.4, idx + 0.4, alpha=0.08, color="gold")
+    # Group backgrounds: single-layer anchors, multi-layer, baseline
+    ax.axvspan(-0.5, 2.5, alpha=0.05, color=C_NEF)
+    ax.axvspan(2.5, 8.5, alpha=0.06, color="gold")
+    ax.axvspan(8.5, 9.5, alpha=0.05, color=C_GREY)
 
     ax.set_xticks(x)
-    ax.set_xticklabels(methods, rotation=35, ha="right", fontsize=8)
+    ax.set_xticklabels(methods, fontsize=8)
     ax.set_ylabel("Test accuracy (%)")
-    ax.set_title("Training strategy comparison (* = best single-layer RF config per dataset)")
-    ax.legend(fontsize=8)
+    ax.set_title("Single-layer vs multi-layer strategy comparison")
+    ax.text(1.0, 102.2, "Single-layer", ha="center", va="bottom", fontsize=8)
+    ax.text(5.5, 102.2, "Multi-layer", ha="center", va="bottom", fontsize=8)
+    ax.text(9.0, 102.2, "Baseline", ha="center", va="bottom", fontsize=8)
+    ax.legend(fontsize=8, loc="lower right")
     ax.grid(axis="y", alpha=0.3)
-    ax.set_ylim(30, 102)
+    ax.set_ylim(30, 104)
 
     fig.tight_layout()
     _save(fig, "method_comparison", show)

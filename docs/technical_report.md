@@ -26,9 +26,9 @@ with dataset-tuned neuron counts, patch sizes, and Tikhonov α — match
 a gradient-trained MLP on MNIST and Fashion-MNIST (98.5% and 89.7%,
 both faster than MLP) and beat it on CIFAR-10 (58.4% vs 52.7%) — all
 without gradient descent.
-We further extend the framework to multi-layer networks with five training
-strategies (greedy, hybrid, target propagation, end-to-end, and
-warm-started combinations), recurrent temporal models, and
+We further extend the framework to multi-layer networks with six training
+strategies (greedy, hybrid, target propagation, end-to-end, hybrid→E2E,
+and TP→E2E), recurrent temporal models, and
 incremental/online learning via normal-equation accumulation.
 For continuous learning, we introduce Woodbury rank-k updates that
 maintain the system inverse incrementally in O(n²k) per batch instead of
@@ -87,6 +87,15 @@ with local receptive field encoders — where each neuron sees a random
 local image patch (McDonnell et al., 2015) — the ensemble approach
 produces competitive results without any gradient training.
 
+The same analytical viewpoint extends beyond static images.  In temporal
+classification, the streaming delay-line reservoir remains competitive
+with LSTM baselines and, in some settings, surpasses them while training
+substantially faster and without backpropagation through time.  This is
+one of the report's strongest empirical results: the analytical NEF
+approach is not just competitive on static classification, but also on
+temporal sequence tasks that are usually treated as recurrent-model
+territory.
+
 This report makes the following contributions:
 
 1. A clear exposition of the NEF-for-supervised-learning architecture,
@@ -100,13 +109,15 @@ This report makes the following contributions:
    take.
 4. Local receptive field encoders that inject spatial structure without
    gradient training.
-5. Extensions to multi-layer networks (five training strategies including
-   analytical target propagation), recurrent temporal models,
-   incremental/online learning, and streaming temporal classification.
+5. Extensions to multi-layer networks (six training strategies, including
+   two warm-started end-to-end variants and analytical target
+   propagation), recurrent temporal models, incremental/online learning,
+   and streaming temporal classification that exceeds LSTM on sMNIST-row
+   on CPU and nearly matches it 2.7× faster on GPU.
 6. A fully gradient-free convolutional pipeline (ConvNEF) that learns
    PCA filters from data, extracts multi-scale features, and solves
    classification decoders analytically — reaching 78.3% on CIFAR-10.
-6. Comprehensive benchmarks on MNIST, Fashion-MNIST, CIFAR-10, and
+7. Comprehensive benchmarks on MNIST, Fashion-MNIST, CIFAR-10, and
    California Housing, with timing on consumer hardware (CPU and GPU).
 
 
@@ -257,6 +268,8 @@ The practical effect is dramatic (Section 5.2): without data-driven biases,
 hypersphere encoders lag Gaussian encoders by 2–3% because Gaussian
 encoder norms create an implicit distribution of activation thresholds.
 Data-driven biases make this explicit and optimal, closing the entire gap.
+Section 3.2 returns to the same idea from the implementation perspective,
+and Section 5.2 quantifies the resulting accuracy gain.
 
 ### 2.5 Ensemble Methods
 
@@ -360,13 +373,13 @@ accumulates as before.
 — the inverse of the pure regularizer.  All batches then enter through
 the Woodbury path, ensuring consistent conditioning.
 
-**Numerical precision.**  Repeated rank-k updates in float32 accumulate
+**Numerical precision.**  Repeated rank-k updates in `float32` accumulate
 rounding errors that compound across many updates.  For large n
 (thousands of neurons) and many batches, this drift can be catastrophic.
 Two mitigations are used:
 
-1. **Float64 inverse.**  The cached M⁻¹ and all Woodbury arithmetic are
-   performed in float64.  The final decoder computation casts back to the
+1. **`float64` inverse.**  The cached M⁻¹ and all Woodbury arithmetic are
+   performed in `float64`.  The final decoder computation casts back to the
    model's working dtype.
 
 2. **Periodic refresh.**  Since the sufficient statistics AᵀA and AᵀY are
@@ -437,6 +450,10 @@ The default solver is Tikhonov with α = 0.01.
 
 ### 3.2 Data-Driven Biases
 
+Section 2.4 gave the conceptual interpretation of centered NEF neurons as
+directional, RBF-like features.  Here we spell out the concrete bias
+construction used in the library.
+
 Given a set of training samples *X*, each neuron *i* is assigned a center
 *dᵢ* sampled uniformly from *X*.  The bias is then:
 
@@ -451,7 +468,7 @@ deviations in either direction from this zero-crossing.
 
 Without data-driven biases, the library falls back to i.i.d. Gaussian
 biases, which do not account for the data distribution.  Section 5.2 shows
-that data-driven biases close a 2–3% accuracy gap.
+that this concrete construction closes a 2–3% accuracy gap in practice.
 
 ### 3.3 Activation Functions
 
@@ -551,35 +568,36 @@ just after a deferred final solve — `NEFLayer` provides:
   AᵀA to correct any Woodbury drift.
 - `reset_continuous()` — clears the inverse cache and accumulators.
 
-The Woodbury inverse is stored in float64 regardless of the model's
-working dtype.  This prevents the catastrophic drift observed with float32
+The Woodbury inverse is stored in `float64` regardless of the model's
+working dtype.  This prevents the catastrophic drift observed with `float32`
 when many rank-k updates accumulate on large inverse matrices (thousands
 of neurons × hundreds of batches).  The final decoder product casts back
 to the model dtype.
 
 #### 3.7.2 Accumulate + Solve (GPU-Friendly Path)
 
-The Woodbury path's float64 requirement is a significant bottleneck on
+The Woodbury path's `float64` requirement is a significant bottleneck on
 consumer GPUs.  The Tesla T4, for example, delivers only 1/32 of its
-float32 throughput in float64.  For workloads where online decoder updates
+`float32` throughput in `float64`.  For workloads where online decoder updates
 are not required — i.e. the model only needs to be accurate *after* seeing
 all data — the library provides a lighter alternative:
 
 - `accumulate(x, targets)` — encodes the batch and computes AᵀA/AᵀY
-  entirely in float32, then promotes the n×n and n×d_out results to
-  float64 for accumulation.  No inverse is maintained; cost is O(n²k)
-  float32 matmul per batch plus an O(n²) dtype cast.
+  entirely in `float32`, then promotes the n×n and n×d_out results to
+  `float64` for accumulation.  No inverse is maintained; cost is O(n²k)
+  `float32` matmul per batch plus an O(n²) dtype cast.
 - `solve(alpha)` — performs a single regularized solve from the
-  accumulated statistics in float64, then casts decoders back to float32.
+  accumulated statistics in `float64`, then casts decoders back to
+  `float32`.
   Cost is O(n³), once.
 
 The key advantage over Woodbury is that **all O(n²k) matmuls are
-float32**: Woodbury performs O(n²k) *float64* work per batch to update
-the inverse, while accumulate does O(n²k) *float32* work per batch (fast
-GPU tensor cores) and only uses float64 for the O(n²) accumulator
+`float32`**: Woodbury performs O(n²k) `float64` work per batch to update
+the inverse, while accumulate does O(n²k) `float32` work per batch (fast
+GPU tensor cores) and only uses `float64` for the O(n²) accumulator
 additions and the single final solve.  A single batch's outer product
-has sufficient precision in float32; the running sum across batches is
-where float64 matters.
+has sufficient precision in `float32`; the running sum across batches is
+where `float64` matters.
 
 Both paths share the same AᵀA/AᵀY accumulators, so they can be mixed:
 use `accumulate()` for the main data pass, then switch to `continuous_fit()`
@@ -605,7 +623,7 @@ Six training strategies are available:
 4. **End-to-end** (`fit_end_to_end`): Standard SGD on all parameters,
    initialized from a greedy NEF solve.
 5. **Hybrid→E2E** (`fit_hybrid_e2e`): Hybrid warm start followed by E2E
-   fine-tuning.  Generally the best balanced strategy.
+   fine-tuning.
 6. **TP→E2E** (`fit_target_prop_e2e`): Target propagation warm start
    followed by E2E fine-tuning.
 
@@ -755,14 +773,14 @@ sequence length.
 2. **Continuous fit** — processes sequences in chunks via Woodbury updates
    (Section 2.8), maintaining up-to-date decoders after each chunk.
 3. **Accumulate + solve** — processes sequences in chunks, accumulating
-   AᵀA/AᵀY in float32, then solves once at the end (Section 3.7.2).
+   AᵀA/AᵀY in `float32`, then solves once at the end (Section 3.7.2).
    Mathematically equivalent to batch fit but memory-efficient and
-   GPU-friendly (no float64 required).
+   GPU-friendly (no `float64` required).
 
 The continuous mode enables genuine streaming: sequences arrive
 incrementally and the model is usable at any point.  A final
 `refresh_inverse()` call corrects any accumulated numerical drift.
-The accumulate mode is preferred on consumer GPUs where float64
+The accumulate mode is preferred on consumer GPUs where `float64`
 throughput is limited.
 
 **Chunked encoding.**  To limit peak memory, `encode_sequence` processes
@@ -969,6 +987,10 @@ compensate.
 *Figure 1. Left: test accuracy saturates logarithmically with neuron count across all three datasets. Right: training time scales as O(n²), dominated by the AᵀA computation.*
 
 ### 5.2 Why Data-Driven Biases Matter
+
+Section 2.4 introduced the directional RBF interpretation, and
+Section 3.2 described the concrete center-based bias construction.
+Here we measure its practical effect.
 
 Accuracy at 2000 neurons with abs activation, with and without data-driven
 biases:
@@ -1265,21 +1287,29 @@ good generalization; this narrows further with regularization tuning.
 ### 5.7 Multi-Layer Results
 
 Hidden=[1000], output=2000, 50 iterations for hybrid/TP, 50 epochs for
-E2E:
+E2E.  Section 5.5.4 gives the full tuned single-layer story; the table
+below pulls the relevant single-layer rows back in so the multi-layer
+results are compared against the true single-layer frontier, not just the
+default 2000-neuron baseline.
 
-| Model             | MNIST    | Fashion  | CIFAR-10 | Time (MNIST) |
-|-------------------|----------|----------|----------|--------------|
-| Linear baseline   | 85.3%    | 81.0%    | 39.6%    |     2s       |
-| NEFLayer          | 95.7%    | 85.9%    | 47.8%    |     2s       |
-| NEFNet-greedy     | 95.0%    | 85.4%    | 45.6%    |     3s       |
-| NEFNet-hybrid     |**98.6%** | 90.2%    | 52.7%    |   318s       |
-| NEFNet-target-prop|**98.6%** | 90.1%    | 51.0%    |   378s       |
-| NEFNet-e2e        | 98.5%    | 90.3%    |**58.5%** |   241s       |
-| NEFNet-hybrid→E2E |**98.6%** |**90.6%** | 58.4%    |   402s       |
-| NEFNet-TP→E2E     | 98.5%    |**90.6%** |**58.5%** |   464s       |
-| MLP (2×1000)      | 98.5%    | 89.7%    | 52.7%    |    83s       |
+#### 5.7.1 Strategy Comparison
 
-**Key observations:**
+| Family       | Model                                | MNIST     | Fashion   | CIFAR-10  | Time |
+|--------------|--------------------------------------|-----------|-----------|-----------|------|
+| Single-layer | Linear baseline                      | 85.3%     | 81.0%     | 39.6%     | 2s (MNIST) |
+| Single-layer | NEFLayer (default, 2000n)            | 95.7%     | 85.9%     | 47.8%     | 2s (MNIST) |
+| Single-layer | Best RF NEFLayer (MNIST, tuned α)    | 98.5%     | —         | —         | 52s (MNIST) |
+| Single-layer | Best RF NEFLayer (Fashion, tuned α)  | —         | 89.7%     | —         | 59s (Fashion) |
+| Single-layer | Best RF ensemble (CIFAR-10, tuned α) | —         | —         | 58.4%     | 53s (CIFAR-10) |
+| Multi-layer  | NEFNet-greedy                        | 95.0%     | 85.4%     | 45.6%     | 3s (MNIST) |
+| Multi-layer  | NEFNet-hybrid                        | **98.6%** | 90.2%     | 52.7%     | 318s (MNIST) |
+| Multi-layer  | NEFNet-target-prop                   | **98.6%** | 90.1%     | 51.0%     | 378s (MNIST) |
+| Multi-layer  | NEFNet-e2e                           | 98.5%     | 90.3%     | **58.5%** | 241s (MNIST) |
+| Multi-layer  | NEFNet-hybrid→E2E                    | **98.6%** | **90.6%** | 58.4%     | 402s (MNIST) |
+| Multi-layer  | NEFNet-TP→E2E                        | 98.5%     | **90.6%** | **58.5%** | 464s (MNIST) |
+| Baseline     | MLP (2×1000)                         | 98.5%     | 89.7%     | 52.7%     | 83s (MNIST) |
+
+**Key observations.**
 
 *Propagated data-driven biases.*  Training data is forwarded through each
 layer, and the resulting activations serve as centers for the next layer's
@@ -1300,34 +1330,37 @@ producing noisy gradients; at α = 10⁻⁵, training collapses.
 0/1; cross-entropy interprets these as logits, creating a gradient
 conflict that drops CIFAR-10 from 53% to 37%.
 
-*Hybrid→E2E is the best balanced strategy.*  98.6% / 90.6% / 58.4% —
-best on Fashion-MNIST, tied for best on MNIST, within 0.1 points on
-CIFAR-10.  The hybrid phase learns encoder orientations with analytic
-decoders; the E2E phase refines all parameters jointly.
+*The tuned single-layer frontier is already hard to beat.*  Relative to the
+best single-layer configurations from Section 5.5.4, the strongest
+multi-layer results improve MNIST by only 0.1 points, Fashion-MNIST by
+0.9 points, and CIFAR-10 by 0.1 points, while requiring 4–9× more time.
+Multi-layer training is therefore scientifically useful, but not the main
+practical deployment story of this report.
 
-#### Activation Effect on Multi-Layer Hybrid
+#### 5.7.2 Activation Effect on Multi-Layer Hybrid
 
 The default multi-layer configuration uses abs activation, matching the
-single-layer default.  The table below compares activations under a
-reduced 10-iteration hybrid run:
+single-layer default.  To isolate the activation effect under the current
+multi-layer defaults, the table below reruns hybrid training for only 10
+iterations (hidden=1000, output=2000, data-driven biases, hybrid α =
+1×10⁻³):
 
 | Activation | MNIST  | Fashion |
 |------------|--------|---------|
-| relu       |**97.8%**|**88.7%**|
-| abs        | 97.5%  | 88.0%   |
-| lif_rate   | 95.2%  | 85.1%   |
-| softplus   | 94.0%  | 84.1%   |
+| relu       |**98.0%**|**89.2%**|
+| abs        |**98.0%**| 88.6%   |
+| softplus   | 96.6%  | 87.0%   |
+| lif_rate   | 95.4%  | 85.5%   |
 
-The ranking reverses from single-layer: relu slightly edges out abs for
-multi-layer hybrid training.  Per-neuron gain diversity means relu's
-zero-gradient region no longer kills half the neurons uniformly; the
-sparsity aids gradient flow through multiple encode-decode cycles.
-The main results table above uses abs (the default) at 50 iterations,
-where the gap narrows and abs is preferred for consistency with the
-single-layer pipeline.
+Under the current defaults, relu and abs are the only competitive
+choices: they tie on MNIST, while relu leads by 0.6 points on Fashion.
+Softplus is viable but clearly weaker, and `lif_rate` remains both slower
+and less accurate.  The main results table above keeps abs for consistency
+with the single-layer pipeline; if one tuned purely for hybrid accuracy,
+relu would be the stronger choice.
 
 ![Method comparison across all training strategies](figures/method_comparison.png)
-*Figure 5. Accuracy across all training strategies and all three datasets.  "NEF RF+α\*" uses the best single-layer RF configuration per dataset; it matches multi-layer strategies on MNIST/Fashion and the MLP baseline on CIFAR-10 — without any gradient computation.*
+*Figure 5. Single-layer anchors versus the six multi-layer training strategies across all three datasets.  "Best single-layer\*" uses the best RF/tuned-α configuration per dataset from Section 5.5.4; it nearly matches the strongest multi-layer results while remaining fully gradient-free.*
 
 ### 5.8 Recurrent Results — Sequential MNIST
 
@@ -1450,13 +1483,13 @@ training.
 #### 5.9.3 GPU Results (T4)
 
 The accumulate + solve path (Section 3.7.2) enables efficient GPU
-execution.  All timing below is on a Tesla T4 (15 GB, float32 peak
-65 TFLOPS, float64 peak 2 TFLOPS).
+execution.  All timing below is on a Tesla T4 (15 GB, `float32` peak
+65 TFLOPS, `float64` peak 2 TFLOPS).
 
 **Accumulate vs Woodbury on GPU:**
 
-The Woodbury path performs O(n²k) float64 work per batch; the accumulate
-path does the same in float32 and defers float64 to the single final
+The Woodbury path performs O(n²k) `float64` work per batch; the accumulate
+path does the same in `float32` and defers `float64` to the single final
 solve.  On sMNIST-row (120 batches):
 
 | Config | Woodbury | Accumulate | Speedup |
@@ -1501,7 +1534,7 @@ is critical for row-mode but absent here); StreamNEF at least reaches
 *Figure 6. StreamNEF sMNIST-row accuracy as a function of neuron count for different window sizes.  The LSTM-128 baseline (dashed) is exceeded at 8000 neurons with window 10.*
 
 ![GPU speedup: Accumulate vs Woodbury](figures/gpu_speedup.png)
-*Figure 7. Left: training time comparison between Woodbury (float64) and Accumulate (float32) paths on a T4 GPU.  Right: the accumulate path achieves 7–11× speedup depending on model size.*
+*Figure 7. Left: training time comparison between Woodbury (`float64`) and accumulate (`float32`) paths on a T4 GPU.  Right: the accumulate path achieves 7–11× speedup depending on model size.*
 
 ### 5.10 Convolutional Pipeline Results — CIFAR-10
 
@@ -1607,7 +1640,7 @@ The train–test gap widens at 30k (13.1%) — more neurons increase
 capacity but the analytical solver cannot prevent overfitting as
 effectively as SGD with implicit regularization.  Beyond 30k neurons,
 memory becomes the bottleneck: the 30000×30000 AᵀA matrix requires
-3.35 GiB in float32, tight for a 15 GB T4 GPU.
+3.35 GiB in `float32`, tight for a 15 GB T4 GPU.
 
 #### 5.10.6 Ensemble Scaling
 
@@ -1771,17 +1804,17 @@ returns vanish.
 |----------|---------------------|---------|-------------------|------|
 | Maximum speed | Single NEFLayer | MNIST | 95.7% | 2s CPU |
 | Speed/accuracy balance | Single RF NEFLayer (12000n, α=5×10⁻⁴) | MNIST | 98.5% | 52s CPU |
-| Beat MLP, no gradients | Single RF layer, tuned α | MNIST | 98.5% | 52s CPU |
-| Maximum accuracy | NEFNet-hybrid→E2E | MNIST | 98.6% | 402s CPU |
 | Streaming data (online) | NEFLayer + continuous_fit (Woodbury) | MNIST | 95.7% | ~2s CPU |
 | Streaming data (GPU) | NEFLayer + accumulate + solve | MNIST | 95.7% | <1s T4 |
 | Temporal sequences (fast) | StreamNEF (2000n, w=10) | sMNIST | 97.2% | 23s CPU / 1.1s T4 |
 | Temporal sequences (accurate) | StreamNEF (8000n, w=10) | sMNIST | 98.6% | 222s CPU / 8.3s T4 |
 | Natural images, no gradients | ConvNEF ×10, multi(32×{3,5,7}), 30k | CIFAR-10 | 78.3% | 15min T4 |
 
-Note: the "Beat MLP" row generalizes across datasets (89.7% Fashion-MNIST
-in 59s, 58.4% CIFAR-10 in 53s) but requires per-dataset α tuning and
-different neuron counts.
+Note: the "Speed/accuracy balance" row is the MNIST instance of a broader
+single-layer recipe.  The same approach reaches 89.7% on Fashion-MNIST
+with a 12000-neuron RF layer (patch 5, α = 1×10⁻³, 59s) and 58.4% on
+CIFAR-10 with a 10×3000 RF ensemble (patch 5, α = 1×10⁻⁴, 53s).  These
+results require per-dataset tuning and, for CIFAR-10, ensembling.
 
 ### 6.3 Limitations
 
@@ -1802,10 +1835,10 @@ different neuron counts.
   recurrent target propagation remains research-grade (~32%) compared to
   E2E (98.5%).
 - **GPU dtype tradeoff.**  The Woodbury continuous-fit path requires
-  float64 for numerical stability, but consumer GPUs (T4, L4) deliver
-  only 1/32 of their float32 throughput in float64.  The accumulate +
-  solve path (Section 3.7.2) keeps all O(n²k) matmuls in float32 and
-  uses float64 only for O(n²) accumulator additions and the single
+  `float64` for numerical stability, but consumer GPUs (T4, L4) deliver
+  only 1/32 of their `float32` throughput in `float64`.  The accumulate +
+  solve path (Section 3.7.2) keeps all O(n²k) matmuls in `float32` and
+  uses `float64` only for O(n²) accumulator additions and the single
   final solve — yielding 7–11× speedup over Woodbury on a T4 while
   matching or exceeding accuracy (98.5% vs 98.3% at 8000 neurons).
   The tradeoff is that online decoder updates are not available; the
@@ -1867,8 +1900,8 @@ The main findings are:
    entire 2–3% gap between encoder types and makes the encoder direction
    distribution irrelevant.
 
-2. **A single analytically solved layer matches or beats a gradient-
-   trained MLP — without any gradient computation.**  With local
+2. **A single analytically solved layer matches or beats a gradient-trained
+   MLP — without any gradient computation.**  With local
    receptive field encoders, 12000 neurons, and tuned Tikhonov
    regularization, a single NEF layer achieves 98.5% on MNIST (52s,
    37% faster than MLP), 89.7% on Fashion-MNIST (59s, 29% faster),
@@ -1900,9 +1933,13 @@ The main findings are:
    10×2000 ensemble.  On MNIST, larger RF layers reach 98.5% — close
    to McDonnell et al.'s 98.8% with comparable neuron counts.
 
-7. **Hybrid→E2E remains the best balanced multi-layer strategy.**
-   98.6% / 90.6% / 58.4% — the hybrid phase learns encoder orientations
-   with analytic decoders; the E2E phase refines all parameters jointly.
+7. **Multi-layer gains are real, but modest relative to the tuned
+   single-layer frontier.**  The best multi-layer results improve the
+   tuned single-layer baseline by only 0.1 points on MNIST, 0.9 points on
+   Fashion-MNIST, and 0.1 points on CIFAR-10, while requiring
+   substantially more time.  This makes multi-layer NEF training an
+   interesting research result, but not the main practical deployment
+   story of the framework.
 
 8. **Target propagation with analytical NEF inverse models is viable.**
    Plain TP reaches 98.6% / 90.1% / 51.0% using only single-layer
@@ -1926,7 +1963,7 @@ The main findings are:
     StreamNEF reaches 91.4% vs LSTM's 82.3%, 9.6× faster.
 
 12. **The accumulate + solve path makes GPU deployment practical.**
-    By keeping all expensive matmuls in float32 and using float64 only
+    By keeping all expensive matmuls in `float32` and using `float64` only
     for accumulator sums and the final solve, the accumulate path
     achieves 7–11× speedup over Woodbury on a T4 GPU while slightly
     exceeding accuracy.
