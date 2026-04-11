@@ -10,7 +10,7 @@ details, and benchmark analysis.
 
 A standard neural network trains all weights with gradient descent.  NEF
 takes a different approach: input weights (encoders) are random and fixed,
-and output weights (decoders) are solved analytically via regularised
+and output weights (decoders) are solved analytically via regularized
 least-squares.  No gradient descent, no epochs, no learning rate — a single
 layer trains in under 2 seconds on a laptop CPU.
 
@@ -104,7 +104,7 @@ The single-layer NEF model with local receptive field encoders and tuned
 Tikhonov regularisation **matches or beats the gradient-trained MLP on
 all three benchmarks while training faster** — without any gradient
 computation.  The key insight: at scale (12 000–14 000 RF neurons), the
-default regularisation α=10⁻² over-regularises; reducing to α≈5×10⁻⁴
+default regularization α=10⁻² over-regularizes; reducing to α≈5×10⁻⁴
 closes the final accuracy gap.  See the
 [technical report](docs/technical_report.md) for the full sweep results,
 analysis, and competitive context.

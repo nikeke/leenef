@@ -316,7 +316,7 @@ class RecurrentNEFLayer(nn.Module):
           2. Solve D_out from final-step activities → targets.
           3. Solve D_state from all-step activities → inputs
              (representational decoding), using incremental normal
-             equations to avoid materialising the full T×B matrix.
+             equations to avoid materializing the full T×B matrix.
           4. Repeat.
 
         Args:
@@ -597,7 +597,7 @@ class RecurrentNEFLayer(nn.Module):
         auxiliary_weight: float = 0.0,
         **greedy_kw,
     ) -> None:
-        """Full SGD (BPTT) on all parameters, initialised via greedy solve.
+        """Full SGD (BPTT) on all parameters, initialized via greedy solve.
 
         Args:
             greedy_iters: iterations for the initial greedy solve.
@@ -690,7 +690,7 @@ class RecurrentNEFLayer(nn.Module):
         """Target propagation through time using NEF state decoders as inverse models.
 
         Instead of BPTT, targets are propagated backward through timesteps:
-        the output-layer target is computed from a normalised gradient step,
+        the output-layer target is computed from a normalized gradient step,
         then difference target propagation uses the state decoder to map
         each timestep's target back to the previous timestep's activity
         space.  Encoder/bias updates use single-timestep gradients only.
@@ -701,14 +701,14 @@ class RecurrentNEFLayer(nn.Module):
           1. Unroll forward, accumulating ``A^T A`` and ``A^T Y`` for both
              the output and representational decoder solves.
           2. Solve ``D_out`` and ``D_state_repr`` analytically.
-          3. Compute final-timestep targets with full-batch normalisation.
+          3. Compute final-timestep targets with full-batch normalization.
 
         **Phase 2** (with grad, chunked encoder updates):
           4. Re-unroll forward with gradient tracking in memory-safe chunks.
           5. Propagate targets backward through time via DTP within each
              chunk (targets are per-sample, so chunking is exact).
           6. Accumulate local encoder/bias gradients across all chunks,
-             then step the optimiser once.
+             then step the optimizer once.
 
         Re-solve ``D_out`` after all iterations.
 
@@ -721,7 +721,7 @@ class RecurrentNEFLayer(nn.Module):
                             ``"cholesky"`` because it relies on accumulated
                             normal equations.
             schedule:       use cosine-annealing LR schedule.
-            normalize_step: normalise the output gradient so *eta* controls
+            normalize_step: normalize the output gradient so *eta* controls
                             the step as a fraction of activity norm.
             batch_size:     chunk size for the gradient phase.  When
                             ``None`` (default), auto-sized to keep peak
@@ -798,7 +798,7 @@ class RecurrentNEFLayer(nn.Module):
             D_state = solve_from_normal_equations(AtA_state, AtY_state, alpha=alpha)
             self.state_decoders.data.copy_(D_state)
 
-            # Compute final-timestep targets (full-batch normalisation)
+            # Compute final-timestep targets (full-batch normalization)
             a_final_all = torch.cat(a_final_chunks, dim=0)
             target_final_all = _local_output_target(
                 a_final_all,

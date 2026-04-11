@@ -204,7 +204,7 @@ class NEFNetwork(nn.Module):
         fit_target_prop — analytical target propagation via NEF inverses
         fit_hybrid_e2e — hybrid warm start then end-to-end refinement
         fit_target_prop_e2e — target-prop warm start then end-to-end refinement
-        fit_end_to_end — standard SGD with NEF-initialised weights
+        fit_end_to_end — standard SGD with NEF-initialized weights
     """
 
     def __init__(
@@ -340,7 +340,7 @@ class NEFNetwork(nn.Module):
             centers: training data for incremental init bias derivation
                      (typically the same *x* passed to this method).
         """
-        # --- optional incremental initialisation ---
+        # --- optional incremental initialization ---
         if init == "incremental" and len(self.hidden) > 0:
             h0 = self.hidden[0]
             tmp = NEFLayer(
@@ -363,7 +363,7 @@ class NEFNetwork(nn.Module):
             loss_fn = nn.MSELoss()
             grad_targets = targets
 
-        # --- optimiser + optional schedule ---
+        # --- optimizer + optional schedule ---
         enc_params = [p for p in self.parameters() if p.requires_grad]
         optimizer = torch.optim.Adam(enc_params, lr=lr)
         scheduler = (
@@ -413,7 +413,7 @@ class NEFNetwork(nn.Module):
         self.output.fit(h, targets, solver=solver, **solver_kw)
 
     # ------------------------------------------------------------------
-    # Strategy C — end-to-end SGD with NEF initialisation
+    # Strategy C — end-to-end SGD with NEF initialization
     # ------------------------------------------------------------------
 
     def _sgd_train(
@@ -459,7 +459,7 @@ class NEFNetwork(nn.Module):
         batch_size: int = 256,
         loss: str = "mse",
     ) -> None:
-        """Standard SGD on all parameters, initialised via greedy NEF solve.
+        """Standard SGD on all parameters, initialized via greedy NEF solve.
 
         Args:
             loss: ``"mse"`` for regression / one-hot targets, or ``"ce"``
@@ -561,13 +561,13 @@ class NEFNetwork(nn.Module):
           2. Solve output task decoder analytically.
           3. Solve representational decoders for layers 1..L (layer 0's
              repr decoder is never needed by DTP backward).
-          4. Compute output target activities via normalised gradient step:
+          4. Compute output target activities via normalized gradient step:
              ``target = a - eta * grad / ||grad|| * ||a||`` so *eta*
              directly controls the fractional step size.
           5. Propagate targets backward via Difference Target Propagation:
              ``target[l] = a[l] + (target[l+1] - a[l+1]) @ D_repr[l+1]``
           6. Update each layer's encoders and biases with a local gradient
-             step minimising ``||encode(input) - target||²``.
+             step minimizing ``||encode(input) - target||²``.
           7. Re-solve output decoders after all iterations.
 
         No backpropagation through multiple layers is needed — all encoder
@@ -581,7 +581,7 @@ class NEFNetwork(nn.Module):
                             the fraction of activity norm to step by.
             solver:         decoder solver (default ``"tikhonov"``).
             schedule:       use cosine-annealing LR schedule over *n_iters*.
-            normalize_step: normalise the output gradient so *eta* controls
+            normalize_step: normalize the output gradient so *eta* controls
                             the step as a fraction of activity norm (default
                             True).  When False, raw (unscaled) gradient is
                             used, matching the original formulation.

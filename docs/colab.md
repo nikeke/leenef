@@ -13,7 +13,7 @@ source of experiment logic.
 5. Save the produced JSON / CSV files and share them back.
 
 Longer suites print explicit progress now, so a cell that stays quiet for
-minutes is no longer expected behaviour.
+minutes is no longer expected behavior.
 
 ## What each artifact does
 

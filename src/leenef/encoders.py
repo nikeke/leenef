@@ -11,7 +11,7 @@ def uniform_hypersphere(n_neurons: int, dim: int, *, rng: torch.Generator | None
 
 
 def gaussian(n_neurons: int, dim: int, *, rng: torch.Generator | None = None) -> Tensor:
-    """Sample encoder vectors from a standard normal (not normalised)."""
+    """Sample encoder vectors from a standard normal (not normalized)."""
     return torch.randn(n_neurons, dim, generator=rng)
 
 
@@ -38,8 +38,8 @@ def receptive_field(
 
     Each neuron connects to a random ``patch_size × patch_size`` patch of the
     image.  Weights within the patch are drawn from a unit hypersphere
-    (normalised to unit norm), and all other entries are zero.  This injects
-    spatial locality — like a randomised convolution — while keeping the
+    (normalized to unit norm), and all other entries are zero.  This injects
+    spatial locality — like a randomized convolution — while keeping the
     analytic solve unchanged.
 
     Following McDonnell et al. (2015), local receptive fields dramatically
@@ -87,7 +87,7 @@ def receptive_field(
         # (n_neurons, patch_size², C) → (n_neurons, patch_size² * C)
         spatial_idx = (spatial_idx.unsqueeze(2) + ch_offsets).reshape(n_neurons, -1)
 
-    # Random weights within each patch, normalised to unit norm
+    # Random weights within each patch, normalized to unit norm
     patch_dim = patch_size * patch_size * n_channels
     weights = torch.randn(n_neurons, patch_dim, generator=rng)
     weights = weights / weights.norm(dim=1, keepdim=True)
@@ -280,7 +280,7 @@ def local_pca(
         # Top singular vector = first row of Vh
         top_dir = Vh[:, 0, :]  # (chunk, dim)
 
-        # Normalise to unit norm
+        # Normalize to unit norm
         norms = top_dir.norm(dim=1, keepdim=True).clamp(min=1e-8)
         encoders[start:end] = top_dir / norms
 

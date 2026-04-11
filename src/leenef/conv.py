@@ -27,7 +27,7 @@ def local_contrast_normalize(x: Tensor, kernel_size: int = 5, eps: float = 1e-6)
 
     Args:
         x: ``(N, C, H, W)`` input tensor.
-        kernel_size: spatial size of the local neighbourhood (default 5).
+        kernel_size: spatial size of the local neighborhood (default 5).
         eps: stability constant added to the local std.
 
     Returns:
@@ -49,7 +49,7 @@ def global_contrast_normalize(x: Tensor, eps: float = 1e-6) -> Tensor:
     """Apply global contrast normalization to images.
 
     For each image, subtracts the global mean and divides by the
-    global standard deviation.  This normalises brightness and
+    global standard deviation.  This normalizes brightness and
     contrast across the dataset.
 
     Args:
@@ -179,7 +179,7 @@ class ConvNEFStage(nn.Module):
             eps: stability constant for near-zero-norm patches.
 
         Returns:
-            The normalised patches tensor (same object as input).
+            The normalized patches tensor (same object as input).
         """
         patches -= patches.mean(dim=1, keepdim=True)
         norms = patches.norm(dim=1, keepdim=True).clamp(min=eps)
@@ -194,7 +194,7 @@ class ConvNEFStage(nn.Module):
             patches: ``(n, d)`` data points.
             k: number of clusters.
             n_iter: number of Lloyd iterations.
-            seed: random seed for centroid initialisation.
+            seed: random seed for centroid initialization.
 
         Returns:
             ``(k, d)`` cluster centroids.
@@ -291,7 +291,7 @@ class ConvNEFStage(nn.Module):
         ``max(0, mean_dist - dist_k)`` where ``dist_k`` is the distance
         from each spatial patch to centroid k.
 
-        When ``normalize_patches=True``, patches are extracted, normalised
+        When ``normalize_patches=True``, patches are extracted, normalized
         per-patch (zero mean, unit L2 norm), and then inner-producted with
         filters.  This matches the preprocessing used during filter
         learning and removes brightness variation at each spatial position.
@@ -342,7 +342,7 @@ class ConvNEFStage(nn.Module):
     def _forward_normalized(self, x: Tensor) -> Tensor:
         """Forward pass with per-patch contrast normalization.
 
-        Unfolds input into patches, normalises each patch to zero mean
+        Unfolds input into patches, normalizes each patch to zero mean
         and unit L2 norm, subtracts the population mean, then computes
         inner products with the learned filters.
 
@@ -431,7 +431,7 @@ class ConvNEFPipeline(nn.Module):
             kernel size as a preprocessing step on the input images
             (default ``None`` = disabled).
         gcn: if ``True``, apply global contrast normalization (per-image
-            mean/std normalisation) as a preprocessing step.  Applied
+            mean/std normalization) as a preprocessing step.  Applied
             before LCN when both are enabled (default ``False``).
         parallel: if ``True``, stages run in parallel on the same input
             and their outputs are concatenated.  Useful for multi-scale

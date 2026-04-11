@@ -18,7 +18,7 @@ def lstsq(activities: Tensor, targets: Tensor, **_kwargs) -> Tensor:
 
 
 def tikhonov(activities: Tensor, targets: Tensor, alpha: float = 1e-2) -> Tensor:
-    """Tikhonov-regularised least-squares (L2 penalty on decoder norms).
+    """Tikhonov-regularized least-squares (L2 penalty on decoder norms).
 
     Solves: (A^T A + reg * I) D = A^T targets
 
@@ -34,7 +34,7 @@ def tikhonov(activities: Tensor, targets: Tensor, alpha: float = 1e-2) -> Tensor
 
 
 def normal_equations(activities: Tensor, targets: Tensor, alpha: float = 1e-2) -> Tensor:
-    """L2-regularised normal equations via Cholesky — fast for large N, moderate n_neurons."""
+    """L2-regularized normal equations via Cholesky — fast for large N, moderate n_neurons."""
     A = activities
     ATA = A.T @ A
     # Scale regularisation to the matrix norm for numerical stability

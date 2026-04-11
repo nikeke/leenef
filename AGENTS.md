@@ -54,7 +54,7 @@ gain** U(0.5, 2.0), **data-driven biases** via `centers=x_train`.
 Recurrent layers default to **relu** (abs causes gradient explosion in BPTT).
 
 The key insight: **encoders are random and fixed; decoders are solved
-analytically** via regularised least-squares (`layer.fit(x, targets)`).
+analytically** via regularized least-squares (`layer.fit(x, targets)`).
 This avoids gradient-based training for a single layer entirely.
 
 For multi-layer networks (`NEFNetwork` in `networks.py`), hidden layers
@@ -70,7 +70,7 @@ output layer decodes.  Five training strategies are supported:
   inverse models) and difference target propagation.  Single-layer
   gradients only; no gradient flows between layers.
 - **End-to-end** (`fit_end_to_end`) — standard SGD on all parameters,
-  initialised via a greedy NEF solve.
+  initialized via a greedy NEF solve.
 
 ### Module roles
 
@@ -80,7 +80,7 @@ output layer decodes.  Five training strategies are supported:
   `receptive_field` (local image patches for spatial locality),
   `whitened` (PCA-subspace projection adapts to data covariance),
   `class_contrast` (directions from one class to nearest other class),
-  `local_pca` (top eigenvector of each neuron's local neighbourhood).
+  `local_pca` (top eigenvector of each neuron's local neighborhood).
 - `activations.py` — rate neuron models, registered in `ACTIVATIONS` dict.
   Use `make_activation(name, ...)`.
 - `solvers.py` — decoder solvers, registered in `SOLVERS` dict.
@@ -152,7 +152,7 @@ the registry dict; callers select by string name.
 
 Decoders are stored as `nn.Parameter(requires_grad=False)` so they
 participate in `state_dict` and model saving, but are not updated by
-gradient optimisers by default.  `fit()` writes to `.data` directly.
+gradient optimizers by default.  `fit()` writes to `.data` directly.
 
 ### Tensor-only, no Python loops
 
