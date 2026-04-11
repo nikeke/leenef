@@ -2014,7 +2014,12 @@ def run_conv_cifar_v6_suite(args: argparse.Namespace) -> list:
             _run_conv_config(
                 "v6 quick",
                 stages=[
-                    {"n_filters": 32, "patch_size": 5, "pool_size": 1, "filter_strategy": "kmeans"},
+                    {
+                        "n_filters": 32,
+                        "patch_size": 5,
+                        "pool_size": 1,
+                        "filter_strategy": "kmeans",
+                    },
                 ],
                 n_neurons=2000,
                 pool_levels=[1, 2, 4],

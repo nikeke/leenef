@@ -11,9 +11,11 @@ pytest tests/test_core.py -q                  # core module tests
 pytest tests/test_core.py::TestNEFLayer -q    # single test class
 pytest -k test_fit_identity -q                # single test by name
 
-# Lint
+# Lint — BOTH commands must pass before every commit
 ruff check src/leenef/ tests/ benchmarks/        # lint (E/F/W/I rules)
 ruff format --check src/leenef/ tests/ benchmarks/  # format check
+# Auto-fix formatting:
+ruff format src/leenef/ tests/ benchmarks/
 
 # Install after changing pyproject.toml
 pip install -e '.[dev]'
@@ -244,6 +246,20 @@ output layer decodes.  Five training strategies are supported:
   via partial_fit/solve_accumulated.
 
 ## Conventions
+
+### Pre-commit checks
+
+**Before every commit**, run both lint and format checks and fix any
+errors.  CI enforces both; commits that fail either check will break the
+build.
+
+```bash
+ruff check src/leenef/ tests/ benchmarks/
+ruff format --check src/leenef/ tests/ benchmarks/
+```
+
+If `ruff format --check` fails, run `ruff format src/leenef/ tests/ benchmarks/`
+to auto-fix, then stage the formatted files before committing.
 
 ### Registry pattern
 
