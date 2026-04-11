@@ -15,6 +15,8 @@ for _path in (str(_PROJECT_ROOT), str(_PROJECT_ROOT / "src")):
 from benchmarks.run import (  # noqa: E402
     BenchmarkResult,
     format_results,
+    run_nef_classification,
+    run_nef_multi,
     save_results_csv,
     save_results_json,
     set_benchmark_seed,
@@ -2392,6 +2394,76 @@ def run_conv_cifar_v7_suite(args: argparse.Namespace) -> list:
     ]
 
 
+def run_defaults_tp_suite(args: argparse.Namespace) -> list:
+    """Encoder-strategy sweep (single-layer) + target-prop with data-driven encoders.
+
+    Part 1 — single-layer sweep: test encoder strategies × 3 datasets to see
+    whether any data-driven strategy consistently improves on hypersphere.
+    Part 2 — target-prop sweep: test TP and TP→E2E with data-driven encoders
+    to see whether better-conditioned encoders improve repr-decoder quality.
+    """
+    results: list = []
+    datasets = ["mnist", "fashion_mnist", "cifar10"]
+    common = dict(data_root=args.data_root, seed=args.seed)
+
+    # ── Part 1: single-layer encoder strategy sweep ──────────────────
+    single_strategies = [
+        ("hypersphere", (0.5, 2.0), "baseline"),
+        ("whitened", (0.5, 2.0), "whitened"),
+        ("class_contrast", (0.5, 2.0), "class_contrast"),
+        ("local_pca", (0.5, 2.0), "local_pca"),
+        ("hypersphere", "data_driven", "dd_gain"),
+        ("whitened", "data_driven", "whitened+dd_gain"),
+        ("class_contrast", "data_driven", "cc+dd_gain"),
+    ]
+    for ds in datasets:
+        for enc_strat, gain_spec, label in single_strategies:
+            results.append(
+                _run_labeled(
+                    f"1L {label} 2k {ds}",
+                    run_nef_classification,
+                    dataset_name=ds,
+                    n_neurons=2000,
+                    encoder_strategy=enc_strat,
+                    gain=gain_spec,
+                    **common,
+                )
+            )
+
+    # ── Part 2: target-prop with data-driven encoders ────────────────
+    tp_strategies = [
+        # (encoder, label)
+        ("hypersphere", "hyper"),
+        ("whitened", "whitened"),
+        ("class_contrast", "cc"),
+    ]
+    tp_train_strategies = [
+        # (strategy, label)
+        ("greedy", "greedy"),
+        ("target_prop", "TP"),
+        ("hybrid", "hybrid"),
+        ("target_prop_e2e", "TP→E2E"),
+        ("hybrid_e2e", "hybrid→E2E"),
+    ]
+    for ds in datasets:
+        for enc_strat, enc_label in tp_strategies:
+            for train_strat, train_label in tp_train_strategies:
+                results.append(
+                    _run_labeled(
+                        f"Net {train_label} {enc_label} {ds}",
+                        run_nef_multi,
+                        dataset_name=ds,
+                        strategy=train_strat,
+                        hidden_neurons=[1000],
+                        output_neurons=2000,
+                        encoder_strategy=enc_strat,
+                        **common,
+                    )
+                )
+
+    return results
+
+
 SUITES = {
     "row_focus": run_row_focus_suite,
     "sequential_hard": run_sequential_hard_suite,
@@ -2402,6 +2474,7 @@ SUITES = {
     "conv_cifar_v5": run_conv_cifar_v5_suite,
     "conv_cifar_v6": run_conv_cifar_v6_suite,
     "conv_cifar_v7": run_conv_cifar_v7_suite,
+    "defaults_tp": run_defaults_tp_suite,
 }
 
 
