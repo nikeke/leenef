@@ -2209,6 +2209,189 @@ def run_conv_cifar_v6_suite(args: argparse.Namespace) -> list:
     ]
 
 
+def run_conv_cifar_v7_suite(args: argparse.Namespace) -> list:
+    """Phase-7 CIFAR-10 sweep: pool_order=2, fit_subsample scaling, 48×3 30k ×10.
+
+    Final squeeze — tests the two genuinely untested dimensions:
+    second-order pooling statistics and more training data for PCA
+    filter learning.
+    """
+    import torch
+
+    dev = args.device
+    if dev == "auto":
+        dev = "cuda" if torch.cuda.is_available() else "cpu"
+    set_benchmark_seed(args.seed)
+
+    x_train, y_train, x_test, y_test, targets_train = _load_cifar10(args.data_root, dev)
+    common = dict(
+        x_train=x_train,
+        y_train=y_train,
+        x_test=x_test,
+        y_test=y_test,
+        targets_train=targets_train,
+        seed=args.seed,
+    )
+
+    if args.quick:
+        return [
+            _run_conv_config(
+                "v7 quick",
+                stages=[{"n_filters": 32, "patch_size": 5, "pool_size": 1}],
+                n_neurons=2000,
+                pool_levels=[1, 2, 4],
+                pool_order=2,
+                alpha=1e-2,
+                fit_subsample=2000,
+                batch_size=500,
+                standardize=True,
+                **common,
+            ),
+        ]
+
+    ms32 = [
+        {"n_filters": 32, "patch_size": 3, "pool_size": 1},
+        {"n_filters": 32, "patch_size": 5, "pool_size": 1},
+        {"n_filters": 32, "patch_size": 7, "pool_size": 1},
+    ]
+
+    return [
+        # ── Group 1: pool_order=2 (second-order statistics) ─────────────
+        # Doubles feature dim by appending per-channel variance in each
+        # SPP block — captures texture discrimination.
+        _run_conv_config(
+            "Multi 32×3 20k ord2 +std +hflip",
+            stages=ms32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            pool_order=2,
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 32×3 20k ×5 ord2 +std +hflip",
+            stages=ms32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            pool_order=2,
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 32×3 20k ×10 ord2 +std +hflip",
+            stages=ms32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            pool_order=2,
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=10,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 32×3 30k ×5 ord2 +std +hflip α=2e-2",
+            stages=ms32,
+            n_neurons=30_000,
+            pool_levels=[1, 2, 4],
+            pool_order=2,
+            alpha=2e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        # ── Group 2: fit_subsample scaling ──────────────────────────────
+        # We've always used 10k; more images for PCA filter learning
+        # and center selection might improve feature quality.
+        _run_conv_config(
+            "Multi 32×3 20k ×5 sub=20k +std +hflip",
+            stages=ms32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=20_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 32×3 30k ×5 sub=20k +std +hflip α=2e-2",
+            stages=ms32,
+            n_neurons=30_000,
+            pool_levels=[1, 2, 4],
+            alpha=2e-2,
+            fit_subsample=20_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 32×3 30k ×10 sub=20k +std +hflip α=2e-2",
+            stages=ms32,
+            n_neurons=30_000,
+            pool_levels=[1, 2, 4],
+            alpha=2e-2,
+            fit_subsample=20_000,
+            n_members=10,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        # ── Group 3: 48×3 30k ×10 (best filter/neuron combo at scale) ──
+        _run_conv_config(
+            "Multi 48×3 30k ×10 +std +hflip α=2e-2",
+            stages=[
+                {"n_filters": 48, "patch_size": 3, "pool_size": 1},
+                {"n_filters": 48, "patch_size": 5, "pool_size": 1},
+                {"n_filters": 48, "patch_size": 7, "pool_size": 1},
+            ],
+            n_neurons=30_000,
+            pool_levels=[1, 2, 4],
+            alpha=2e-2,
+            fit_subsample=10_000,
+            n_members=10,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        # ── Group 4: Combine pool_order=2 + fit_subsample=20k ──────────
+        _run_conv_config(
+            "Multi 32×3 30k ×10 ord2 sub=20k +std +hflip α=2e-2",
+            stages=ms32,
+            n_neurons=30_000,
+            pool_levels=[1, 2, 4],
+            pool_order=2,
+            alpha=2e-2,
+            fit_subsample=20_000,
+            n_members=10,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+    ]
+
+
 SUITES = {
     "row_focus": run_row_focus_suite,
     "sequential_hard": run_sequential_hard_suite,
@@ -2218,6 +2401,7 @@ SUITES = {
     "conv_cifar_v4": run_conv_cifar_v4_suite,
     "conv_cifar_v5": run_conv_cifar_v5_suite,
     "conv_cifar_v6": run_conv_cifar_v6_suite,
+    "conv_cifar_v7": run_conv_cifar_v7_suite,
 }
 
 
