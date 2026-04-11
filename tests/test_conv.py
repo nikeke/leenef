@@ -25,6 +25,18 @@ class TestConvNEFStage:
         with pytest.raises(ValueError, match="odd"):
             ConvNEFStage(8, patch_size=4)
 
+    def test_rectangular_patch(self, images):
+        """Rectangular (non-square) patches work correctly."""
+        stage = ConvNEFStage(6, patch_size=(3, 5), pool_size=1)
+        stage.fit(images)
+        assert stage.filters.shape == (6, 3, 3, 5)
+        out = stage(images)
+        assert out.shape == (100, 6, 16, 16)
+
+    def test_rectangular_patch_odd_required(self):
+        with pytest.raises(ValueError, match="odd"):
+            ConvNEFStage(8, patch_size=(3, 4))
+
     def test_fit_sets_filters(self, images):
         stage = ConvNEFStage(8, patch_size=5)
         stage.fit(images)
@@ -470,7 +482,7 @@ class TestConvNEFPipeline:
         assert pred.shape == (40, 3)
         # Check members have different filter sizes
         sizes = [m.stages[0].patch_size for m in ens.members]
-        assert sizes == [3, 5, 7]
+        assert sizes == [(3, 3), (5, 5), (7, 7)]
 
     def test_member_stages_length_mismatch(self):
         """member_stages length must match n_members."""

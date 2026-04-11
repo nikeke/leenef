@@ -84,7 +84,9 @@ class ConvNEFStage(nn.Module):
 
     Args:
         n_filters: number of filters to learn.
-        patch_size: spatial size of square patches (must be odd).
+        patch_size: spatial size of patches.  An int gives square patches;
+            a ``(height, width)`` tuple gives rectangular patches.  Both
+            dimensions must be odd.
         pool_size: spatial average pooling factor (default 2).
         activation: activation function name (default ``'abs'``).
         max_patches: maximum patches to subsample for filter learning
@@ -103,7 +105,7 @@ class ConvNEFStage(nn.Module):
     def __init__(
         self,
         n_filters: int,
-        patch_size: int,
+        patch_size: int | tuple[int, int],
         pool_size: int = 2,
         activation: str = "abs",
         max_patches: int = 100_000,
@@ -113,8 +115,11 @@ class ConvNEFStage(nn.Module):
         normalize_patches: bool = False,
     ):
         super().__init__()
-        if patch_size % 2 == 0:
-            raise ValueError(f"patch_size must be odd, got {patch_size}")
+        if isinstance(patch_size, int):
+            patch_size = (patch_size, patch_size)
+        ph, pw = patch_size
+        if ph % 2 == 0 or pw % 2 == 0:
+            raise ValueError(f"patch_size dimensions must be odd, got {patch_size}")
         self.n_filters = n_filters
         self.patch_size = patch_size
         self.pool_size = pool_size
@@ -138,16 +143,18 @@ class ConvNEFStage(nn.Module):
             ``(n_patches, patch_dim)`` mean-centered patches.
         """
         N, C, H, W = images.shape
-        p = self.patch_size
-        patch_dim = C * p * p
+        ph, pw = self.patch_size
+        patch_dim = C * ph * pw
+        pad_h, pad_w = ph // 2, pw // 2
 
-        chunk_size = max(1, self.max_patches // ((H - p + 1) * (W - p + 1)))
+        n_patches_per_img = (H - ph + 1 + 2 * pad_h) * (W - pw + 1 + 2 * pad_w)
+        chunk_size = max(1, self.max_patches // max(n_patches_per_img, 1))
         chunk_size = min(chunk_size, N)
         all_patches = []
         collected = 0
         for i in range(0, N, chunk_size):
             batch = images[i : i + chunk_size]
-            patches = F.unfold(batch, kernel_size=p, stride=1, padding=p // 2)
+            patches = F.unfold(batch, kernel_size=(ph, pw), stride=1, padding=(pad_h, pad_w))
             patches = patches.permute(0, 2, 1).reshape(-1, patch_dim).float()
             all_patches.append(patches)
             collected += patches.shape[0]
@@ -230,7 +237,7 @@ class ConvNEFStage(nn.Module):
             images: ``(N, C, H, W)`` training images or feature maps.
         """
         C = images.shape[1]
-        p = self.patch_size
+        ph, pw = self.patch_size
 
         patches = self._extract_patches(images)
         if self.normalize_patches:
@@ -267,7 +274,7 @@ class ConvNEFStage(nn.Module):
             )
 
         k = top.shape[0]
-        self.filters = top.reshape(k, C, p, p)
+        self.filters = top.reshape(k, C, ph, pw)
         self.conv_bias = -(mean @ top.T)  # (k,)
         self._patch_mean = mean
         if self.filter_strategy == "kmeans":
@@ -298,24 +305,26 @@ class ConvNEFStage(nn.Module):
         if self.normalize_patches:
             return self._forward_normalized(x)
 
-        pad = self.patch_size // 2
+        pad_h, pad_w = self.patch_size[0] // 2, self.patch_size[1] // 2
         if self.filter_strategy == "kmeans":
             # Triangle activation: max(0, mean_dist - dist_k)
             # ||x-c||² = ||x||² - 2(x·c) + ||c||²
-            xc = F.conv2d(x, self.filters, bias=self.conv_bias, padding=pad)
+            xc = F.conv2d(x, self.filters, bias=self.conv_bias, padding=(pad_h, pad_w))
             # ||x||² at each spatial position (sum of squares in each patch)
             ones_filter = torch.ones(
                 1,
                 x.shape[1],
-                self.patch_size,
-                self.patch_size,
+                self.patch_size[0],
+                self.patch_size[1],
                 device=x.device,
                 dtype=x.dtype,
             )
-            x_sq = F.conv2d(x * x, ones_filter, padding=pad)  # (N, 1, H, W)
+            x_sq = F.conv2d(x * x, ones_filter, padding=(pad_h, pad_w))  # (N, 1, H, W)
             # ||x_centered||² = ||x||² - 2*mean·x_patch + ||mean||²
-            mean_filter = self._patch_mean.reshape(1, x.shape[1], self.patch_size, self.patch_size)
-            mean_x = F.conv2d(x, mean_filter, padding=pad)  # (N, 1, H, W)
+            mean_filter = self._patch_mean.reshape(
+                1, x.shape[1], self.patch_size[0], self.patch_size[1]
+            )
+            mean_x = F.conv2d(x, mean_filter, padding=(pad_h, pad_w))  # (N, 1, H, W)
             mean_sq = self._patch_mean.pow(2).sum()
             x_centered_sq = x_sq - 2 * mean_x + mean_sq
             # dist² = x_centered_sq - 2*xc + ||c||²
@@ -324,7 +333,7 @@ class ConvNEFStage(nn.Module):
             mean_dist = dist.mean(dim=1, keepdim=True)
             out = (mean_dist - dist).clamp(min=0)
         else:
-            out = F.conv2d(x, self.filters, bias=self.conv_bias, padding=pad)
+            out = F.conv2d(x, self.filters, bias=self.conv_bias, padding=(pad_h, pad_w))
             out = self.act(out)
         if self.pool_size > 1:
             out = F.avg_pool2d(out, self.pool_size, ceil_mode=True)
@@ -341,10 +350,10 @@ class ConvNEFStage(nn.Module):
         patch tensor (N × L × patch_dim can exceed GPU capacity).
         """
         N, C, H, W = x.shape
-        p = self.patch_size
-        pad = p // 2
+        ph, pw = self.patch_size
+        pad_h, pad_w = ph // 2, pw // 2
         k = self.filters.shape[0]
-        patch_dim = C * p * p
+        patch_dim = C * ph * pw
         L = H * W  # spatial positions (with same-padding)
         filters_flat = self.filters.reshape(k, -1)  # (k, patch_dim)
 
@@ -358,7 +367,7 @@ class ConvNEFStage(nn.Module):
             xc = x[start : start + chunk_n]
             Nc = xc.shape[0]
 
-            patches = F.unfold(xc, kernel_size=p, stride=1, padding=pad)
+            patches = F.unfold(xc, kernel_size=(ph, pw), stride=1, padding=(pad_h, pad_w))
             patches = patches.permute(0, 2, 1).contiguous()
 
             # Per-patch contrast normalization
