@@ -100,7 +100,7 @@ class StreamingNEFClassifier(nn.Module):
 
         self.decoders = nn.Parameter(torch.zeros(n_neurons, d_out), requires_grad=False)
 
-        # Woodbury state — initialised lazily by continuous_fit
+        # Woodbury state — initialized lazily by continuous_fit
 
     def _delay_features(self, x_seq: Tensor) -> Tensor:
         """Convert (N, T, d) sequences to (N, T, K*d) delay-line features."""
