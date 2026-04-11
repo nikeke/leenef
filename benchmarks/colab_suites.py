@@ -276,6 +276,27 @@ def _augment_crop_flip(x, pad: int = 4):
     return x
 
 
+def _augment_cutout(x, size: int = 8):
+    """Cutout augmentation: zero out a random square patch."""
+    import torch
+
+    _, _, h, w = x.shape
+    top = torch.randint(0, h - size + 1, (1,)).item()
+    left = torch.randint(0, w - size + 1, (1,)).item()
+    x = x.clone()
+    x[:, :, top : top + size, left : left + size] = 0
+    return x
+
+
+def _augment_flip_cutout(x, size: int = 8):
+    """Horizontal flip + cutout."""
+    import torch
+
+    if torch.rand(1).item() > 0.5:
+        x = x.flip(-1)
+    return _augment_cutout(x, size)
+
+
 def _run_conv_config(
     label: str,
     *,
@@ -1750,6 +1771,225 @@ def run_conv_cifar_v4_suite(args: argparse.Namespace) -> list:
     ]
 
 
+def run_conv_cifar_v5_suite(args: argparse.Namespace) -> list:
+    """Phase-5 CIFAR-10 sweep: ×20 ensembles, more filters, hierarchical stages, cutout."""
+    import torch
+
+    dev = args.device
+    if dev == "auto":
+        dev = "cuda" if torch.cuda.is_available() else "cpu"
+    set_benchmark_seed(args.seed)
+
+    x_train, y_train, x_test, y_test, targets_train = _load_cifar10(args.data_root, dev)
+    common = dict(
+        x_train=x_train,
+        y_train=y_train,
+        x_test=x_test,
+        y_test=y_test,
+        targets_train=targets_train,
+        seed=args.seed,
+    )
+
+    if args.quick:
+        return [
+            _run_conv_config(
+                "v5 quick",
+                stages=[{"n_filters": 32, "patch_size": 5, "pool_size": 1}],
+                n_neurons=2000,
+                pool_levels=[1, 2, 4],
+                alpha=1e-2,
+                fit_subsample=2000,
+                batch_size=500,
+                standardize=True,
+                augment_fn=_augment_crop_flip,
+                **common,
+            ),
+        ]
+
+    ms32 = [
+        {"n_filters": 32, "patch_size": 3, "pool_size": 1},
+        {"n_filters": 32, "patch_size": 5, "pool_size": 1},
+        {"n_filters": 32, "patch_size": 7, "pool_size": 1},
+    ]
+    ms48 = [
+        {"n_filters": 48, "patch_size": 3, "pool_size": 1},
+        {"n_filters": 48, "patch_size": 5, "pool_size": 1},
+        {"n_filters": 48, "patch_size": 7, "pool_size": 1},
+    ]
+    ms64 = [
+        {"n_filters": 64, "patch_size": 3, "pool_size": 1},
+        {"n_filters": 64, "patch_size": 5, "pool_size": 1},
+        {"n_filters": 64, "patch_size": 7, "pool_size": 1},
+    ]
+    # Two-stage hierarchical: first stage extracts low-level features,
+    # second stage extracts higher-order patterns from those feature maps.
+    hier_2stage = [
+        {"n_filters": 64, "patch_size": 5, "pool_size": 2},
+        {"n_filters": 128, "patch_size": 3, "pool_size": 2},
+    ]
+
+    return [
+        # ── Group 1: Does ×20 help at 20k neurons? ─────────────────────
+        _run_conv_config(
+            "Multi 32×3 20k ×20 +std +hflip",
+            stages=ms32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=20,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        # ── Group 2: More filters per branch ────────────────────────────
+        _run_conv_config(
+            "Multi 48×3 20k ×5 +std +hflip",
+            stages=ms48,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 48×3 20k ×10 +std +hflip",
+            stages=ms48,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=10,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 64×3 20k ×5 +std +hflip",
+            stages=ms64,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 64×3 20k ×10 +std +hflip",
+            stages=ms64,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=10,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        # ── Group 3: Cutout augmentation ────────────────────────────────
+        _run_conv_config(
+            "Multi 32×3 20k ×5 +std +flip+cutout",
+            stages=ms32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_flip_cutout,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 32×3 20k ×10 +std +flip+cutout",
+            stages=ms32,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=10,
+            parallel=True,
+            standardize=True,
+            augment_fn=_augment_flip_cutout,
+            **common,
+        ),
+        # ── Group 4: Hierarchical two-stage (sequential) ───────────────
+        _run_conv_config(
+            "Hier 64→128 20k +std",
+            stages=hier_2stage,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=False,
+            standardize=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Hier 64→128 20k +std +hflip",
+            stages=hier_2stage,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            parallel=False,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Hier 64→128 20k ×5 +std +hflip",
+            stages=hier_2stage,
+            n_neurons=20_000,
+            pool_levels=[1, 2, 4],
+            alpha=1e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=False,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        # ── Group 5: 30k neurons with stronger regularization ──────────
+        _run_conv_config(
+            "Multi 32×3 30k ×5 +std +hflip α=2e-2",
+            stages=ms32,
+            n_neurons=30_000,
+            pool_levels=[1, 2, 4],
+            alpha=2e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+        _run_conv_config(
+            "Multi 48×3 30k ×5 +std +hflip α=2e-2",
+            stages=ms48,
+            n_neurons=30_000,
+            pool_levels=[1, 2, 4],
+            alpha=2e-2,
+            fit_subsample=10_000,
+            n_members=5,
+            parallel=True,
+            standardize=True,
+            augment_flip=True,
+            **common,
+        ),
+    ]
+
+
 SUITES = {
     "row_focus": run_row_focus_suite,
     "sequential_hard": run_sequential_hard_suite,
@@ -1757,6 +1997,7 @@ SUITES = {
     "conv_cifar_v2": run_conv_cifar_v2_suite,
     "conv_cifar_v3": run_conv_cifar_v3_suite,
     "conv_cifar_v4": run_conv_cifar_v4_suite,
+    "conv_cifar_v5": run_conv_cifar_v5_suite,
 }
 
 
