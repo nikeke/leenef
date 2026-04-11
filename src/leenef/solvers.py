@@ -30,7 +30,12 @@ def tikhonov(activities: Tensor, targets: Tensor, alpha: float = 1e-2) -> Tensor
     ATA = A.T @ A
     reg = alpha * torch.trace(ATA) / n
     ATA.diagonal().add_(reg.clamp(min=alpha))
-    return torch.linalg.solve(ATA, A.T @ targets)
+    try:
+        return torch.linalg.solve(ATA, A.T @ targets)
+    except torch.OutOfMemoryError:
+        orig_device = ATA.device
+        D = torch.linalg.solve(ATA.cpu(), (A.T @ targets).cpu())
+        return D.to(orig_device)
 
 
 def normal_equations(activities: Tensor, targets: Tensor, alpha: float = 1e-2) -> Tensor:
@@ -40,8 +45,14 @@ def normal_equations(activities: Tensor, targets: Tensor, alpha: float = 1e-2) -
     # Scale regularisation to the matrix norm for numerical stability
     reg = alpha * torch.trace(ATA) / ATA.shape[0]
     ATA.diagonal().add_(reg.clamp(min=alpha))
-    L = torch.linalg.cholesky(ATA)
-    return torch.cholesky_solve(A.T @ targets, L)
+    try:
+        L = torch.linalg.cholesky(ATA)
+        return torch.cholesky_solve(A.T @ targets, L)
+    except torch.OutOfMemoryError:
+        orig_device = ATA.device
+        L = torch.linalg.cholesky(ATA.cpu())
+        D = torch.cholesky_solve((A.T @ targets).cpu(), L)
+        return D.to(orig_device)
 
 
 def solve_from_normal_equations(ATA: Tensor, ATY: Tensor, alpha: float = 1e-2) -> Tensor:
@@ -62,7 +73,13 @@ def solve_from_normal_equations(ATA: Tensor, ATY: Tensor, alpha: float = 1e-2) -
     ATA = ATA.clone()
     reg = alpha * torch.trace(ATA) / n
     ATA.diagonal().add_(reg.clamp(min=alpha))
-    return torch.linalg.solve(ATA, ATY)
+    try:
+        return torch.linalg.solve(ATA, ATY)
+    except torch.OutOfMemoryError:
+        # Fall back to CPU when GPU memory is insufficient for the solve.
+        orig_device = ATA.device
+        D = torch.linalg.solve(ATA.cpu(), ATY.cpu())
+        return D.to(orig_device)
 
 
 SOLVERS = {
