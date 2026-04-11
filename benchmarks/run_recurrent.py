@@ -17,53 +17,17 @@ for _path in (str(_project_root), str(_project_root / "src")):
 
 from benchmarks.run import (  # noqa: E402
     BenchmarkResult,
+    batched_classification_accuracy,
     format_results,
     one_hot,
+    resolve_benchmark_device,
     save_results_csv,
     save_results_json,
     set_benchmark_seed,
+    synchronize_if_cuda,
 )
 from leenef.recurrent import RecurrentNEFLayer  # noqa: E402
 from leenef.streaming import StreamingNEFClassifier  # noqa: E402
-
-
-def resolve_benchmark_device(device: str) -> torch.device:
-    """Resolve ``cpu`` / ``cuda`` / ``auto`` to a concrete device."""
-    if device == "auto":
-        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    if device == "cuda" and not torch.cuda.is_available():
-        raise RuntimeError("CUDA requested but not available")
-    return torch.device(device)
-
-
-def synchronize_if_cuda(device: torch.device) -> None:
-    """Synchronize CUDA before/after timing-sensitive regions."""
-    if device.type == "cuda":
-        torch.cuda.synchronize()
-
-
-def batched_classification_accuracy(
-    model: nn.Module,
-    x: Tensor,
-    y: Tensor,
-    *,
-    batch_size: int = 2048,
-    move_to_device: torch.device | None = None,
-) -> float:
-    """Evaluate classification accuracy in chunks to bound peak memory."""
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for i in range(0, len(x), batch_size):
-            xb = x[i : i + batch_size]
-            yb = y[i : i + batch_size]
-            if move_to_device is not None:
-                xb = xb.to(move_to_device)
-                yb = yb.to(move_to_device)
-            pred = model(xb)
-            correct += (pred.argmax(dim=1) == yb).sum().item()
-            total += len(yb)
-    return correct / total
 
 
 def load_sequential_mnist(

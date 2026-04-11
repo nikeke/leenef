@@ -52,6 +52,45 @@ def set_benchmark_seed(seed: int | None) -> None:
         torch.backends.cudnn.deterministic = True
 
 
+def resolve_benchmark_device(device: str) -> torch.device:
+    """Resolve ``cpu`` / ``cuda`` / ``auto`` to a concrete torch.device."""
+    if device == "auto":
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if device == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("CUDA requested but not available")
+    return torch.device(device)
+
+
+def synchronize_if_cuda(device: torch.device) -> None:
+    """Synchronize CUDA before or after timing-sensitive regions."""
+    if device.type == "cuda":
+        torch.cuda.synchronize()
+
+
+def batched_classification_accuracy(
+    model: nn.Module,
+    x: Tensor,
+    y: Tensor,
+    *,
+    batch_size: int = 2048,
+    move_to_device: torch.device | None = None,
+) -> float:
+    """Evaluate classification accuracy in chunks to bound peak memory."""
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for i in range(0, len(x), batch_size):
+            xb = x[i : i + batch_size]
+            yb = y[i : i + batch_size]
+            if move_to_device is not None:
+                xb = xb.to(move_to_device)
+                yb = yb.to(move_to_device)
+            pred = model(xb)
+            correct += (pred.argmax(dim=1) == yb).sum().item()
+            total += len(yb)
+    return correct / total
+
+
 def save_results_json(results: list[BenchmarkResult], path: str | Path) -> None:
     """Persist benchmark results as JSON."""
     out_path = Path(path)
@@ -160,10 +199,13 @@ def run_nef_classification(
     use_centers: bool = True,
     gain: float | tuple[float, float] | str = (0.5, 2.0),
     seed: int | None = 0,
+    device: str = "cpu",
+    eval_batch_size: int = 2048,
 ) -> BenchmarkResult:
     """Run a single NEF classification benchmark."""
     solver_kwargs = solver_kwargs or {"alpha": 1e-2}
     set_benchmark_seed(seed)
+    runtime_device = resolve_benchmark_device(device)
 
     (x_train, y_train), (x_test, y_test) = load_vision_dataset(dataset_name, root=data_root)
     n_classes = int(y_train.max().item()) + 1
@@ -188,15 +230,24 @@ def run_nef_classification(
         encoder_kwargs=enc_kw if enc_kw else None,
         gain=gain,
         centers=centers,
-    )
+    ).to(runtime_device)
 
+    x_train = x_train.to(runtime_device)
+    y_train = y_train.to(runtime_device)
+    x_test = x_test.to(runtime_device)
+    y_test = y_test.to(runtime_device)
+    targets = targets.to(runtime_device)
+
+    synchronize_if_cuda(runtime_device)
     t0 = time.perf_counter()
     layer.fit(x_train, targets, solver=solver, **solver_kwargs)
+    synchronize_if_cuda(runtime_device)
     fit_time = time.perf_counter() - t0
 
-    with torch.no_grad():
-        train_acc = classification_accuracy(layer(x_train), y_train)
-        test_acc = classification_accuracy(layer(x_test), y_test)
+    train_acc = batched_classification_accuracy(
+        layer, x_train, y_train, batch_size=eval_batch_size
+    )
+    test_acc = batched_classification_accuracy(layer, x_test, y_test, batch_size=eval_batch_size)
 
     name = "NEFLayer"
     if encoder_strategy != "hypersphere":
@@ -416,6 +467,8 @@ def run_nef_multi(
     use_centers: bool = True,
     gain: float | tuple[float, float] = (0.5, 2.0),
     seed: int | None = 0,
+    device: str = "cpu",
+    eval_batch_size: int = 2048,
 ) -> BenchmarkResult:
     """Run a multi-layer NEFNetwork benchmark."""
     hidden_neurons = hidden_neurons or [1000]
@@ -424,6 +477,7 @@ def run_nef_multi(
     if hybrid_alpha is not None:
         hybrid_kw["alpha"] = hybrid_alpha
     set_benchmark_seed(seed)
+    runtime_device = resolve_benchmark_device(device)
 
     (x_train, y_train), (x_test, y_test) = load_vision_dataset(dataset_name, root=data_root)
     n_classes = int(y_train.max().item()) + 1
@@ -448,8 +502,15 @@ def run_nef_multi(
         gain=gain,
         centers=centers,
         encoder_kwargs=enc_kw if enc_kw else None,
-    )
+    ).to(runtime_device)
 
+    x_train = x_train.to(runtime_device)
+    y_train = y_train.to(runtime_device)
+    x_test = x_test.to(runtime_device)
+    y_test = y_test.to(runtime_device)
+    targets = targets.to(runtime_device)
+
+    synchronize_if_cuda(runtime_device)
     t0 = time.perf_counter()
     if strategy == "greedy":
         net.fit_greedy(x_train, targets, solver=solver, **solver_kwargs)
@@ -524,11 +585,11 @@ def run_nef_multi(
             schedule=tp_schedule,
             **solver_kwargs,
         )
+    synchronize_if_cuda(runtime_device)
     fit_time = time.perf_counter() - t0
 
-    with torch.no_grad():
-        train_acc = classification_accuracy(net(x_train), y_train)
-        test_acc = classification_accuracy(net(x_test), y_test)
+    train_acc = batched_classification_accuracy(net, x_train, y_train, batch_size=eval_batch_size)
+    test_acc = batched_classification_accuracy(net, x_test, y_test, batch_size=eval_batch_size)
 
     n_total = sum(hidden_neurons) + output_neurons
     return BenchmarkResult(
@@ -759,6 +820,8 @@ def build_benchmark_parser() -> argparse.ArgumentParser:
         help="Random seed for reproducible benchmark runs (default: 0)",
     )
     parser.add_argument("--data-root", default="./data")
+    parser.add_argument("--device", default="cpu", choices=["cpu", "cuda", "auto"])
+    parser.add_argument("--eval-batch", type=int, default=2048)
     parser.add_argument(
         "--data-driven-sweep",
         action="store_true",
@@ -796,6 +859,8 @@ def main(argv: list[str] | None = None) -> int:
                     data_root=args.data_root,
                     use_centers=use_centers,
                     seed=args.seed,
+                    device=args.device,
+                    eval_batch_size=args.eval_batch,
                 )
             )
 
@@ -838,6 +903,8 @@ def main(argv: list[str] | None = None) -> int:
                         data_root=args.data_root,
                         use_centers=use_centers,
                         seed=args.seed,
+                        device=args.device,
+                        eval_batch_size=args.eval_batch,
                     )
                 )
 
@@ -929,6 +996,8 @@ def main(argv: list[str] | None = None) -> int:
                             use_centers=True,
                             gain=gain_spec,
                             seed=args.seed,
+                            device=args.device,
+                            eval_batch_size=args.eval_batch,
                         )
                     )
 

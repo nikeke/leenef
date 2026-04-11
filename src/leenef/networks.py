@@ -356,7 +356,7 @@ class NEFNetwork(nn.Module):
                 activation=self._activation,
                 encoder_strategy=self._encoder_strategy,
                 centers=centers,
-            )
+            ).to(x.device)
             tmp.fit(x, targets, solver=solver, **solver_kw)
             h0.encoders.data.copy_(tmp.encoders.data)
             h0.bias.data.copy_(tmp.bias.data)

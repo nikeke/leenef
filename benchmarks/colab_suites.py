@@ -23,11 +23,47 @@ from benchmarks.run import (  # noqa: E402
 )
 from benchmarks.run_recurrent import run_lstm_baseline, run_streaming_nef  # noqa: E402
 
+_INCREMENTAL_RESULTS: list[BenchmarkResult] | None = None
+_INCREMENTAL_JSON_PATH: Path | None = None
+_INCREMENTAL_CSV_PATH: Path | None = None
+
+
+def _start_incremental_saves(json_path: Path, csv_path: Path) -> None:
+    """Initialize per-step result persistence for long-running suites."""
+    global _INCREMENTAL_RESULTS, _INCREMENTAL_JSON_PATH, _INCREMENTAL_CSV_PATH
+    _INCREMENTAL_RESULTS = []
+    _INCREMENTAL_JSON_PATH = json_path
+    _INCREMENTAL_CSV_PATH = csv_path
+    save_results_json(_INCREMENTAL_RESULTS, json_path)
+    save_results_csv(_INCREMENTAL_RESULTS, csv_path)
+
+
+def _record_incremental_result(result: BenchmarkResult) -> None:
+    """Append a finished result to the in-progress suite files."""
+    if (
+        _INCREMENTAL_RESULTS is None
+        or _INCREMENTAL_JSON_PATH is None
+        or _INCREMENTAL_CSV_PATH is None
+    ):
+        return
+    _INCREMENTAL_RESULTS.append(result)
+    save_results_json(_INCREMENTAL_RESULTS, _INCREMENTAL_JSON_PATH)
+    save_results_csv(_INCREMENTAL_RESULTS, _INCREMENTAL_CSV_PATH)
+
+
+def _stop_incremental_saves() -> None:
+    """Clear in-memory incremental save state."""
+    global _INCREMENTAL_RESULTS, _INCREMENTAL_JSON_PATH, _INCREMENTAL_CSV_PATH
+    _INCREMENTAL_RESULTS = None
+    _INCREMENTAL_JSON_PATH = None
+    _INCREMENTAL_CSV_PATH = None
+
 
 def _run_labeled(label: str, fn, /, **kwargs):
     """Run one suite item with explicit progress messages."""
     print(f"Running {label}...", flush=True)
     result = fn(**kwargs)
+    _record_incremental_result(result)
     print(
         f"Finished {label}: test={result.test_metric:.2%}, fit_time={result.fit_time:.2f}s",
         flush=True,
@@ -435,12 +471,7 @@ def _run_conv_config(
         pred_train = model.predict(x_train, batch_size=batch_size)
         train_acc = (pred_train.argmax(1) == y_train).float().mean().item()
 
-    print(
-        f"Finished {label}: test={test_acc:.2%}, train={train_acc:.2%}, fit_time={fit_time:.2f}s",
-        flush=True,
-    )
-
-    return BenchmarkResult(
+    result = BenchmarkResult(
         name=label,
         dataset="cifar10",
         n_neurons=n_neurons,
@@ -453,6 +484,12 @@ def _run_conv_config(
         test_metric=test_acc,
         fit_time=fit_time,
     )
+    _record_incremental_result(result)
+    print(
+        f"Finished {label}: test={test_acc:.2%}, train={train_acc:.2%}, fit_time={fit_time:.2f}s",
+        flush=True,
+    )
+    return result
 
 
 def _load_cifar10(data_root: str, device: str):
@@ -2404,7 +2441,12 @@ def run_defaults_tp_suite(args: argparse.Namespace) -> list:
     """
     results: list = []
     datasets = ["mnist", "fashion_mnist", "cifar10"]
-    common = dict(data_root=args.data_root, seed=args.seed)
+    common = dict(
+        data_root=args.data_root,
+        seed=args.seed,
+        device=args.device,
+        eval_batch_size=args.eval_batch,
+    )
 
     # ── Part 1: single-layer encoder strategy sweep ──────────────────
     single_strategies = [
@@ -2500,11 +2542,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point."""
     args = parse_args(argv)
-    results = SUITES[args.suite](args)
-
     stem = args.suite if not args.quick else f"{args.suite}-quick"
     json_path = args.output_dir / f"{stem}.json"
     csv_path = args.output_dir / f"{stem}.csv"
+    _start_incremental_saves(json_path, csv_path)
+    try:
+        results = SUITES[args.suite](args)
+    finally:
+        _stop_incremental_saves()
     save_results_json(results, json_path)
     save_results_csv(results, csv_path)
 
