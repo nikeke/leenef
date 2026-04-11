@@ -19,6 +19,7 @@ def _ce_targets(targets: Tensor) -> Tensor:
 
 _NONNEGATIVE_TARGET_ACTIVATIONS = {"abs", "relu"}
 _TP_ETA_SCHEDULES = {"constant", "linear_decay", "cosine_decay"}
+_LAYER_DATA_ENCODER_STRATEGIES = {"whitened", "class_contrast", "local_pca"}
 
 
 def _project_activity_target(target: Tensor, activation: str) -> Tensor:
@@ -224,36 +225,56 @@ class NEFNetwork(nn.Module):
         super().__init__()
         self._activation = activation
         self._encoder_strategy = encoder_strategy
+        self._base_encoder_kwargs = dict(encoder_kwargs or {})
         self._rng = rng
         self.last_target_prop_diagnostics: list[dict[str, object]] | None = None
         self.hidden = nn.ModuleList()
         prev_dim = d_in
+        current_center_data = centers
+        current_encoder_data = (
+            self._base_encoder_kwargs.get("train_data")
+            if encoder_strategy in _LAYER_DATA_ENCODER_STRATEGIES
+            else None
+        )
+        if current_encoder_data is None and encoder_strategy in _LAYER_DATA_ENCODER_STRATEGIES:
+            current_encoder_data = centers
         for i, n in enumerate(hidden_neurons):
-            # Only the first layer uses data-driven centers at construction;
-            # deeper layers get centers via propagate_centers() after init.
-            layer_centers = centers if i == 0 else None
-            # Only the first hidden layer uses encoder_kwargs (data-driven
-            # strategies need raw input data; deeper layers operate on
-            # activity space where those kwargs are meaningless).
-            layer_enc_kw = encoder_kwargs if i == 0 else None
-            self.hidden.append(
-                NEFLayer(
-                    prev_dim,
-                    n,
-                    1,
-                    activation=activation,
-                    encoder_strategy=encoder_strategy,
-                    trainable_encoders=True,
-                    gain=gain,
-                    rng=rng,
-                    centers=layer_centers,
-                    encoder_kwargs=layer_enc_kw,
-                    **act_kwargs,
-                )
+            layer = NEFLayer(
+                prev_dim,
+                n,
+                1,
+                activation=activation,
+                encoder_strategy=encoder_strategy,
+                trainable_encoders=True,
+                gain=gain,
+                rng=rng,
+                centers=current_center_data,
+                encoder_kwargs=self._layer_encoder_kwargs(
+                    train_data=current_encoder_data,
+                    is_input_layer=(i == 0),
+                ),
+                **act_kwargs,
             )
+            self.hidden.append(layer)
             prev_dim = n
-        # Output layer uses centers only when there are no hidden layers
-        out_centers = centers if len(hidden_neurons) == 0 else None
+
+            with torch.no_grad():
+                shared_layer_data = (
+                    current_center_data
+                    if current_center_data is not None
+                    and current_center_data is current_encoder_data
+                    else None
+                )
+                if shared_layer_data is not None:
+                    encoded = layer.encode(shared_layer_data).detach()
+                    current_center_data = encoded
+                    current_encoder_data = encoded
+                else:
+                    if current_center_data is not None:
+                        current_center_data = layer.encode(current_center_data).detach()
+                    if current_encoder_data is not None:
+                        current_encoder_data = layer.encode(current_encoder_data).detach()
+
         self.output = NEFLayer(
             prev_dim,
             output_neurons,
@@ -263,13 +284,42 @@ class NEFNetwork(nn.Module):
             trainable_encoders=True,
             gain=gain,
             rng=rng,
-            centers=out_centers,
+            centers=current_center_data,
+            encoder_kwargs=self._layer_encoder_kwargs(
+                train_data=current_encoder_data,
+                is_input_layer=(len(hidden_neurons) == 0),
+            ),
             **act_kwargs,
         )
 
-        # Propagate data-driven biases to deeper layers
-        if centers is not None and len(hidden_neurons) > 0:
-            self.propagate_centers(centers)
+    def _layer_encoder_kwargs(
+        self, train_data: Tensor | None, *, is_input_layer: bool
+    ) -> dict | None:
+        """Build encoder kwargs for one layer.
+
+        Geometry-specific kwargs are only meaningful for the input layer.
+        Data-driven encoder strategies can instead be re-parameterized in
+        each layer's activity space by substituting that layer's activities
+        as train_data.
+        """
+        if self._encoder_strategy not in _LAYER_DATA_ENCODER_STRATEGIES:
+            if is_input_layer and self._base_encoder_kwargs:
+                return dict(self._base_encoder_kwargs)
+            return None
+
+        kw = {
+            key: value
+            for key, value in self._base_encoder_kwargs.items()
+            if key not in {"train_data", "train_labels"}
+        }
+        if train_data is not None:
+            kw["train_data"] = train_data
+        if self._encoder_strategy == "class_contrast":
+            train_labels = self._base_encoder_kwargs.get("train_labels")
+            if train_labels is None:
+                raise ValueError("class_contrast encoder strategy requires train_labels")
+            kw["train_labels"] = train_labels
+        return kw or None
 
     @torch.no_grad()
     def propagate_centers(self, x: Tensor) -> None:
@@ -356,6 +406,7 @@ class NEFNetwork(nn.Module):
                 activation=self._activation,
                 encoder_strategy=self._encoder_strategy,
                 centers=centers,
+                encoder_kwargs=self._layer_encoder_kwargs(train_data=x, is_input_layer=True),
             ).to(x.device)
             tmp.fit(x, targets, solver=solver, **solver_kw)
             h0.encoders.data.copy_(tmp.encoders.data)

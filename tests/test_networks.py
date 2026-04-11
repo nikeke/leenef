@@ -88,6 +88,31 @@ class TestGreedy:
         acc = (preds == labels).float().mean().item()
         assert acc > 0.90, f"accuracy too low: {acc}"
 
+    @pytest.mark.parametrize("encoder_strategy", ["whitened", "class_contrast", "local_pca"])
+    def test_data_driven_encoders_work_through_output_layer(self, encoder_strategy):
+        """Layer-data encoders should initialize hidden and output layers."""
+        torch.manual_seed(23)
+        x = torch.randn(160, 4)
+        labels = (x[:, 0] + 0.5 * x[:, 1] > 0).long()
+        targets = torch.zeros(160, 2).scatter_(1, labels.unsqueeze(1), 1.0)
+        encoder_kwargs = {"train_data": x}
+        if encoder_strategy == "class_contrast":
+            encoder_kwargs["train_labels"] = labels
+
+        net = _make_net(
+            d_in=4,
+            d_out=2,
+            hidden=[60],
+            output_n=120,
+            encoder_strategy=encoder_strategy,
+            encoder_kwargs=encoder_kwargs,
+            centers=x,
+        )
+        net.fit_greedy(x, targets)
+
+        out = net(x[:16])
+        assert out.shape == (16, 2)
+
 
 # ---- Strategy B: hybrid ----
 
