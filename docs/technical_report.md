@@ -40,7 +40,7 @@ a GPU.
 Finally, we construct a fully gradient-free convolutional pipeline
 (ConvNEF) that learns PCA-based convolutional filters from data patches,
 applies multi-scale spatial pyramid pooling, and solves decoders
-analytically.  A 10-member ConvNEF ensemble reaches **78.3%** on
+analytically.  A 10-member ConvNEF ensemble reaches 78.3% on
 CIFAR-10 in 15 minutes on a T4 GPU — without any gradient computation,
 backpropagation, or iterative optimization.
 
