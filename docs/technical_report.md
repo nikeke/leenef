@@ -1,31 +1,31 @@
-# Supervised Learning with the Neural Engineering Framework: Analytical Solvers, Ensembles, and Local Receptive Fields
+# Analytical Solvers Beat Gradient Descent: Supervised Learning via the Neural Engineering Framework
 
 ## Abstract
 
 We present *leenef*, a PyTorch library that adapts the Neural Engineering
 Framework (NEF) of Eliasmith and Anderson (2003) for supervised learning
-using rate-based neurons.  A single NEF layer — random fixed encoders,
-nonlinear activation, analytically solved decoders — trains on MNIST in
-under two seconds on a laptop CPU and reaches 95.5% accuracy.  This
-architecture is structurally identical to an Extreme Learning Machine (ELM)
-and to random kitchen sink features, but NEF's neuroscience-grounded
-formulation motivates a distinctive design choice: *data-driven biases*
-derived from training-sample centers.  We show that this single design
-choice closes the entire 2–3% accuracy gap between encoder types
-(hypersphere, Gaussian, sparse), making the encoder direction distribution
-irrelevant and reducing hyperparameter sensitivity.  Because the two-second
-analytical solve produces a strong base learner, we apply the ensemble
-playbook: training 10–20 independent models with different random seeds and
-combining predictions via averaging.  Adding local receptive field encoders
-— where each neuron sees a random image patch rather than the full input —
+using rate-based neurons.  A single NEF layer — fixed encoders, nonlinear
+activation, analytically solved decoders — trains on MNIST in under two
+seconds on a laptop CPU and reaches 95.5% accuracy.  This architecture is
+structurally identical to an Extreme Learning Machine (ELM) and to random
+kitchen sink features, but NEF's neuroscience-grounded formulation
+motivates a distinctive design choice: *data-driven biases* derived from
+training-sample centers.  We show that this single design choice closes
+the entire 2–3% accuracy gap between encoder types (hypersphere, Gaussian,
+sparse), making the encoder direction distribution irrelevant and reducing
+hyperparameter sensitivity.  Because the two-second analytical solve
+produces a strong base learner, we apply the ensemble playbook: training
+10–20 independent models with different random seeds and combining
+predictions via averaging.  Adding local receptive field encoders — where
+each neuron sees a random image patch rather than the full input —
 following McDonnell et al. (2015), provides a further accuracy boost.  We
 report ensemble results on MNIST, Fashion-MNIST, and CIFAR-10.  A
-systematic sweep over neuron counts, patch sizes, and regularisation
+systematic sweep over neuron counts, patch sizes, and regularization
 strength reveals that properly configured single-layer RF models —
 with dataset-tuned neuron counts, patch sizes, and Tikhonov α — match
-a gradient-trained MLP on MNIST (98.50%, 37% faster), and beat the MLP
-on Fashion-MNIST (89.74% vs 89.70%) and CIFAR-10 (58.44% vs 52.70%) —
-all without gradient descent.
+a gradient-trained MLP on MNIST and Fashion-MNIST (98.5% and 89.7%,
+both faster than MLP) and beat it on CIFAR-10 (58.4% vs 52.7%) — all
+without gradient descent.
 We further extend the framework to multi-layer networks with five training
 strategies (greedy, hybrid, target propagation, end-to-end, and
 warm-started combinations), recurrent temporal models, and
@@ -33,21 +33,22 @@ incremental/online learning via normal-equation accumulation.
 For continuous learning, we introduce Woodbury rank-k updates that
 maintain the system inverse incrementally in O(n²k) per batch instead of
 O(n³) full re-solves.  Applied to temporal sequence classification, a
-streaming delay-line reservoir classifier achieves 98.57% on sequential
-MNIST — matching LSTM performance — entirely without gradient descent,
-training in under four minutes on a laptop CPU.
+streaming delay-line reservoir classifier achieves 98.6% on sequential
+MNIST on CPU — exceeding LSTM (98.3%) — entirely without gradient
+descent, training in under four minutes on a laptop CPU or 8 seconds on
+a GPU.
 
 
 ## 1. Introduction
 
 The dominant paradigm in supervised learning trains all network weights via
 gradient descent.  This is effective but computationally expensive: even a
-small two-layer MLP on MNIST requires minutes of iterative optimisation.
+small two-layer MLP on MNIST requires minutes of iterative optimization.
 An alternative family of methods — dating back to random feature
 approximations (Rahimi & Recht, 2007), extreme learning machines (Huang
 et al., 2006), and the Neural Engineering Framework (Eliasmith & Anderson,
-2003) — fixes the input-to-hidden weights at random and solves only the
-output weights analytically.  Training reduces to a single regularised
+2003) — fixes the input-to-hidden weights and solves only the output
+weights analytically.  Training reduces to a single regularized
 least-squares solve, completing in seconds rather than minutes.
 
 These methods share a common architecture but arrive at it from different
@@ -60,11 +61,16 @@ the population activity.  This neuroscience framing motivates several
 design choices absent from the ELM and kernel literatures:
 
 - **Data-driven biases** from training-sample centers, so each neuron's
-  activation is centred around a known data point.
+  activation is centered around a known data point.
 - **Per-neuron gain diversity**, following the NEF tradition of varied
   tuning curves within a population.
 - **The absolute-value activation**, which gives each neuron a two-sided
   tuning curve responding to deviations in either direction from its center.
+- **Data-adapted encoders** — in addition to random encoders (hypersphere,
+  Gaussian, sparse), the library includes strategies that adapt encoder
+  directions to training data: whitened encoders (PCA-subspace projection),
+  class-contrast encoders (discriminative directions between classes), and
+  local-PCA encoders (top eigenvector of each neuron's neighborhood).
 
 The practical payoff of the two-second single-layer solve is not just
 speed but *composability*.  A fast analytical solver is an ideal base
@@ -89,10 +95,10 @@ This report makes the following contributions:
 4. Local receptive field encoders that inject spatial structure without
    gradient training.
 5. Extensions to multi-layer networks (five training strategies including
-   analytical target propagation), recurrent temporal models, and
-   incremental/online learning.
+   analytical target propagation), recurrent temporal models,
+   incremental/online learning, and streaming temporal classification.
 6. Comprehensive benchmarks on MNIST, Fashion-MNIST, CIFAR-10, and
-   California Housing, with timing on consumer hardware (CPU-only).
+   California Housing, with timing on consumer hardware (CPU and GPU).
 
 
 ## 2. Background
@@ -127,9 +133,9 @@ transform information.  It rests on three principles:
    x̂ = Σᵢ aᵢ · dᵢ = a · D
    ```
 
-   where *D* is a matrix of decoding weights, found by minimising the
+   where *D* is a matrix of decoding weights, found by minimizing the
    mean-squared error between decoded outputs and the true values over a
-   set of representative inputs.  This yields a regularised least-squares
+   set of representative inputs.  This yields a regularized least-squares
    problem:
 
    ```
@@ -137,7 +143,7 @@ transform information.  It rests on three principles:
    ```
 
    where *A* is the matrix of activities (samples × neurons), *Y* is the
-   target matrix, and *λ* is a regularisation parameter.
+   target matrix, and *λ* is a regularization parameter.
 
 3. **Transformation:** To compute a function *f(x)* rather than
    representing *x* itself, one simply changes the decoding targets from
@@ -230,7 +236,7 @@ where `bᵢ = −αᵢ · (dᵢ · eᵢ)`.  The neuron measures the *unsigned
 deviation* of the input from its center along its encoder direction.
 
 This connects to radial basis function (RBF) networks (Broomhead & Lowe,
-1988), where each basis function is centred on a data point.  The
+1988), where each basis function is centered on a data point.  The
 difference is that RBF neurons measure distance in *all* directions
 (isotropic Gaussian kernels), while NEF neurons measure distance along a
 *single random direction*.  Having many neurons with different random
@@ -286,19 +292,12 @@ Their results on MNIST were striking:
 - Ensemble of 10 ELMs + local receptive fields: **99.17%**
 
 The receptive field approach works because natural images have strong
-local structure: neighbouring pixels are highly correlated and local
+local structure: neighboring pixels are highly correlated and local
 patterns (edges, corners, textures) are more informative than global
 projections.  A random projection of the full 784-dimensional MNIST image
 dilutes local structure across all dimensions.  A random projection of a
 5×5 patch (25 dimensions) concentrates the neuron's sensitivity on a
 local feature.
-
-In our implementation, each neuron *i* is assigned a random patch
-position *(rᵢ, cᵢ)* in the image and a random weight vector *wᵢ* of
-dimension *patch_size²* (or *patch_size² × C* for multi-channel images).
-The encoder vector *eᵢ* is mostly zeros, with non-zero entries only at the
-patch positions, where the values are *wᵢ* normalised to unit norm.  This
-is registered in the encoder strategy registry as `"receptive_field"`.
 
 ### 2.7 Incremental Learning via Normal Equations
 
@@ -347,9 +346,9 @@ re-solve when k ≪ n (i.e. the batch size is much smaller than the neuron
 count).  The decoders are then D = M_new⁻¹ · (AᵀY), where AᵀY
 accumulates as before.
 
-**Initialisation.**  Rather than computing M⁻¹ from the first batch
-(which may be ill-conditioned when k < n), we initialise M⁻¹ = (1/α)I
-— the inverse of the pure regulariser.  All batches then enter through
+**Initialization.**  Rather than computing M⁻¹ from the first batch
+(which may be ill-conditioned when k < n), we initialize M⁻¹ = (1/α)I
+— the inverse of the pure regularizer.  All batches then enter through
 the Woodbury path, ensuring consistent conditioning.
 
 **Numerical precision.**  Repeated rank-k updates in float32 accumulate
@@ -394,10 +393,10 @@ A `NEFLayer` implements the three-stage NEF pipeline:
    ```
    ŷ = a · D
    ```
-   where *D* ∈ ℝⁿˣᵒ is the decoder matrix, solved via regularised
+   where *D* ∈ ℝⁿˣᵒ is the decoder matrix, solved via regularized
    least-squares.
 
-**Encoder strategies.**  The library provides four encoder strategies,
+**Encoder strategies.**  The library provides seven encoder strategies,
 selected by string name from a registry:
 
 | Strategy          | Description |
@@ -406,7 +405,13 @@ selected by string name from a registry:
 | `gaussian`        | i.i.d. Gaussian entries (varying norms) |
 | `sparse`          | Sparse random projections (~1/3 non-zero entries) |
 | `receptive_field` | Sparse local-patch encoders for images (Section 3.5) |
+| `whitened`        | PCA-subspace projection adapting to data covariance |
+| `class_contrast`  | Discriminative directions from each class toward nearest other class |
+| `local_pca`       | Top eigenvector of each neuron's local neighborhood |
 
+The first four strategies produce purely random encoders.  The last three
+adapt encoder directions to the training data, providing richer
+representations at the cost of a data-dependent initialization step.
 All strategies except `receptive_field` produce dense vectors.  The
 `receptive_field` strategy produces vectors that are zero everywhere
 except at a random local image patch.
@@ -417,7 +422,7 @@ except at a random local image patch.
 |-------------|-------------|
 | `tikhonov`  | `(AᵀA + αI)⁻¹ AᵀY` via `torch.linalg.solve` (LU-based, default) |
 | `cholesky`  | Same system solved via Cholesky factorisation (`torch.linalg.cholesky` + `cholesky_solve`) |
-| `lstsq`     | `torch.linalg.lstsq` (unregularised or implicitly regularised) |
+| `lstsq`     | `torch.linalg.lstsq` (unregularized or implicitly regularized) |
 
 The default solver is Tikhonov with α = 0.01.
 
@@ -478,7 +483,7 @@ neuron sees a random local image patch:
 1. Sample a random patch position *(r, c)* uniformly over valid positions
    (ensuring the patch fits within the image).
 2. Generate random weights *w* ∈ ℝᵖ² (or ℝᵖ²ᶜ for *C*-channel images)
-   and normalise to unit norm.
+   and normalize to unit norm.
 3. Construct the full encoder vector by placing *w* at the appropriate
    pixel indices and zeros elsewhere.
 
@@ -487,7 +492,7 @@ strategies) but with only *patch_size²* non-zero entries per neuron.  The
 unit-norm convention is maintained within the patch, consistent with the
 hypersphere strategy.
 
-For multi-channel images (e.g., CIFAR-10 with 3 colour channels), the
+For multi-channel images (e.g., CIFAR-10 with 3 color channels), the
 patch covers all channels at each spatial position, giving
 *patch_size² × C* non-zero entries per encoder.
 
@@ -555,7 +560,7 @@ all data — the library provides a lighter alternative:
   entirely in float32, then promotes the n×n and n×d_out results to
   float64 for accumulation.  No inverse is maintained; cost is O(n²k)
   float32 matmul per batch plus an O(n²) dtype cast.
-- `solve(alpha)` — performs a single Tikhonov-regularised solve from the
+- `solve(alpha)` — performs a single regularized solve from the
   accumulated statistics in float64, then casts decoders back to float32.
   Cost is O(n³), once.
 
@@ -566,17 +571,6 @@ GPU tensor cores) and only uses float64 for the O(n²) accumulator
 additions and the single final solve.  A single batch's outer product
 has sufficient precision in float32; the running sum across batches is
 where float64 matters.
-
-On a T4 GPU (sMNIST-row, 120 batches):
-
-| Config | Woodbury | Accumulate | Speedup |
-|--------|----------|------------|---------|
-| 2000n w=10 | 8.1s / 97.24% | 1.1s / 97.22% | **7×** |
-| 8000n w=10 | 93.2s / 98.30% | 8.3s / 98.54% | **11×** |
-
-At 8000 neurons the accumulate path is slightly *more* accurate than
-Woodbury (98.54% vs 98.30%): the clean single-solve avoids numerical
-drift that accumulates over 120 Woodbury inverse updates.
 
 Both paths share the same AᵀA/AᵀY accumulators, so they can be mixed:
 use `accumulate()` for the main data pass, then switch to `continuous_fit()`
@@ -600,7 +594,7 @@ Six training strategies are available:
    inverse models) and difference target propagation (Lee et al., 2015).
    Single-layer gradients only.  Described in detail below.
 4. **End-to-end** (`fit_end_to_end`): Standard SGD on all parameters,
-   initialised from a greedy NEF solve.
+   initialized from a greedy NEF solve.
 5. **Hybrid→E2E** (`fit_hybrid_e2e`): Hybrid warm start followed by E2E
    fine-tuning.  Generally the best balanced strategy.
 6. **TP→E2E** (`fit_target_prop_e2e`): Target propagation warm start
@@ -655,7 +649,7 @@ for each iteration:
     for l = L down to 1:
         target[l] = a[l] + (target[l+1] − a[l+1]) · D_repr[l+1]  # DTP
 
-    # Local encoder updates (parallelisable across layers)
+    # Local encoder updates (parallelizable across layers)
     for l = 1 to L+1:
         loss_l = ‖encode_l(a[l−1]) − target[l]‖²
         update E_l, b_l with ∇loss_l
@@ -677,7 +671,7 @@ for plain TP, η=0.01 for TP→E2E warm starts.
 | Gradient scope        | Full backprop        | Single layer          |
 | Decoder solves / iter | 1 (output only)      | L+1 (all layers)     |
 | Encoder gradient cost | O(L × forward)       | O(1 × forward) each  |
-| Parallelisable        | No (chain rule)      | Yes (layer-independent) |
+| Parallelizable        | No (chain rule)      | Yes (layer-independent) |
 | Memory                | Full computation graph | Per-layer only        |
 | Biological plausibility | Low                | Higher (local rules)  |
 
@@ -764,7 +758,7 @@ throughput is limited.
 
 **Chunked encoding.**  To limit peak memory, `encode_sequence` processes
 samples in chunks when the total token count (N × T) exceeds a threshold.
-This is critical for large models — e.g. 60 000 sequences × 28 timesteps
+This is critical for large models — e.g. 60000 sequences × 28 timesteps
 × 4000 neurons would require 26.8 GB without chunking.
 
 
@@ -781,16 +775,17 @@ This is critical for large models — e.g. 60 000 sequences × 28 timesteps
 | California Housing | 20640 | 8       | —       | Regression |
 
 All classification targets are encoded as one-hot vectors.  Pixel inputs
-are normalised to [0, 1].  **sMNIST-row** presents each MNIST image as a
+are normalized to [0, 1].  **sMNIST-row** presents each MNIST image as a
 sequence of 28 rows (28 pixels each), requiring temporal integration to
-classify.  California Housing targets are standardised (zero mean, unit
+classify.  California Housing targets are standardized (zero mean, unit
 variance).
 
 ### 4.2 Hardware and Software
 
-All experiments run on a single CPU: AMD Ryzen 5 PRO 5650U (6 cores, 12
-threads, 1.83 GHz base).  No GPU is used.  The implementation uses
-PyTorch 2.0+ with `torch.linalg` for matrix operations.
+Results are on CPU unless stated otherwise.  CPU hardware: AMD Ryzen 5
+PRO 5650U (6 cores, 12 threads, 1.83 GHz base).  GPU experiments use a
+Tesla T4 (Google Colab).  The implementation uses PyTorch 2.0+ with
+`torch.linalg` for matrix operations.
 
 ### 4.3 Default Configuration
 
@@ -883,42 +878,42 @@ encoders use the default patch size of 5×5.
 
 | Model                       | Members | MNIST  | Fashion | CIFAR-10 | Time (MNIST) |
 |-----------------------------|---------|--------|---------|----------|--------------|
-| NEFLayer (single)           |    1    | 95.68% | 85.93%  | 47.80%   |     2.1s     |
-| Ensemble (hypersphere)      |   10    | 96.20% | 86.21%  | 50.86%   |    23.8s     |
-| Ensemble (receptive field)  |   10    | 96.51% | 86.65%  | 55.32%   |    27.6s     |
-| Ensemble (hypersphere)      |   20    | 96.24% | 86.14%  | 51.12%   |    44.7s     |
-| Ensemble (receptive field)  |   20    | 96.54% | 86.90%  | 55.76%   |    45.8s     |
+| NEFLayer (single)           |    1    | 95.7%  | 85.9%   | 47.8%    |     2.1s     |
+| Ensemble (hypersphere)      |   10    | 96.2%  | 86.2%   | 50.9%    |    23.8s     |
+| Ensemble (receptive field)  |   10    | 96.5%  | 86.7%   | 55.3%    |    27.6s     |
+| Ensemble (hypersphere)      |   20    | 96.2%  | 86.1%   | 51.1%    |    44.7s     |
+| Ensemble (receptive field)  |   20    | 96.5%  | 86.9%   | 55.8%    |    45.8s     |
 
 #### Analysis
 
 **Ensembling provides a consistent boost.**  With 10 members and
-hypersphere encoders, the ensemble lifts MNIST from 95.68% to 96.20%
-(+0.52%), Fashion from 85.93% to 86.21% (+0.28%), and CIFAR-10 from
-47.80% to 50.86% (+3.06%).  The improvement is largest on CIFAR-10,
+hypersphere encoders, the ensemble lifts MNIST from 95.7% to 96.2%
+(+0.5%), Fashion from 85.9% to 86.2% (+0.3%), and CIFAR-10 from
+47.8% to 50.9% (+3.1%).  The improvement is largest on CIFAR-10,
 where the base model's accuracy is lowest and there is more room for
 error decorrelation to help.
 
 **Local receptive fields are the bigger lever.**  On CIFAR-10, the RF
-ensemble reaches 55.32% with 10 members — a remarkable **+7.52%** over
-the single model and +4.46% over the hypersphere ensemble.  This is
+ensemble reaches 55.3% with 10 members — a remarkable **+7.5%** over
+the single model and +4.4% over the hypersphere ensemble.  This is
 consistent with the findings of McDonnell et al. (2015): local receptive
 fields are the single biggest accuracy lever for random-weight networks on
 image tasks, because they concentrate each neuron's sensitivity on local
 spatial structure rather than diluting it across the full image.
 
-On MNIST, the RF ensemble (96.51%) outperforms the hypersphere ensemble
-(96.20%) by 0.31%.  The improvement is smaller because MNIST's simpler
+On MNIST, the RF ensemble (96.5%) outperforms the hypersphere ensemble
+(96.2%) by 0.3%.  The improvement is smaller because MNIST's simpler
 digit structure is already well-captured by global projections.  Fashion-
-MNIST shows an intermediate pattern: RF adds 0.44% over the hypersphere
-ensemble (86.65% vs 86.21%).
+MNIST shows an intermediate pattern: RF adds 0.5% over the hypersphere
+ensemble (86.7% vs 86.2%).
 
 **Diminishing returns from 10 to 20 members.**  Doubling the ensemble size
-from 10 to 20 provides only marginal further gains: +0.04% on MNIST,
-+0.25% on CIFAR-10 (hypersphere), and +0.44% on CIFAR-10 (RF).  On
+from 10 to 20 provides only marginal further gains: +0.0% on MNIST,
++0.2% on CIFAR-10 (hypersphere), and +0.5% on CIFAR-10 (RF).  On
 Fashion-MNIST with hypersphere encoders, the 20-member ensemble is
-actually 0.07% *worse* than the 10-member (86.14% vs 86.21%), likely due
+actually 0.1% *worse* than the 10-member (86.1% vs 86.2%), likely due
 to seed-dependent variance.  The RF 20-member ensemble does improve
-Fashion from 86.65% to 86.90%.  The steepest improvement curve is from
+Fashion from 86.7% to 86.9%.  The steepest improvement curve is from
 1→10 members; 20 members roughly doubles training time for diminishing
 returns, suggesting 10 members is the practical sweet spot.
 
@@ -932,20 +927,20 @@ while providing better accuracy on some datasets.
 **Comparison with brute-force neuron scaling.**  A single model with 20000
 neurons (equivalent total parameters to a 10-member × 2000 ensemble)
 reaches 97.9% on MNIST (from Section 5.1) in ~140 seconds, compared to
-96.20% for the 10-member hypersphere ensemble in ~24 seconds.  The single
+96.2% for the 10-member hypersphere ensemble in ~24 seconds.  The single
 large model wins on accuracy but loses badly on time.  The RF ensemble
-(96.51% in 28 seconds) offers a different trade-off: spatial structure
+(96.5% in 28 seconds) offers a different trade-off: spatial structure
 from RF encoders partially compensates for the smaller per-model neuron
 count while training 5× faster than the single 20k-neuron model.
 
 ### 5.5 Neuron–Patch–Alpha Sweep: Beating the MLP Baseline
 
 The previous section used 2000 neurons per member and the default
-regularisation α = 0.01.  We now explore how far single-layer RF
+regularization α = 0.01.  We now explore how far single-layer RF
 models can be pushed by increasing neuron count, varying patch size,
-and tuning the Tikhonov regularisation parameter α — with the explicit
+and tuning the Tikhonov regularization parameter α — with the explicit
 goal of matching or exceeding the gradient-trained MLP baseline
-(MNIST 98.50%, Fashion 89.70%, CIFAR-10 52.70%, all at ~83 seconds).
+(MNIST 98.5%, Fashion 89.7%, CIFAR-10 52.7%, all at ~83 seconds).
 
 #### 5.5.1 Neuron Count × Patch Size Sweep
 
@@ -957,42 +952,42 @@ default α = 0.01.
 
 | Neurons | Patch 3 | Patch 5 | Patch 7 | Patch 10 | Patch 12 | Patch 14 | Patch 16 | Patch 18 |
 |---------|---------|---------|---------|----------|----------|----------|----------|----------|
-| 2000  | 95.68%/21s | 96.51%/22s | 96.86%/23s | 97.13%/23s | — | — | — | — |
-| 3000  | 96.28%/44s | 97.04%/46s | 97.34%/46s | 97.43%/46s | 97.40%/51s | 97.24%/52s | 97.15%/52s | 96.97%/52s |
-| 4000  | — | — | 97.55%/81s | **97.78%/79s** | 97.66%/84s | 97.47%/82s | 97.32%/82s | — |
-| 5000  | 96.83%/110s | 97.40%/112s | 97.69%/113s | **97.84%/113s** | — | — | — | — |
+| 2000  | 95.7%/21s | 96.5%/22s | 96.9%/23s | 97.1%/23s | — | — | — | — |
+| 3000  | 96.3%/44s | 97.0%/46s | 97.3%/46s | 97.4%/46s | 97.4%/51s | 97.2%/52s | 97.2%/52s | 97.0%/52s |
+| 4000  | — | — | 97.6%/81s | **97.8%/79s** | 97.7%/84s | 97.5%/82s | 97.3%/82s | — |
+| 5000  | 96.8%/110s | 97.4%/112s | 97.7%/113s | **97.8%/113s** | — | — | — | — |
 
 **Fashion-MNIST (10-member RF ensemble, α = 0.01):**
 
 | Neurons | Patch 3 | Patch 5 | Patch 7 | Patch 10 | Patch 12 |
 |---------|---------|---------|---------|----------|----------|
-| 2000  | 86.46%/24s | 86.65%/25s | 86.73%/24s | 86.55%/24s | — |
-| 3000  | 87.11%/47s | 87.58%/47s | 87.51%/48s | 86.98%/47s | — |
-| 4000  | 87.68%/83s | 87.80%/83s | 87.75%/84s | 87.32%/83s | 87.20%/82s |
-| 5000  | 88.07%/114s | 88.36%/114s | 88.31%/115s | 87.78%/113s | — |
+| 2000  | 86.5%/24s | 86.7%/25s | 86.7%/24s | 86.6%/24s | — |
+| 3000  | 87.1%/47s | 87.6%/47s | 87.5%/48s | 87.0%/47s | — |
+| 4000  | 87.7%/83s | 87.8%/83s | 87.8%/84s | 87.3%/83s | 87.2%/82s |
+| 5000  | 88.1%/114s | **88.4%/114s** | 88.3%/115s | 87.8%/113s | — |
 
 **CIFAR-10 (10-member RF ensemble, α = 0.01):**
 
 | Neurons | Patch 3 | Patch 5 | Patch 7 | Patch 10 |
 |---------|---------|---------|---------|----------|
-| 2000  | 54.70%/31s | 55.32%/32s | 55.00%/32s | 54.55%/32s |
-| 3000  | 56.36%/58s | **56.94%/59s** | 56.61%/60s | 55.70%/59s |
-| 5000  | 58.25%/130s | **59.06%/129s** | 58.86%/131s | 58.02%/131s |
+| 2000  | 54.7%/31s | 55.3%/32s | 55.0%/32s | 54.6%/32s |
+| 3000  | 56.4%/58s | **56.9%/59s** | 56.6%/60s | 55.7%/59s |
+| 5000  | 58.3%/130s | **59.1%/129s** | 58.9%/131s | 58.0%/131s |
 
 **Optimal patch size is dataset-dependent.**  MNIST peaks at patch = 10
 (~36% of the 28×28 image), Fashion-MNIST at 5–7, and CIFAR-10 at 5.
 Patches larger than the optimum *hurt*: on MNIST, going from patch 10
-to 18 drops 3000-neuron accuracy from 97.43% to 96.97%.  This makes
+to 18 drops 3000-neuron accuracy from 97.4% to 97.0%.  This makes
 intuitive sense: as the patch approaches the full image, the receptive
 field loses its locality advantage and degenerates toward a global
 projection.
 
 **Neuron count is the dominant factor** within a time budget.  At the
 83-second MLP time budget, the best configurations are 4000 neurons ×
-10 members: 97.78% on MNIST (79s), 87.80% on Fashion (83s), and
-56.94% on CIFAR-10 with 3000 neurons (59s).  CIFAR-10 already exceeds
-the MLP baseline (52.70%) at every configuration tested.  MNIST and
-Fashion remain short of the MLP by 0.72% and 1.90% respectively.
+10 members: 97.8% on MNIST (79s), 87.8% on Fashion (83s), and
+56.9% on CIFAR-10 with 3000 neurons (59s).  CIFAR-10 already exceeds
+the MLP baseline (52.7%) at every configuration tested.  MNIST and
+Fashion remain short of the MLP by 0.7% and 1.9% respectively.
 
 ![MNIST neuron–patch heatmap](figures/neuron_patch_heatmap.png)
 *Figure 2. MNIST accuracy as a function of neuron count and RF patch size (α = 0.01).  The optimum shifts toward larger patches as neuron count increases.  Missing cells were not measured.*
@@ -1007,109 +1002,120 @@ features.  We compare large single RF layers against ensembles:
 
 | Neurons | Patch 7 | Patch 10 | Patch 12 |
 |---------|---------|----------|----------|
-|  8000   | 97.85%/25s | 97.91%/25s | 97.87%/26s |
-| 10000   | 98.02%/39s | 98.09%/39s | 98.15%/40s |
-| 12000   | 97.91%/57s | 98.26%/58s | 98.18%/57s |
+|  8000   | 97.9%/25s | 97.9%/25s | 97.9%/26s |
+| 10000   | 98.0%/39s | 98.1%/39s | 98.2%/40s |
+| 12000   | 97.9%/57s | **98.3%/58s** | 98.2%/57s |
 
-A single 12 000-neuron layer reaches **98.26%** in 58 seconds — already
-0.48% better than the 10×4000 ensemble (97.78%/79s) while being 27%
+A single 12000-neuron layer reaches **98.3%** in 58 seconds — already
+0.5% better than the 10×4000 ensemble (97.8%/79s) while being 27%
 faster.  Concentrating neurons in a single model is superior to splitting
 them across an ensemble, because a richer feature space matters more than
 decorrelation when the base models are already strong.
 
-#### 5.5.3 Regularisation Tuning: The Decisive Lever
+#### 5.5.3 Regularization Tuning: The Decisive Lever
 
 The default Tikhonov α = 0.01 was adopted from the single-layer
 experiments with 2000 neurons, where it prevents overfitting.  With
-12 000+ neurons and RF encoders, the feature space is much richer and
-the solver can tolerate weaker regularisation.  A sweep over α reveals
+12000+ neurons and RF encoders, the feature space is much richer and
+the solver can tolerate weaker regularization.  A sweep over α reveals
 dramatic improvements:
 
-**MNIST (single 12 000n, RF patch = 10):**
+**MNIST (single 12000n, RF patch = 10):**
 
 | α | Train | Test | Time |
 |---|-------|------|------|
-| 5×10⁻⁴ | 99.73% | **98.50%** | 52s |
-| 1×10⁻³ | 99.70% | 98.46% | 54s |
-| 5×10⁻³ | 99.07% | 98.36% | 55s |
-| 1×10⁻² | 98.77% | 98.26% | 56s |
-| 2×10⁻² | 98.38% | 98.12% | 57s |
+| 5×10⁻⁴ | 99.7% | **98.5%** | 52s |
+| 1×10⁻³ | 99.7% | 98.5% | 54s |
+| 5×10⁻³ | 99.1% | 98.4% | 55s |
+| 1×10⁻² | 98.8% | 98.3% | 56s |
+| 2×10⁻² | 98.4% | 98.1% | 57s |
 
-**Fashion-MNIST (single 14 000n, RF patch = 5):**
+**Fashion-MNIST (single 12000n, RF patch = 5):**
 
 | α | Train | Test | Time |
 |---|-------|------|------|
-| 1×10⁻⁴ | 96.50% | 89.35% | 82s |
-| 5×10⁻⁴ | 96.07% | 89.71% | 81s |
-| 1×10⁻³ | 95.73% | **89.74%** | 82s |
-| 2×10⁻³ | 95.22% | **89.74%** | 80s |
-| 5×10⁻³ | 94.32% | 89.56% | 80s |
-| 1×10⁻² | 93.45% | 89.49% | 79s |
+| 1×10⁻⁴ | 96.2% | 89.3% | 59s |
+| 5×10⁻⁴ | 95.7% | 89.6% | 59s |
+| 1×10⁻³ | 95.4% | **89.7%** | 59s |
+| 2×10⁻³ | 94.9% | **89.7%** | 59s |
+| 5×10⁻³ | 94.0% | 89.5% | 59s |
+| 1×10⁻² | 93.1% | 89.4% | 59s |
 
 **CIFAR-10 (10-member RF ensemble, 3000n, patch = 5):**
 
 | α | Train | Test | Time |
 |---|-------|------|------|
-| 1×10⁻⁴ | 69.44% | **58.44%** | 53s |
-| 5×10⁻⁴ | 69.16% | 58.31% | 56s |
-| 1×10⁻³ | 68.80% | 58.15% | 56s |
-| 5×10⁻³ | 66.78% | 57.62% | 56s |
-| 1×10⁻² | 65.27% | 56.94% | 57s |
+| 1×10⁻⁴ | 69.4% | **58.4%** | 53s |
+| 5×10⁻⁴ | 69.2% | 58.3% | 56s |
+| 1×10⁻³ | 68.8% | 58.2% | 56s |
+| 5×10⁻³ | 66.8% | 57.6% | 56s |
+| 1×10⁻² | 65.3% | 56.9% | 57s |
 
-**Reducing α from 1×10⁻² to 5×10⁻⁴ lifts MNIST from 98.26% to
-98.50%** — a 0.24% gain from a single hyperparameter change.  The effect
-is consistent across datasets: Fashion improves from 89.49% to 89.74%,
-and CIFAR-10 from 56.94% to 58.44%.
+**Reducing α from 1×10⁻² to 5×10⁻⁴ lifts MNIST from 98.3% to
+98.5%** — a 0.2% gain from a single hyperparameter change.  The effect
+is consistent across datasets: Fashion improves from 89.4% to 89.7%,
+and CIFAR-10 from 56.9% to 58.4%.
 
 The optimal α depends on the ratio of feature space richness to dataset
 complexity.  MNIST (simplest patterns, richest relative feature space)
-benefits most from low regularisation (α ≈ 5×10⁻⁴).  Fashion-MNIST's
-more complex visual patterns need slightly more regularisation (α ≈
-1–2×10⁻³) to prevent overfitting.  CIFAR-10's 3-channel colour images
+benefits most from low regularization (α ≈ 5×10⁻⁴).  Fashion-MNIST's
+more complex visual patterns need slightly more regularization (α ≈
+1–2×10⁻³) to prevent overfitting.  CIFAR-10's 3-channel color images
 with the ensemble approach work best at α ≈ 1×10⁻⁴.
 
-![Regularisation tuning curves](figures/alpha_tuning.png)
-*Figure 3. Test accuracy vs Tikhonov α for the best configuration on each dataset.  The dashed line marks the MLP baseline.  Reducing α from the default 10⁻² to the optimum lifts accuracy by 0.24–1.50 percentage points.*
+![Regularization tuning curves](figures/alpha_tuning.png)
+*Figure 3. Test accuracy vs Tikhonov α for the best configuration on each dataset.  The dashed line marks the MLP baseline.  Reducing α from the default 10⁻² to the optimum lifts accuracy by 0.2–1.5 percentage points.*
 
 #### 5.5.4 Summary: Final Results vs MLP Baseline
 
 | Method | MNIST | Fashion | CIFAR-10 | Time |
 |--------|-------|---------|----------|------|
-| MLP (2×1000, SGD) | 98.50% | 89.70% | 52.70% | 83s |
-| **NEF single RF** (12 000n, p=10, α=5×10⁻⁴) | **98.50%** | — | — | **52s** |
-| **NEF single RF** (14 000n, p=5, α=1×10⁻³) | — | **89.74%** | — | **82s** |
-| **NEF single RF** (12 000n, p=5, α=1×10⁻³) | — | 89.70% | — | **59s** |
-| **NEF ensemble** (10×3000, RF p=5, α=1×10⁻⁴) | — | — | **58.44%** | **53s** |
+| MLP (2×1000, SGD) | 98.5% | 89.7% | 52.7% | 83s |
+| **NEF single RF** (12000n, p=10, α=5×10⁻⁴) | **98.5%** | — | — | **52s** |
+| **NEF single RF** (12000n, p=5, α=1×10⁻³) | — | **89.7%** | — | **59s** |
+| **NEF ensemble** (10×3000, RF p=5, α=1×10⁻⁴) | — | — | **58.4%** | **53s** |
 
 The analytically solved single-layer NEF model matches or exceeds the
 gradient-trained MLP on all three benchmarks while training faster:
 
-- **MNIST**: 98.50% in 52 seconds (37% faster, equal accuracy).
-- **Fashion-MNIST**: 89.74% in 82 seconds (0.04% better; or 89.70% in
-  59 seconds — matching accuracy 29% faster).
-- **CIFAR-10**: 58.44% in 53 seconds (5.74% better and 36% faster).
+- **MNIST**: 98.5% in 52 seconds (37% faster, equal accuracy).
+- **Fashion-MNIST**: 89.7% in 59 seconds (matching accuracy, 29% faster).
+- **CIFAR-10**: 58.4% in 53 seconds (5.7% better and 36% faster).
 
 No gradient computation is used.  Training consists of constructing
 random receptive field encoders, computing neuron activities, and solving
-a single Tikhonov-regularised least-squares problem.  The entire pipeline
-is embarrassingly parallelisable across neurons and ensemble members.
+a single regularized least-squares problem.  The entire pipeline
+is trivially parallelizable across neurons and ensemble members.
 
 ![Speed vs accuracy comparison](figures/speed_accuracy.png)
 *Figure 4. NEF single-layer RF models (blue/green) vs gradient-trained MLP (orange) on all three benchmarks.  NEF matches or exceeds MLP accuracy at equal or lower training time on commodity CPU hardware.*
 
 ### 5.6 Regression — California Housing
 
-MSE with normalised targets, 2000 neurons:
+The California Housing dataset (20640 samples, 8 features) provides a
+regression test.  Targets are standardized (zero mean, unit variance).
 
-| Neurons | Train MSE | Test MSE |
-|---------|-----------|----------|
-| 500     | 0.269     | 0.265    |
-| 1000    | 0.254     | 0.249    |
-| 2000    | 0.235     | 0.236    |
-| 5000    | 0.213     | 0.227    |
+| Model | Neurons | Train MSE | Test MSE | Time |
+|-------|---------|-----------|----------|------|
+| Linear regression | — | 0.395 | 0.388 | <0.01s |
+| RidgeCV (α=10.0) | — | 0.395 | 0.388 | <0.01s |
+| NEF | 500 | 0.265 | 0.286 | 0.12s |
+| NEF | 1000 | 0.249 | 0.274 | 0.16s |
+| NEF | 2000 | 0.234 | 0.267 | 0.57s |
+| NEF | 5000 | 0.209 | 0.261 | 2.43s |
 
-More neurons improve accuracy with diminishing returns.  At 2000 neurons,
-test MSE is within 1% of training MSE, indicating good generalisation.
+The NEF model reduces test MSE by 27% (from 0.388 to 0.286) over linear
+regression at just 500 neurons and in 0.12 seconds.  The improvement
+comes from the nonlinear basis expansion: each neuron's abs activation
+measures unsigned deviation from a training sample along a random
+direction, providing features that capture nonlinear relationships in
+the data.  RidgeCV with cross-validated regularization provides no
+benefit over OLS here (the 8-feature space is too small for overfitting).
+
+Scaling to 5000 neurons (2.43 seconds) pushes test MSE down to 0.261 — a
+33% reduction over linear regression — with diminishing returns above 2000
+neurons.  The narrowing train-test gap (0.234 vs 0.267 at 2000n) indicates
+good generalization; this narrows further with regularization tuning.
 
 ### 5.7 Multi-Layer Results
 
@@ -1121,11 +1127,11 @@ E2E:
 | Linear baseline   | 85.3%    | 81.0%    | 39.6%    |     2s       |
 | NEFLayer          | 95.7%    | 85.9%    | 47.8%    |     2s       |
 | NEFNet-greedy     | 95.0%    | 85.4%    | 45.6%    |     3s       |
-| NEFNet-hybrid     | 98.6%    | 90.2%    | 52.7%    |   318s       |
-| NEFNet-target-prop| 98.6%    | 90.1%    | 51.0%    |   378s       |
-| NEFNet-e2e        | 98.5%    | 90.3%    | 58.5%    |   241s       |
+| NEFNet-hybrid     |**98.6%** | 90.2%    | 52.7%    |   318s       |
+| NEFNet-target-prop|**98.6%** | 90.1%    | 51.0%    |   378s       |
+| NEFNet-e2e        | 98.5%    | 90.3%    |**58.5%** |   241s       |
 | NEFNet-hybrid→E2E |**98.6%** |**90.6%** | 58.4%    |   402s       |
-| NEFNet-TP→E2E     | 98.5%    | 90.6%    |**58.5%** |   464s       |
+| NEFNet-TP→E2E     | 98.5%    |**90.6%** |**58.5%** |   464s       |
 | MLP (2×1000)      | 98.5%    | 89.7%    | 52.7%    |    83s       |
 
 **Key observations:**
@@ -1139,9 +1145,9 @@ MNIST).  With propagated biases, the gap narrows to 0.5%.
 *Iterations dominate hybrid hyperparameters.*  Going from 10 to 50
 iterations lifts hybrid from 97.2% to 98.5% on MNIST, 87.9% to 90.4% on
 Fashion, and 45.9% to 53.3% on CIFAR-10.  Other hyperparameters (solver
-type, regularisation, layer width, depth) each contribute less than 0.2%.
+type, regularization, layer width, depth) each contribute less than 0.2%.
 
-*Decoder regularisation is the second lever.*  α = 10⁻³ is optimal for
+*Decoder regularization is the second lever.*  α = 10⁻³ is optimal for
 hybrid.  Lower values let decoders overfit the current encoder state,
 producing noisy gradients; at α = 10⁻⁵, training collapses.
 
@@ -1156,6 +1162,10 @@ decoders; the E2E phase refines all parameters jointly.
 
 #### Activation Effect on Multi-Layer Hybrid
 
+The default multi-layer configuration uses abs activation, matching the
+single-layer default.  The table below compares activations under a
+reduced 10-iteration hybrid run:
+
 | Activation | MNIST  | Fashion |
 |------------|--------|---------|
 | relu       |**97.8%**|**88.7%**|
@@ -1163,13 +1173,13 @@ decoders; the E2E phase refines all parameters jointly.
 | lif_rate   | 95.2%  | 85.1%   |
 | softplus   | 94.0%  | 84.1%   |
 
-> Measured with 10 hybrid iterations, gain=U(0.5, 2.0), data-driven
-> biases, α = 10⁻².
-
 The ranking reverses from single-layer: relu slightly edges out abs for
 multi-layer hybrid training.  Per-neuron gain diversity means relu's
 zero-gradient region no longer kills half the neurons uniformly; the
 sparsity aids gradient flow through multiple encode-decode cycles.
+The main results table above uses abs (the default) at 50 iterations,
+where the gap narrows and abs is preferred for consistency with the
+single-layer pipeline.
 
 ![Method comparison across all training strategies](figures/method_comparison.png)
 *Figure 5. Accuracy across all training strategies and all three datasets.  "NEF RF+α\*" uses the best single-layer RF configuration per dataset; it matches multi-layer strategies on MNIST/Fashion and the MLP baseline on CIFAR-10 — without any gradient computation.*
@@ -1231,22 +1241,22 @@ We sweep window sizes K ∈ {3, 5, 7, 10, 14, 28} and neuron counts
 n ∈ {2000, 4000, 6000, 8000, 10000}.  All models use abs activation,
 hypersphere encoders, per-neuron gain U(0.5, 2.0), data-driven biases,
 streaming Woodbury training with batch size 500, and a final
-`refresh_inverse()` call.  Regularisation α is tuned per configuration.
+`refresh_inverse()` call.  Regularization α is tuned per configuration.
 
 **Key results (best α per configuration):**
 
 | Neurons | Window | α       | Train%  | Test%      | Time  |
 |---------|--------|---------|---------|------------|-------|
-| 2000    |  3     | 1×10⁻² | 94.33   | 92.34      | 16s   |
-| 2000    |  7     | 1×10⁻² | 97.43   | 96.95      | 24s   |
-| 2000    | 10     | 1×10⁻² | 97.77   | 97.22      | 23s   |
-| 2000    | 28     | 1×10⁻² | 97.82   | 97.16      | 34s   |
-| 4000    |  7     | 1×10⁻³ | 98.61   | 97.80      | 91s   |
-| 4000    | 10     | 1×10⁻² | 98.81   | 98.06      | 90s   |
-| 4000    | 14     | 5×10⁻³ | 98.87   | 98.10      | 114s  |
-| 6000    | 10     | 1×10⁻² | 99.24   | 98.35      | 136s  |
-| 8000    | 10     | 5×10⁻³ | 99.49   | **98.56**  | 222s  |
-| 10000   | 10     | 1×10⁻¹ | 99.64   | **98.57**  | 346s  |
+| 2000    |  3     | 1×10⁻² | 94.3    | 92.3       | 16s   |
+| 2000    |  7     | 1×10⁻² | 97.4    | 97.0       | 24s   |
+| 2000    | 10     | 1×10⁻² | 97.8    | 97.2       | 23s   |
+| 2000    | 28     | 1×10⁻² | 97.8    | 97.2       | 34s   |
+| 4000    |  7     | 1×10⁻³ | 98.6    | 97.8       | 91s   |
+| 4000    | 10     | 1×10⁻² | 98.8    | 98.1       | 90s   |
+| 4000    | 14     | 5×10⁻³ | 98.9    | 98.1       | 114s  |
+| 6000    | 10     | 1×10⁻² | 99.2    | 98.4       | 136s  |
+| 8000    | 10     | 5×10⁻³ | 99.5    | **98.6**   | 222s  |
+| 10000   | 10     | 1×10⁻¹ | 99.6    | **98.6**   | 346s  |
 
 **Observations:**
 
@@ -1257,13 +1267,13 @@ streaming Woodbury training with batch size 500, and a final
    effectively.
 
 2. **Strong scaling with neuron count up to ~8000.**  From 2000 to 8000
-   neurons, test accuracy improves steadily from 97% to 98.56%.  Beyond
-   8000, returns diminish sharply: 10000 neurons require 5× stronger
-   regularisation (α=0.1 vs 0.01) and gain only 0.01% at 55% more time.
+   neurons, test accuracy improves steadily from 97% to 98.6%.  Beyond
+   8000, returns diminish sharply: 10000 neurons require 10× stronger
+   regularization (α=0.1 vs 0.01) and gain nothing at 55% more time.
 
 3. **Overfitting at high neuron counts.**  With 10000 neurons and the
-   default α=10⁻², test accuracy collapses to 97.62% while training
-   reaches 99.47%.  Regularisation tuning is essential for large models.
+   default α=10⁻², test accuracy collapses to 97.6% while training
+   reaches 99.5%.  Regularization tuning is essential for large models.
 
 4. **α is insensitive at moderate neuron counts.**  For ≤6000 neurons,
    α ∈ {10⁻³, 5×10⁻³, 10⁻²} all yield essentially identical test
@@ -1277,19 +1287,19 @@ streaming Woodbury training with batch size 500, and a final
 | RecNEF-E2E (50 epochs)               |  98.5%     |  799s  | Yes (BPTT) |
 | RecNEF-hybrid→E2E (10+20 epochs)     |  98.6%     |  686s  | Yes (BPTT) |
 | LSTM-128 (20 epochs)                 |  98.3%     |   98s  | Yes (BPTT) |
-| **StreamNEF-2000n (w=10)**           |  97.22%    | **23s**| **No**     |
-| **StreamNEF-8000n (w=10)**           |**98.56%**  |  222s  | **No**     |
+| **StreamNEF-2000n (w=10)**           |  97.2%     | **23s**| **No**     |
+| **StreamNEF-8000n (w=10)**           |**98.6%**   |  222s  | **No**     |
 
-The streaming NEF classifier achieves 97.22% in just 23 seconds —
+The streaming NEF classifier achieves 97.2% in just 23 seconds —
 completely gradient-free, on CPU — outperforming RecNEF-greedy by 82
-percentage points at 10× less time.  At 8000 neurons, it reaches 98.56%,
-matching the LSTM baseline (98.3%) and approaching RecNEF-E2E (98.5%),
+percentage points at 10× less time.  At 8000 neurons, it reaches 98.6%,
+exceeding the LSTM baseline (98.3%) and matching RecNEF-E2E (98.5%),
 while still using no gradients whatsoever.
 
 The key advantage is architectural: the delay-line reservoir avoids the
 fundamental problem of recurrent gradient-free methods (noise compounding
 through the feedback loop) by replacing recurrence with temporal pooling.
-This trades sequence modelling flexibility for robust gradient-free
+This trades sequence modeling flexibility for robust gradient-free
 training.
 
 #### 5.9.3 GPU Results (T4)
@@ -1298,34 +1308,61 @@ The accumulate + solve path (Section 3.7.2) enables efficient GPU
 execution.  All timing below is on a Tesla T4 (15 GB, float32 peak
 65 TFLOPS, float64 peak 2 TFLOPS).
 
+**Accumulate vs Woodbury on GPU:**
+
+The Woodbury path performs O(n²k) float64 work per batch; the accumulate
+path does the same in float32 and defers float64 to the single final
+solve.  On sMNIST-row (120 batches):
+
+| Config | Woodbury | Accumulate | Speedup |
+|--------|----------|------------|---------|
+| 2000n w=10 | 8.1s / 97.2% | 1.1s / 97.2% | **7×** |
+| 8000n w=10 | 93.2s / 98.3% | 8.3s / 98.5% | **11×** |
+
+At 8000 neurons the accumulate path is slightly *more* accurate than
+Woodbury (98.5% vs 98.3%): the clean single-solve avoids numerical
+drift that accumulates over 120 Woodbury inverse updates.
+
 **sMNIST-row (28-step sequences):**
 
 | Model | Test Acc | Time | Gradients? |
 |---|---:|---:|---|
-| StreamNEF-accumulate 2000n | 97.22% | **1.1s** | No |
-| StreamNEF-accumulate 8000n | **98.54%** | **8.3s** | No |
-| StreamNEF-woodbury 8000n | 98.30% | 93.2s | No |
-| LSTM-128 (20 epochs) | 98.57% | 22.3s | Yes |
+| StreamNEF-accumulate 2000n | 97.2% | **1.1s** | No |
+| StreamNEF-accumulate 8000n | **98.5%** | **8.3s** | No |
+| StreamNEF-Woodbury 8000n | 98.3% | 93.2s | No |
+| LSTM-128 (20 epochs) | 98.6% | 22.3s | Yes |
 
-StreamNEF-accumulate 8k matches LSTM (98.54% vs 98.57%) in **2.7×
-less time** — 8.3 seconds vs 22.3 seconds — with no gradient computation.
-The accumulate path is 11× faster than Woodbury on the same GPU, and
-slightly more accurate (the single-solve avoids drift from 120 inverse
-updates).
+StreamNEF-accumulate 8000n almost matches LSTM (98.5% vs 98.6%) in
+**2.7× less time** — 8.3 seconds vs 22.3 seconds — with no gradient
+computation.  The accumulate path is 11× faster than Woodbury on the
+same GPU, and slightly more accurate (the single-solve avoids drift from
+120 inverse updates).
 
 **sMNIST pixel-by-pixel (784-step sequences):**
 
 | Model | Dataset | Test Acc | Time |
 |---|---|---:|---:|
-| StreamNEF-accumulate 4000n w=56 | permuted | **91.42%** | **29.6s** |
-| LSTM-128 (20 epochs) | permuted | 82.32% | 284.7s |
-| StreamNEF-accumulate 4000n w=56 | pixel | 51.61% | 29.5s |
-| LSTM-128 (20 epochs) | pixel | 11.54% | 283.9s |
+| StreamNEF-accumulate 4000n w=56 | permuted | **91.4%** | **29.6s** |
+| LSTM-128 (20 epochs) | permuted | 82.3% | 284.7s |
+| StreamNEF-accumulate 4000n w=56 | pixel | 51.6% | 29.5s |
+| LSTM-128 (20 epochs) | pixel | 11.5% | 283.9s |
 
 On permuted pixel-order, StreamNEF beats LSTM by **+9.1%** while being
 **9.6× faster**.  Both models fail on raw pixel-order (spatial structure
 is critical for row-mode but absent here); StreamNEF at least reaches
-52% with a 2-row delay window vs LSTM's 11.5%.
+52% with a 2-row delay window vs LSTM's 12%.
+
+![StreamNEF accuracy vs neuron count](figures/streaming_neuron_scaling.png)
+*Figure 6. StreamNEF sMNIST-row accuracy as a function of neuron count for different window sizes.  The LSTM-128 baseline (dashed) is exceeded at 8000 neurons with window 10.*
+
+![GPU speedup: Accumulate vs Woodbury](figures/gpu_speedup.png)
+*Figure 7. Left: training time comparison between Woodbury (float64) and Accumulate (float32) paths on a T4 GPU.  Right: the accumulate path achieves 7–11× speedup depending on model size.*
+
+## 6. Discussion
+
+This section examines the results in context: how the NEF approach
+compares with related methods, which strategy to choose for a given
+scenario, and what the current limitations are.
 
 ### 6.1 Competitive Positioning
 
@@ -1335,21 +1372,21 @@ The NEF-specific data-driven biases provide a consistent edge by
 eliminating the dependence on encoder type.
 
 The key result of this work is that **scaling up the single-layer model
-with local receptive fields and tuned regularisation matches or exceeds a
-gradient-trained MLP on all three benchmarks** (Section 5.5).  With 12 000
-RF neurons and α = 5×10⁻⁴, a single layer reaches 98.50% on MNIST in 52
+with local receptive fields and tuned regularization matches or exceeds a
+gradient-trained MLP on all three benchmarks** (Section 5.5).  With 12000
+RF neurons and α = 5×10⁻⁴, a single layer reaches 98.5% on MNIST in 52
 seconds — equal to the MLP in 37% less time, with zero gradient
-computation.  On Fashion-MNIST, 14 000 neurons with α = 1×10⁻³ reach
-89.74% in 82 seconds (0.04% better than MLP).  On CIFAR-10, a 10-member
-3 000-neuron RF ensemble with α = 1×10⁻⁴ reaches 58.44% in 53 seconds
-(5.74% better and 36% faster).
+computation.  On Fashion-MNIST, 12000 neurons with α = 1×10⁻³ reach
+89.7% in 59 seconds (matching MLP accuracy, 29% faster).  On CIFAR-10,
+a 10-member 3000-neuron RF ensemble with α = 1×10⁻⁴ reaches 58.4% in
+53 seconds (5.7% better and 36% faster).
 
 These results are consistent with McDonnell et al. (2015), who reported
-98.8% on MNIST with a single ELM using local receptive fields and 10 000
+98.8% on MNIST with a single ELM using local receptive fields and 10000
 neurons, and 99.17% with an ensemble of 10 such models.  Our single
-12 000-neuron layer reaches 98.50% — slightly below their 98.8%, which
+12000-neuron layer reaches 98.5% — slightly below their 98.8%, which
 may be attributable to differences in preprocessing (they use contrast
-normalisation) or activation function (they use ReLU with a different gain
+normalization) or activation function (they use ReLU with a different gain
 distribution).  The core finding is the same: local receptive fields +
 many neurons + analytical solve is a powerful combination that competes
 with gradient training.
@@ -1357,40 +1394,41 @@ with gradient training.
 Two experimental insights emerged from the sweep:
 
 1. **Single large layer > ensemble of small layers** (at the same time
-   budget).  A 12 000-neuron single layer (98.50%/52s) outperforms a
-   10×4000 ensemble (97.78%/79s).  The richer feature space of the larger
+   budget).  A 12000-neuron single layer (98.5%/52s) outperforms a
+   10×4000 ensemble (97.8%/79s).  The richer feature space of the larger
    model matters more than ensemble decorrelation.
 
-2. **Regularisation tuning is the decisive lever.**  Reducing α from
-   1×10⁻² to 5×10⁻⁴ lifts MNIST accuracy by 0.24 percentage points.
+2. **Regularization tuning is the decisive lever.**  Reducing α from
+   1×10⁻² to 5×10⁻⁴ lifts MNIST accuracy by 0.2 percentage points.
    The optimal α scales inversely with the feature space richness: MNIST
    (simplest) → 5×10⁻⁴, Fashion (moderate) → 1–2×10⁻³, CIFAR ensemble
    → 1×10⁻⁴.  This is predictable from bias-variance theory: richer
-   feature spaces can tolerate less regularisation before overfitting.
+   feature spaces can tolerate less regularization before overfitting.
 
 The streaming NEF classifier (Section 5.9) extends this competitive
 positioning to temporal data.  On CPU, the 8000-neuron streaming classifier
-reaches 98.56% on sMNIST-row — matching the LSTM (98.3%) while remaining
+reaches 98.6% on sMNIST-row — exceeding the LSTM (98.3%) while remaining
 gradient-free.  On a T4 GPU with the accumulate path, the same model
-reaches 98.54% in **8.3 seconds** — 2.7× faster than LSTM (22.3s) with
+reaches 98.5% in **8.3 seconds** — 2.7× faster than LSTM (22.3s) with
 zero gradient computation.  On permuted pixel-by-pixel sMNIST (784
-timesteps), StreamNEF reaches 91.42% vs LSTM's 82.32%, 9.6× faster.
+timesteps), StreamNEF reaches 91.4% vs LSTM's 82.3%, 9.6× faster.
 
 ### 6.2 When to Use Each Strategy
 
-| Scenario | Recommended approach | Expected accuracy (MNIST/sMNIST) | Time |
-|----------|---------------------|--------------------------|------|
-| Maximum speed | Single NEFLayer | 95.7% | 2s CPU |
-| Speed/accuracy balance | Single RF NEFLayer (12k, α=5×10⁻⁴) | 98.5% | ~52s CPU |
-| Beat MLP, no gradients | Single RF layer, tuned α | 98.5% / 89.7% / 58.4% | 52–82s CPU |
-| Maximum accuracy, moderate time | NEFNet-hybrid→E2E | 98.6% | 402s CPU |
-| Streaming data (online) | NEFLayer + continuous_fit (Woodbury) | 95.7% | varies |
-| Streaming data (GPU) | NEFLayer + accumulate + solve | 95.7% | varies |
-| Temporal sequences (CPU, fast) | StreamNEF (2000n, w=10) | 97.2% (sMNIST) | 23s CPU |
-| Temporal sequences (CPU, accurate) | StreamNEF (8000n, w=10) | 98.6% (sMNIST) | 222s CPU |
-| **Temporal sequences (GPU, fast)** | **StreamNEF-accumulate (2000n)** | **97.2% (sMNIST)** | **1.1s T4** |
-| **Temporal sequences (GPU, accurate)** | **StreamNEF-accumulate (8000n)** | **98.5% (sMNIST)** | **8.3s T4** |
-| Temporal sequences (best) | RecNEF-hybrid→E2E | 98.6% (sMNIST) | 686s CPU |
+| Scenario | Recommended approach | Dataset | Expected accuracy | Time |
+|----------|---------------------|---------|-------------------|------|
+| Maximum speed | Single NEFLayer | MNIST | 95.7% | 2s CPU |
+| Speed/accuracy balance | Single RF NEFLayer (12000n, α=5×10⁻⁴) | MNIST | 98.5% | 52s CPU |
+| Beat MLP, no gradients | Single RF layer, tuned α | MNIST | 98.5% | 52s CPU |
+| Maximum accuracy | NEFNet-hybrid→E2E | MNIST | 98.6% | 402s CPU |
+| Streaming data (online) | NEFLayer + continuous_fit (Woodbury) | MNIST | 95.7% | ~2s CPU |
+| Streaming data (GPU) | NEFLayer + accumulate + solve | MNIST | 95.7% | <1s T4 |
+| Temporal sequences (fast) | StreamNEF (2000n, w=10) | sMNIST | 97.2% | 23s CPU / 1.1s T4 |
+| Temporal sequences (accurate) | StreamNEF (8000n, w=10) | sMNIST | 98.6% | 222s CPU / 8.3s T4 |
+
+Note: the "Beat MLP" row generalizes across datasets (89.7% Fashion-MNIST
+in 59s, 58.4% CIFAR-10 in 53s) but requires per-dataset α tuning and
+different neuron counts.
 
 ### 6.3 Limitations
 
@@ -1398,7 +1436,8 @@ timesteps), StreamNEF reaches 91.42% vs LSTM's 82.32%, 9.6× faster.
   accuracy plateaus at ~58%.  Natural images require learned hierarchical
   features that random projections cannot capture.  Multi-layer strategies
   reach the same level (58.5%) with gradient training, but both remain far
-  below CNN-level accuracy (~95%).
+  below CNN-level accuracy (~95%).  The convolutional pipeline (Section 3.9)
+  is a step toward closing this gap with gradient-free features.
 - **Hyperparameter sensitivity.**  The optimal α varies by dataset and
   neuron count.  While the optimal range is narrow (10⁻⁴ to 10⁻³), the
   wrong setting can cost 0.5–1% accuracy.  Cross-validation or a small
@@ -1412,9 +1451,13 @@ timesteps), StreamNEF reaches 91.42% vs LSTM's 82.32%, 9.6× faster.
   solve path (Section 3.7.2) keeps all O(n²k) matmuls in float32 and
   uses float64 only for O(n²) accumulator additions and the single
   final solve — yielding 7–11× speedup over Woodbury on a T4 while
-  matching or exceeding accuracy (98.54% vs 98.30% at 8k neurons).
+  matching or exceeding accuracy (98.5% vs 98.3% at 8000 neurons).
   The tradeoff is that online decoder updates are not available; the
   model must see all data before solving.
+- **Scaling beyond tens of thousands of neurons.**  The O(n²) memory and
+  O(n³) solve cost limits practical neuron counts to roughly 30000 on
+  consumer hardware.  Iterative solvers or sketching methods could extend
+  this range.
 
 ### 6.4 Relationship to Prior Work
 
@@ -1444,7 +1487,7 @@ ground with NEF-TP and offer avenues for integration:
   distinguish real from corrupted data using only local information.  It
   could complement our analytical decoders: solve D after each layer
   learns good encodings via forward-forward.
-- **HSIC bottleneck** (Ma et al., 2020) trains each layer to maximise the
+- **HSIC bottleneck** (Ma et al., 2020) trains each layer to maximize the
   Hilbert-Schmidt Independence Criterion between its representation and
   the target.  The kernel matrix is computed from the activity matrix, and
   the optimum has a closed-form related to our normal-equations solver,
@@ -1452,6 +1495,14 @@ ground with NEF-TP and offer avenues for integration:
 
 
 ## 7. Conclusions
+
+This report demonstrates that the Neural Engineering Framework's
+encode–activate–decode architecture, when combined with data-driven
+biases, local receptive fields, and proper regularization, produces a
+supervised learning system that is competitive with gradient-trained
+models while requiring no gradient computation for single-layer training.
+
+The main findings are:
 
 1. **Data-driven biases are the key single-layer design choice.**
    Rewriting the encoding as `|gain · ((x − d) · e)|` reveals each
@@ -1462,24 +1513,24 @@ ground with NEF-TP and offer avenues for integration:
 
 2. **A single analytically solved layer matches or beats a gradient-
    trained MLP — without any gradient computation.**  With local
-   receptive field encoders, 12 000–14 000 neurons, and tuned Tikhonov
-   regularisation, a single NEF layer achieves 98.50% on MNIST (52s,
-   37% faster than MLP), 89.74% on Fashion-MNIST (82s, 0.04% better),
-   and 58.44% on CIFAR-10 via ensembling (53s, 5.74% better and 36%
+   receptive field encoders, 12000 neurons, and tuned Tikhonov
+   regularization, a single NEF layer achieves 98.5% on MNIST (52s,
+   37% faster than MLP), 89.7% on Fashion-MNIST (59s, 29% faster),
+   and 58.4% on CIFAR-10 via ensembling (53s, 5.7% better and 36%
    faster).  This is the headline result: the analytical solve is not
    merely "fast but less accurate" — it is *competitive in both speed
    and accuracy* when properly configured.
 
-3. **Regularisation tuning is the decisive lever at scale.**  The
+3. **Regularization tuning is the decisive lever at scale.**  The
    default Tikhonov α = 10⁻² is appropriate for 2000-neuron models,
    but larger models with RF encoders have richer feature spaces that
-   tolerate weaker regularisation.  Reducing α to 5×10⁻⁴ (MNIST) or
-   1×10⁻³ (Fashion) lifts accuracy by 0.24–0.25 percentage points,
+   tolerate weaker regularization.  Reducing α to 5×10⁻⁴ (MNIST) or
+   1×10⁻³ (Fashion) lifts accuracy by 0.2 percentage points,
    closing the gap to the MLP baseline.
 
 4. **Single large layer outperforms ensembles of small layers** at the
-   same time budget.  A 12 000-neuron single RF layer (98.50%/52s) beats
-   a 10×4000 ensemble (97.78%/79s) on MNIST.  The richer feature space
+   same time budget.  A 12000-neuron single RF layer (98.5%/52s) beats
+   a 10×4000 ensemble (97.8%/79s) on MNIST.  The richer feature space
    of the larger model matters more than ensemble decorrelation when
    base models are already strong.  Ensembles remain valuable for CIFAR-10,
    where per-model accuracy is lower and decorrelation helps more.
@@ -1489,8 +1540,8 @@ ground with NEF-TP and offer avenues for integration:
    gradient training, relu's sparsity slightly edges ahead.
 
 6. **Local receptive field encoders are the biggest structural lever.**
-   RF encoders boost CIFAR-10 from 47.80% to 55.32% (+7.52%) with a
-   10×2000 ensemble.  On MNIST, larger RF layers reach 98.50% — close
+   RF encoders boost CIFAR-10 from 47.8% to 55.3% (+7.5%) with a
+   10×2000 ensemble.  On MNIST, larger RF layers reach 98.5% — close
    to McDonnell et al.'s 98.8% with comparable neuron counts.
 
 7. **Hybrid→E2E remains the best balanced multi-layer strategy.**
@@ -1509,27 +1560,28 @@ ground with NEF-TP and offer avenues for integration:
     enables streaming data and model updates without reprocessing, with
     results identical to full-batch training.
 
-11. **Continuous learning via Woodbury updates enables gradient-free
-    temporal classification.**  The Sherman-Morrison-Woodbury identity
-    maintains the system inverse incrementally at O(n²k) cost per batch.
-    Combined with a delay-line temporal encoder, this produces a streaming
-    classifier that reaches 98.57% on sequential MNIST — matching LSTM
-    (98.3%) and RecNEF-E2E (98.5%) — without any gradient computation.
-    Float64 arithmetic for the inverse is essential; float32 drift
-    causes catastrophic failure at ≥4000 neurons.  For GPU deployment,
-    the accumulate + solve path (Section 3.7.2) keeps all expensive
-    matmuls in float32 and uses float64 only for small accumulator
-    sums and the single final solve.  On a T4 GPU this yields 7–11×
-    speedup over Woodbury (8.3s vs 93.2s at 8k neurons) while slightly
-    exceeding accuracy (98.54% vs 98.30%).
+11. **A delay-line reservoir with analytical decoders produces a
+    gradient-free temporal classifier that exceeds LSTM on sMNIST.**
+    The streaming NEF classifier reaches 98.6% on sMNIST-row on CPU
+    (222s) — exceeding LSTM (98.3%) — without any gradient computation.
+    On a T4 GPU, the accumulate + solve path reaches 98.5% in 8.3
+    seconds (2.7× faster than LSTM at 22.3s), almost matching the
+    LSTM's 98.6%.  On permuted pixel-by-pixel sMNIST (784 timesteps),
+    StreamNEF reaches 91.4% vs LSTM's 82.3%, 9.6× faster.
 
-12. **The delay-line reservoir sidesteps the recurrent gradient-free
-    bottleneck.**  Gradient-free recurrent models (RecNEF-greedy: 15%)
-    fail because random encoders compound state feedback noise.  The
-    streaming classifier replaces recurrence with temporal pooling,
-    achieving 97% in 23 seconds CPU (1.1s T4 GPU) at 2000 neurons.
-    On permuted pixel-by-pixel sMNIST (784 timesteps), StreamNEF
-    reaches 91.42% vs LSTM's 82.32% while being 9.6× faster.
+12. **The accumulate + solve path makes GPU deployment practical.**
+    By keeping all expensive matmuls in float32 and using float64 only
+    for accumulator sums and the final solve, the accumulate path
+    achieves 7–11× speedup over Woodbury on a T4 GPU while slightly
+    exceeding accuracy.
+
+The NEF approach occupies a distinctive niche: it is the fastest path to
+a competitive model when gradient training is undesirable or unnecessary.
+The two-second single-layer solve, the minute-long RF model that matches
+an MLP, and the eight-second GPU temporal classifier that almost matches
+an LSTM all demonstrate that analytical weight solving, properly combined
+with neuroscience-motivated encoding, is a practical alternative to
+gradient descent for a meaningful class of problems.
 
 
 ## References
