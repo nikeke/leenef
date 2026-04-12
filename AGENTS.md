@@ -33,8 +33,28 @@ python benchmarks/run_recurrent.py --streaming --streaming-solve-mode accumulate
 # Colab suites (GPU)
 python benchmarks/colab_suites.py --suite row_focus --device auto --output-dir results/colab
 python benchmarks/colab_suites.py --suite sequential_hard --device auto --output-dir results/colab
+python benchmarks/colab_suites.py --suite sequential_audio --device auto --output-dir results/colab
+python benchmarks/colab_suites.py --suite sequential_audio_v2 --device auto --output-dir results/colab
 python benchmarks/colab_suites.py --suite conv_cifar --device auto --output-dir results/colab
 ```
+
+## Technical report as design reference
+
+Before designing new experiments, planning enhancements, adding features, or
+exploring research directions, **read `docs/technical_report.md`** to
+understand:
+
+- existing results, defaults, and the claims they support
+- window-size regimes, regularization sweet spots, and encoder-strategy
+  tradeoffs already established by prior sweeps
+- which configurations have already been tried and what worked or failed
+- the narrative spine (title, abstract, Sections 1/6/7) so new work fits
+  the existing story or consciously revises it
+
+New Colab suites, benchmark parameters, and code changes should be
+**consistent with the TR's findings** unless the explicit goal is to
+challenge or extend them.  When results change the story, update the TR
+(following the maintenance rules below).
 
 ## Colab benchmark suite rules
 
