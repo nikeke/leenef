@@ -7,6 +7,7 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F  # noqa: N812
 from torch import Tensor
 
 # Ensure the checkout root and src layout are importable when run as a script.
@@ -506,6 +507,599 @@ def run_lstm_baseline(
     return BenchmarkResult(
         name=f"LSTM-{hidden_size}",
         dataset=f"sMNIST-{mode}",
+        n_neurons=hidden_size * n_layers,
+        activation="tanh/sigmoid",
+        encoder_strategy="learned",
+        solver="adam",
+        solver_kwargs={"lr": lr, "epochs": n_epochs},
+        metric_name="accuracy",
+        train_metric=train_acc,
+        test_metric=test_acc,
+        fit_time=fit_time,
+    )
+
+
+# ------------------------------------------------------------------
+# Speech Commands v2 dataset
+# ------------------------------------------------------------------
+
+_SPEECH_COMMANDS_LABELS = [
+    "backward",
+    "bed",
+    "bird",
+    "cat",
+    "dog",
+    "down",
+    "eight",
+    "five",
+    "follow",
+    "forward",
+    "four",
+    "go",
+    "happy",
+    "house",
+    "learn",
+    "left",
+    "marvin",
+    "nine",
+    "no",
+    "off",
+    "on",
+    "one",
+    "right",
+    "seven",
+    "sheila",
+    "six",
+    "stop",
+    "three",
+    "tree",
+    "two",
+    "up",
+    "visual",
+    "wow",
+    "yes",
+    "zero",
+]
+
+
+def load_speech_commands(
+    root: str = "./data",
+    n_mfcc: int = 40,
+    seed: int = 0,
+) -> tuple[tuple[Tensor, Tensor], tuple[Tensor, Tensor], int]:
+    """Load Google Speech Commands v2 as MFCC feature sequences.
+
+    Extracts MFCC features from 1-second audio clips (padded/trimmed to
+    16kHz).  Merges the training and validation splits for training; uses
+    the standard test split for evaluation.  MFCCs are normalized to
+    zero-mean unit-variance per coefficient (statistics from training set).
+
+    Args:
+        root:   Data download directory.
+        n_mfcc: Number of MFCC coefficients per frame.
+        seed:   Random seed for shuffling training data.
+
+    Returns:
+        ((x_train, y_train), (x_test, y_test), n_classes)
+        where x shapes are (N, T, n_mfcc) with T ≈ 101 frames.
+    """
+    import torchaudio
+
+    label_to_idx = {label: i for i, label in enumerate(_SPEECH_COMMANDS_LABELS)}
+    n_classes = len(_SPEECH_COMMANDS_LABELS)
+
+    mfcc_transform = torchaudio.transforms.MFCC(
+        sample_rate=16000,
+        n_mfcc=n_mfcc,
+        melkwargs={"n_fft": 400, "hop_length": 160, "n_mels": 80},
+    )
+    target_len = 16000  # 1 second at 16kHz
+
+    def _process_split(subset: str) -> tuple[Tensor, Tensor]:
+        ds = torchaudio.datasets.SPEECHCOMMANDS(root, download=True, subset=subset)
+        features, labels = [], []
+        for i, (waveform, sr, label, *_) in enumerate(ds):
+            if sr != 16000:
+                waveform = torchaudio.transforms.Resample(sr, 16000)(waveform)
+            if waveform.shape[1] < target_len:
+                waveform = F.pad(waveform, (0, target_len - waveform.shape[1]))
+            else:
+                waveform = waveform[:, :target_len]
+            feat = mfcc_transform(waveform).squeeze(0)  # (n_mfcc, T)
+            features.append(feat)
+            labels.append(label_to_idx[label])
+            if (i + 1) % 20000 == 0:
+                print(f"    {subset}: {i + 1} samples", flush=True)
+        x = torch.stack(features).permute(0, 2, 1).float()  # (N, T, n_mfcc)
+        y = torch.tensor(labels, dtype=torch.long)
+        print(f"    {subset}: {len(y)} samples total", flush=True)
+        return x, y
+
+    print("  Loading Speech Commands v2 (MFCC extraction)...", flush=True)
+    x_train, y_train = _process_split("training")
+    x_val, y_val = _process_split("validation")
+    x_test, y_test = _process_split("testing")
+
+    # Merge train + validation for training
+    x_train = torch.cat([x_train, x_val], dim=0)
+    y_train = torch.cat([y_train, y_val], dim=0)
+
+    # Normalize per-coefficient to zero-mean unit-variance (training stats)
+    mean = x_train.mean(dim=(0, 1), keepdim=True)
+    std = x_train.std(dim=(0, 1), keepdim=True).clamp(min=1e-6)
+    x_train = (x_train - mean) / std
+    x_test = (x_test - mean) / std
+
+    # Shuffle training data
+    rng = torch.Generator().manual_seed(seed)
+    perm = torch.randperm(len(x_train), generator=rng)
+    x_train, y_train = x_train[perm], y_train[perm]
+
+    return (x_train, y_train), (x_test, y_test), n_classes
+
+
+# ------------------------------------------------------------------
+# Sequential CIFAR-10 dataset
+# ------------------------------------------------------------------
+
+
+def load_sequential_cifar10(
+    mode: str = "row",
+    root: str = "./data",
+) -> tuple[tuple[Tensor, Tensor], tuple[Tensor, Tensor]]:
+    """Load CIFAR-10 as sequential data for temporal classification.
+
+    Args:
+        mode: ``"row"`` — 32 rows of 96 features (T=32, d=96, channels
+              interleaved per row).
+              ``"pixel"`` — 1024 pixels with 3 channel features (T=1024, d=3).
+
+    Returns:
+        ((x_train_seq, y_train), (x_test_seq, y_test))
+    """
+    import torchvision
+    import torchvision.transforms as T
+
+    transform = T.ToTensor()
+    train_ds = torchvision.datasets.CIFAR10(root, train=True, download=True, transform=transform)
+    test_ds = torchvision.datasets.CIFAR10(root, train=False, download=True, transform=transform)
+
+    def _to_tensors(ds):
+        loader = torch.utils.data.DataLoader(ds, batch_size=len(ds))
+        x, y = next(iter(loader))
+        return x, y
+
+    x_train_img, y_train = _to_tensors(train_ds)  # (N, 3, 32, 32)
+    x_test_img, y_test = _to_tensors(test_ds)
+
+    if mode == "row":
+        # (N, 3, 32, 32) → (N, 32, 96): T=32, d=96
+        x_train_seq = x_train_img.permute(0, 2, 3, 1).reshape(-1, 32, 96).float()
+        x_test_seq = x_test_img.permute(0, 2, 3, 1).reshape(-1, 32, 96).float()
+    elif mode == "pixel":
+        # (N, 3, 32, 32) → (N, 1024, 3): T=1024, d=3
+        x_train_seq = x_train_img.permute(0, 2, 3, 1).reshape(-1, 1024, 3).float()
+        x_test_seq = x_test_img.permute(0, 2, 3, 1).reshape(-1, 1024, 3).float()
+    else:
+        raise ValueError(f"Unknown mode {mode!r}, expected 'row' or 'pixel'")
+
+    return (x_train_seq, y_train), (x_test_seq, y_test)
+
+
+# ------------------------------------------------------------------
+# StreamNEF and LSTM on Speech Commands
+# ------------------------------------------------------------------
+
+
+def run_streaming_nef_speech(
+    n_neurons: int = 4000,
+    window_size: int = 10,
+    activation: str = "abs",
+    encoder_strategy: str = "hypersphere",
+    gain: float | tuple[float, float] = (0.5, 2.0),
+    use_centers: bool = True,
+    alpha: float = 1e-2,
+    batch_size: int = 500,
+    n_mfcc: int = 40,
+    data_root: str = "./data",
+    seed: int | None = 0,
+    solve_mode: str = "accumulate",
+    device: str = "cpu",
+    eval_batch_size: int = 2048,
+    verbose: bool = False,
+) -> BenchmarkResult:
+    """Run StreamNEF on Google Speech Commands v2 (MFCC features)."""
+    if solve_mode not in ("woodbury", "accumulate", "batch"):
+        raise ValueError(f"Unknown solve_mode {solve_mode!r}")
+    set_benchmark_seed(seed)
+    runtime_device = resolve_benchmark_device(device)
+    data_seed = 0 if seed is None else seed
+
+    (x_train_seq, y_train), (x_test_seq, y_test), n_classes = load_speech_commands(
+        root=data_root, n_mfcc=n_mfcc, seed=data_seed
+    )
+    targets = one_hot(y_train, n_classes)
+
+    _, _, d_in = x_train_seq.shape
+    rng = torch.Generator().manual_seed(data_seed)
+    clf = StreamingNEFClassifier(
+        d_timestep=d_in,
+        n_neurons=n_neurons,
+        d_out=n_classes,
+        window_size=window_size,
+        activation=activation,
+        encoder_strategy=encoder_strategy,
+        gain=gain,
+        rng=rng,
+        centers=x_train_seq if use_centers else None,
+    ).to(runtime_device)
+
+    x_train_seq = x_train_seq.to(runtime_device)
+    x_test_seq = x_test_seq.to(runtime_device)
+    y_train = y_train.to(runtime_device)
+    y_test = y_test.to(runtime_device)
+    targets = targets.to(runtime_device)
+
+    if verbose:
+        print(
+            f"  StreamNEF-{solve_mode}: dataset=SpeechCmds, neurons={n_neurons}, "
+            f"window={window_size}, mfcc={n_mfcc}, alpha={alpha}, device={runtime_device}",
+            flush=True,
+        )
+
+    synchronize_if_cuda(runtime_device)
+    t0 = time.perf_counter()
+    if solve_mode == "woodbury":
+        n_batches = (len(x_train_seq) + batch_size - 1) // batch_size
+        log_every = max(1, n_batches // 10)
+        for batch_idx, i in enumerate(range(0, len(x_train_seq), batch_size), start=1):
+            clf.continuous_fit(
+                x_train_seq[i : i + batch_size],
+                targets[i : i + batch_size],
+                alpha=alpha,
+            )
+            if verbose and (
+                batch_idx == 1 or batch_idx == n_batches or batch_idx % log_every == 0
+            ):
+                print(f"    batch {batch_idx}/{n_batches}", flush=True)
+        if verbose:
+            print("    refreshing inverse", flush=True)
+        clf.refresh_inverse(alpha=alpha)
+    elif solve_mode == "accumulate":
+        n_batches = (len(x_train_seq) + batch_size - 1) // batch_size
+        log_every = max(1, n_batches // 10)
+        for batch_idx, i in enumerate(range(0, len(x_train_seq), batch_size), start=1):
+            clf.accumulate(
+                x_train_seq[i : i + batch_size],
+                targets[i : i + batch_size],
+            )
+            if verbose and (
+                batch_idx == 1 or batch_idx == n_batches or batch_idx % log_every == 0
+            ):
+                print(f"    batch {batch_idx}/{n_batches}", flush=True)
+        if verbose:
+            print("    solving decoders", flush=True)
+        clf.solve(alpha=alpha)
+    else:
+        if verbose:
+            print("    solving batch decoder", flush=True)
+        clf.fit(x_train_seq, targets, alpha=alpha)
+    synchronize_if_cuda(runtime_device)
+    fit_time = time.perf_counter() - t0
+
+    if verbose:
+        print("    evaluating", flush=True)
+    train_acc = batched_classification_accuracy(
+        clf, x_train_seq, y_train, batch_size=eval_batch_size
+    )
+    test_acc = batched_classification_accuracy(clf, x_test_seq, y_test, batch_size=eval_batch_size)
+
+    return BenchmarkResult(
+        name=f"StreamNEF-{solve_mode}",
+        dataset=f"SpeechCmds-mfcc{n_mfcc}",
+        n_neurons=n_neurons,
+        activation=activation,
+        encoder_strategy=encoder_strategy,
+        solver=f"{solve_mode}-α{alpha}",
+        solver_kwargs={"alpha": alpha, "window_size": window_size, "batch_size": batch_size},
+        metric_name="accuracy",
+        train_metric=train_acc,
+        test_metric=test_acc,
+        fit_time=fit_time,
+    )
+
+
+def run_lstm_speech(
+    hidden_size: int = 128,
+    n_layers: int = 1,
+    n_epochs: int = 30,
+    lr: float = 1e-3,
+    batch_size: int = 256,
+    n_mfcc: int = 40,
+    data_root: str = "./data",
+    seed: int | None = 0,
+    device: str = "cpu",
+    eval_batch_size: int = 2048,
+    verbose: bool = False,
+) -> BenchmarkResult:
+    """Train an LSTM on Google Speech Commands v2 (MFCC features)."""
+    set_benchmark_seed(seed)
+    runtime_device = resolve_benchmark_device(device)
+    data_seed = 0 if seed is None else seed
+
+    (x_train_seq, y_train), (x_test_seq, y_test), n_classes = load_speech_commands(
+        root=data_root, n_mfcc=n_mfcc, seed=data_seed
+    )
+    _, _, d_in = x_train_seq.shape
+
+    model = _LSTMClassifier(d_in, hidden_size, n_classes=n_classes, n_layers=n_layers).to(
+        runtime_device
+    )
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    loss_fn = nn.CrossEntropyLoss()
+
+    dataset = torch.utils.data.TensorDataset(x_train_seq, y_train)
+    loader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        generator=torch.Generator().manual_seed(data_seed),
+    )
+
+    if verbose:
+        print(
+            f"  LSTM-{hidden_size}: dataset=SpeechCmds, mfcc={n_mfcc}, "
+            f"epochs={n_epochs}, batch={batch_size}, device={runtime_device}",
+            flush=True,
+        )
+
+    synchronize_if_cuda(runtime_device)
+    t0 = time.perf_counter()
+    log_every = max(1, n_epochs // 10)
+    for epoch in range(1, n_epochs + 1):
+        for xb, yb in loader:
+            xb = xb.to(runtime_device)
+            yb = yb.to(runtime_device)
+            pred = model(xb)
+            loss = loss_fn(pred, yb)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+        if verbose and (epoch == 1 or epoch == n_epochs or epoch % log_every == 0):
+            print(f"    epoch {epoch}/{n_epochs}", flush=True)
+    synchronize_if_cuda(runtime_device)
+    fit_time = time.perf_counter() - t0
+
+    if verbose:
+        print("    evaluating", flush=True)
+
+    T = x_train_seq.shape[1]
+    lstm_eval_batch = max(64, eval_batch_size * 28 // max(T, 1))
+
+    train_acc = batched_classification_accuracy(
+        model, x_train_seq, y_train, batch_size=lstm_eval_batch, move_to_device=runtime_device
+    )
+    test_acc = batched_classification_accuracy(
+        model, x_test_seq, y_test, batch_size=lstm_eval_batch, move_to_device=runtime_device
+    )
+
+    return BenchmarkResult(
+        name=f"LSTM-{hidden_size}",
+        dataset=f"SpeechCmds-mfcc{n_mfcc}",
+        n_neurons=hidden_size * n_layers,
+        activation="tanh/sigmoid",
+        encoder_strategy="learned",
+        solver="adam",
+        solver_kwargs={"lr": lr, "epochs": n_epochs},
+        metric_name="accuracy",
+        train_metric=train_acc,
+        test_metric=test_acc,
+        fit_time=fit_time,
+    )
+
+
+# ------------------------------------------------------------------
+# StreamNEF and LSTM on Sequential CIFAR-10
+# ------------------------------------------------------------------
+
+
+def run_streaming_nef_scifar(
+    mode: str = "row",
+    n_neurons: int = 4000,
+    window_size: int = 8,
+    activation: str = "abs",
+    encoder_strategy: str = "hypersphere",
+    gain: float | tuple[float, float] = (0.5, 2.0),
+    use_centers: bool = True,
+    alpha: float = 1e-2,
+    batch_size: int = 500,
+    data_root: str = "./data",
+    seed: int | None = 0,
+    solve_mode: str = "accumulate",
+    device: str = "cpu",
+    eval_batch_size: int = 2048,
+    verbose: bool = False,
+) -> BenchmarkResult:
+    """Run StreamNEF on Sequential CIFAR-10."""
+    if solve_mode not in ("woodbury", "accumulate", "batch"):
+        raise ValueError(f"Unknown solve_mode {solve_mode!r}")
+    set_benchmark_seed(seed)
+    runtime_device = resolve_benchmark_device(device)
+    data_seed = 0 if seed is None else seed
+
+    (x_train_seq, y_train), (x_test_seq, y_test) = load_sequential_cifar10(
+        mode=mode, root=data_root
+    )
+    n_classes = 10
+    targets = one_hot(y_train, n_classes)
+
+    _, _, d_in = x_train_seq.shape
+    rng = torch.Generator().manual_seed(data_seed)
+    clf = StreamingNEFClassifier(
+        d_timestep=d_in,
+        n_neurons=n_neurons,
+        d_out=n_classes,
+        window_size=window_size,
+        activation=activation,
+        encoder_strategy=encoder_strategy,
+        gain=gain,
+        rng=rng,
+        centers=x_train_seq if use_centers else None,
+    ).to(runtime_device)
+
+    x_train_seq = x_train_seq.to(runtime_device)
+    x_test_seq = x_test_seq.to(runtime_device)
+    y_train = y_train.to(runtime_device)
+    y_test = y_test.to(runtime_device)
+    targets = targets.to(runtime_device)
+
+    if verbose:
+        print(
+            f"  StreamNEF-{solve_mode}: dataset=sCIFAR-{mode}, neurons={n_neurons}, "
+            f"window={window_size}, alpha={alpha}, device={runtime_device}",
+            flush=True,
+        )
+
+    synchronize_if_cuda(runtime_device)
+    t0 = time.perf_counter()
+    if solve_mode == "woodbury":
+        n_batches = (len(x_train_seq) + batch_size - 1) // batch_size
+        log_every = max(1, n_batches // 10)
+        for batch_idx, i in enumerate(range(0, len(x_train_seq), batch_size), start=1):
+            clf.continuous_fit(
+                x_train_seq[i : i + batch_size],
+                targets[i : i + batch_size],
+                alpha=alpha,
+            )
+            if verbose and (
+                batch_idx == 1 or batch_idx == n_batches or batch_idx % log_every == 0
+            ):
+                print(f"    batch {batch_idx}/{n_batches}", flush=True)
+        if verbose:
+            print("    refreshing inverse", flush=True)
+        clf.refresh_inverse(alpha=alpha)
+    elif solve_mode == "accumulate":
+        n_batches = (len(x_train_seq) + batch_size - 1) // batch_size
+        log_every = max(1, n_batches // 10)
+        for batch_idx, i in enumerate(range(0, len(x_train_seq), batch_size), start=1):
+            clf.accumulate(
+                x_train_seq[i : i + batch_size],
+                targets[i : i + batch_size],
+            )
+            if verbose and (
+                batch_idx == 1 or batch_idx == n_batches or batch_idx % log_every == 0
+            ):
+                print(f"    batch {batch_idx}/{n_batches}", flush=True)
+        if verbose:
+            print("    solving decoders", flush=True)
+        clf.solve(alpha=alpha)
+    else:
+        if verbose:
+            print("    solving batch decoder", flush=True)
+        clf.fit(x_train_seq, targets, alpha=alpha)
+    synchronize_if_cuda(runtime_device)
+    fit_time = time.perf_counter() - t0
+
+    if verbose:
+        print("    evaluating", flush=True)
+    train_acc = batched_classification_accuracy(
+        clf, x_train_seq, y_train, batch_size=eval_batch_size
+    )
+    test_acc = batched_classification_accuracy(clf, x_test_seq, y_test, batch_size=eval_batch_size)
+
+    return BenchmarkResult(
+        name=f"StreamNEF-{solve_mode}",
+        dataset=f"sCIFAR10-{mode}",
+        n_neurons=n_neurons,
+        activation=activation,
+        encoder_strategy=encoder_strategy,
+        solver=f"{solve_mode}-α{alpha}",
+        solver_kwargs={"alpha": alpha, "window_size": window_size, "batch_size": batch_size},
+        metric_name="accuracy",
+        train_metric=train_acc,
+        test_metric=test_acc,
+        fit_time=fit_time,
+    )
+
+
+def run_lstm_scifar(
+    mode: str = "row",
+    hidden_size: int = 128,
+    n_layers: int = 1,
+    n_epochs: int = 50,
+    lr: float = 1e-3,
+    batch_size: int = 256,
+    data_root: str = "./data",
+    seed: int | None = 0,
+    device: str = "cpu",
+    eval_batch_size: int = 2048,
+    verbose: bool = False,
+) -> BenchmarkResult:
+    """Train an LSTM on Sequential CIFAR-10."""
+    set_benchmark_seed(seed)
+    runtime_device = resolve_benchmark_device(device)
+    data_seed = 0 if seed is None else seed
+
+    (x_train_seq, y_train), (x_test_seq, y_test) = load_sequential_cifar10(
+        mode=mode, root=data_root
+    )
+    n_classes = 10
+    _, _, d_in = x_train_seq.shape
+
+    model = _LSTMClassifier(d_in, hidden_size, n_classes=n_classes, n_layers=n_layers).to(
+        runtime_device
+    )
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    loss_fn = nn.CrossEntropyLoss()
+
+    dataset = torch.utils.data.TensorDataset(x_train_seq, y_train)
+    loader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        generator=torch.Generator().manual_seed(data_seed),
+    )
+
+    if verbose:
+        print(
+            f"  LSTM-{hidden_size}: dataset=sCIFAR-{mode}, "
+            f"epochs={n_epochs}, batch={batch_size}, device={runtime_device}",
+            flush=True,
+        )
+
+    synchronize_if_cuda(runtime_device)
+    t0 = time.perf_counter()
+    log_every = max(1, n_epochs // 10)
+    for epoch in range(1, n_epochs + 1):
+        for xb, yb in loader:
+            xb = xb.to(runtime_device)
+            yb = yb.to(runtime_device)
+            pred = model(xb)
+            loss = loss_fn(pred, yb)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+        if verbose and (epoch == 1 or epoch == n_epochs or epoch % log_every == 0):
+            print(f"    epoch {epoch}/{n_epochs}", flush=True)
+    synchronize_if_cuda(runtime_device)
+    fit_time = time.perf_counter() - t0
+
+    if verbose:
+        print("    evaluating", flush=True)
+
+    T = x_train_seq.shape[1]
+    lstm_eval_batch = max(64, eval_batch_size * 28 // max(T, 1))
+
+    train_acc = batched_classification_accuracy(
+        model, x_train_seq, y_train, batch_size=lstm_eval_batch, move_to_device=runtime_device
+    )
+    test_acc = batched_classification_accuracy(
+        model, x_test_seq, y_test, batch_size=lstm_eval_batch, move_to_device=runtime_device
+    )
+
+    return BenchmarkResult(
+        name=f"LSTM-{hidden_size}",
+        dataset=f"sCIFAR10-{mode}",
         n_neurons=hidden_size * n_layers,
         activation="tanh/sigmoid",
         encoder_strategy="learned",

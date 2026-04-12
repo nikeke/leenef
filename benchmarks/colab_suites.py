@@ -24,8 +24,12 @@ from benchmarks.run import (  # noqa: E402
 )
 from benchmarks.run_recurrent import (  # noqa: E402
     run_lstm_baseline,
+    run_lstm_scifar,
+    run_lstm_speech,
     run_recurrent_nef,
     run_streaming_nef,
+    run_streaming_nef_scifar,
+    run_streaming_nef_speech,
 )
 
 _INCREMENTAL_RESULTS: list[BenchmarkResult] | None = None
@@ -2618,6 +2622,156 @@ def run_defaults_tp_suite(args: argparse.Namespace) -> list:
     return results
 
 
+def run_sequential_audio_suite(args: argparse.Namespace) -> list:
+    """Benchmark StreamNEF vs LSTM on Speech Commands v2 and Sequential CIFAR-10.
+
+    GPU recommendation: T4 (matrix dimensions too small for A100/H100 payoff;
+    LSTM is inherently sequential; peak memory ~3-4 GB).
+
+    Full suite (8 experiments):
+      1. StreamNEF SpeechCmds 4k neurons, window=10 (accumulate)
+      2. StreamNEF SpeechCmds 8k neurons, window=20 (accumulate)
+      3. LSTM SpeechCmds hidden=128, 30 epochs
+      4. LSTM SpeechCmds hidden=256, 30 epochs
+      5. StreamNEF sCIFAR-row 4k neurons, window=8 (accumulate)
+      6. StreamNEF sCIFAR-row 8k neurons, window=8 (accumulate)
+      7. LSTM sCIFAR-row hidden=128, 50 epochs
+      8. LSTM sCIFAR-row hidden=256, 50 epochs
+    """
+    common_speech = dict(
+        data_root=args.data_root,
+        seed=args.seed,
+        device=args.device,
+        eval_batch_size=args.eval_batch,
+        verbose=True,
+    )
+    common_scifar = dict(
+        mode="row",
+        data_root=args.data_root,
+        seed=args.seed,
+        device=args.device,
+        eval_batch_size=args.eval_batch,
+        verbose=True,
+    )
+
+    if args.quick:
+        return [
+            _run_labeled(
+                "StreamNEF SpeechCmds quick",
+                run_streaming_nef_speech,
+                n_neurons=512,
+                window_size=5,
+                alpha=1e-2,
+                batch_size=500,
+                solve_mode="accumulate",
+                **common_speech,
+            ),
+            _run_labeled(
+                "LSTM SpeechCmds quick",
+                run_lstm_speech,
+                hidden_size=64,
+                n_epochs=1,
+                batch_size=256,
+                **common_speech,
+            ),
+            _run_labeled(
+                "StreamNEF sCIFAR-row quick",
+                run_streaming_nef_scifar,
+                n_neurons=512,
+                window_size=4,
+                alpha=1e-2,
+                batch_size=500,
+                solve_mode="accumulate",
+                **common_scifar,
+            ),
+            _run_labeled(
+                "LSTM sCIFAR-row quick",
+                run_lstm_scifar,
+                hidden_size=64,
+                n_epochs=1,
+                batch_size=256,
+                **common_scifar,
+            ),
+        ]
+
+    return [
+        # --- Speech Commands v2 ---
+        _run_labeled(
+            "StreamNEF SpeechCmds 4k w10 (accumulate)",
+            run_streaming_nef_speech,
+            n_neurons=4000,
+            window_size=10,
+            alpha=1e-2,
+            batch_size=500,
+            solve_mode="accumulate",
+            **common_speech,
+        ),
+        _run_labeled(
+            "StreamNEF SpeechCmds 8k w20 (accumulate)",
+            run_streaming_nef_speech,
+            n_neurons=8000,
+            window_size=20,
+            alpha=1e-2,
+            batch_size=500,
+            solve_mode="accumulate",
+            **common_speech,
+        ),
+        _run_labeled(
+            "LSTM SpeechCmds 128",
+            run_lstm_speech,
+            hidden_size=128,
+            n_epochs=30,
+            batch_size=args.lstm_batch,
+            **common_speech,
+        ),
+        _run_labeled(
+            "LSTM SpeechCmds 256",
+            run_lstm_speech,
+            hidden_size=256,
+            n_epochs=30,
+            batch_size=args.lstm_batch,
+            **common_speech,
+        ),
+        # --- Sequential CIFAR-10 (row) ---
+        _run_labeled(
+            "StreamNEF sCIFAR-row 4k w8 (accumulate)",
+            run_streaming_nef_scifar,
+            n_neurons=4000,
+            window_size=8,
+            alpha=1e-2,
+            batch_size=500,
+            solve_mode="accumulate",
+            **common_scifar,
+        ),
+        _run_labeled(
+            "StreamNEF sCIFAR-row 8k w8 (accumulate)",
+            run_streaming_nef_scifar,
+            n_neurons=8000,
+            window_size=8,
+            alpha=1e-2,
+            batch_size=500,
+            solve_mode="accumulate",
+            **common_scifar,
+        ),
+        _run_labeled(
+            "LSTM sCIFAR-row 128",
+            run_lstm_scifar,
+            hidden_size=128,
+            n_epochs=50,
+            batch_size=args.lstm_batch,
+            **common_scifar,
+        ),
+        _run_labeled(
+            "LSTM sCIFAR-row 256",
+            run_lstm_scifar,
+            hidden_size=256,
+            n_epochs=50,
+            batch_size=args.lstm_batch,
+            **common_scifar,
+        ),
+    ]
+
+
 SUITES = {
     "row_focus": run_row_focus_suite,
     "sequential_hard": run_sequential_hard_suite,
@@ -2630,6 +2784,7 @@ SUITES = {
     "conv_cifar_v6": run_conv_cifar_v6_suite,
     "conv_cifar_v7": run_conv_cifar_v7_suite,
     "defaults_tp": run_defaults_tp_suite,
+    "sequential_audio": run_sequential_audio_suite,
 }
 
 
