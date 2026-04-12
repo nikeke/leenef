@@ -849,7 +849,7 @@ options that are applied before filter learning and/or at inference:
 - **Feature standardization** (`standardize=True`) — zero-mean,
   unit-variance normalization of the flattened feature vector after
   pooling.  This is the single largest accuracy lever in our experiments
-  (Section 5.10).
+  (Section 5.11).
 - **Global contrast normalization** (`gcn=True`) — per-image
   mean-subtraction and L2-normalization, applied before convolution.
 - **Local contrast normalization** (`lcn_kernel`) — subtractive and
@@ -1389,22 +1389,28 @@ sparsity to damp gradient magnitudes.  Over 28 timesteps, this causes
 gradient explosion.  ReLU's zero gradient on ~half the neurons provides
 critical damping.  E2E with abs gets 10.1% (random); with relu, 98.5%.
 
-#### Predictive State Targets (Experimental)
+### 5.9 Predictive State Targets — Full-Dataset GPU Benchmark
 
-The experimental `predictive` state target option decodes the *next* input
-frame rather than the current one, which better matches what recurrent
-state should carry.  On seeded slices (2k train / 1k test):
+The `predictive` state target decodes the *next* input frame rather than
+the current one, which better matches what recurrent state should carry.
+To test this at realistic scale, we reran recurrent target propagation on
+the full row-wise sMNIST split (60000 train / 10000 test) on a Tesla T4
+GPU.  All runs use the same 2000-neuron, relu, data-driven-bias
+configuration as Section 5.8 and 50 TP iterations.
 
-| State target    | Seed 0 | Seed 1 | Seed 2 | Mean  |
-|-----------------|--------|--------|--------|-------|
-| Reconstruction  | 22.2%  | 22.6%  | 21.8%  | 22.2% |
-| Predictive      | 31.9%  | 30.9%  | 32.8%  | 31.9% |
+| State target    | Seed 0 | Seed 1 | Seed 2 | Mean  | Mean time |
+|-----------------|--------|--------|--------|-------|-----------|
+| Reconstruction  | 24.2%  | 24.0%  | 24.0%  | 24.1% | 560.8s    |
+| Predictive      | 35.8%  | 35.7%  | 36.5%  | 36.0% | 568.9s    |
 
-This is the first recurrent TP change that consistently improves accuracy
-across seeds, though it remains far below E2E-based results.
+On the full dataset, predictive supervision improves recurrent TP by 11.9
+percentage points at essentially unchanged training time, a 49.6%
+relative gain over reconstruction.  Recurrent TP remains far below
+E2E-based results, but predictive targets are now clearly the strongest
+recurrent TP variant we tested.
 
 
-### 5.9 Streaming Temporal Results — Sequential MNIST
+### 5.10 Streaming Temporal Results — Sequential MNIST
 
 The `StreamingNEFClassifier` (Section 3.10) takes a fundamentally different
 approach to temporal classification: instead of maintaining recurrent state,
@@ -1413,7 +1419,7 @@ windows, mean-pools the resulting activities, and decodes analytically.
 Training uses continuous Woodbury updates (Section 2.8) — no gradients,
 no backpropagation through time.
 
-#### 5.9.1 Window Size and Neuron Count Sweep
+#### 5.10.1 Window Size and Neuron Count Sweep
 
 We sweep window sizes K ∈ {3, 5, 7, 10, 14, 28} and neuron counts
 n ∈ {2000, 4000, 6000, 8000, 10000}.  All models use abs activation,
@@ -1457,7 +1463,7 @@ streaming Woodbury training with batch size 500, and a final
    α ∈ {10⁻³, 5×10⁻³, 10⁻²} all yield essentially identical test
    accuracy.  Sensitivity appears only above 8000 neurons.
 
-#### 5.9.2 Comparison with Recurrent Models
+#### 5.10.2 Comparison with Recurrent Models
 
 | Model                                | Accuracy   | Time   | Gradients? |
 |--------------------------------------|------------|--------|------------|
@@ -1480,7 +1486,7 @@ through the feedback loop) by replacing recurrence with temporal pooling.
 This trades sequence modeling flexibility for robust gradient-free
 training.
 
-#### 5.9.3 GPU Results (T4)
+#### 5.10.3 GPU Results (T4)
 
 The accumulate + solve path (Section 3.7.2) enables efficient GPU
 execution.  All timing below is on a Tesla T4 (15 GB, `float32` peak
@@ -1536,7 +1542,7 @@ is critical for row-mode but absent here); StreamNEF at least reaches
 ![GPU speedup: Accumulate vs Woodbury](figures/gpu_speedup.png)
 *Figure 7. Left: training time comparison between Woodbury (`float64`) and accumulate (`float32`) paths on a T4 GPU.  Right: the accumulate path achieves 7–11× speedup depending on model size.*
 
-### 5.10 Convolutional Pipeline Results — CIFAR-10
+### 5.11 Convolutional Pipeline Results — CIFAR-10
 
 The ConvNEF pipeline (Section 3.11) was evaluated on CIFAR-10 across
 seven sweep rounds (v1–v7), systematically exploring filter counts,
@@ -1544,7 +1550,7 @@ patch sizes, neuron counts, regularization, preprocessing, augmentation,
 ensemble sizes, and multi-scale configurations.  All experiments run on
 a Tesla T4 GPU; all training is gradient-free.
 
-#### 5.10.1 Baseline and Feature Extraction
+#### 5.11.1 Baseline and Feature Extraction
 
 A flat-pixel NEF baseline (5000 neurons, no convolution) reaches 50.1%
 on CIFAR-10 — comparable to the 47.8% from Table 5 (Section 5.4), the
@@ -1565,7 +1571,7 @@ immediately lifts accuracy:
 PCA convolutional features provide +12.6% over flat pixels at 5k
 neurons, and larger patches (p7 > p5 > p3) capture more spatial context.
 
-#### 5.10.2 Feature Standardization
+#### 5.11.2 Feature Standardization
 
 Feature standardization — zero-mean, unit-variance normalization of the
 pooled feature vector — is the single largest accuracy lever:
@@ -1581,7 +1587,7 @@ This is especially important because SPP levels have very different
 magnitude scales (the 1×1 level pools over the entire spatial extent
 while 4×4 preserves local detail).
 
-#### 5.10.3 Multi-Scale Parallel Stages
+#### 5.11.3 Multi-Scale Parallel Stages
 
 Running three parallel stages with patch sizes {3, 5, 7} and 32 filters
 each (96 total channels, 2016 SPP features) outperforms a single stage
@@ -1598,7 +1604,7 @@ ensembling — a +2.5% gain over the best single-scale model at similar
 cost.  The 32 filters per branch is optimal; increasing to 64 per branch
 does not improve accuracy (70.8% vs 70.7% at 10k neurons).
 
-#### 5.10.4 Augmentation
+#### 5.11.4 Augmentation
 
 Two augmentation strategies were evaluated:
 
@@ -1624,7 +1630,7 @@ in an unhelpful way.  Cutout augmentation was also tested but
 consistently hurt accuracy (−1.2%), as masking patches corrupts the PCA
 feature extraction.
 
-#### 5.10.5 Neuron Count and Regularization
+#### 5.11.5 Neuron Count and Regularization
 
 Scaling from 10k to 20k neurons provides a consistent +2–4% boost but
 requires adjusting regularization.  At 30k neurons, α = 2×10⁻²
@@ -1642,7 +1648,7 @@ effectively as SGD with implicit regularization.  Beyond 30k neurons,
 memory becomes the bottleneck: the 30000×30000 AᵀA matrix requires
 3.35 GiB in `float32`, tight for a 15 GB T4 GPU.
 
-#### 5.10.6 Ensemble Scaling
+#### 5.11.6 Ensemble Scaling
 
 | Ensemble size | Neurons | Test | Time |
 |---------------|---------|------|------|
@@ -1661,7 +1667,7 @@ neuron count.  Diminishing returns set in because individual member
 accuracy is already high (>72%) — decorrelation cannot compensate for
 insufficient per-model capacity.
 
-#### 5.10.7 Negative Results
+#### 5.11.7 Negative Results
 
 Several approaches that seem promising in the literature did not help:
 
@@ -1691,7 +1697,7 @@ Several approaches that seem promising in the literature did not help:
    (+0.8%) but hurt ensembles, as the diversity already inherent in
    the ensemble subsumes the benefit.
 
-#### 5.10.8 Summary: Best Configuration
+#### 5.11.8 Summary: Best Configuration
 
 The best configuration found across all sweeps:
 
@@ -1761,7 +1767,7 @@ Two experimental insights emerged from the sweep:
    → 1×10⁻⁴.  This is predictable from bias-variance theory: richer
    feature spaces can tolerate less regularization before overfitting.
 
-The streaming NEF classifier (Section 5.9) extends this competitive
+The streaming NEF classifier (Section 5.10) extends this competitive
 positioning to temporal data.  On CPU, the 8000-neuron streaming classifier
 reaches 98.6% on sMNIST-row — exceeding the LSTM (98.3%) while remaining
 gradient-free.  On a T4 GPU with the accumulate path, the same model
@@ -1769,7 +1775,7 @@ reaches 98.5% in **8.3 seconds** — 2.7× faster than LSTM (22.3s) with
 zero gradient computation.  On permuted pixel-by-pixel sMNIST (784
 timesteps), StreamNEF reaches 91.4% vs LSTM's 82.3%, 9.6× faster.
 
-The ConvNEF pipeline (Section 5.10) extends this further to natural
+The ConvNEF pipeline (Section 5.11) extends this further to natural
 images.  By replacing random encoders with PCA-derived convolutional
 filters and adding multi-scale spatial pyramid pooling, a 10-member
 ConvNEF ensemble reaches **78.3% on CIFAR-10** — a 20-point improvement
@@ -1831,9 +1837,10 @@ results require per-dataset tuning and, for CIFAR-10, ensembling.
   neuron count.  While the optimal range is narrow (10⁻⁴ to 10⁻³), the
   wrong setting can cost 0.5–1% accuracy.  Cross-validation or a small
   held-out set is recommended.
-- **Recurrent TP.**  Despite the predictive state target improvement,
-  recurrent target propagation remains research-grade (~32%) compared to
-  E2E (98.5%).
+- **Recurrent TP.**  Predictive state targets improve recurrent target
+  propagation materially on the full row-wise sMNIST benchmark (24.1%
+  → 36.0% mean test accuracy on a T4), but the method remains
+  research-grade relative to E2E (98.5%).
 - **GPU dtype tradeoff.**  The Woodbury continuous-fit path requires
   `float64` for numerical stability, but consumer GPUs (T4, L4) deliver
   only 1/32 of their `float32` throughput in `float64`.  The accumulate +
@@ -1946,8 +1953,10 @@ The main findings are:
    gradients — no cross-layer backpropagation.
 
 9. **Predictive state targets are the most promising recurrent TP
-   direction.**  Switching from reconstruction to prediction targets
-   lifts recurrent TP from 22% to 32% mean accuracy.
+   direction.**  On the full row-wise sMNIST benchmark, switching from
+   reconstruction to prediction targets lifts recurrent TP from 24.1%
+   to 36.0% mean accuracy, a gain of 11.9 percentage points (T4
+   benchmark).
 
 10. **Incremental learning is exact.**  The normal-equation decomposition
     enables streaming data and model updates without reprocessing, with
