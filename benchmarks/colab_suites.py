@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 import time
+from dataclasses import replace
 from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -21,7 +22,11 @@ from benchmarks.run import (  # noqa: E402
     save_results_json,
     set_benchmark_seed,
 )
-from benchmarks.run_recurrent import run_lstm_baseline, run_streaming_nef  # noqa: E402
+from benchmarks.run_recurrent import (  # noqa: E402
+    run_lstm_baseline,
+    run_recurrent_nef,
+    run_streaming_nef,
+)
 
 _INCREMENTAL_RESULTS: list[BenchmarkResult] | None = None
 _INCREMENTAL_JSON_PATH: Path | None = None
@@ -289,6 +294,113 @@ def run_sequential_hard_suite(args: argparse.Namespace) -> list:
             verbose=True,
         ),
     ]
+
+
+def _run_recurrent_tp_labeled(
+    label: str,
+    *,
+    state_target: str,
+    seed: int,
+    n_neurons: int,
+    tp_iters: int,
+    tp_lr: float,
+    tp_eta: float,
+    args: argparse.Namespace,
+) -> BenchmarkResult:
+    """Run one recurrent TP configuration with self-describing result metadata."""
+    print(f"Running {label}...", flush=True)
+    result = run_recurrent_nef(
+        mode="row",
+        strategy="target_prop",
+        n_neurons=n_neurons,
+        activation="relu",
+        encoder_strategy="hypersphere",
+        solver="tikhonov",
+        solver_kwargs={"alpha": 1e-2},
+        tp_iters=tp_iters,
+        tp_lr=tp_lr,
+        tp_eta=tp_eta,
+        use_centers=True,
+        data_root=args.data_root,
+        seed=seed,
+        state_target=state_target,
+        device=args.device,
+        eval_batch_size=args.eval_batch,
+        verbose=True,
+    )
+    result = replace(
+        result,
+        name=f"RecTP-row-{state_target}-seed{seed}",
+        solver_kwargs={
+            **result.solver_kwargs,
+            "mode": "row",
+            "seed": seed,
+            "state_target": state_target,
+            "tp_eta": tp_eta,
+            "tp_iters": tp_iters,
+            "tp_lr": tp_lr,
+        },
+    )
+    _record_incremental_result(result)
+    print(
+        f"Finished {label}: test={result.test_metric:.2%}, fit_time={result.fit_time:.2f}s",
+        flush=True,
+    )
+    return result
+
+
+def run_recurrent_predictive_suite(args: argparse.Namespace) -> list:
+    """Run the full-dataset recurrent TP predictive-state comparison."""
+    if args.quick:
+        seeds = [args.seed]
+        n_neurons = 512
+        tp_iters = 5
+    else:
+        seeds = [args.seed + offset for offset in range(3)]
+        n_neurons = 2000
+        tp_iters = 50
+
+    tp_lr = 1e-3
+    tp_eta = 0.1
+    state_targets = ("reconstruction", "predictive")
+    results = []
+    grouped_results: dict[str, list[BenchmarkResult]] = {mode: [] for mode in state_targets}
+
+    for state_target in state_targets:
+        for seed in seeds:
+            result = _run_recurrent_tp_labeled(
+                f"RecTP row {state_target} seed {seed}",
+                state_target=state_target,
+                seed=seed,
+                n_neurons=n_neurons,
+                tp_iters=tp_iters,
+                tp_lr=tp_lr,
+                tp_eta=tp_eta,
+                args=args,
+            )
+            results.append(result)
+            grouped_results[state_target].append(result)
+
+        mean_test = sum(r.test_metric for r in grouped_results[state_target]) / len(
+            grouped_results[state_target]
+        )
+        mean_fit = sum(r.fit_time for r in grouped_results[state_target]) / len(
+            grouped_results[state_target]
+        )
+        seed_list = ", ".join(str(seed) for seed in seeds)
+        print(
+            f"Summary row {state_target}: mean_test={mean_test:.2%}, "
+            f"mean_fit_time={mean_fit:.2f}s across seeds [{seed_list}]",
+            flush=True,
+        )
+
+    delta = sum(r.test_metric for r in grouped_results["predictive"]) / len(
+        grouped_results["predictive"]
+    ) - sum(r.test_metric for r in grouped_results["reconstruction"]) / len(
+        grouped_results["reconstruction"]
+    )
+    print(f"Predictive state-target delta: {delta:+.2%}", flush=True)
+    return results
 
 
 def _augment_crop(x, pad: int = 4):
@@ -2509,6 +2621,7 @@ def run_defaults_tp_suite(args: argparse.Namespace) -> list:
 SUITES = {
     "row_focus": run_row_focus_suite,
     "sequential_hard": run_sequential_hard_suite,
+    "recurrent_predictive": run_recurrent_predictive_suite,
     "conv_cifar": run_conv_cifar_suite,
     "conv_cifar_v2": run_conv_cifar_v2_suite,
     "conv_cifar_v3": run_conv_cifar_v3_suite,

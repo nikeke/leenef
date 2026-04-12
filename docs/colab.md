@@ -9,8 +9,10 @@ source of experiment logic.
 1. Open `notebooks/colab_launcher.ipynb` in Colab.
 2. Run the **smoke test** first.
 3. Run the **row-focused suite** next.
-4. If that looks good, run the **hard sequential suite**.
-5. Save the produced JSON / CSV files and share them back.
+4. If you are updating the Section 5.8 recurrent TP analysis, run the
+   **recurrent predictive-state suite**.
+5. If that looks good, run the **hard sequential suite**.
+6. Save the produced JSON / CSV files and share them back.
 
 Longer suites print explicit progress now, so a cell that stays quiet for
 minutes is no longer expected behavior.
@@ -44,18 +46,23 @@ If this fails, fix the environment before attempting longer suites.
 
 ### `benchmarks/colab_suites.py`
 
-Provides two predefined suites:
+Provides several predefined suites.  The main sequential ones are:
 
 - `row_focus` — the first recommended Colab run
   - StreamNEF 2k (Woodbury and accumulate) on row-wise sMNIST
   - StreamNEF 8k (Woodbury and accumulate) on row-wise sMNIST
   - LSTM baseline on row-wise sMNIST
+- `recurrent_predictive` — full-dataset recurrent TP comparison for Section 5.8
+  - row-wise sMNIST, `RecNEF-target_prop`, `state_target=reconstruction`
+  - row-wise sMNIST, `RecNEF-target_prop`, `state_target=predictive`
+  - default full run uses seeds `0, 1, 2` (or `seed, seed+1, seed+2`)
+  - prints per-target mean summaries after the seed sweep completes
 - `sequential_hard` — the longer-sequence follow-up
   - StreamNEF on pixel sMNIST (accumulate, GPU-friendly)
   - StreamNEF on permuted-pixel sMNIST (accumulate)
   - LSTM baselines on both
 
-Both suites support `--quick` for a much smaller validation run.
+All suites support `--quick` for a much smaller validation run.
 
 The suite runner prints:
 
@@ -90,7 +97,22 @@ This is the best first test because:
 - it lets us compare StreamNEF to LSTM quickly,
 - and it tells us whether Colab actually improves wall-clock time.
 
-### 3. Harder follow-up: pixel and permuted-pixel sMNIST
+### 3. Section 5.8 follow-up: full-dataset recurrent predictive-state sweep
+
+```bash
+python benchmarks/colab_suites.py \
+  --suite recurrent_predictive \
+  --device auto \
+  --output-dir ./results/colab
+```
+
+This suite exists specifically to replace the current seeded-slice
+Section 5.8 result with a full-dataset recurrent TP comparison.  The
+default full run benchmarks both state targets across seeds `0, 1, 2`,
+flushes JSON / CSV results after every finished seed run, and prints the
+mean reconstruction vs predictive accuracy at the end.
+
+### 4. Harder follow-up: pixel and permuted-pixel sMNIST
 
 ```bash
 python benchmarks/colab_suites.py \

@@ -123,6 +123,7 @@ def run_recurrent_nef(
     tp_project_targets: bool = False,
     device: str = "cpu",
     eval_batch_size: int = 2048,
+    verbose: bool = False,
 ) -> BenchmarkResult:
     """Run a recurrent NEF benchmark on Sequential MNIST.
 
@@ -161,6 +162,13 @@ def run_recurrent_nef(
     y_train = y_train.to(runtime_device)
     y_test = y_test.to(runtime_device)
     targets = targets.to(runtime_device)
+
+    if verbose:
+        print(
+            f"  RecNEF-{strategy}: mode={mode}, neurons={n_neurons}, "
+            f"state_target={state_target}, device={runtime_device}",
+            flush=True,
+        )
 
     synchronize_if_cuda(runtime_device)
     t0 = time.perf_counter()
@@ -232,6 +240,9 @@ def run_recurrent_nef(
         raise ValueError(f"Unknown strategy {strategy!r}")
     synchronize_if_cuda(runtime_device)
     fit_time = time.perf_counter() - t0
+
+    if verbose:
+        print("    evaluating", flush=True)
 
     train_acc = batched_classification_accuracy(
         layer, x_train_seq, y_train, batch_size=eval_batch_size

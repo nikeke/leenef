@@ -11,6 +11,7 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from benchmarks.colab_suites import parse_args as parse_colab_suite_args
 from benchmarks.run import (
     BenchmarkResult,
     build_benchmark_parser,
@@ -88,3 +89,12 @@ class TestBenchmarkCliParsers:
         assert args.auxiliary_weight == 0.0
         assert not args.tp_project_targets
         assert args.strategies == ["greedy", "hybrid", "target_prop", "e2e", "hybrid_e2e"]
+
+    def test_colab_suite_parser_accepts_recurrent_predictive(self, tmp_path):
+        args = parse_colab_suite_args(
+            ["--suite", "recurrent_predictive", "--output-dir", str(tmp_path), "--quick"]
+        )
+        assert args.suite == "recurrent_predictive"
+        assert args.output_dir == tmp_path
+        assert args.quick
+        assert args.seed == 0
