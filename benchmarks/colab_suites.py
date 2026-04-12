@@ -2783,6 +2783,150 @@ def run_sequential_audio_suite(args: argparse.Namespace) -> list:
     ]
 
 
+def run_sequential_audio_v2_suite(args: argparse.Namespace) -> list:
+    """Follow-up StreamNEF tuning on Speech Commands v2 and Sequential CIFAR-10.
+
+    The v1 suite showed large train-test gaps (90.1% → 74.9% on Speech
+    Commands; 77.9% → 54.9% on sCIFAR-10), indicating overfitting.  This
+    suite targets three improvement levers:
+
+    1. **Stronger regularization** — α=0.05 and α=0.1 at 8k neurons.
+    2. **More neurons with strong α** — 16k neurons at α=0.05.
+    3. **Whitened encoders** — PCA-adapted encoders that concentrate
+       capacity in the informative subspace of MFCC / image features.
+    4. **Wider window for sCIFAR** — w=6 (K*d=576) to capture more
+       row context while staying in the TR's effective regime (≤560).
+
+    Full suite (7 experiments):
+      1. StreamNEF SpeechCmds 8k w10, α=0.05
+      2. StreamNEF SpeechCmds 8k w10, α=0.1
+      3. StreamNEF SpeechCmds 16k w10, α=0.05
+      4. StreamNEF SpeechCmds 8k w10 whitened, α=0.05
+      5. StreamNEF sCIFAR-row 8k w4, α=0.05
+      6. StreamNEF sCIFAR-row 8k w6, α=0.05
+      7. StreamNEF sCIFAR-row 16k w4, α=0.05
+    """
+    common_speech = dict(
+        data_root=args.data_root,
+        seed=args.seed,
+        device=args.device,
+        eval_batch_size=args.eval_batch,
+        verbose=True,
+    )
+    common_scifar = dict(
+        mode="row",
+        data_root=args.data_root,
+        seed=args.seed,
+        device=args.device,
+        eval_batch_size=args.eval_batch,
+        verbose=True,
+    )
+
+    if args.quick:
+        return [
+            _run_labeled(
+                "StreamNEF SpeechCmds 512 α0.05 quick",
+                run_streaming_nef_speech,
+                n_neurons=512,
+                window_size=10,
+                alpha=0.05,
+                batch_size=500,
+                solve_mode="accumulate",
+                **common_speech,
+            ),
+            _run_labeled(
+                "StreamNEF sCIFAR-row 512 α0.05 quick",
+                run_streaming_nef_scifar,
+                n_neurons=512,
+                window_size=4,
+                alpha=0.05,
+                batch_size=500,
+                solve_mode="accumulate",
+                **common_scifar,
+            ),
+        ]
+
+    return [
+        # --- Speech Commands: regularization sweep ---
+        _run_labeled(
+            "StreamNEF SpeechCmds 8k w10 α0.05",
+            run_streaming_nef_speech,
+            n_neurons=8000,
+            window_size=10,
+            alpha=0.05,
+            batch_size=500,
+            solve_mode="accumulate",
+            **common_speech,
+        ),
+        _run_labeled(
+            "StreamNEF SpeechCmds 8k w10 α0.1",
+            run_streaming_nef_speech,
+            n_neurons=8000,
+            window_size=10,
+            alpha=0.1,
+            batch_size=500,
+            solve_mode="accumulate",
+            **common_speech,
+        ),
+        # --- Speech Commands: more neurons ---
+        _run_labeled(
+            "StreamNEF SpeechCmds 16k w10 α0.05",
+            run_streaming_nef_speech,
+            n_neurons=16000,
+            window_size=10,
+            alpha=0.05,
+            batch_size=250,
+            solve_mode="accumulate",
+            **common_speech,
+        ),
+        # --- Speech Commands: whitened encoders ---
+        _run_labeled(
+            "StreamNEF SpeechCmds 8k w10 whitened α0.05",
+            run_streaming_nef_speech,
+            n_neurons=8000,
+            window_size=10,
+            alpha=0.05,
+            encoder_strategy="whitened",
+            batch_size=500,
+            solve_mode="accumulate",
+            **common_speech,
+        ),
+        # --- sCIFAR-10: regularization ---
+        _run_labeled(
+            "StreamNEF sCIFAR-row 8k w4 α0.05",
+            run_streaming_nef_scifar,
+            n_neurons=8000,
+            window_size=4,
+            alpha=0.05,
+            batch_size=500,
+            solve_mode="accumulate",
+            **common_scifar,
+        ),
+        # --- sCIFAR-10: wider window ---
+        _run_labeled(
+            "StreamNEF sCIFAR-row 8k w6 α0.05",
+            run_streaming_nef_scifar,
+            n_neurons=8000,
+            window_size=6,
+            alpha=0.05,
+            batch_size=500,
+            solve_mode="accumulate",
+            **common_scifar,
+        ),
+        # --- sCIFAR-10: more neurons ---
+        _run_labeled(
+            "StreamNEF sCIFAR-row 16k w4 α0.05",
+            run_streaming_nef_scifar,
+            n_neurons=16000,
+            window_size=4,
+            alpha=0.05,
+            batch_size=250,
+            solve_mode="accumulate",
+            **common_scifar,
+        ),
+    ]
+
+
 SUITES = {
     "row_focus": run_row_focus_suite,
     "sequential_hard": run_sequential_hard_suite,
@@ -2796,6 +2940,7 @@ SUITES = {
     "conv_cifar_v7": run_conv_cifar_v7_suite,
     "defaults_tp": run_defaults_tp_suite,
     "sequential_audio": run_sequential_audio_suite,
+    "sequential_audio_v2": run_sequential_audio_v2_suite,
 }
 
 

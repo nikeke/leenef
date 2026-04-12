@@ -687,6 +687,43 @@ def load_sequential_cifar10(
 
 
 # ------------------------------------------------------------------
+# Helpers for data-adapted encoder strategies in StreamNEF runners
+# ------------------------------------------------------------------
+
+
+def _prepare_encoder_kwargs(
+    encoder_strategy: str,
+    encoder_kwargs: dict | None,
+    x_train_seq: Tensor,
+    window_size: int,
+    d_in: int,
+    seed: int,
+    max_seqs: int = 2000,
+    max_windows: int = 20000,
+) -> dict | None:
+    """Build encoder_kwargs for data-adapted strategies (e.g. whitened).
+
+    For ``whitened`` encoders, computes a subsample of delay-line windowed
+    features to estimate PCA.  Uses a dedicated RNG so the main model seed
+    is unaffected.
+    """
+    ekw = dict(encoder_kwargs or {})
+    if encoder_strategy == "whitened" and "train_data" not in ekw:
+        rng_sub = torch.Generator().manual_seed(seed + 9999)
+        n_sub = min(max_seqs, len(x_train_seq))
+        sub_idx = torch.randperm(len(x_train_seq), generator=rng_sub)[:n_sub]
+        sub_seq = x_train_seq[sub_idx]
+        K = window_size
+        padded = F.pad(sub_seq, (0, 0, K - 1, 0))
+        windows = padded.unfold(1, K, 1).permute(0, 1, 3, 2)
+        delay_flat = windows.reshape(-1, K * d_in)
+        n_win = min(max_windows, delay_flat.shape[0])
+        win_idx = torch.randperm(delay_flat.shape[0], generator=rng_sub)[:n_win]
+        ekw["train_data"] = delay_flat[win_idx]
+    return ekw if ekw else None
+
+
+# ------------------------------------------------------------------
 # StreamNEF and LSTM on Speech Commands
 # ------------------------------------------------------------------
 
@@ -696,6 +733,7 @@ def run_streaming_nef_speech(
     window_size: int = 10,
     activation: str = "abs",
     encoder_strategy: str = "hypersphere",
+    encoder_kwargs: dict | None = None,
     gain: float | tuple[float, float] = (0.5, 2.0),
     use_centers: bool = True,
     alpha: float = 1e-2,
@@ -721,6 +759,9 @@ def run_streaming_nef_speech(
     targets = one_hot(y_train, n_classes)
 
     _, _, d_in = x_train_seq.shape
+    ekw = _prepare_encoder_kwargs(
+        encoder_strategy, encoder_kwargs, x_train_seq, window_size, d_in, data_seed
+    )
     rng = torch.Generator().manual_seed(data_seed)
     clf = StreamingNEFClassifier(
         d_timestep=d_in,
@@ -732,6 +773,7 @@ def run_streaming_nef_speech(
         gain=gain,
         rng=rng,
         centers=x_train_seq if use_centers else None,
+        encoder_kwargs=ekw,
     ).to(runtime_device)
 
     x_train_seq = x_train_seq.to(runtime_device)
@@ -909,6 +951,7 @@ def run_streaming_nef_scifar(
     window_size: int = 4,
     activation: str = "abs",
     encoder_strategy: str = "hypersphere",
+    encoder_kwargs: dict | None = None,
     gain: float | tuple[float, float] = (0.5, 2.0),
     use_centers: bool = True,
     alpha: float = 1e-2,
@@ -934,6 +977,9 @@ def run_streaming_nef_scifar(
     targets = one_hot(y_train, n_classes)
 
     _, _, d_in = x_train_seq.shape
+    ekw = _prepare_encoder_kwargs(
+        encoder_strategy, encoder_kwargs, x_train_seq, window_size, d_in, data_seed
+    )
     rng = torch.Generator().manual_seed(data_seed)
     clf = StreamingNEFClassifier(
         d_timestep=d_in,
@@ -945,6 +991,7 @@ def run_streaming_nef_scifar(
         gain=gain,
         rng=rng,
         centers=x_train_seq if use_centers else None,
+        encoder_kwargs=ekw,
     ).to(runtime_device)
 
     x_train_seq = x_train_seq.to(runtime_device)
