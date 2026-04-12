@@ -36,7 +36,8 @@ O(n³) full re-solves.  Applied to temporal sequence classification, a
 streaming delay-line reservoir classifier achieves 98.6% on sequential
 MNIST on CPU — exceeding LSTM (98.3%) — entirely without gradient
 descent, training in under four minutes on a laptop CPU or 8 seconds on
-a GPU.
+a GPU.  On harder temporal tasks where ordering is critical (Speech
+Commands v2), mean pooling limits the approach to 76.3% vs LSTM's 90.3%.
 Finally, we construct a fully gradient-free convolutional pipeline
 (ConvNEF) that learns PCA-based convolutional filters from data patches,
 applies multi-scale spatial pyramid pooling, and solves decoders
@@ -113,7 +114,8 @@ This report makes the following contributions:
    two warm-started end-to-end variants and analytical target
    propagation), recurrent temporal models, incremental/online learning,
    and streaming temporal classification that exceeds LSTM on sMNIST-row
-   on CPU and nearly matches it 2.7× faster on GPU.
+   on CPU and nearly matches it 2.7× faster on GPU — though mean pooling
+   limits the approach on harder temporal tasks such as Speech Commands.
 6. A fully gradient-free convolutional pipeline (ConvNEF) that learns
    PCA filters from data, extracts multi-scale features, and solves
    classification decoders analytically — reaching 78.3% on CIFAR-10.
@@ -1536,6 +1538,88 @@ is critical for row-mode but absent here); StreamNEF at least reaches
 ![GPU speedup: Accumulate vs Woodbury](figures/gpu_speedup.png)
 *Figure 7. Left: training time comparison between Woodbury (`float64`) and accumulate (`float32`) paths on a T4 GPU.  Right: the accumulate path achieves 7–11× speedup depending on model size.*
 
+#### 5.9.4 Beyond sMNIST: Speech Commands and Sequential CIFAR-10
+
+The sMNIST results above are encouraging, but sMNIST is a relatively easy
+sequential task: the spatial structure of each digit row is highly
+informative, and temporal ordering adds only marginal signal.  To test
+whether the streaming approach generalizes, we benchmark on two harder
+datasets where temporal structure plays a more significant role.
+
+**Datasets:**
+
+- **Google Speech Commands v2** — 35-class spoken-word classification
+  from 1-second audio clips.  We extract 40 MFCCs per frame
+  (n_fft=400, hop=160, 80 mel bands) yielding T≈101 frames of
+  d=40 features.  Training set: ~84000 samples (train+validation);
+  test set: ~11000 samples.
+- **Sequential CIFAR-10 (row mode)** — CIFAR-10 images fed one row at a
+  time: T=32 steps of d=96 (3 color channels × 32 pixels).  10 classes,
+  50000/10000 train/test split.
+
+All StreamNEF models use the accumulate path on a T4 GPU with abs
+activation, hypersphere encoders, per-neuron gain U(0.5, 2.0), and
+data-driven biases.  LSTM models use hidden sizes 128 and 256 with Adam
+(lr=10⁻³).
+
+**Speech Commands v2 (T4 GPU):**
+
+| Model | Test Acc | Train Acc | Time | Gradients? |
+|-------|-------:|-------:|-----:|---|
+| StreamNEF 4000n w=10, α=10⁻² | 70.8% | 82.6% | 13s | No |
+| StreamNEF 8000n w=10, α=5×10⁻³ | 74.9% | 90.1% | 33s | No |
+| StreamNEF 8000n w=10, α=5×10⁻² | 74.9% | 90.1% | 29s | No |
+| StreamNEF 8000n w=10, α=10⁻¹ | 74.9% | 90.1% | 35s | No |
+| StreamNEF 16000n w=10, α=5×10⁻² | 76.3% | 96.1% | 90s | No |
+| StreamNEF 8000n w=10 whitened, α=5×10⁻² | 74.1% | 90.0% | 35s | No |
+| LSTM-128 (30 epochs) | 89.4% | 95.0% | 114s | Yes |
+| LSTM-256 (30 epochs) | **90.3%** | 97.6% | 241s | Yes |
+
+**Sequential CIFAR-10 row mode (T4 GPU):**
+
+| Model | Test Acc | Train Acc | Time | Gradients? |
+|-------|-------:|-------:|-----:|---|
+| StreamNEF 4000n w=4, α=10⁻² | 54.1% | 67.3% | 3s | No |
+| StreamNEF 8000n w=4, α=5×10⁻³ | 54.9% | 77.9% | 8s | No |
+| StreamNEF 8000n w=4, α=5×10⁻² | 55.0% | 77.8% | 9s | No |
+| StreamNEF 8000n w=6, α=5×10⁻² | **56.4%** | 77.8% | 11s | No |
+| StreamNEF 16000n w=4, α=5×10⁻² | 53.2% | 90.4% | 34s | No |
+| LSTM-128 (50 epochs) | 56.2% | 80.0% | 55s | Yes |
+| LSTM-256 (50 epochs) | **57.3%** | 96.4% | 83s | Yes |
+
+**Observations:**
+
+1. **Regularization is irrelevant over a wide range.**  On Speech Commands,
+   sweeping α from 5×10⁻³ to 10⁻¹ (20×) produces identical train and
+   test accuracy (74.9% / 90.1%).  The same insensitivity appears on
+   sCIFAR-10.  This contrasts with the sMNIST results (Section 5.9.1)
+   where α mattered above 8000 neurons, and suggests the bottleneck is
+   not decoder overfitting but the quality of the pooled representation.
+
+2. **The bottleneck is temporal pooling, not encoding capacity.**  On
+   Speech Commands, more neurons (16000, +1.4pp), whitened encoders
+   (−0.8pp), and stronger regularization (no change) all fail to close the
+   15-point gap with LSTM.  The fundamental limitation is mean pooling:
+   averaging over ~92 windows erases the temporal ordering needed to
+   distinguish 35 spoken words ("yes" vs "no" vs "stop" have different
+   MFCC envelopes in time, but identical means).  On sMNIST, mean pooling
+   works because digit structure is captured by local row patterns; on
+   speech, word identity depends on temporal order.
+
+3. **sCIFAR-10 is hard for everyone.**  Both LSTM-256 (57.3%) and StreamNEF
+   8000n w=6 (56.4%) struggle — both severely overfit (96.4% / 77.8%
+   train accuracy respectively).  The StreamNEF result is 0.9 percentage
+   points below LSTM-256 while training 7.5× faster with no gradients.
+   The wider window (w=6, K·d=576 vs w=4, K·d=384) helps by +1.5
+   percentage points, consistent with the window-size findings from
+   Section 5.9.1.
+
+4. **More neurons hurt on sCIFAR-10.**  At 16000 neurons, test accuracy
+   drops to 53.2% despite 90.4% train accuracy — classic overfitting from
+   excess capacity without sufficient regularization control.  Unlike the
+   sMNIST setting where α=0.1 rescued 10000 neurons, here the pooled
+   features simply lack the discriminative power to generalize.
+
 ### 5.10 Convolutional Pipeline Results — CIFAR-10
 
 The ConvNEF pipeline (Section 3.11) was evaluated on CIFAR-10 across
@@ -1769,6 +1853,18 @@ reaches 98.5% in **8.3 seconds** — 2.7× faster than LSTM (22.3s) with
 zero gradient computation.  On permuted pixel-by-pixel sMNIST (784
 timesteps), StreamNEF reaches 91.4% vs LSTM's 82.3%, 9.6× faster.
 
+However, this advantage does not generalize to all temporal tasks.  On
+Speech Commands v2 (35-class audio, T≈101 MFCC frames), StreamNEF peaks
+at 76.3% vs LSTM's 90.3% — a 14-point gap that no hyperparameter or
+encoder-strategy change can close (Section 5.9.4).  The bottleneck is
+mean pooling: it erases the temporal ordering needed to distinguish
+spoken words.  On Sequential CIFAR-10 (row mode), the gap narrows to
+0.9 percentage points (56.4% vs 57.3%), because both models struggle
+on this hard task and temporal ordering contributes less than local
+row content.  These results honestly delineate the delay-line approach:
+it excels when temporal *content* is more informative than temporal
+*order*, and falls short when fine-grained temporal structure is critical.
+
 The ConvNEF pipeline (Section 5.10) extends this further to natural
 images.  By replacing random encoders with PCA-derived convolutional
 filters and adding multi-scale spatial pyramid pooling, a 10-member
@@ -1808,6 +1904,8 @@ returns vanish.
 | Streaming data (GPU) | NEFLayer + accumulate + solve | MNIST | 95.7% | <1s T4 |
 | Temporal sequences (fast) | StreamNEF (2000n, w=10) | sMNIST | 97.2% | 23s CPU / 1.1s T4 |
 | Temporal sequences (accurate) | StreamNEF (8000n, w=10) | sMNIST | 98.6% | 222s CPU / 8.3s T4 |
+| Temporal audio (gradient-free) | StreamNEF (16000n, w=10) | Speech Cmds | 76.3% | 90s T4 |
+| Sequential images (gradient-free) | StreamNEF (8000n, w=6) | sCIFAR-10 | 56.4% | 11s T4 |
 | Natural images, no gradients | ConvNEF ×10, multi(32×{3,5,7}), 30k | CIFAR-10 | 78.3% | 15min T4 |
 
 Note: the "Speed/accuracy balance" row is the MNIST instance of a broader
@@ -1831,6 +1929,16 @@ results require per-dataset tuning and, for CIFAR-10, ensembling.
   neuron count.  While the optimal range is narrow (10⁻⁴ to 10⁻³), the
   wrong setting can cost 0.5–1% accuracy.  Cross-validation or a small
   held-out set is recommended.
+- **Temporal pooling erases ordering.**  The streaming classifier's mean
+  pooling works well when local temporal content is informative (sMNIST
+  rows), but collapses when temporal ordering is critical.  On Speech
+  Commands v2, StreamNEF plateaus at 76.3% regardless of regularization,
+  neuron count, or encoder strategy — 14 points below LSTM (90.3%).
+  The bottleneck is not encoding capacity but the loss of ordering
+  information in the global average (Section 5.9.4).  Temporal pyramid
+  pooling, attention-weighted pooling, or other order-preserving
+  aggregation could address this, but would add complexity beyond the
+  current gradient-free delay-line design.
 - **Recurrent TP.**  Despite the predictive state target improvement,
   recurrent target propagation remains research-grade (~32%) compared to
   E2E (98.5%).
@@ -1954,13 +2062,19 @@ The main findings are:
     results identical to full-batch training.
 
 11. **A delay-line reservoir with analytical decoders produces a
-    gradient-free temporal classifier that exceeds LSTM on sMNIST.**
+    gradient-free temporal classifier that excels on order-invariant
+    tasks but is limited by mean pooling on order-dependent ones.**
     The streaming NEF classifier reaches 98.6% on sMNIST-row on CPU
     (222s) — exceeding LSTM (98.3%) — without any gradient computation.
     On a T4 GPU, the accumulate + solve path reaches 98.5% in 8.3
     seconds (2.7× faster than LSTM at 22.3s), almost matching the
     LSTM's 98.6%.  On permuted pixel-by-pixel sMNIST (784 timesteps),
     StreamNEF reaches 91.4% vs LSTM's 82.3%, 9.6× faster.
+    However, on Speech Commands v2 (35-class audio), StreamNEF plateaus
+    at 76.3% vs LSTM's 90.3%, regardless of regularization, neuron
+    count, or encoder strategy.  Mean pooling erases the temporal order
+    that distinguishes spoken words.  The approach works best when
+    temporal *content* is more informative than temporal *order*.
 
 12. **The accumulate + solve path makes GPU deployment practical.**
     By keeping all expensive matmuls in `float32` and using `float64` only
@@ -1985,10 +2099,14 @@ The NEF approach occupies a distinctive niche: it is the fastest path to
 a competitive model when gradient training is undesirable or unnecessary.
 The two-second single-layer solve, the minute-long RF model that matches
 an MLP, the eight-second GPU temporal classifier that almost matches an
-LSTM, and the 15-minute convolutional pipeline that reaches 78% on
-CIFAR-10 all demonstrate that analytical weight solving, properly
+LSTM on sMNIST, and the 15-minute convolutional pipeline that reaches 78%
+on CIFAR-10 all demonstrate that analytical weight solving, properly
 combined with neuroscience-motivated encoding, is a practical alternative
-to gradient descent for a meaningful class of problems.
+to gradient descent for a meaningful class of problems.  The honest
+limits are equally clear: when temporal order is critical (speech) or when
+deep hierarchical features are needed (CIFAR at CNN-level accuracy), the
+gradient-free approach falls short — mapping the boundary between what
+analytical solvers can and cannot replace.
 
 
 ## References
