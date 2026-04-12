@@ -34,7 +34,7 @@ For continuous learning, we introduce Woodbury rank-k updates that
 maintain the system inverse incrementally in O(n²k) per batch instead of
 O(n³) full re-solves.  Applied to temporal sequence classification, a
 streaming delay-line reservoir classifier achieves 98.6% on sequential
-MNIST on CPU — exceeding LSTM (98.3%) — entirely without gradient
+MNIST on CPU — exceeding LSTM (98.5%) — entirely without gradient
 descent, training in under four minutes on a laptop CPU or 8 seconds on
 a GPU.
 Finally, we construct a fully gradient-free convolutional pipeline
@@ -1366,25 +1366,29 @@ relu would be the stronger choice.
 
 Row-by-row sMNIST: each image is a sequence of 28 rows (T=28, d=28),
 classified at the final timestep.  All NEF models use 2000 neurons, relu
-activation, gain U(0.5, 2.0), and data-driven biases.  The target-
-propagation rows use the reproducible Tesla T4 rerun summarized in
-Section 5.9; the other timings are CPU.
+activation, gain U(0.5, 2.0), and data-driven biases.  All CPU rows below
+were rerun on the current codebase; the additional T4 rows show the
+matched target-propagation comparison from Section 5.9.
 
-| Model                                | Accuracy | Time    |
-|--------------------------------------|----------|---------|
-| RecNEF-greedy (5 iter)               |  15.3%   |   241s (CPU) |
-| RecNEF-hybrid (10 iter)              |  21.0%   |   461s (CPU) |
-| RecNEF-target-prop (50 iter, reconstruction) |  24.1%   |  560.8s (T4 GPU) |
-| RecNEF-target-prop (50 iter, predictive)     |  36.0%   |  568.9s (T4 GPU) |
-| RecNEF-E2E (50 epochs)               |  98.5%   |   799s (CPU) |
-| RecNEF-hybrid→E2E (10+20 epochs)     | **98.6%**|   686s (CPU) |
-| LSTM-128 (20 epochs)                 |  98.3%   |    98s (CPU) |
+| Model                                | Accuracy | Time    | Hardware |
+|--------------------------------------|----------|---------|----------|
+| RecNEF-greedy (5 iter)               |  15.5%   |  290.6s | CPU      |
+| RecNEF-hybrid (10 iter)              |  21.0%   |  519.1s | CPU      |
+| RecNEF-target-prop (50 iter, reconstruction) |  24.1%   | 7047.8s | CPU      |
+| RecNEF-target-prop (50 iter, reconstruction) |  24.1%   |  560.8s | T4 GPU   |
+| RecNEF-target-prop (50 iter, predictive)     |  36.0%   |  568.9s | T4 GPU   |
+| RecNEF-E2E (50 epochs)               |  98.5%   |  824.6s | CPU      |
+| RecNEF-hybrid→E2E (10+20 epochs)     | **98.6%**|  704.8s | CPU      |
+| LSTM-128 (20 epochs)                 |  98.5%   |   82.7s | CPU      |
 
-Recurrent hybrid→E2E is the strongest result, edging pure E2E while
-training faster.  Plain recurrent hybrid and greedy collapse — random
-encoders compound state feedback noise across timesteps.  Recurrent TP
-improves materially with predictive state targets, but it remains far
-below the E2E-based strategies.
+Recurrent hybrid→E2E remains the strongest result, edging pure E2E while
+training faster.  Plain recurrent hybrid and greedy still collapse —
+random encoders compound state feedback noise across timesteps.  The CPU
+reconstruction rerun and the matched T4 rerun agree almost exactly
+(24.1% both), while predictive state targets on T4 lift recurrent TP to
+36.0%.  That confirms the predictive gain is a modeling effect rather
+than a hardware artifact, even though TP remains far below the E2E-based
+strategies.
 
 *Why abs fails for recurrence.*  In feedforward models, abs doubles
 representational capacity.  In recurrent BPTT, abs has gradient
@@ -1471,17 +1475,18 @@ streaming Woodbury training with batch size 500, and a final
 
 | Model                                | Accuracy   | Time   | Gradients? |
 |--------------------------------------|------------|--------|------------|
-| RecNEF-greedy                        |  15.3%     |  241s  | No         |
-| RecNEF-E2E (50 epochs)               |  98.5%     |  799s  | Yes (BPTT) |
-| RecNEF-hybrid→E2E (10+20 epochs)     |  98.6%     |  686s  | Yes (BPTT) |
-| LSTM-128 (20 epochs)                 |  98.3%     |   98s  | Yes (BPTT) |
+| RecNEF-greedy                        |  15.5%     |  291s  | No         |
+| RecNEF-E2E (50 epochs)               |  98.5%     |  825s  | Yes (BPTT) |
+| RecNEF-hybrid→E2E (10+20 epochs)     |  98.6%     |  705s  | Yes (BPTT) |
+| LSTM-128 (20 epochs)                 |  98.5%     |   83s  | Yes (BPTT) |
 | **StreamNEF-2000n (w=10)**           |  97.2%     | **23s**| **No**     |
 | **StreamNEF-8000n (w=10)**           |**98.6%**   |  222s  | **No**     |
 
 The streaming NEF classifier achieves 97.2% in just 23 seconds —
-completely gradient-free, on CPU — outperforming RecNEF-greedy by 82
-percentage points at 10× less time.  At 8000 neurons, it reaches 98.6%,
-exceeding the LSTM baseline (98.3%) and matching RecNEF-E2E (98.5%),
+completely gradient-free, on CPU — outperforming RecNEF-greedy by 81.7
+percentage points while training over 12× faster.  At 8000 neurons, it
+reaches 98.6%, slightly exceeding the refreshed LSTM baseline (98.5%)
+and RecNEF-E2E (98.5%),
 while still using no gradients whatsoever.
 
 The key advantage is architectural: the delay-line reservoir avoids the
@@ -1773,7 +1778,7 @@ Two experimental insights emerged from the sweep:
 
 The streaming NEF classifier (Section 5.10) extends this competitive
 positioning to temporal data.  On CPU, the 8000-neuron streaming classifier
-reaches 98.6% on sMNIST-row — exceeding the LSTM (98.3%) while remaining
+reaches 98.6% on sMNIST-row — exceeding the LSTM (98.5%) while remaining
 gradient-free.  On a T4 GPU with the accumulate path, the same model
 reaches 98.5% in **8.3 seconds** — 2.7× faster than LSTM (22.3s) with
 zero gradient computation.  On permuted pixel-by-pixel sMNIST (784
@@ -1969,7 +1974,7 @@ The main findings are:
 11. **A delay-line reservoir with analytical decoders produces a
     gradient-free temporal classifier that exceeds LSTM on sMNIST.**
     The streaming NEF classifier reaches 98.6% on sMNIST-row on CPU
-    (222s) — exceeding LSTM (98.3%) — without any gradient computation.
+    (222s) — exceeding LSTM (98.5%) — without any gradient computation.
     On a T4 GPU, the accumulate + solve path reaches 98.5% in 8.3
     seconds (2.7× faster than LSTM at 22.3s), almost matching the
     LSTM's 98.6%.  On permuted pixel-by-pixel sMNIST (784 timesteps),
