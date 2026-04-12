@@ -906,7 +906,7 @@ def run_lstm_speech(
 def run_streaming_nef_scifar(
     mode: str = "row",
     n_neurons: int = 4000,
-    window_size: int = 8,
+    window_size: int = 4,
     activation: str = "abs",
     encoder_strategy: str = "hypersphere",
     gain: float | tuple[float, float] = (0.5, 2.0),

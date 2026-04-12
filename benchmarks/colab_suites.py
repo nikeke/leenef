@@ -2625,19 +2625,30 @@ def run_defaults_tp_suite(args: argparse.Namespace) -> list:
 def run_sequential_audio_suite(args: argparse.Namespace) -> list:
     """Benchmark StreamNEF vs LSTM on Speech Commands v2 and Sequential CIFAR-10.
 
-    GPU recommendation: T4 (matrix dimensions too small for A100/H100 payoff;
-    LSTM is inherently sequential; peak memory ~3-4 GB).
+    Default GPU recommendation: T4.  The report's strongest GPU results are on
+    T4-class consumer hardware, and this suite uses the accumulate path so the
+    expensive O(n^2 k) work stays in `float32`.  L4 or Google Cloud G4 are
+    useful throughput upgrades if already available, but A100/H100 are not
+    justified for this suite size.
+
+    The StreamNEF windows keep K*d near the report's effective regime
+    (~384-400 features) rather than pushing toward the ~800-dimensional
+    setting that degraded fixed-encoder coverage on sMNIST.
 
     Full suite (8 experiments):
       1. StreamNEF SpeechCmds 4k neurons, window=10 (accumulate)
-      2. StreamNEF SpeechCmds 8k neurons, window=20 (accumulate)
+      2. StreamNEF SpeechCmds 8k neurons, window=10 (accumulate)
       3. LSTM SpeechCmds hidden=128, 30 epochs
       4. LSTM SpeechCmds hidden=256, 30 epochs
-      5. StreamNEF sCIFAR-row 4k neurons, window=8 (accumulate)
-      6. StreamNEF sCIFAR-row 8k neurons, window=8 (accumulate)
+      5. StreamNEF sCIFAR-row 4k neurons, window=4 (accumulate)
+      6. StreamNEF sCIFAR-row 8k neurons, window=4 (accumulate)
       7. LSTM sCIFAR-row hidden=128, 50 epochs
       8. LSTM sCIFAR-row hidden=256, 50 epochs
     """
+    # The TR's sMNIST sweep found a sweet spot around K*d ~= 280-560 and
+    # degraded coverage near 784.  We keep the new suites close to that band:
+    # SpeechCmds uses 40 MFCCs -> w=10 gives 400 dims; sCIFAR-row uses 96-dim
+    # rows -> w=4 gives 384 dims.
     common_speech = dict(
         data_root=args.data_root,
         seed=args.seed,
@@ -2660,7 +2671,7 @@ def run_sequential_audio_suite(args: argparse.Namespace) -> list:
                 "StreamNEF SpeechCmds quick",
                 run_streaming_nef_speech,
                 n_neurons=512,
-                window_size=5,
+                window_size=10,
                 alpha=1e-2,
                 batch_size=500,
                 solve_mode="accumulate",
@@ -2707,11 +2718,11 @@ def run_sequential_audio_suite(args: argparse.Namespace) -> list:
             **common_speech,
         ),
         _run_labeled(
-            "StreamNEF SpeechCmds 8k w20 (accumulate)",
+            "StreamNEF SpeechCmds 8k w10 (accumulate)",
             run_streaming_nef_speech,
             n_neurons=8000,
-            window_size=20,
-            alpha=1e-2,
+            window_size=10,
+            alpha=5e-3,
             batch_size=500,
             solve_mode="accumulate",
             **common_speech,
@@ -2734,21 +2745,21 @@ def run_sequential_audio_suite(args: argparse.Namespace) -> list:
         ),
         # --- Sequential CIFAR-10 (row) ---
         _run_labeled(
-            "StreamNEF sCIFAR-row 4k w8 (accumulate)",
+            "StreamNEF sCIFAR-row 4k w4 (accumulate)",
             run_streaming_nef_scifar,
             n_neurons=4000,
-            window_size=8,
+            window_size=4,
             alpha=1e-2,
             batch_size=500,
             solve_mode="accumulate",
             **common_scifar,
         ),
         _run_labeled(
-            "StreamNEF sCIFAR-row 8k w8 (accumulate)",
+            "StreamNEF sCIFAR-row 8k w4 (accumulate)",
             run_streaming_nef_scifar,
             n_neurons=8000,
-            window_size=8,
-            alpha=1e-2,
+            window_size=4,
+            alpha=5e-3,
             batch_size=500,
             solve_mode="accumulate",
             **common_scifar,

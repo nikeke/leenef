@@ -24,7 +24,7 @@ dev = [
 bench = [
     "matplotlib>=3.8",
     "numpy>=1.26",
-    "torchaudio>=2.0",
+    "torchaudio>=2.0,<2.11",
 ]
 
 [build-system]
