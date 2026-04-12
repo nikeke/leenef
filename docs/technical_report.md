@@ -1366,21 +1366,25 @@ relu would be the stronger choice.
 
 Row-by-row sMNIST: each image is a sequence of 28 rows (T=28, d=28),
 classified at the final timestep.  All NEF models use 2000 neurons, relu
-activation, gain U(0.5, 2.0), and data-driven biases.
+activation, gain U(0.5, 2.0), and data-driven biases.  The target-
+propagation rows use the reproducible Tesla T4 rerun summarized in
+Section 5.9; the other timings are CPU.
 
 | Model                                | Accuracy | Time    |
 |--------------------------------------|----------|---------|
-| RecNEF-greedy (5 iter)               |  15.3%   |   241s  |
-| RecNEF-hybrid (10 iter)              |  21.0%   |   461s  |
-| RecNEF-target-prop (50 iter)         |  12.1%   |  5864s  |
-| RecNEF-E2E (50 epochs)               |  98.5%   |   799s  |
-| RecNEF-hybrid→E2E (10+20 epochs)     | **98.6%**|   686s  |
-| LSTM-128 (20 epochs)                 |  98.3%   |    98s  |
+| RecNEF-greedy (5 iter)               |  15.3%   |   241s (CPU) |
+| RecNEF-hybrid (10 iter)              |  21.0%   |   461s (CPU) |
+| RecNEF-target-prop (50 iter, reconstruction) |  24.1%   |  560.8s (T4 GPU) |
+| RecNEF-target-prop (50 iter, predictive)     |  36.0%   |  568.9s (T4 GPU) |
+| RecNEF-E2E (50 epochs)               |  98.5%   |   799s (CPU) |
+| RecNEF-hybrid→E2E (10+20 epochs)     | **98.6%**|   686s (CPU) |
+| LSTM-128 (20 epochs)                 |  98.3%   |    98s (CPU) |
 
 Recurrent hybrid→E2E is the strongest result, edging pure E2E while
 training faster.  Plain recurrent hybrid and greedy collapse — random
-encoders compound state feedback noise across timesteps.  Only E2E-based
-strategies produce competitive results.
+encoders compound state feedback noise across timesteps.  Recurrent TP
+improves materially with predictive state targets, but it remains far
+below the E2E-based strategies.
 
 *Why abs fails for recurrence.*  In feedforward models, abs doubles
 representational capacity.  In recurrent BPTT, abs has gradient
@@ -1389,7 +1393,7 @@ sparsity to damp gradient magnitudes.  Over 28 timesteps, this causes
 gradient explosion.  ReLU's zero gradient on ~half the neurons provides
 critical damping.  E2E with abs gets 10.1% (random); with relu, 98.5%.
 
-### 5.9 Predictive State Targets — Full-Dataset GPU Benchmark
+### 5.9 Predictive State Targets — T4 GPU Benchmark
 
 The `predictive` state target decodes the *next* input frame rather than
 the current one, which better matches what recurrent state should carry.
