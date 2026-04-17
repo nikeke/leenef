@@ -30,6 +30,11 @@ python benchmarks/run_recurrent.py --seed 0
 python benchmarks/run_recurrent.py --streaming --streaming-neurons 4000 --streaming-window 10 --seed 0
 python benchmarks/run_recurrent.py --streaming --streaming-solve-mode accumulate --streaming-neurons 4000 --streaming-window 10 --seed 0
 
+# Continual learning
+python benchmarks/run_continual.py --scenario both --seed 0
+python benchmarks/run_continual.py --dataset cifar10 --scenario split --n-neurons 5000 --seed 0
+python benchmarks/run_continual.py --dataset cifar100 --scenario split --n-neurons 5000 --seed 0
+
 # Colab suites (GPU)
 python benchmarks/colab_suites.py --suite row_focus --device auto --output-dir results/colab
 python benchmarks/colab_suites.py --suite sequential_hard --device auto --output-dir results/colab
@@ -308,3 +313,36 @@ gradient optimizers by default.  `fit()` writes to `.data` directly.
 All computation must use batched PyTorch tensor operations
 (`torch.linalg`, `@`, broadcasting).  Never loop over neurons or samples
 in Python.
+
+## Available GPU resources
+
+The user can provision any of the following GCP GPUs on demand.  Choose
+the cheapest option that fits the workload; don't request A100/H100
+unless the benchmark genuinely needs the memory or bandwidth.
+
+| GPU | VRAM | FP32 TFLOPS | Mem BW | Best for |
+|-----|------|-------------|--------|----------|
+| T4 | 16 GB GDDR6 | 8.1 | 320 GB/s | Quick sweeps, small models, CI |
+| L4 | 24 GB GDDR6 | 30 | 300 GB/s | Medium matmuls, ConvNEF, EWC baselines |
+| G4 (RTX PRO 6000 Blackwell) | 96 GB GDDR7 | ~100 | ~900 GB/s | Large neuron counts (50k+), big AᵀA, ImageNet-scale |
+| A100 | 80 GB HBM2e | 19.5 (156 TF16) | 2 TB/s | HBM-bandwidth-bound ops, very large batch solves |
+| H100 | 80 GB HBM3 | 51 (990 TF16) | 3.35 TB/s | Only if A100 is bottleneck; overkill for most NEF work |
+
+### When to use a GPU
+
+NEF's computational profile is dominated by three operations:
+
+1. **Encoding** `A = act(gain * (x @ E^T) + bias)` — O(N × d_in × n_neurons).
+   CPU-bound above ~5000 neurons with d_in ≥ 3072.
+2. **Accumulation** `AᵀA += A^T @ A` — O(n_neurons² × N/batch).
+   Memory-bound; benefits from HBM above ~20000 neurons.
+3. **Solve** `(AᵀA + αI)⁻¹ AᵀY` — O(n_neurons³).
+   GPU wins above ~10000 neurons.
+
+**Rules of thumb:**
+- MNIST (784-dim), ≤5000 neurons → CPU is fine (~2–10 s)
+- CIFAR-10/100 (3072-dim), 2000–5000 neurons → CPU is fine (~5–30 s)
+- CIFAR-10/100, 10000+ neurons → **T4 or L4**
+- EWC baselines (per-sample Fisher) → GPU helps regardless of NEF size
+- Large sweeps or Colab suites → **L4** minimum (best cost/perf)
+- 50000+ neurons or ImageNet-scale → **G4** or **A100**

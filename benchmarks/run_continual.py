@@ -4,13 +4,19 @@ Demonstrates the zero-forgetting property of NEF's analytical solve
 by comparing against MLP fine-tuning and EWC baselines on standard
 continual learning scenarios.
 
+Datasets:
+  mnist    -- MNIST (28×28, 10 classes, 784-dim)
+  cifar10  -- CIFAR-10 (32×32×3, 10 classes, 3072-dim)
+  cifar100 -- CIFAR-100 (32×32×3, 100 classes, 3072-dim)
+
 Scenarios:
-  split    -- Split-MNIST: 5 tasks of 2 classes each (class-incremental)
-  permuted -- Permuted-MNIST: N tasks with random pixel permutations
+  split    -- Class-incremental: tasks with disjoint class subsets
+  permuted -- Domain-incremental: tasks with random pixel permutations
 
 Usage:
   python benchmarks/run_continual.py --scenario both --seed 0
-  python benchmarks/run_continual.py --scenario split --skip-ewc --seed 0
+  python benchmarks/run_continual.py --dataset cifar10 --scenario split --n-neurons 5000 --seed 0
+  python benchmarks/run_continual.py --dataset cifar100 --scenario split --n-neurons 5000 --seed 0
   python benchmarks/run_continual.py --scenario permuted --n-tasks-permuted 10 --seed 0
 """
 
@@ -63,18 +69,72 @@ def load_mnist(root: str = "./data"):
     return to_tensors(train), to_tensors(test)
 
 
+def load_cifar10(root: str = "./data"):
+    """Load CIFAR-10 as flat float tensors and integer labels."""
+    import torchvision
+    import torchvision.transforms as T
+
+    transform = T.ToTensor()
+    train = torchvision.datasets.CIFAR10(root, train=True, download=True, transform=transform)
+    test = torchvision.datasets.CIFAR10(root, train=False, download=True, transform=transform)
+
+    def to_tensors(ds):
+        loader = torch.utils.data.DataLoader(ds, batch_size=len(ds))
+        x, y = next(iter(loader))
+        return x.reshape(x.shape[0], -1).float(), y
+
+    return to_tensors(train), to_tensors(test)
+
+
+def load_cifar100(root: str = "./data"):
+    """Load CIFAR-100 as flat float tensors and integer labels."""
+    import torchvision
+    import torchvision.transforms as T
+
+    transform = T.ToTensor()
+    train = torchvision.datasets.CIFAR100(root, train=True, download=True, transform=transform)
+    test = torchvision.datasets.CIFAR100(root, train=False, download=True, transform=transform)
+
+    def to_tensors(ds):
+        loader = torch.utils.data.DataLoader(ds, batch_size=len(ds))
+        x, y = next(iter(loader))
+        return x.reshape(x.shape[0], -1).float(), y
+
+    return to_tensors(train), to_tensors(test)
+
+
+DATASET_LOADERS = {
+    "mnist": load_mnist,
+    "cifar10": load_cifar10,
+    "cifar100": load_cifar100,
+}
+
+DATASET_N_CLASSES = {
+    "mnist": 10,
+    "cifar10": 10,
+    "cifar100": 100,
+}
+
+DATASET_DEFAULT_NEURONS = {
+    "mnist": 2000,
+    "cifar10": 5000,
+    "cifar100": 5000,
+}
+
+
 # ── Task construction ─────────────────────────────────────────────────
 
 
-def split_mnist_tasks(
+def split_class_tasks(
     x_train: Tensor,
     y_train: Tensor,
     x_test: Tensor,
     y_test: Tensor,
-    n_tasks: int = 5,
+    n_classes: int,
+    classes_per_task: int = 2,
 ) -> list[dict]:
-    """Split MNIST into class-incremental tasks (2 classes per task)."""
-    classes_per_task = 10 // n_tasks
+    """Split a dataset into class-incremental tasks with disjoint class subsets."""
+    n_tasks = n_classes // classes_per_task
     tasks = []
     for t in range(n_tasks):
         lo = t * classes_per_task
@@ -87,7 +147,7 @@ def split_mnist_tasks(
             test_mask |= y_test == c
         tasks.append(
             {
-                "name": f"digits {task_classes}",
+                "name": f"classes {task_classes}",
                 "classes": task_classes,
                 "x_train": x_train[train_mask],
                 "y_train": y_train[train_mask],
@@ -98,7 +158,7 @@ def split_mnist_tasks(
     return tasks
 
 
-def permuted_mnist_tasks(
+def permuted_tasks(
     x_train: Tensor,
     y_train: Tensor,
     x_test: Tensor,
@@ -106,11 +166,12 @@ def permuted_mnist_tasks(
     n_tasks: int = 5,
     seed: int = 0,
 ) -> list[dict]:
-    """Create permuted-MNIST tasks (same classes, permuted pixels)."""
+    """Create permuted-pixel tasks (same classes, permuted input features)."""
+    n_classes = int(y_train.max().item()) + 1
     tasks = [
         {
             "name": "original",
-            "classes": list(range(10)),
+            "classes": list(range(n_classes)),
             "x_train": x_train.clone(),
             "y_train": y_train.clone(),
             "x_test": x_test.clone(),
@@ -123,7 +184,7 @@ def permuted_mnist_tasks(
         tasks.append(
             {
                 "name": f"perm-{i}",
-                "classes": list(range(10)),
+                "classes": list(range(n_classes)),
                 "x_train": x_train[:, perm],
                 "y_train": y_train.clone(),
                 "x_test": x_test[:, perm],
@@ -221,7 +282,7 @@ def run_nef_accumulate(
         use_centers: 'none' | 'first_task' | 'all_tasks'
     """
     set_seed(seed)
-    n_classes = 10
+    n_classes = max(int(t["y_train"].max().item()) for t in tasks) + 1
     d_in = tasks[0]["x_train"].shape[1]
 
     if use_centers == "first_task":
@@ -267,7 +328,7 @@ def run_nef_reset(
 ) -> ContinualResult:
     """NEF with accumulators reset between tasks — forgetting control."""
     set_seed(seed)
-    n_classes = 10
+    n_classes = max(int(t["y_train"].max().item()) for t in tasks) + 1
     d_in = tasks[0]["x_train"].shape[1]
 
     layer = NEFLayer(d_in, n_neurons, n_classes, activation="abs", gain=(0.5, 2.0))
@@ -305,7 +366,7 @@ def run_nef_joint(
 ) -> ContinualResult:
     """NEF trained on all tasks jointly — upper bound."""
     set_seed(seed)
-    n_classes = 10
+    n_classes = max(int(t["y_train"].max().item()) for t in tasks) + 1
     d_in = tasks[0]["x_train"].shape[1]
 
     x_all = torch.cat([t["x_train"] for t in tasks])
@@ -386,8 +447,9 @@ def run_mlp_finetune(
     """MLP fine-tuned sequentially — shows catastrophic forgetting."""
     set_seed(seed)
     d_in = tasks[0]["x_train"].shape[1]
+    n_classes = max(int(t["y_train"].max().item()) for t in tasks) + 1
 
-    model = SimpleMLP(d_in, d_hidden, 10)
+    model = SimpleMLP(d_in, d_hidden, n_classes)
 
     accuracy_matrix: list[list[float]] = []
     fit_times: list[float] = []
@@ -421,8 +483,9 @@ def run_mlp_joint(
     """MLP trained on all tasks jointly — upper bound."""
     set_seed(seed)
     d_in = tasks[0]["x_train"].shape[1]
+    n_classes = max(int(t["y_train"].max().item()) for t in tasks) + 1
 
-    model = SimpleMLP(d_in, d_hidden, 10)
+    model = SimpleMLP(d_in, d_hidden, n_classes)
 
     x_all = torch.cat([t["x_train"] for t in tasks])
     y_all = torch.cat([t["y_train"] for t in tasks])
@@ -496,8 +559,9 @@ def run_mlp_ewc(
     """MLP with Elastic Weight Consolidation."""
     set_seed(seed)
     d_in = tasks[0]["x_train"].shape[1]
+    n_classes = max(int(t["y_train"].max().item()) for t in tasks) + 1
 
-    model = SimpleMLP(d_in, d_hidden, 10)
+    model = SimpleMLP(d_in, d_hidden, n_classes)
     ewc_penalties: list[_EWCPenalty] = []
 
     accuracy_matrix: list[list[float]] = []
@@ -657,10 +721,29 @@ def run_scenario(
 def main() -> None:
     parser = argparse.ArgumentParser(description="Continual learning benchmarks for NEF")
     parser.add_argument(
+        "--dataset",
+        choices=list(DATASET_LOADERS),
+        default="mnist",
+        help="Dataset (default: mnist)",
+    )
+    parser.add_argument(
         "--scenario", choices=["split", "permuted", "both"], default="both", help="CL scenario"
     )
-    parser.add_argument("--n-neurons", type=int, default=2000, help="NEF neurons / MLP hidden dim")
-    parser.add_argument("--n-tasks-permuted", type=int, default=5, help="tasks for permuted-MNIST")
+    parser.add_argument(
+        "--n-neurons",
+        type=int,
+        default=None,
+        help="NEF neurons / MLP hidden dim (default: dataset-dependent)",
+    )
+    parser.add_argument(
+        "--classes-per-task",
+        type=int,
+        default=2,
+        help="Classes per task for split scenario (default: 2)",
+    )
+    parser.add_argument(
+        "--n-tasks-permuted", type=int, default=5, help="tasks for permuted scenario"
+    )
     parser.add_argument("--alpha", type=float, default=1e-2, help="Tikhonov alpha")
     parser.add_argument("--mlp-epochs", type=int, default=10, help="SGD epochs per task")
     parser.add_argument("--mlp-lr", type=float, default=0.01, help="SGD learning rate")
@@ -672,20 +755,31 @@ def main() -> None:
     parser.add_argument("--skip-ewc", action="store_true", help="skip EWC baseline")
     args = parser.parse_args()
 
-    print("Loading MNIST ...")
-    (x_train, y_train), (x_test, y_test) = load_mnist(args.data_root)
+    dataset = args.dataset
+    n_classes = DATASET_N_CLASSES[dataset]
+    n_neurons = args.n_neurons or DATASET_DEFAULT_NEURONS[dataset]
+    cpt = args.classes_per_task
+
+    print(f"Loading {dataset.upper()} ...")
+    (x_train, y_train), (x_test, y_test) = DATASET_LOADERS[dataset](args.data_root)
+    print(f"  train: {x_train.shape}, test: {x_test.shape}, {n_classes} classes")
 
     all_results: list[ContinualResult] = []
 
     if args.scenario in ("split", "both"):
+        n_split_tasks = n_classes // cpt
+        label = (
+            f"SPLIT-{dataset.upper()}  (class-incremental, {n_split_tasks} tasks × {cpt} classes)"
+        )
         print("\n" + "=" * 72)
-        print("  SPLIT-MNIST  (class-incremental, 5 tasks)")
+        print(f"  {label}")
         print("=" * 72)
-        tasks = split_mnist_tasks(x_train, y_train, x_test, y_test)
+        tasks = split_class_tasks(x_train, y_train, x_test, y_test, n_classes, cpt)
+        centers_strategies = ["none", "first_task"] if dataset != "cifar100" else ["none"]
         results = run_scenario(
-            "split",
+            f"split-{dataset}",
             tasks,
-            n_neurons=args.n_neurons,
+            n_neurons=n_neurons,
             alpha=args.alpha,
             mlp_epochs=args.mlp_epochs,
             mlp_lr=args.mlp_lr,
@@ -693,22 +787,21 @@ def main() -> None:
             seed=args.seed,
             skip_mlp=args.skip_mlp,
             skip_ewc=args.skip_ewc,
-            centers_strategies=["none", "first_task"],
+            centers_strategies=centers_strategies,
         )
         all_results.extend(results)
 
     if args.scenario in ("permuted", "both"):
         print("\n" + "=" * 72)
-        print(f"  PERMUTED-MNIST  (domain-incremental, {args.n_tasks_permuted} tasks)")
+        print(f"  PERMUTED-{dataset.upper()}  (domain-incremental, {args.n_tasks_permuted} tasks)")
         print("=" * 72)
-        tasks = permuted_mnist_tasks(
+        tasks = permuted_tasks(
             x_train, y_train, x_test, y_test, n_tasks=args.n_tasks_permuted, seed=args.seed
         )
-        # Data-driven centers don't make sense across permutations
         results = run_scenario(
-            "permuted",
+            f"permuted-{dataset}",
             tasks,
-            n_neurons=args.n_neurons,
+            n_neurons=n_neurons,
             alpha=args.alpha,
             mlp_epochs=args.mlp_epochs,
             mlp_lr=args.mlp_lr,
@@ -726,19 +819,20 @@ def main() -> None:
     print("  SUMMARY")
     print("=" * 72)
     print(
-        f"{'Method':<40s} {'Scenario':<10s} {'Avg Acc':>7s} {'Forget':>7s} {'BWT':>7s} {'Time':>7s}"
+        f"{'Method':<40s} {'Scenario':<20s} {'Avg Acc':>7s} {'Forget':>7s} {'BWT':>7s} {'Time':>7s}"
     )
-    print("-" * 78)
+    print("-" * 88)
     for r in all_results:
         print(
-            f"{r.method:<40s} {r.scenario:<10s} "
+            f"{r.method:<40s} {r.scenario:<20s} "
             f"{r.final_average_accuracy * 100:6.1f}% "
             f"{r.forgetting * 100:6.1f}% "
             f"{r.backward_transfer * 100:+6.1f}% "
             f"{r.total_time:6.1f}s"
         )
 
-    save_results(all_results, Path(args.output_dir) / "continual_results.json")
+    out_name = f"continual_{dataset}_results.json"
+    save_results(all_results, Path(args.output_dir) / out_name)
 
 
 if __name__ == "__main__":
