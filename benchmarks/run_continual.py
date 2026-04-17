@@ -1,0 +1,745 @@
+"""Continual learning benchmarks for NEF.
+
+Demonstrates the zero-forgetting property of NEF's analytical solve
+by comparing against MLP fine-tuning and EWC baselines on standard
+continual learning scenarios.
+
+Scenarios:
+  split    -- Split-MNIST: 5 tasks of 2 classes each (class-incremental)
+  permuted -- Permuted-MNIST: N tasks with random pixel permutations
+
+Usage:
+  python benchmarks/run_continual.py --scenario both --seed 0
+  python benchmarks/run_continual.py --scenario split --skip-ewc --seed 0
+  python benchmarks/run_continual.py --scenario permuted --n-tasks-permuted 10 --seed 0
+"""
+
+import argparse
+import json
+import random
+import sys
+import time
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
+
+import numpy as np
+import torch
+import torch.nn as nn
+from torch import Tensor
+
+_SRC = str(Path(__file__).resolve().parent.parent / "src")
+if _SRC not in sys.path:
+    sys.path.insert(0, _SRC)
+
+from leenef.layers import NEFLayer  # noqa: E402
+
+# ── Utilities ─────────────────────────────────────────────────────────
+
+
+def set_seed(seed: int) -> None:
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
+
+def one_hot(labels: Tensor, n_classes: int) -> Tensor:
+    return torch.zeros(len(labels), n_classes).scatter_(1, labels.unsqueeze(1), 1.0)
+
+
+def load_mnist(root: str = "./data"):
+    """Load MNIST as flat float tensors and integer labels."""
+    import torchvision
+    import torchvision.transforms as T
+
+    transform = T.ToTensor()
+    train = torchvision.datasets.MNIST(root, train=True, download=True, transform=transform)
+    test = torchvision.datasets.MNIST(root, train=False, download=True, transform=transform)
+
+    def to_tensors(ds):
+        loader = torch.utils.data.DataLoader(ds, batch_size=len(ds))
+        x, y = next(iter(loader))
+        return x.reshape(x.shape[0], -1).float(), y
+
+    return to_tensors(train), to_tensors(test)
+
+
+# ── Task construction ─────────────────────────────────────────────────
+
+
+def split_mnist_tasks(
+    x_train: Tensor,
+    y_train: Tensor,
+    x_test: Tensor,
+    y_test: Tensor,
+    n_tasks: int = 5,
+) -> list[dict]:
+    """Split MNIST into class-incremental tasks (2 classes per task)."""
+    classes_per_task = 10 // n_tasks
+    tasks = []
+    for t in range(n_tasks):
+        lo = t * classes_per_task
+        hi = (t + 1) * classes_per_task
+        task_classes = list(range(lo, hi))
+        train_mask = torch.zeros(len(y_train), dtype=torch.bool)
+        test_mask = torch.zeros(len(y_test), dtype=torch.bool)
+        for c in task_classes:
+            train_mask |= y_train == c
+            test_mask |= y_test == c
+        tasks.append(
+            {
+                "name": f"digits {task_classes}",
+                "classes": task_classes,
+                "x_train": x_train[train_mask],
+                "y_train": y_train[train_mask],
+                "x_test": x_test[test_mask],
+                "y_test": y_test[test_mask],
+            }
+        )
+    return tasks
+
+
+def permuted_mnist_tasks(
+    x_train: Tensor,
+    y_train: Tensor,
+    x_test: Tensor,
+    y_test: Tensor,
+    n_tasks: int = 5,
+    seed: int = 0,
+) -> list[dict]:
+    """Create permuted-MNIST tasks (same classes, permuted pixels)."""
+    tasks = [
+        {
+            "name": "original",
+            "classes": list(range(10)),
+            "x_train": x_train.clone(),
+            "y_train": y_train.clone(),
+            "x_test": x_test.clone(),
+            "y_test": y_test.clone(),
+        }
+    ]
+    rng = torch.Generator().manual_seed(seed + 1000)
+    for i in range(1, n_tasks):
+        perm = torch.randperm(x_train.shape[1], generator=rng)
+        tasks.append(
+            {
+                "name": f"perm-{i}",
+                "classes": list(range(10)),
+                "x_train": x_train[:, perm],
+                "y_train": y_train.clone(),
+                "x_test": x_test[:, perm],
+                "y_test": y_test.clone(),
+            }
+        )
+    return tasks
+
+
+# ── Evaluation ────────────────────────────────────────────────────────
+
+
+@torch.no_grad()
+def evaluate_on_tasks(model: nn.Module, tasks: list[dict]) -> list[float]:
+    """Return per-task test accuracy."""
+    was_training = model.training
+    model.eval()
+    accs = []
+    for task in tasks:
+        pred = model(task["x_test"])
+        acc = (pred.argmax(dim=1) == task["y_test"]).float().mean().item()
+        accs.append(acc)
+    if was_training:
+        model.train()
+    return accs
+
+
+# ── Result container ──────────────────────────────────────────────────
+
+
+@dataclass
+class ContinualResult:
+    method: str
+    scenario: str
+    n_tasks: int
+    accuracy_matrix: list[list[float]]
+    fit_times: list[float]
+    n_neurons: int = 0
+    config: dict = field(default_factory=dict)
+
+    @property
+    def final_average_accuracy(self) -> float:
+        """Mean accuracy across all tasks after the last training step."""
+        row = self.accuracy_matrix[-1]
+        return sum(row) / len(row)
+
+    @property
+    def forgetting(self) -> float:
+        """Mean forgetting: peak accuracy minus final accuracy per task."""
+        n_rows = len(self.accuracy_matrix)
+        if n_rows <= 1:
+            return 0.0
+        n = len(self.accuracy_matrix[-1])
+        total = 0.0
+        for j in range(n):
+            peak = max(self.accuracy_matrix[i][j] for i in range(n_rows))
+            final = self.accuracy_matrix[-1][j]
+            total += peak - final
+        return total / n
+
+    @property
+    def backward_transfer(self) -> float:
+        """Mean change in old-task accuracy after learning new tasks."""
+        n_rows = len(self.accuracy_matrix)
+        n = len(self.accuracy_matrix[-1])
+        if n_rows <= 1 or n <= 1:
+            return 0.0
+        total = 0.0
+        count = 0
+        for j in range(min(n - 1, n_rows - 1)):
+            total += self.accuracy_matrix[-1][j] - self.accuracy_matrix[j][j]
+            count += 1
+        return total / count if count > 0 else 0.0
+
+    @property
+    def total_time(self) -> float:
+        return sum(self.fit_times)
+
+
+# ── NEF methods ───────────────────────────────────────────────────────
+
+
+def run_nef_accumulate(
+    tasks: list[dict],
+    scenario: str,
+    *,
+    n_neurons: int = 2000,
+    alpha: float = 1e-2,
+    use_centers: str = "none",
+    seed: int = 0,
+) -> ContinualResult:
+    """NEF with accumulative partial_fit — our main method.
+
+    Args:
+        use_centers: 'none' | 'first_task' | 'all_tasks'
+    """
+    set_seed(seed)
+    n_classes = 10
+    d_in = tasks[0]["x_train"].shape[1]
+
+    if use_centers == "first_task":
+        centers = tasks[0]["x_train"]
+    elif use_centers == "all_tasks":
+        centers = torch.cat([t["x_train"] for t in tasks])
+    else:
+        centers = None
+
+    layer = NEFLayer(
+        d_in, n_neurons, n_classes, activation="abs", gain=(0.5, 2.0), centers=centers
+    )
+
+    accuracy_matrix: list[list[float]] = []
+    fit_times: list[float] = []
+
+    for task in tasks:
+        targets = one_hot(task["y_train"], n_classes)
+        t0 = time.perf_counter()
+        layer.partial_fit(task["x_train"], targets)
+        layer.solve_accumulated(alpha=alpha)
+        fit_times.append(time.perf_counter() - t0)
+        accuracy_matrix.append(evaluate_on_tasks(layer, tasks))
+
+    return ContinualResult(
+        method=f"NEF-accumulate (centers={use_centers})",
+        scenario=scenario,
+        n_tasks=len(tasks),
+        accuracy_matrix=accuracy_matrix,
+        fit_times=fit_times,
+        n_neurons=n_neurons,
+        config={"alpha": alpha, "use_centers": use_centers},
+    )
+
+
+def run_nef_reset(
+    tasks: list[dict],
+    scenario: str,
+    *,
+    n_neurons: int = 2000,
+    alpha: float = 1e-2,
+    seed: int = 0,
+) -> ContinualResult:
+    """NEF with accumulators reset between tasks — forgetting control."""
+    set_seed(seed)
+    n_classes = 10
+    d_in = tasks[0]["x_train"].shape[1]
+
+    layer = NEFLayer(d_in, n_neurons, n_classes, activation="abs", gain=(0.5, 2.0))
+
+    accuracy_matrix: list[list[float]] = []
+    fit_times: list[float] = []
+
+    for task in tasks:
+        targets = one_hot(task["y_train"], n_classes)
+        t0 = time.perf_counter()
+        layer.reset_accumulators()
+        layer.partial_fit(task["x_train"], targets)
+        layer.solve_accumulated(alpha=alpha)
+        fit_times.append(time.perf_counter() - t0)
+        accuracy_matrix.append(evaluate_on_tasks(layer, tasks))
+
+    return ContinualResult(
+        method="NEF-reset (forgetting control)",
+        scenario=scenario,
+        n_tasks=len(tasks),
+        accuracy_matrix=accuracy_matrix,
+        fit_times=fit_times,
+        n_neurons=n_neurons,
+        config={"alpha": alpha},
+    )
+
+
+def run_nef_joint(
+    tasks: list[dict],
+    scenario: str,
+    *,
+    n_neurons: int = 2000,
+    alpha: float = 1e-2,
+    seed: int = 0,
+) -> ContinualResult:
+    """NEF trained on all tasks jointly — upper bound."""
+    set_seed(seed)
+    n_classes = 10
+    d_in = tasks[0]["x_train"].shape[1]
+
+    x_all = torch.cat([t["x_train"] for t in tasks])
+    y_all = torch.cat([t["y_train"] for t in tasks])
+    targets_all = one_hot(y_all, n_classes)
+
+    layer = NEFLayer(d_in, n_neurons, n_classes, activation="abs", gain=(0.5, 2.0))
+
+    t0 = time.perf_counter()
+    layer.fit(x_all, targets_all, alpha=alpha)
+    fit_time = time.perf_counter() - t0
+
+    accs = evaluate_on_tasks(layer, tasks)
+
+    return ContinualResult(
+        method="NEF-joint (upper bound)",
+        scenario=scenario,
+        n_tasks=len(tasks),
+        accuracy_matrix=[accs],
+        fit_times=[fit_time],
+        n_neurons=n_neurons,
+        config={"alpha": alpha},
+    )
+
+
+# ── MLP baselines ────────────────────────────────────────────────────
+
+
+class SimpleMLP(nn.Module):
+    def __init__(self, d_in: int, d_hidden: int, d_out: int):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(d_in, d_hidden),
+            nn.ReLU(),
+            nn.Linear(d_hidden, d_out),
+        )
+
+    def forward(self, x: Tensor) -> Tensor:
+        return self.net(x)
+
+
+def _train_mlp(
+    model: SimpleMLP,
+    x: Tensor,
+    y: Tensor,
+    *,
+    epochs: int = 10,
+    lr: float = 0.01,
+    batch_size: int = 256,
+    extra_loss_fn=None,
+):
+    """Train MLP with SGD + optional extra loss (e.g. EWC penalty)."""
+    optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+    ce_loss = nn.CrossEntropyLoss()
+    model.train()
+    for _ in range(epochs):
+        perm = torch.randperm(len(x))
+        for i in range(0, len(x), batch_size):
+            idx = perm[i : i + batch_size]
+            optimizer.zero_grad()
+            loss = ce_loss(model(x[idx]), y[idx])
+            if extra_loss_fn is not None:
+                loss = loss + extra_loss_fn()
+            loss.backward()
+            optimizer.step()
+    model.eval()
+
+
+def run_mlp_finetune(
+    tasks: list[dict],
+    scenario: str,
+    *,
+    d_hidden: int = 2000,
+    epochs: int = 10,
+    lr: float = 0.01,
+    seed: int = 0,
+) -> ContinualResult:
+    """MLP fine-tuned sequentially — shows catastrophic forgetting."""
+    set_seed(seed)
+    d_in = tasks[0]["x_train"].shape[1]
+
+    model = SimpleMLP(d_in, d_hidden, 10)
+
+    accuracy_matrix: list[list[float]] = []
+    fit_times: list[float] = []
+
+    for task in tasks:
+        t0 = time.perf_counter()
+        _train_mlp(model, task["x_train"], task["y_train"], epochs=epochs, lr=lr)
+        fit_times.append(time.perf_counter() - t0)
+        accuracy_matrix.append(evaluate_on_tasks(model, tasks))
+
+    return ContinualResult(
+        method="MLP-finetune",
+        scenario=scenario,
+        n_tasks=len(tasks),
+        accuracy_matrix=accuracy_matrix,
+        fit_times=fit_times,
+        n_neurons=d_hidden,
+        config={"d_hidden": d_hidden, "epochs": epochs, "lr": lr},
+    )
+
+
+def run_mlp_joint(
+    tasks: list[dict],
+    scenario: str,
+    *,
+    d_hidden: int = 2000,
+    epochs: int = 10,
+    lr: float = 0.01,
+    seed: int = 0,
+) -> ContinualResult:
+    """MLP trained on all tasks jointly — upper bound."""
+    set_seed(seed)
+    d_in = tasks[0]["x_train"].shape[1]
+
+    model = SimpleMLP(d_in, d_hidden, 10)
+
+    x_all = torch.cat([t["x_train"] for t in tasks])
+    y_all = torch.cat([t["y_train"] for t in tasks])
+
+    t0 = time.perf_counter()
+    _train_mlp(model, x_all, y_all, epochs=epochs, lr=lr)
+    fit_time = time.perf_counter() - t0
+
+    accs = evaluate_on_tasks(model, tasks)
+
+    return ContinualResult(
+        method="MLP-joint (upper bound)",
+        scenario=scenario,
+        n_tasks=len(tasks),
+        accuracy_matrix=[accs],
+        fit_times=[fit_time],
+        n_neurons=d_hidden,
+        config={"d_hidden": d_hidden, "epochs": epochs, "lr": lr},
+    )
+
+
+# ── EWC baseline ─────────────────────────────────────────────────────
+
+
+class _EWCPenalty:
+    """Diagonal Fisher penalty for one completed task."""
+
+    def __init__(
+        self, model: nn.Module, x: Tensor, y: Tensor, lambda_ewc: float, n_samples: int = 1000
+    ):
+        self.lambda_ewc = lambda_ewc
+        self.saved = {n: p.clone().detach() for n, p in model.named_parameters()}
+        self.fisher = self._estimate_fisher(model, x, y, n_samples)
+
+    @staticmethod
+    def _estimate_fisher(
+        model: nn.Module, x: Tensor, y: Tensor, n_samples: int
+    ) -> dict[str, Tensor]:
+        fisher: dict[str, Tensor] = {n: torch.zeros_like(p) for n, p in model.named_parameters()}
+        model.eval()
+        idx = torch.randperm(len(x))[:n_samples]
+        ce_loss = nn.CrossEntropyLoss()
+        for i in idx:
+            model.zero_grad()
+            loss = ce_loss(model(x[i : i + 1]), y[i : i + 1])
+            loss.backward()
+            for n, p in model.named_parameters():
+                if p.grad is not None:
+                    fisher[n] += p.grad.data.pow(2)
+        for n in fisher:
+            fisher[n] /= len(idx)
+        return fisher
+
+    def penalty(self, model: nn.Module) -> Tensor:
+        loss = torch.tensor(0.0)
+        for n, p in model.named_parameters():
+            loss = loss + (self.fisher[n] * (p - self.saved[n]).pow(2)).sum()
+        return 0.5 * self.lambda_ewc * loss
+
+
+def run_mlp_ewc(
+    tasks: list[dict],
+    scenario: str,
+    *,
+    d_hidden: int = 2000,
+    epochs: int = 10,
+    lr: float = 0.01,
+    lambda_ewc: float = 1000.0,
+    seed: int = 0,
+) -> ContinualResult:
+    """MLP with Elastic Weight Consolidation."""
+    set_seed(seed)
+    d_in = tasks[0]["x_train"].shape[1]
+
+    model = SimpleMLP(d_in, d_hidden, 10)
+    ewc_penalties: list[_EWCPenalty] = []
+
+    accuracy_matrix: list[list[float]] = []
+    fit_times: list[float] = []
+
+    for task in tasks:
+        # Capture current penalties for the closure
+        current_penalties = list(ewc_penalties)
+
+        def extra_loss(m=model, ps=current_penalties):
+            return sum(p.penalty(m) for p in ps) if ps else torch.tensor(0.0)
+
+        t0 = time.perf_counter()
+        _train_mlp(
+            model, task["x_train"], task["y_train"], epochs=epochs, lr=lr, extra_loss_fn=extra_loss
+        )
+        ewc_penalties.append(_EWCPenalty(model, task["x_train"], task["y_train"], lambda_ewc))
+        fit_times.append(time.perf_counter() - t0)
+        accuracy_matrix.append(evaluate_on_tasks(model, tasks))
+
+    return ContinualResult(
+        method=f"MLP-EWC (lambda={lambda_ewc:.0f})",
+        scenario=scenario,
+        n_tasks=len(tasks),
+        accuracy_matrix=accuracy_matrix,
+        fit_times=fit_times,
+        n_neurons=d_hidden,
+        config={"d_hidden": d_hidden, "epochs": epochs, "lr": lr, "lambda_ewc": lambda_ewc},
+    )
+
+
+# ── Reporting ─────────────────────────────────────────────────────────
+
+
+def print_result(result: ContinualResult) -> None:
+    """Print a formatted accuracy matrix and summary metrics."""
+    n_tasks = len(result.accuracy_matrix[-1])
+    print(f"\n{'=' * 72}")
+    print(f"  {result.method}")
+    print(f"  Scenario: {result.scenario}, {result.n_tasks} tasks, {result.n_neurons} neurons")
+    print(f"{'=' * 72}")
+
+    # Header
+    hdr = "After task |"
+    for j in range(n_tasks):
+        hdr += f" T{j:d}     |"
+    hdr += "  Avg"
+    print(hdr)
+    print("-" * len(hdr))
+
+    for i, accs in enumerate(result.accuracy_matrix):
+        row = f"    {i:d}      |"
+        avg = sum(accs) / len(accs)
+        for acc in accs:
+            row += f" {acc * 100:5.1f}% |"
+        row += f" {avg * 100:5.1f}%"
+        print(row)
+
+    print()
+    print(f"  Average accuracy (final): {result.final_average_accuracy * 100:.1f}%")
+    print(f"  Forgetting:               {result.forgetting * 100:.1f}%")
+    print(f"  Backward transfer:        {result.backward_transfer * 100:+.1f}%")
+    print(f"  Total fit time:           {result.total_time:.2f}s")
+
+
+def save_results(results: list[ContinualResult], path: str | Path) -> None:
+    """Save results as JSON, flushing after write."""
+    out = Path(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    payload = []
+    for r in results:
+        d = asdict(r)
+        d["final_average_accuracy"] = r.final_average_accuracy
+        d["forgetting"] = r.forgetting
+        d["backward_transfer"] = r.backward_transfer
+        d["total_time"] = r.total_time
+        payload.append(d)
+    out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+    print(f"\nResults saved to {out}")
+
+
+# ── Main ──────────────────────────────────────────────────────────────
+
+
+def run_scenario(
+    scenario_name: str,
+    tasks: list[dict],
+    *,
+    n_neurons: int,
+    alpha: float,
+    mlp_epochs: int,
+    mlp_lr: float,
+    ewc_lambda: float,
+    seed: int,
+    skip_mlp: bool,
+    skip_ewc: bool,
+    centers_strategies: list[str],
+) -> list[ContinualResult]:
+    """Run all methods for one scenario and return results."""
+    results: list[ContinualResult] = []
+
+    # NEF-accumulate with different center strategies
+    for cs in centers_strategies:
+        print(f"\n>>> NEF-accumulate (centers={cs}) ...")
+        r = run_nef_accumulate(
+            tasks, scenario_name, n_neurons=n_neurons, alpha=alpha, use_centers=cs, seed=seed
+        )
+        print_result(r)
+        results.append(r)
+
+    # NEF-reset
+    print("\n>>> NEF-reset ...")
+    r = run_nef_reset(tasks, scenario_name, n_neurons=n_neurons, alpha=alpha, seed=seed)
+    print_result(r)
+    results.append(r)
+
+    # NEF-joint
+    print("\n>>> NEF-joint ...")
+    r = run_nef_joint(tasks, scenario_name, n_neurons=n_neurons, alpha=alpha, seed=seed)
+    print_result(r)
+    results.append(r)
+
+    if not skip_mlp:
+        # MLP-finetune
+        print("\n>>> MLP-finetune ...")
+        r = run_mlp_finetune(
+            tasks, scenario_name, d_hidden=n_neurons, epochs=mlp_epochs, lr=mlp_lr, seed=seed
+        )
+        print_result(r)
+        results.append(r)
+
+        # MLP-joint
+        print("\n>>> MLP-joint ...")
+        r = run_mlp_joint(
+            tasks, scenario_name, d_hidden=n_neurons, epochs=mlp_epochs, lr=mlp_lr, seed=seed
+        )
+        print_result(r)
+        results.append(r)
+
+    if not skip_ewc:
+        print("\n>>> MLP-EWC ...")
+        r = run_mlp_ewc(
+            tasks,
+            scenario_name,
+            d_hidden=n_neurons,
+            epochs=mlp_epochs,
+            lr=mlp_lr,
+            lambda_ewc=ewc_lambda,
+            seed=seed,
+        )
+        print_result(r)
+        results.append(r)
+
+    return results
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Continual learning benchmarks for NEF")
+    parser.add_argument(
+        "--scenario", choices=["split", "permuted", "both"], default="both", help="CL scenario"
+    )
+    parser.add_argument("--n-neurons", type=int, default=2000, help="NEF neurons / MLP hidden dim")
+    parser.add_argument("--n-tasks-permuted", type=int, default=5, help="tasks for permuted-MNIST")
+    parser.add_argument("--alpha", type=float, default=1e-2, help="Tikhonov alpha")
+    parser.add_argument("--mlp-epochs", type=int, default=10, help="SGD epochs per task")
+    parser.add_argument("--mlp-lr", type=float, default=0.01, help="SGD learning rate")
+    parser.add_argument("--ewc-lambda", type=float, default=1000.0, help="EWC penalty strength")
+    parser.add_argument("--seed", type=int, default=0, help="random seed")
+    parser.add_argument("--output-dir", type=str, default="results/continual")
+    parser.add_argument("--data-root", type=str, default="./data")
+    parser.add_argument("--skip-mlp", action="store_true", help="skip MLP baselines")
+    parser.add_argument("--skip-ewc", action="store_true", help="skip EWC baseline")
+    args = parser.parse_args()
+
+    print("Loading MNIST ...")
+    (x_train, y_train), (x_test, y_test) = load_mnist(args.data_root)
+
+    all_results: list[ContinualResult] = []
+
+    if args.scenario in ("split", "both"):
+        print("\n" + "=" * 72)
+        print("  SPLIT-MNIST  (class-incremental, 5 tasks)")
+        print("=" * 72)
+        tasks = split_mnist_tasks(x_train, y_train, x_test, y_test)
+        results = run_scenario(
+            "split",
+            tasks,
+            n_neurons=args.n_neurons,
+            alpha=args.alpha,
+            mlp_epochs=args.mlp_epochs,
+            mlp_lr=args.mlp_lr,
+            ewc_lambda=args.ewc_lambda,
+            seed=args.seed,
+            skip_mlp=args.skip_mlp,
+            skip_ewc=args.skip_ewc,
+            centers_strategies=["none", "first_task"],
+        )
+        all_results.extend(results)
+
+    if args.scenario in ("permuted", "both"):
+        print("\n" + "=" * 72)
+        print(f"  PERMUTED-MNIST  (domain-incremental, {args.n_tasks_permuted} tasks)")
+        print("=" * 72)
+        tasks = permuted_mnist_tasks(
+            x_train, y_train, x_test, y_test, n_tasks=args.n_tasks_permuted, seed=args.seed
+        )
+        # Data-driven centers don't make sense across permutations
+        results = run_scenario(
+            "permuted",
+            tasks,
+            n_neurons=args.n_neurons,
+            alpha=args.alpha,
+            mlp_epochs=args.mlp_epochs,
+            mlp_lr=args.mlp_lr,
+            ewc_lambda=args.ewc_lambda,
+            seed=args.seed,
+            skip_mlp=args.skip_mlp,
+            skip_ewc=args.skip_ewc,
+            centers_strategies=["none"],
+        )
+        all_results.extend(results)
+
+    # ── Summary table ──
+
+    print("\n\n" + "=" * 72)
+    print("  SUMMARY")
+    print("=" * 72)
+    print(
+        f"{'Method':<40s} {'Scenario':<10s} {'Avg Acc':>7s} {'Forget':>7s} {'BWT':>7s} {'Time':>7s}"
+    )
+    print("-" * 78)
+    for r in all_results:
+        print(
+            f"{r.method:<40s} {r.scenario:<10s} "
+            f"{r.final_average_accuracy * 100:6.1f}% "
+            f"{r.forgetting * 100:6.1f}% "
+            f"{r.backward_transfer * 100:+6.1f}% "
+            f"{r.total_time:6.1f}s"
+        )
+
+    save_results(all_results, Path(args.output_dir) / "continual_results.json")
+
+
+if __name__ == "__main__":
+    main()
