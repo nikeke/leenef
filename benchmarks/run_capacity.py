@@ -4,12 +4,15 @@ Measures how NEF accuracy scales with neuron count and task count,
 and whether the joint-training equivalence holds at extremes.
 
 Experiments:
-  1. Permuted-MNIST: vary n_tasks × n_neurons, measure final accuracy
+  1. Permuted tasks: vary n_tasks × n_neurons, measure final accuracy
   2. Spot-check joint equivalence at extreme configurations
 
+Supports MNIST and CIFAR-10 datasets.
+
 Usage:
-  python benchmarks/run_capacity.py --seed 0
-  python benchmarks/run_capacity.py --max-tasks 100 --seed 0
+  python benchmarks/run_capacity.py --dataset mnist --seed 0
+  python benchmarks/run_capacity.py --dataset cifar10 --max-tasks 20 --seed 0
+  python benchmarks/run_capacity.py --max-tasks 100 --neuron-counts 500 1000 2000 5000 10000 --seed 0
 """
 
 import argparse
@@ -56,6 +59,28 @@ def load_mnist(root: str = "./data"):
         return x.reshape(x.shape[0], -1).float(), y
 
     return to_tensors(train), to_tensors(test)
+
+
+def load_cifar10(root: str = "./data"):
+    import torchvision
+    import torchvision.transforms as T
+
+    transform = T.ToTensor()
+    train = torchvision.datasets.CIFAR10(root, train=True, download=True, transform=transform)
+    test = torchvision.datasets.CIFAR10(root, train=False, download=True, transform=transform)
+
+    def to_tensors(ds):
+        loader = torch.utils.data.DataLoader(ds, batch_size=len(ds))
+        x, y = next(iter(loader))
+        return x.reshape(x.shape[0], -1).float(), y.long()
+
+    return to_tensors(train), to_tensors(test)
+
+
+DATASET_LOADERS = {
+    "mnist": load_mnist,
+    "cifar10": load_cifar10,
+}
 
 
 def make_permuted_tasks(
@@ -173,6 +198,13 @@ def main() -> None:
     parser.add_argument("--data-root", type=str, default="./data")
     parser.add_argument("--output-dir", type=str, default="results/continual")
     parser.add_argument(
+        "--dataset",
+        type=str,
+        default="mnist",
+        choices=["mnist", "cifar10"],
+        help="Dataset to use (default: mnist)",
+    )
+    parser.add_argument(
         "--max-tasks",
         type=int,
         default=50,
@@ -182,8 +214,8 @@ def main() -> None:
         "--neuron-counts",
         type=int,
         nargs="+",
-        default=[500, 1000, 2000, 5000],
-        help="Neuron counts to sweep",
+        default=None,
+        help="Neuron counts to sweep (default: dataset-dependent)",
     )
     parser.add_argument(
         "--task-counts",
@@ -196,16 +228,32 @@ def main() -> None:
 
     default_tasks = [t for t in [5, 10, 20, 50, 100] if t <= args.max_tasks]
     task_counts = args.task_counts or default_tasks
-    neuron_counts = args.neuron_counts
+    if args.neuron_counts is not None:
+        neuron_counts = args.neuron_counts
+    elif args.dataset == "cifar10":
+        neuron_counts = [1000, 2000, 5000, 10000]
+    else:
+        neuron_counts = [500, 1000, 2000, 5000]
 
-    print("Loading MNIST ...")
-    (x_train, y_train), (x_test, y_test) = load_mnist(args.data_root)
-    n_classes = 10
+    ds_name = args.dataset.upper()
+    print(f"Loading {ds_name} ...")
+    loader = DATASET_LOADERS[args.dataset]
+    (x_train, y_train), (x_test, y_test) = loader(args.data_root)
+    n_classes = int(y_train.max().item()) + 1
+    print(f"  train: {x_train.shape}, test: {x_test.shape}, {n_classes} classes")
 
     # Pre-generate all permuted tasks up to max needed
     max_t = max(task_counts)
     print(f"Generating {max_t} permuted tasks ...")
     all_tasks = make_permuted_tasks(x_train, y_train, x_test, y_test, max_t, args.seed)
+
+    # Measure single-task accuracy for relative scaling
+    print("\nSingle-task accuracy (baseline):")
+    single_task_accs = {}
+    for n_neurons in neuron_counts:
+        r = run_accumulate(all_tasks[:1], n_neurons, n_classes, args.alpha, args.seed)
+        single_task_accs[n_neurons] = r["avg_acc"]
+        print(f"  {n_neurons:5d} neurons: {r['avg_acc'] * 100:.1f}%")
 
     print(f"\nCapacity sweep: {len(task_counts)} task counts × {len(neuron_counts)} neuron counts")
     print(f"Task counts:   {task_counts}")
@@ -250,7 +298,7 @@ def main() -> None:
 
     # ── Print capacity matrix ──
     print("\n\n" + "=" * 72)
-    print("  CAPACITY MATRIX: Permuted-MNIST Final Avg Accuracy (%)")
+    print(f"  CAPACITY MATRIX: Permuted-{ds_name} Final Avg Accuracy (%)")
     print("=" * 72)
 
     # Header
@@ -305,17 +353,51 @@ def main() -> None:
         print(f"  {n_neurons:5d} neurons: AᵀA = {n_neurons}×{n_neurons} = {mem_mb:.1f} MB")
     print("  (AᵀA size is constant regardless of number of tasks)")
 
+    # ── Relative capacity matrix (% of single-task accuracy retained) ──
+    print("\n  RELATIVE CAPACITY: % of single-task accuracy retained")
+    print("-" * (10 + 10 * len(neuron_counts)))
+    hdr = f"{'Tasks':>8s} |"
+    for n in neuron_counts:
+        hdr += f" {n:>7d} |"
+    print(hdr)
+    print("-" * len(hdr))
+    for n_tasks in task_counts:
+        row = f"{n_tasks:>8d} |"
+        for n_neurons in neuron_counts:
+            acc = results[n_neurons][n_tasks]["avg_acc"]
+            baseline = single_task_accs[n_neurons]
+            rel = (acc / baseline * 100) if baseline > 0 else 0
+            row += f" {rel:6.1f}% |"
+        print(row)
+
+    # ── Neurons per output dimension analysis ──
+    print("\n  NEURONS PER OUTPUT DIMENSION: n / (tasks × classes)")
+    print("-" * (10 + 10 * len(neuron_counts)))
+    hdr = f"{'Tasks':>8s} |"
+    for n in neuron_counts:
+        hdr += f" {n:>7d} |"
+    print(hdr)
+    print("-" * len(hdr))
+    for n_tasks in task_counts:
+        row = f"{n_tasks:>8d} |"
+        for n_neurons in neuron_counts:
+            ratio = n_neurons / (n_tasks * n_classes)
+            row += f" {ratio:7.1f} |"
+        print(row)
+
     # ── Save results ──
     out_dir = Path(args.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / "capacity_results.json"
+    out_path = out_dir / f"capacity_{args.dataset}_results.json"
 
     payload = {
-        "experiment": "permuted_mnist_capacity",
+        "experiment": f"permuted_{args.dataset}_capacity",
+        "dataset": args.dataset,
         "seed": args.seed,
         "alpha": args.alpha,
         "neuron_counts": neuron_counts,
         "task_counts": task_counts,
+        "single_task_accs": {str(n): a for n, a in single_task_accs.items()},
         "results": {
             str(n): {
                 str(t): {k: v for k, v in r.items() if k != "per_task_acc"} for t, r in tr.items()
