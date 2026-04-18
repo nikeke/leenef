@@ -192,10 +192,41 @@ The gap to DQN (214.0) remains significant.  Contributing factors:
   (crash ≈ -100, successful landing ≈ +200)
 - DQN's learned features adapt to the reward structure; NEF's are fixed
 
-The late-surge pattern is encouraging — it suggests more episodes or
-more neurons could push results higher.
+The late-surge pattern is encouraging — it suggests more episodes could
+push results higher.  However, neuron scaling experiments (§4.5) show
+that more neurons actually hurt at fixed episode budget.
 
-### 4.4 MountainCar-v0
+### 4.4 Neuron Scaling on LunarLander
+
+**More neurons hurt at fixed episode budget.**
+
+| Neurons | β     | Recenter | Best eval  | Final eval | Time      |
+|---------|-------|----------|------------|------------|-----------|
+| 8000    | 0.999 | /100     | **109.4**  | **102.2**  | 2621s     |
+| 16000   | 0.999 | /100     | -12.2      | -73.4      | 13358s    |
+
+16000 neurons tracks 8000 closely through episode 800 (both around
+-12 to -40), but then **fails to produce the late surge** that 8000
+shows.  At episode 950, 8000 reaches +109 while 16000 drops to -75.
+
+The explanation is sample complexity: with β=0.999 (effective window
+~1000 episodes), the solver has ~1000 × ~200 steps ≈ 200k data points
+feeding into 16000 parameters.  This is an insufficient ratio for
+stable least-squares in a non-stationary regime.  8000 neurons with
+the same data gives a 25:1 sample-to-parameter ratio; 16000 gives
+12.5:1.  The regularization (α) helps but cannot fully compensate.
+
+Additionally, recentering 5% of 16000 neurons every 100 episodes
+(~800 neurons/round, 8000 total over 1000 episodes = 50% of the
+network) creates too much instability compared to recentering 400
+neurons (5% of 8000) per round.
+
+**Conclusion:** the bottleneck is not feature count but MC return
+variance and exploration quality.  The optimal neuron count for
+LunarLander with 1000 episodes and β=0.999 is around 8000.  32000
+was not tested (O(n³) solve cost would exceed 4 hours per run).
+
+### 4.5 MountainCar-v0
 
 Not tested.  Expected to fail for the same reason as Acrobot: sparse
 reward (-1 per step, 200-step timeout).
@@ -228,8 +259,9 @@ reward (-1 per step, 200-step timeout).
    which states are better.  If all episodes look the same (timeouts),
    there is no signal.
 2. **High-dimensional state spaces.**  Random features in 8D (LunarLander)
-   may need far more neurons than in 4D (CartPole).  The curse of
-   dimensionality applies to random projections.
+   need more data, not more neurons.  Scaling from 8000 to 16000 neurons
+   hurts because the sample-to-parameter ratio drops below what the
+   regularized solve can handle with forgetting (§4.4).
 3. **Speed.**  The per-action analytical solve on the full buffer is
    O(n² · buffer_size) per solve.  DQN's SGD mini-batch updates are much
    cheaper per step.
@@ -364,8 +396,16 @@ sampling with random-feature posterior approximation.
 Sequential tasks with changing dynamics or rewards.  The AᵀA/AᵀY
 accumulation should retain knowledge across tasks — the CL+RL synthesis.
 
-### 8.7 Scaling neurons with state dimension
+### 8.7 Scaling neurons with state dimension ✅ TESTED
 
-The results suggest a scaling law: neurons needed grows rapidly with
-state dimension.  CartPole (4D, 2000 neurons) works; LunarLander
-(8D, 8000 neurons) doesn't.  Need systematic scaling experiments.
+Scaling from 8000 to 16000 neurons on LunarLander (8D) with 1000
+episodes **hurts performance** (best -12.2 vs 109.4).  The bottleneck
+is not feature count but sample complexity relative to parameter count.
+With RLS forgetting (effective window ~1000 episodes), the solver has
+a fixed data budget; doubling neurons halves the sample-to-parameter
+ratio and prevents convergence.
+
+This is a meaningful insight: in online RL with forgetting, the neuron
+count must be matched to the effective data window, not just the state
+dimension.  The optimal count depends on β, solve_every, and episode
+length.
