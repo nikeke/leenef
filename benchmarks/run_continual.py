@@ -37,7 +37,10 @@ _SRC = str(Path(__file__).resolve().parent.parent / "src")
 if _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
+from leenef.activations import make_activation  # noqa: E402
+from leenef.encoders import make_encoders  # noqa: E402
 from leenef.layers import NEFLayer  # noqa: E402
+from leenef.solvers import solve_from_normal_equations  # noqa: E402
 
 # ── Utilities ─────────────────────────────────────────────────────────
 
@@ -392,6 +395,114 @@ def run_nef_joint(
     )
 
 
+def run_nef_growing(
+    tasks: list[dict],
+    scenario: str,
+    *,
+    n_neurons: int = 2000,
+    alpha: float = 1e-2,
+    seed: int = 0,
+) -> ContinualResult:
+    """NEF with growing neuron pool — add neurons with per-task centers.
+
+    Distributes the total neuron budget evenly across tasks.  Each task's
+    neuron group uses that task's training data as centers.  Old AᵀA blocks
+    are preserved exactly; cross-terms between old and new neurons only
+    include data from the current task (no replay).
+    """
+    set_seed(seed)
+    n_classes = max(int(t["y_train"].max().item()) for t in tasks) + 1
+    d_in = tasks[0]["x_train"].shape[1]
+    n_tasks = len(tasks)
+
+    # Distribute neurons across tasks
+    base = n_neurons // n_tasks
+    remainder = n_neurons % n_tasks
+    neurons_per_task = [base + (1 if i < remainder else 0) for i in range(n_tasks)]
+
+    activation_fn = make_activation("abs")
+
+    # Growing encoder parameters and accumulators
+    encoders = torch.empty(0, d_in)
+    bias = torch.empty(0)
+    gain = torch.empty(0)
+    ata = None  # (current_n, current_n)
+    aty = None  # (current_n, n_classes)
+
+    accuracy_matrix: list[list[float]] = []
+    fit_times: list[float] = []
+
+    for task_idx, task in enumerate(tasks):
+        t0 = time.perf_counter()
+        n_new = neurons_per_task[task_idx]
+
+        # Create new neurons with this task's centers
+        rng_t = torch.Generator().manual_seed(seed + task_idx * 1000)
+        new_enc = make_encoders(n_new, d_in, strategy="hypersphere", rng=rng_t)
+        new_gain = 0.5 + 1.5 * torch.rand(n_new, generator=rng_t)
+
+        # Data-driven biases from this task's centers
+        centers = task["x_train"]
+        idx = torch.randint(len(centers), (n_new,), generator=rng_t)
+        selected = centers[idx].float()
+        new_bias = -new_gain * (selected * new_enc).sum(dim=1)
+
+        # Append to growing parameter tensors
+        old_n = encoders.shape[0]
+        encoders = torch.cat([encoders, new_enc], dim=0)
+        bias = torch.cat([bias, new_bias])
+        gain = torch.cat([gain, new_gain])
+
+        current_n = encoders.shape[0]
+
+        # Encode current task through ALL neurons (old + new)
+        x = task["x_train"]
+        A = activation_fn(gain * (x @ encoders.T) + bias)
+        targets = one_hot(task["y_train"], n_classes)
+
+        task_ata = A.T @ A
+        task_aty = A.T @ targets
+
+        # Expand existing accumulators and add this task's contribution
+        if ata is None:
+            ata = task_ata
+            aty = task_aty
+        else:
+            new_ata = torch.zeros(current_n, current_n)
+            new_ata[:old_n, :old_n] = ata
+            new_ata += task_ata
+            ata = new_ata
+
+            new_aty = torch.zeros(current_n, n_classes)
+            new_aty[:old_n] = aty
+            new_aty += task_aty
+            aty = new_aty
+
+        # Solve decoders
+        decoders = solve_from_normal_equations(ata, aty, alpha=alpha)
+
+        fit_times.append(time.perf_counter() - t0)
+
+        # Evaluate on all tasks
+        row = []
+        for eval_task in tasks:
+            A_eval = activation_fn(gain * (eval_task["x_test"] @ encoders.T) + bias)
+            pred = (A_eval @ decoders).argmax(dim=1)
+            acc = (pred == eval_task["y_test"]).float().mean().item()
+            row.append(acc)
+        accuracy_matrix.append(row)
+
+    return ContinualResult(
+        method="NEF-growing (per-task centers)",
+        scenario=scenario,
+        n_tasks=len(tasks),
+        accuracy_matrix=accuracy_matrix,
+        fit_times=fit_times,
+        n_neurons=n_neurons,
+        config={"alpha": alpha, "strategy": "growing"},
+    )
+
+
 # ── MLP baselines ────────────────────────────────────────────────────
 
 
@@ -658,6 +769,7 @@ def run_scenario(
     seed: int,
     skip_mlp: bool,
     skip_ewc: bool,
+    skip_growing: bool = False,
     centers_strategies: list[str],
 ) -> list[ContinualResult]:
     """Run all methods for one scenario and return results."""
@@ -669,6 +781,13 @@ def run_scenario(
         r = run_nef_accumulate(
             tasks, scenario_name, n_neurons=n_neurons, alpha=alpha, use_centers=cs, seed=seed
         )
+        print_result(r)
+        results.append(r)
+
+    # NEF-growing (per-task centers, no replay)
+    if not skip_growing:
+        print("\n>>> NEF-growing (per-task centers) ...")
+        r = run_nef_growing(tasks, scenario_name, n_neurons=n_neurons, alpha=alpha, seed=seed)
         print_result(r)
         results.append(r)
 
@@ -753,6 +872,7 @@ def main() -> None:
     parser.add_argument("--data-root", type=str, default="./data")
     parser.add_argument("--skip-mlp", action="store_true", help="skip MLP baselines")
     parser.add_argument("--skip-ewc", action="store_true", help="skip EWC baseline")
+    parser.add_argument("--skip-growing", action="store_true", help="skip NEF-growing method")
     args = parser.parse_args()
 
     dataset = args.dataset
@@ -775,7 +895,9 @@ def main() -> None:
         print(f"  {label}")
         print("=" * 72)
         tasks = split_class_tasks(x_train, y_train, x_test, y_test, n_classes, cpt)
-        centers_strategies = ["none", "first_task"] if dataset != "cifar100" else ["none"]
+        centers_strategies = (
+            ["none", "first_task", "all_tasks"] if dataset != "cifar100" else ["none"]
+        )
         results = run_scenario(
             f"split-{dataset}",
             tasks,
@@ -787,6 +909,7 @@ def main() -> None:
             seed=args.seed,
             skip_mlp=args.skip_mlp,
             skip_ewc=args.skip_ewc,
+            skip_growing=args.skip_growing,
             centers_strategies=centers_strategies,
         )
         all_results.extend(results)
@@ -809,7 +932,8 @@ def main() -> None:
             seed=args.seed,
             skip_mlp=args.skip_mlp,
             skip_ewc=args.skip_ewc,
-            centers_strategies=["none"],
+            skip_growing=args.skip_growing,
+            centers_strategies=["none", "first_task", "all_tasks"],
         )
         all_results.extend(results)
 

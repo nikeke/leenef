@@ -378,15 +378,119 @@ Command: `python benchmarks/run_capacity.py --max-tasks 100 --neuron-counts 500 
    practical configuration on a 30GB system.  Beyond this, GPU
    acceleration via the accumulate+solve path would be needed.
 
+### 5.9 Center Adaptation
+
+Can we improve continual learning accuracy by adapting neuron centers
+(biases) as new tasks arrive?  Three strategies tested:
+
+1. **No centers** (`none`): random biases, task-agnostic baseline.
+2. **First-task centers** (`first_task`): realistic — sample centers from
+   task 0 data at layer construction, keep them fixed forever.
+3. **All-task centers** (`all_tasks`): oracle — re-sample centers from the
+   union of all task data.  Unfair but reveals the ceiling.
+4. **Growing neuron pool** (`growing`): allocate n/T neurons per task, each
+   group centered on its own task's data.  Accumulate cross-terms from
+   subsequent tasks but not from past data.
+
+#### 5.9.1 Split-MNIST Results
+
+| Method | Avg Acc | Forgetting | BWT |
+|--------|---------|------------|-----|
+| **NEF-accumulate (first_task)** | **95.5%** | **1.9%** | **-2.4%** |
+| NEF-accumulate (all_tasks, oracle) | 95.5% | 2.0% | -2.5% |
+| NEF-accumulate (none) | 93.4% | 2.6% | -3.3% |
+| NEF-growing (per-task) | 19.7% | 79.7% | -99.6% |
+| NEF-reset (control) | 19.8% | 79.6% | -99.6% |
+| NEF-joint (upper bound) | 93.4% | 0.0% | +0.0% |
+
+#### 5.9.2 Permuted-MNIST Results
+
+| Method | Avg Acc | Forgetting | BWT |
+|--------|---------|------------|-----|
+| NEF-accumulate (all_tasks, oracle) | 91.4% | 2.0% | -2.5% |
+| **NEF-accumulate (first_task)** | **91.3%** | **1.9%** | **-2.4%** |
+| NEF-accumulate (none) | 89.3% | 1.8% | -2.3% |
+| NEF-growing (per-task) | 75.7% | 16.1% | — |
+| NEF-reset (control) | 27.4% | 66.2% | -82.7% |
+| NEF-joint (upper bound) | 89.3% | 0.0% | +0.0% |
+
+#### 5.9.3 Split-CIFAR-10 Results
+
+| Method | Avg Acc | Forgetting | BWT |
+|--------|---------|------------|-----|
+| NEF-accumulate (all_tasks, oracle) | 50.6% | 15.0% | -18.7% |
+| **NEF-accumulate (first_task)** | **50.5%** | **14.6%** | **-18.3%** |
+| NEF-accumulate (none) | 48.0% | 15.9% | -19.9% |
+| NEF-growing (per-task) | 17.4% | 65.8% | -82.2% |
+| NEF-reset (control) | 17.3% | 66.0% | -82.5% |
+| NEF-joint (upper bound) | 48.1% | 0.0% | +0.0% |
+
+#### 5.9.4 Key Findings
+
+1. **First-task centers ≈ oracle (all-task centers).**  The gap is 0.0%
+   on Split-MNIST, 0.1% on Permuted-MNIST, and 0.1% on Split-CIFAR-10.
+   First-task data captures the input distribution well enough for
+   bias initialization.  No need for replay or center adaptation.
+
+2. **Centers improve accuracy by +2.0–2.5% over random biases.**
+   Consistent across all three datasets.  The benefit is real but modest.
+
+3. **Growing neuron pool catastrophically fails on class-incremental
+   tasks.**  On Split-MNIST and Split-CIFAR-10, the growing approach
+   (19.7%, 17.4%) is indistinguishable from NEF-reset (19.8%, 17.3%).
+   Root cause: with n/T neurons per task, each group specializes
+   exclusively on its own classes.  The AᵀA cross-terms between old
+   and new neuron groups only include data from the current task forward,
+   creating an asymmetric system where the decoder solve is dominated
+   by each group's own-task statistics.
+
+4. **Growing partially works on domain-incremental tasks.**  On
+   Permuted-MNIST (75.7%), the growing approach avoids catastrophic
+   failure because all 10 classes appear in every task.  However, it
+   still dramatically underperforms plain accumulation (89.3%) and
+   exhibits 16.1% forgetting — the cross-term incompleteness causes
+   real accuracy degradation even when class structure is shared.
+
+5. **Center adaptation is a dead end for continual learning.**  The
+   practically best strategy is trivially simple: sample centers from
+   the first task's data, fix them forever, and accumulate normally.
+   Oracle centers (requiring all-data access) provide zero additional
+   benefit.  Growing neurons is actively harmful.
+
+#### 5.9.5 Why Growing Fails: Structural Analysis
+
+The growing approach builds an n×n normal-equation system where n
+grows by n/T neurons per task.  After task k (with k+1 groups of
+n/T neurons each):
+
+- **Diagonal blocks** [gᵢ, gᵢ]: group i's self-correlation includes
+  all data from task i onward.  Task 0's group has the richest diagonal.
+- **Off-diagonal blocks** [gᵢ, gⱼ] for i < j: cross-correlation only
+  includes data from task j onward (missing tasks i through j−1).
+- **AᵀY per group**: group i's target contribution is complete for
+  task i onward but missing all earlier classes (for class-incremental).
+
+This means the last task's neuron group has a full diagonal block but
+zero cross-terms with all other groups for earlier tasks.  The decoder
+solve treats the sparse cross-terms as if they represent all data,
+producing a biased solution that over-weights recent tasks.
+
+For class-incremental splits, the problem is fatal: early groups have
+no AᵀY signal for later classes (their neurons never saw them), and
+later groups have no AᵀY signal for early classes.  The decoder
+cannot build a unified 10-class classifier from block-diagonal
+information.
+
 ## 6. Open Questions
 
 1. ~~**Capacity limits**: how many tasks can 5000 neurons handle before
    accuracy degrades?~~ **Answered** — see Section 5.8.  Extended to
    100 tasks × 10000 neurons.  Approximately linear scaling: ~100
    neurons per task on Permuted-MNIST for a 70% accuracy threshold.
-2. **Center adaptation**: can we incrementally expand the center pool as
-   new tasks arrive?  What happens if we re-sample centers from the union
-   of all seen data?
+2. ~~**Center adaptation**: can we incrementally expand the center pool as
+   new tasks arrive?~~ **Answered** — see Section 5.9.  First-task centers
+   are near-oracle-optimal (+2% over no centers, 0% gap to all-task oracle).
+   Growing neuron pools catastrophically fail on class-incremental tasks.
 3. **Woodbury vs full re-solve**: does the Woodbury path (fixed α, online
    updates) produce practically different results from the accumulate path
    (trace-scaled α, batch re-solve)?
