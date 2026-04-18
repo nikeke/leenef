@@ -120,6 +120,22 @@ grows.  No deadly triad, no target network, no Polyak averaging.
 NEF-FQI reaches the maximum score of 500 (environment ceiling) from
 episode 350 onward.  DQN peaks at 332 but never stabilizes.
 
+**RLS forgetting + dead neuron recentering** (2000 neurons, 500 episodes):
+
+| Config                       | Best eval | Final eval | Time    |
+|------------------------------|-----------|------------|---------|
+| Baseline (buffer)            | 500.0     | 487.9      | 248.4s  |
+| RLS β=0.995                  | 500.0     | 338.7      |  92.6s  |
+| Buffer + recenter/50         | 500.0     | 491.6      | 245.6s  |
+| **RLS β=0.995 + recenter/50**| **500.0** | **500.0**  |**111.1s**|
+
+The combination is synergistic.  RLS alone forgets too aggressively
+after convergence (good early data decays).  Recentering alone adds
+coverage but doesn't reduce solve cost.  Together they achieve
+**perfect 500.0 from episode 150 onward** — stable convergence 50
+episodes earlier than the baseline, at 2.2× less wall time, with no
+replay buffer.
+
 **TD mode iteration history** (all CartPole, 2000-4000 neurons):
 
 | Version       | Peak  | Final | Key change                    |
@@ -151,20 +167,33 @@ not an NEF-specific failure.
 
 ### 4.3 LunarLander-v3
 
-**DQN wins clearly; NEF-FQI learns slowly but does not solve.**
+**DQN wins overall, but RLS+recentering closes half the gap.**
 
-| Method      | Neurons | Episodes | Best eval  | Final eval | Time     |
-|-------------|---------|----------|------------|------------|----------|
-| NEF-FQI MC  | 8000    | 1000     | 40.8       | 14.1       | 3590.3s  |
-| DQN 256×2   | —       | 1000     | **214.0**  | 208.8      | 520.7s   |
+| Method                            | Neurons | Episodes | Best eval  | Final eval | Time     |
+|-----------------------------------|---------|----------|------------|------------|----------|
+| NEF-FQI MC (baseline)             | 8000    | 1000     | 40.8       | 14.1       | 3590.3s  |
+| RLS β=0.995 + recenter/100        | 8000    | 1000     | 47.3       | 32.6       | 2580.5s  |
+| **RLS β=0.999 + recenter/100**    | 8000    | 1000     | **109.4**  | **102.2**  | 2621.1s  |
+| DQN 256×2                         | —       | 1000     | **214.0**  | 208.8      | 520.7s   |
 
-LunarLander has shaped rewards (landing bonus, crash penalty, fuel cost)
-so MC should work.  NEF-FQI does learn (from -181 to +41) but is very
-noisy and 7× slower.  DQN solves it (≥200) by episode 800.
+RLS β=0.999 + recentering is a major improvement over the baseline:
+**best 109.4 vs 40.8** (2.7×), final 102.2 vs 14.1 (7.2×).  The agent
+shows a dramatic late surge — flat around -40 through episode 800, then
+jumping to +109 by episode 950 — suggesting the feature space reaches a
+critical coverage threshold after several rounds of recentering.
 
-The 8D state space may be too high for 8000 random features to cover
-adequately.  Also, MC returns have high variance in LunarLander due to
-the wide reward range (crash ≈ -100, successful landing ≈ +200).
+β=0.999 (effective window ~1000 episodes) substantially outperforms
+β=0.995 (effective window ~200 episodes).  LunarLander's high reward
+variance requires longer memory than CartPole.
+
+The gap to DQN (214.0) remains significant.  Contributing factors:
+- 8D state space may need more than 8000 random features
+- MC returns have high variance due to wide reward range
+  (crash ≈ -100, successful landing ≈ +200)
+- DQN's learned features adapt to the reward structure; NEF's are fixed
+
+The late-surge pattern is encouraging — it suggests more episodes or
+more neurons could push results higher.
 
 ### 4.4 MountainCar-v0
 
@@ -174,11 +203,11 @@ reward (-1 per step, 200-step timeout).
 
 ## 5. Summary Table
 
-| Environment    | NEF-FQI (MC) | DQN     | Winner  | Why                           |
-|----------------|--------------|---------|---------|-------------------------------|
-| CartPole-v1    | **500.0**    | 332.4   | NEF-FQI | Dense reward, low-dim state   |
-| Acrobot-v1     | -410.8       |**-141.7**| DQN    | Sparse reward → MC fails      |
-| LunarLander-v3 | 40.8         |**214.0**| DQN     | High-dim, high-variance MC    |
+| Environment    | NEF-FQI (MC) | NEF-FQI (RLS) | DQN     | Winner  | Why                           |
+|----------------|--------------|---------------|---------|---------|-------------------------------|
+| CartPole-v1    | **500.0**    | **500.0**     | 332.4   | NEF-FQI | Dense reward, low-dim state   |
+| Acrobot-v1     | -410.8       | —             |**-141.7**| DQN    | Sparse reward → MC fails      |
+| LunarLander-v3 | 40.8         | **109.4**     |**214.0**| DQN     | High-dim, high-variance MC    |
 
 
 ## 6. Analysis
@@ -254,7 +283,7 @@ boundaries without forgetting.  This connects directly to the CL story.
 
 ## 8. Open Questions and Next Steps
 
-### 8.1 Exponentially-weighted sufficient statistics
+### 8.1 Exponentially-weighted sufficient statistics ✅ IMPLEMENTED
 
 Instead of `AᵀA = Σ A_k^T A_k` (all data weighted equally), apply an
 exponential forgetting factor:
@@ -264,21 +293,19 @@ exponential forgetting factor:
 
 Old data fades with weight β^k.  This is **Recursive Least Squares
 (RLS) with forgetting factor** — a classic control theory technique.
-Benefits for RL:
 
-- Policy changes → old Q-values are misleading → forgetting helps.
-- No replay buffer needed: the sufficient statistics ARE the memory.
-- Still analytical: solve W = (AᵀA + αI)⁻¹ AᵀY as before.
-- Directly analogous to biological synaptic decay.
-- Can combine with Woodbury updates for O(n²) per-episode cost.
+Implemented via `forget_factor` parameter in `NEFFQIAgent`.  When set,
+the agent maintains per-action sufficient statistics and eliminates the
+replay buffer entirely.
 
-β ≈ 0.99-0.999 (effective window of ~100-1000 episodes).  Too low →
-forgets too fast; too high → adapts too slowly.  Sweep needed.
+**CartPole results:** RLS alone (β=0.995) learns fast (92.6s vs 248.4s)
+but forgets too aggressively after convergence — old exploration data
+that covers failure modes decays, causing performance regression.
+Combined with recentering, this instability disappears: the
+combo achieves perfect 500.0 from episode 150 onward with no replay
+buffer.
 
-This is the most promising direction: it would eliminate both the replay
-buffer AND the stale-data problem, while keeping the analytical solve.
-
-### 8.2 Dead neuron recentering
+### 8.2 Dead neuron recentering ✅ IMPLEMENTED
 
 Neurons with centers far from the visited state space barely fire.
 Periodically:
@@ -286,20 +313,28 @@ Periodically:
 1. Measure mean activation per neuron over recent episodes.
 2. If activation < threshold (e.g. 5th percentile), the neuron is "dead."
 3. Recenter the dead neuron to a recently observed state:
-   `bias_i = -gain_i * (new_center · encoder_i)`.
+   `bias_i = -gain_i * (normalized_center · encoder_i)`.
 4. Reset that neuron's row/column in AᵀA and AᵀY (partial reset).
+
+Implemented via `recenter_interval` and `recenter_percentile` parameters
+in `NEFFQIAgent`, and `dead_neuron_indices()` / `recenter()` methods in
+`NEFFeatures`.
 
 This is **gradient-free resource allocation** — analogous to the "reset"
 mechanism in recent deep RL papers (Lyle et al., 2023) but much cleaner
 because the recentering is analytical (just change the bias) and the
 solve remains exact.
 
-Expected benefit: LunarLander (8D) should improve dramatically since
-neurons would cover the actually-visited state manifold rather than being
-spread uniformly in the 8D hypercube.
-
 Connects directly to the CL story: data-driven centers are our advantage
 in supervised CL; adaptive centers are the RL extension.
+
+**LunarLander results:** RLS β=0.999 + recenter/100 achieves best=109.4,
+final=102.2 — a 2.7× improvement over baseline (best=40.8).  The agent
+shows a dramatic late surge (flat at -40 through ep 800, then +109 by
+ep 950), suggesting recentering gradually builds adequate feature
+coverage.  β=0.995 is too aggressive for LunarLander's high variance
+(best=47.3, only marginally better than baseline).  The gap to DQN
+(214.0) remains but is halved.
 
 ### 8.3 TD(λ) targets
 
