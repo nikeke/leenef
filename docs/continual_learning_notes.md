@@ -618,18 +618,65 @@ built through float64 rank-k updates, never touching the float32
 3. The Woodbury online path is numerically superior to any path that
    goes through float32 `_ata` → `inv()`, regardless of α tuning.
 
-#### 5.10.7 Open Follow-Up
+#### 5.10.7 Alpha Sweep: Disentangling Regularization from Precision
 
-- **Alpha sweep**: run batch Woodbury with α values matching the
-  trace-scaled effective reg to fully disentangle regularization vs
-  precision effects.  If batch at matched α matches accumulate, the
-  story is purely regularization.  If online still beats matched-α
-  batch, float64 precision is a real independent factor.
-- **Adaptive α**: implement trace-scaled initialization for the
-  Woodbury inverse (M_inv = I / (α · trace(AᵀA₁)/n)) to combine
-  the best of both paths.
+Sweep α ∈ {0.001, 0.01, 0.1, 1.0, 10.0, 100.0} for batch and online
+Woodbury on all three datasets (script: `run_woodbury.py alpha-sweep`).
+
+**Effective trace-scaled α (reference):**
+
+| Dataset | trace(AᵀA)/n | Eff α (×0.01) |
+|---------|-------------|---------------|
+| Split-MNIST | 72383 | 723.8 |
+| Permuted-MNIST | 360054 | 3600.5 |
+| Split-CIFAR-10 | 72661 | 726.6 |
+
+**Best accuracy per method and α:**
+
+| Dataset | Accumulate | Best batch (α) | Best online (α) |
+|---------|-----------|----------------|-----------------|
+| Split-MNIST | 93.4% | 94.5% (α=1) | 94.6% (α=0.1) |
+| Permuted-MNIST | 89.3% | 90.7% (α=0.001–1) | 90.7% (α=0.001–1) |
+| Split-CIFAR-10 | 48.0% | 48.9% (α=100) | 48.9% (α=100) |
+
+**Findings:**
+
+1. **At optimal α, batch = online** (within 0.1% on all datasets).
+   Float64 precision provides no independent advantage when
+   regularization is properly tuned.
+
+2. **Trace-scaled α over-regularizes everywhere.**  The effective α
+   (724–3601) is far above the dataset-specific optimal (1.0 for
+   Split-MNIST, ~anything for Permuted-MNIST, 100 for CIFAR-10).
+   Accumulate consistently underperforms optimally-tuned Woodbury
+   by 0.9–1.4%.
+
+3. **Online Woodbury is robust to α choice.**  On Split-MNIST, online
+   gives 94.5–94.6% across α=0.001 to α=1.0 (a 1000× range).  Batch
+   Woodbury varies from 88.5% to 94.5% over the same range.  On
+   CIFAR-10, online gives 47.4% at α=0.01 vs batch's 28.4% — the
+   float64 path handles ill-conditioning gracefully.
+
+4. **Optimal α is dataset-specific** and cannot be determined a priori.
+   Split-MNIST wants α≈1, CIFAR-10 wants α≈100.  The trace-scaled
+   heuristic overshoots both.
+
+**Conclusion:** The story from Section 5.10.2 was incomplete.  The
+"regularization vs precision" framing was correct, but the alpha sweep
+reveals that **online Woodbury's value is robustness, not accuracy**.
+When α is well-tuned, batch and online match.  When α is unknown, online
+degrades gracefully while batch can fail catastrophically.  For a system
+that must work out-of-the-box without hyperparameter tuning, online
+Woodbury is strictly superior.
+
+#### 5.10.8 Open Follow-Up
+
 - **Float64 accumulators**: test whether accumulating `_ata` / `_aty`
   in float64 closes the gap between refresh and online Woodbury.
+- **Adaptive α**: given that trace-scaled over-regularizes and the
+  optimal α is dataset-specific, investigate cross-validation or
+  GCV-based α selection.  A single analytic solve is cheap enough to
+  run multiple α values and pick the best on a validation split.
 
 ## 6. Open Questions
 
@@ -643,12 +690,11 @@ built through float64 rank-k updates, never touching the float32
    Growing neuron pools catastrophically fail on class-incremental tasks.
 3. ~~**Woodbury vs full re-solve**: does the Woodbury path (fixed α, online
    updates) produce practically different results from the accumulate path
-   (trace-scaled α, batch re-solve)?~~ **Answered** — see Section 5.10.
-   Regularization (trace-scaled vs fixed α) is the dominant factor, not
-   float64 precision.  Neither scheme is universally best: trace-scaled
-   wins on hard problems (CIFAR-10), fixed α wins on well-conditioned ones
-   (Permuted-MNIST), and online Woodbury's float64 path adds a small edge
-   on moderately conditioned problems (Split-MNIST).
+   (trace-scaled α, batch re-solve)?~~ **Answered** — see Sections 5.10
+   and 5.10.7.  At optimal α, batch = online (no precision advantage).
+   Trace-scaled α over-regularizes on all tested datasets.  Online
+   Woodbury's real value is **robustness to α choice**: it degrades
+   gracefully at poorly-tuned α while batch can fail catastrophically.
 4. **ConvNEF + continual learning**: using learned convolutional features
    (ConvNEFPipeline) as a fixed encoder with continual analytical decoders
    could dramatically improve CIFAR accuracy while preserving zero-forgetting.
