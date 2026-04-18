@@ -13,6 +13,7 @@ Two target modes are supported:
 
 - **mc** (Monte Carlo): regression targets are undiscounted episode
   returns G_t = Σ γ^k r_{t+k}.  No bootstrapping, no target network.
+  Optionally blended with TD via ``td_lambda`` (λ-returns).
 - **td** (Temporal Difference): bootstrapped targets y = r + γ max Q(s').
   Requires a Polyak-averaged target weight matrix for stability.
 
@@ -217,8 +218,10 @@ class NEFFQIAgent:
     Supports two target modes:
 
     - **mc**: Monte Carlo returns.  Each solve uses actual discounted
-      episode returns G_t = Σ γ^k r_{t+k}.  No bootstrapping, no target
-      network, no oscillation risk.
+      episode returns G_t = Σ γ^k r_{t+k}.  When ``td_lambda`` is set
+      to a value < 1, computes λ-returns that blend MC with TD
+      bootstrapping for lower variance: G_t^λ = r_t + γ[(1-λ)maxQ(s')
+      + λ G_{t+1}^λ].
     - **td**: bootstrapped TD targets with Polyak-averaged target
       weights.  Each solve computes y = r + γ(1-d) max Q_target(s').
 
@@ -249,6 +252,9 @@ class NEFFQIAgent:
         tau: Polyak averaging coefficient for target weights (TD mode).
         fqi_iters: number of FQI iterations per solve (TD mode).
         target_mode: ``"mc"`` or ``"td"``.
+        td_lambda: λ for λ-returns in MC mode.  ``None`` or ``1.0``
+            gives pure MC; ``0.0`` gives one-step TD.  Typical values
+            0.8–0.95 reduce MC variance with minimal bias.
         forget_factor: RLS forgetting factor β ∈ (0, 1].  When set,
             uses exponentially-weighted sufficient statistics instead
             of a replay buffer.  Typical values: 0.99–0.999.
@@ -278,6 +284,7 @@ class NEFFQIAgent:
         tau: float = 0.3,
         fqi_iters: int = 1,
         target_mode: str = "mc",
+        td_lambda: float | None = None,
         forget_factor: float | None = None,
         recenter_interval: int | None = None,
         recenter_percentile: float = 5.0,
@@ -296,6 +303,7 @@ class NEFFQIAgent:
         self.tau = tau
         self.fqi_iters = fqi_iters
         self.target_mode = target_mode
+        self.td_lambda = td_lambda
         self.forget_factor = forget_factor
         self.recenter_interval = recenter_interval
         self.recenter_percentile = recenter_percentile
@@ -332,6 +340,11 @@ class NEFFQIAgent:
         self._total_steps = 0
         self._solve_count = 0
         self._recentered_total = 0
+
+    @property
+    def _use_lambda_returns(self) -> bool:
+        """True when λ-returns should be computed instead of pure MC."""
+        return self.td_lambda is not None and self.td_lambda < 1.0
 
     def _epsilon(self) -> float:
         """Current exploration rate (exponential decay)."""
@@ -388,33 +401,84 @@ class NEFFQIAgent:
             self._recent_obs.append(obs.copy())
 
         if self.target_mode == "mc":
-            self._episode_transitions.append((obs, action, reward))
+            if self._use_lambda_returns:
+                self._episode_transitions.append((obs, action, reward, next_obs))
+            else:
+                self._episode_transitions.append((obs, action, reward))
             if done:
                 self._flush_mc_episode()
         else:
             self._add_to_buffer(obs, action, reward, next_obs, done)
 
     def _flush_mc_episode(self) -> None:
-        """Compute discounted returns and add to buffer or accumulate."""
+        """Compute discounted returns (or λ-returns) and add to buffer or accumulate."""
         transitions = self._episode_transitions
         self._episode_transitions = []
         if not transitions:
             return
 
-        # Compute discounted returns in reverse
-        G = 0.0
-        episode_data: list[tuple[np.ndarray, int, float]] = []
-        for i in reversed(range(len(transitions))):
-            obs, action, reward = transitions[i]
-            G = reward + self.gamma * G
-            episode_data.append((obs, action, G))
-        episode_data.reverse()
+        if self._use_lambda_returns:
+            episode_data = self._compute_lambda_returns(transitions)
+        else:
+            episode_data = self._compute_mc_returns(transitions)
 
         if self.forget_factor is not None:
             self._accumulate_episode(episode_data)
         else:
             for obs, action, ret in episode_data:
                 self._add_to_buffer(obs, action, ret, obs, True)
+
+    def _compute_mc_returns(
+        self,
+        transitions: list[tuple],
+    ) -> list[tuple[np.ndarray, int, float]]:
+        """Pure Monte Carlo returns."""
+        G = 0.0
+        episode_data: list[tuple[np.ndarray, int, float]] = []
+        for i in reversed(range(len(transitions))):
+            obs, action, reward = transitions[i][:3]
+            G = reward + self.gamma * G
+            episode_data.append((obs, action, G))
+        episode_data.reverse()
+        return episode_data
+
+    def _compute_lambda_returns(
+        self,
+        transitions: list[tuple],
+    ) -> list[tuple[np.ndarray, int, float]]:
+        """λ-returns blending MC and TD bootstrapping.
+
+        G_t^λ = r_t + γ [(1-λ) max_a Q(s_{t+1}, a) + λ G_{t+1}^λ]
+
+        For the terminal step (last in episode), G_T = r_T (no bootstrap).
+        λ=1 recovers pure MC; λ=0 gives one-step TD with current Q.
+        """
+        lam = self.td_lambda
+        T = len(transitions)
+
+        # Bootstrap values: Q(s_{t+1}) for each intermediate step
+        next_states = torch.tensor(
+            np.array([t[3] for t in transitions]),
+            dtype=torch.float32,
+        )
+        with torch.no_grad():
+            phi_next = self.features.encode(next_states)
+            q_next = phi_next @ self.W
+            max_q = q_next.max(dim=1).values.numpy()
+
+        G = 0.0
+        episode_data: list[tuple[np.ndarray, int, float]] = []
+        for i in reversed(range(T)):
+            obs, action, reward = transitions[i][:3]
+            if i == T - 1:
+                # Terminal step — no bootstrapping
+                G = reward
+            else:
+                # Blend MC continuation with TD bootstrap
+                G = reward + self.gamma * ((1 - lam) * max_q[i] + lam * G)
+            episode_data.append((obs, action, G))
+        episode_data.reverse()
+        return episode_data
 
     def _accumulate_episode(self, episode_data: list[tuple[np.ndarray, int, float]]) -> None:
         """Accumulate episode into per-action sufficient statistics with decay."""
