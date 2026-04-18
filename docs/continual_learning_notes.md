@@ -669,10 +669,60 @@ degrades gracefully while batch can fail catastrophically.  For a system
 that must work out-of-the-box without hyperparameter tuning, online
 Woodbury is strictly superior.
 
-#### 5.10.8 Open Follow-Up
+#### 5.10.8 Float64 Accumulators: Eliminating Refresh Drift
 
-- **Float64 accumulators**: test whether accumulating `_ata` / `_aty`
-  in float64 closes the gap between refresh and online Woodbury.
+The drift analysis in 5.10.6 showed that `refresh_inverse` from float32
+`_ata` can produce catastrophically wrong decoders — 74.0% vs 90.7% on
+Permuted-MNIST.  This section tests whether accumulating `_ata` and
+`_aty` in float64 eliminates the problem.
+
+**Setup**: same as 5.10.6 drift analysis (online Woodbury bs=100, then
+`refresh_inverse` from accumulated `_ata`), but `_ata`/`_aty` are cast
+to float64 before accumulation.
+
+**Results — refresh accuracy with float64 vs float32 `_ata`:**
+
+| Dataset | Online WB | Refresh (f32) | Refresh (f64) | Drift ‖·‖ f32→f64 |
+|---|---|---|---|---|
+| Split-MNIST | 94.5% | 91.7% | 94.5% | 187 → 7.4 |
+| Permuted-MNIST | 90.7% | 74.0% | 90.7% | 193 → 0.03 |
+| Split-CIFAR-10 | 47.3% | 45.6% | 47.2% | 48.7 → 1.5 |
+
+**Accumulate path is insensitive to precision:**
+
+| Dataset | Accumulate f32 | Accumulate f64 |
+|---|---|---|
+| Split-MNIST | 93.4% | 93.4% |
+| Permuted-MNIST | 89.3% | 89.3% |
+| Split-CIFAR-10 | 48.0% | 48.0% |
+
+Trace-scaled regularization (α_eff ≈ 724–3601) dominates any float32
+rounding, making the accumulate path precision-agnostic.
+
+**Key findings:**
+
+1. **Float64 `_ata` completely eliminates refresh drift.**  Refresh
+   matches online Woodbury to within 0.1% on all datasets.  The
+   "Woodbury drift" was entirely float32 accumulation noise, not
+   Woodbury update drift.
+
+2. **The accumulate path doesn't benefit from float64.**  Trace-scaled
+   regularization is so strong that float32 vs float64 `_ata` produces
+   identical results.  This makes sense: `κ(AᵀA + α·trace·I)` is
+   much smaller than `κ(AᵀA + αI)` when trace-scaling inflates α by
+   ~72000×.
+
+3. **Practical recommendation:** accumulate `_ata` in float64 (only
+   ~7% slower) if you ever need `refresh_inverse`.  This is cheap
+   insurance against accumulation-order-dependent rounding.
+
+4. **The online Woodbury path is already doing the right thing.**  Its
+   `_M_inv` is stored in float64 and updated in float64.  The only
+   weak link was the float32 `_ata` shadow copy used by
+   `refresh_inverse`.
+
+#### 5.10.9 Open Follow-Up
+
 - **Adaptive α**: given that trace-scaled over-regularizes and the
   optimal α is dataset-specific, investigate cross-validation or
   GCV-based α selection.  A single analytic solve is cheap enough to
