@@ -15,10 +15,20 @@ Two target modes are supported:
   returns G_t = Σ γ^k r_{t+k}.  No bootstrapping, no target network.
 - **td** (Temporal Difference): bootstrapped targets y = r + γ max Q(s').
   Requires a Polyak-averaged target weight matrix for stability.
+
+Two optional mechanisms improve performance:
+
+- **Exponential forgetting** (RLS): sufficient statistics decay as
+  AᵀA ← β·AᵀA + batch, eliminating the replay buffer while adapting
+  to non-stationary targets.
+- **Dead neuron recentering**: neurons with low mean activation are
+  recentered to recently visited states, improving feature coverage
+  without gradient descent.
 """
 
 from __future__ import annotations
 
+from collections import deque
 from typing import Callable
 
 import numpy as np
@@ -56,6 +66,8 @@ class NEFFeatures:
         encoder_kwargs: extra keyword arguments forwarded to
             :func:`make_encoders`.
         seed: random seed for reproducibility.
+        track_activations: if True, accumulate per-neuron activation
+            statistics for dead neuron detection.
     """
 
     def __init__(
@@ -68,6 +80,7 @@ class NEFFeatures:
         centers: Tensor | None = None,
         encoder_kwargs: dict | None = None,
         seed: int = 0,
+        track_activations: bool = False,
     ):
         rng = torch.Generator().manual_seed(seed)
         self.n_neurons = n_neurons
@@ -113,6 +126,11 @@ class NEFFeatures:
         self._obs_var = torch.ones(d_in)
         self._obs_count = 0
 
+        # Activation tracking for dead neuron detection
+        self._track_activations = track_activations
+        self._act_sum = torch.zeros(n_neurons)
+        self._act_count = 0
+
     def update_stats(self, obs_batch: Tensor) -> None:
         """Update running mean/variance with a batch of observations."""
         batch_mean = obs_batch.mean(dim=0)
@@ -150,9 +168,47 @@ class NEFFeatures:
         pre = self._gain * pre + self.bias
         features = self._act_module(pre)
 
+        if self._track_activations:
+            self._act_sum += features.detach().sum(dim=0)
+            self._act_count += features.shape[0]
+
         if squeeze:
             features = features.squeeze(0)
         return features
+
+    # -- Activation tracking and recentering ---------------------------------
+
+    def mean_activations(self) -> Tensor:
+        """Per-neuron mean activation over tracked samples."""
+        if self._act_count == 0:
+            return torch.zeros(self.n_neurons)
+        return self._act_sum / self._act_count
+
+    def reset_activation_stats(self) -> None:
+        """Reset activation tracking counters."""
+        self._act_sum.zero_()
+        self._act_count = 0
+
+    def dead_neuron_indices(self, percentile: float = 5.0) -> Tensor:
+        """Return indices of neurons below the given activation percentile."""
+        if self._act_count == 0:
+            return torch.tensor([], dtype=torch.long)
+        mean_act = self.mean_activations()
+        threshold = torch.quantile(mean_act, percentile / 100.0)
+        return torch.where(mean_act <= threshold)[0]
+
+    def recenter(self, indices: Tensor, new_centers: Tensor) -> None:
+        """Recenter neurons at *indices* to *new_centers*.
+
+        Centers (in raw observation space) are normalized using current
+        running statistics before recomputing biases.
+        """
+        if len(indices) == 0:
+            return
+        std = (self._obs_var + 1e-8).sqrt()
+        normalized = (new_centers.float() - self._obs_mean) / std
+        dot = (normalized * self.encoders[indices]).sum(dim=1)
+        self.bias[indices] = -self._gain[indices] * dot
 
 
 class NEFFQIAgent:
@@ -170,6 +226,14 @@ class NEFFQIAgent:
 
         w_a = (Φ_aᵀ Φ_a + αI)⁻¹ Φ_aᵀ y_a
 
+    Optional enhancements:
+
+    - **forget_factor** (β): when set, maintains running sufficient
+      statistics with exponential decay instead of a replay buffer.
+      ``AᵀA ← β·AᵀA + Φ_batch^T Φ_batch``.  Eliminates replay buffer.
+    - **recenter_interval**: every N episodes, neurons with activations
+      below *recenter_percentile* are recentered to recent observations.
+
     Args:
         d_obs: observation dimensionality.
         n_actions: number of discrete actions.
@@ -185,6 +249,13 @@ class NEFFQIAgent:
         tau: Polyak averaging coefficient for target weights (TD mode).
         fqi_iters: number of FQI iterations per solve (TD mode).
         target_mode: ``"mc"`` or ``"td"``.
+        forget_factor: RLS forgetting factor β ∈ (0, 1].  When set,
+            uses exponentially-weighted sufficient statistics instead
+            of a replay buffer.  Typical values: 0.99–0.999.
+        recenter_interval: if set, check for dead neurons every N
+            episodes and recenter them to recently observed states.
+        recenter_percentile: activation percentile below which neurons
+            are considered dead (default 5.0).
         features_kwargs: extra keyword arguments forwarded to
             :class:`NEFFeatures` (e.g. ``centers``,
             ``encoder_strategy``).
@@ -207,6 +278,9 @@ class NEFFQIAgent:
         tau: float = 0.3,
         fqi_iters: int = 1,
         target_mode: str = "mc",
+        forget_factor: float | None = None,
+        recenter_interval: int | None = None,
+        recenter_percentile: float = 5.0,
         features_kwargs: dict | None = None,
         seed: int = 0,
     ):
@@ -222,12 +296,17 @@ class NEFFQIAgent:
         self.tau = tau
         self.fqi_iters = fqi_iters
         self.target_mode = target_mode
+        self.forget_factor = forget_factor
+        self.recenter_interval = recenter_interval
+        self.recenter_percentile = recenter_percentile
         self.rng = np.random.default_rng(seed)
 
         feat_kw = dict(features_kwargs or {})
+        if recenter_interval is not None:
+            feat_kw["track_activations"] = True
         self.features = NEFFeatures(d_obs, n_neurons, seed=seed, **feat_kw)
 
-        # Replay buffer stores (obs, action, return_or_reward, next_obs, done)
+        # Replay buffer (used only in non-RLS mode)
         self.buffer: list[tuple[np.ndarray, int, float, np.ndarray, bool]] = []
         self._buffer_size = buffer_size
         self._buffer_pos = 0
@@ -239,9 +318,20 @@ class NEFFQIAgent:
         self.W = torch.zeros(n_neurons, n_actions)
         self.W_target = torch.zeros(n_neurons, n_actions)
 
+        # RLS sufficient statistics (per-action, float64)
+        if forget_factor is not None:
+            self._ata = torch.zeros(n_actions, n_neurons, n_neurons, dtype=torch.float64)
+            self._aty = torch.zeros(n_actions, n_neurons, dtype=torch.float64)
+            self._n_accumulated = torch.zeros(n_actions, dtype=torch.long)
+
+        # Recent observations for recentering
+        if recenter_interval is not None:
+            self._recent_obs: deque[np.ndarray] = deque(maxlen=2000)
+
         self._episode = 0
         self._total_steps = 0
         self._solve_count = 0
+        self._recentered_total = 0
 
     def _epsilon(self) -> float:
         """Current exploration rate (exponential decay)."""
@@ -294,6 +384,9 @@ class NEFFQIAgent:
         self.features.update_stats(torch.from_numpy(np.stack([obs, next_obs])).float())
         self._total_steps += 1
 
+        if self.recenter_interval is not None:
+            self._recent_obs.append(obs.copy())
+
         if self.target_mode == "mc":
             self._episode_transitions.append((obs, action, reward))
             if done:
@@ -302,18 +395,54 @@ class NEFFQIAgent:
             self._add_to_buffer(obs, action, reward, next_obs, done)
 
     def _flush_mc_episode(self) -> None:
-        """Compute discounted returns and add to buffer."""
+        """Compute discounted returns and add to buffer or accumulate."""
         transitions = self._episode_transitions
         self._episode_transitions = []
         if not transitions:
             return
 
+        # Compute discounted returns in reverse
         G = 0.0
+        episode_data: list[tuple[np.ndarray, int, float]] = []
         for i in reversed(range(len(transitions))):
             obs, action, reward = transitions[i]
             G = reward + self.gamma * G
-            dummy_next = obs  # not used in MC mode
-            self._add_to_buffer(obs, action, G, dummy_next, True)
+            episode_data.append((obs, action, G))
+        episode_data.reverse()
+
+        if self.forget_factor is not None:
+            self._accumulate_episode(episode_data)
+        else:
+            for obs, action, ret in episode_data:
+                self._add_to_buffer(obs, action, ret, obs, True)
+
+    def _accumulate_episode(self, episode_data: list[tuple[np.ndarray, int, float]]) -> None:
+        """Accumulate episode into per-action sufficient statistics with decay."""
+        states = torch.tensor(np.array([t[0] for t in episode_data]), dtype=torch.float32)
+        actions = np.array([t[1] for t in episode_data])
+        targets = torch.tensor(np.array([t[2] for t in episode_data]), dtype=torch.float32)
+
+        with torch.no_grad():
+            phi = self.features.encode(states)
+
+        phi_f64 = phi.double()
+        targets_f64 = targets.double()
+        beta = self.forget_factor
+
+        for a in range(self.n_actions):
+            mask = actions == a
+            if mask.sum() == 0:
+                # Still decay even when no samples for this action
+                self._ata[a] *= beta
+                self._aty[a] *= beta
+                continue
+
+            phi_a = phi_f64[mask]
+            y_a = targets_f64[mask]
+
+            self._ata[a] = beta * self._ata[a] + phi_a.T @ phi_a
+            self._aty[a] = beta * self._aty[a] + phi_a.T @ y_a
+            self._n_accumulated[a] += mask.sum()
 
     def _solve_per_action(self, phi: Tensor, actions: np.ndarray, targets: Tensor) -> Tensor:
         """Per-action analytical solve: w_a = (Φ_aᵀ Φ_a + αI)⁻¹ Φ_aᵀ y."""
@@ -345,12 +474,46 @@ class NEFFQIAgent:
         return W_new
 
     def solve(self) -> None:
-        """Solve for Q-weights from replay buffer.
+        """Solve for Q-weights from replay buffer or RLS statistics.
 
-        In MC mode, buffer values are discounted returns — direct
-        regression with no bootstrapping.  In TD mode, runs FQI
-        iterations with target-weight bootstrap.
+        In MC mode, targets are discounted returns — direct regression
+        with no bootstrapping.  In TD mode, runs FQI iterations with
+        target-weight bootstrap.
+
+        When ``forget_factor`` is set, solves from accumulated
+        sufficient statistics instead of re-encoding the buffer.
         """
+        if self.forget_factor is not None:
+            self._solve_from_stats()
+        else:
+            self._solve_from_buffer()
+
+    def _solve_from_stats(self) -> None:
+        """Solve from exponentially-weighted sufficient statistics."""
+        W_new = torch.zeros_like(self.W)
+
+        for a in range(self.n_actions):
+            if self._n_accumulated[a] < 10:
+                W_new[:, a] = self.W[:, a]
+                continue
+
+            ATA = self._ata[a].clone()
+            ATY = self._aty[a].clone()
+
+            reg = self.alpha * torch.trace(ATA) / self.n_neurons
+            ATA.diagonal().add_(reg.clamp(min=self.alpha))
+
+            try:
+                w = torch.linalg.solve(ATA, ATY)
+            except torch.linalg.LinAlgError:
+                w = torch.linalg.lstsq(ATA, ATY.unsqueeze(1)).solution.squeeze(1)
+
+            W_new[:, a] = w.float()
+
+        self.W = W_new
+
+    def _solve_from_buffer(self) -> None:
+        """Solve from replay buffer (original method)."""
         if len(self.buffer) < 100:
             return
 
@@ -386,11 +549,49 @@ class NEFFQIAgent:
         self._solve_count += 1
 
     def end_episode(self) -> None:
-        """Signal end of episode; triggers periodic solve + target update."""
+        """Signal end of episode; triggers periodic solve + optional recentering."""
         self._episode += 1
+
+        # Dead neuron recentering (before solve so new neurons get fresh data)
+        if self.recenter_interval is not None and self._episode % self.recenter_interval == 0:
+            self._recenter_dead()
+
         if self._episode % self.solve_every == 0:
             self.solve()
             self.W_target.mul_(1 - self.tau).add_(self.W * self.tau)
+
+    def _recenter_dead(self) -> int:
+        """Recenter dead neurons to recently observed states.
+
+        Returns the number of neurons recentered.
+        """
+        if self.recenter_interval is None:
+            return 0
+        recent = list(self._recent_obs)
+        if len(recent) < 100:
+            return 0
+
+        dead = self.features.dead_neuron_indices(self.recenter_percentile)
+        if len(dead) == 0:
+            self.features.reset_activation_stats()
+            return 0
+
+        recent_t = torch.tensor(np.array(recent), dtype=torch.float32)
+        idx = torch.randint(len(recent_t), (len(dead),))
+        new_centers = recent_t[idx]
+
+        self.features.recenter(dead, new_centers)
+
+        # Reset RLS statistics for recentered neurons
+        if self.forget_factor is not None:
+            for a in range(self.n_actions):
+                self._ata[a][dead, :] = 0
+                self._ata[a][:, dead] = 0
+                self._aty[a][dead] = 0
+
+        self._recentered_total += len(dead)
+        self.features.reset_activation_stats()
+        return len(dead)
 
     def warmup(
         self,

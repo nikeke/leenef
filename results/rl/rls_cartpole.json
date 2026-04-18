@@ -1,0 +1,194 @@
+[
+  {
+    "label": "Baseline (buffer)",
+    "final": 487.85,
+    "best": 500.0,
+    "time": 248.4,
+    "evals": [
+      {
+        "episode": 50,
+        "eval": 74.15
+      },
+      {
+        "episode": 100,
+        "eval": 461.8
+      },
+      {
+        "episode": 150,
+        "eval": 481.75
+      },
+      {
+        "episode": 200,
+        "eval": 500.0
+      },
+      {
+        "episode": 250,
+        "eval": 500.0
+      },
+      {
+        "episode": 300,
+        "eval": 500.0
+      },
+      {
+        "episode": 350,
+        "eval": 500.0
+      },
+      {
+        "episode": 400,
+        "eval": 487.3
+      },
+      {
+        "episode": 450,
+        "eval": 500.0
+      },
+      {
+        "episode": 500,
+        "eval": 495.4
+      }
+    ]
+  },
+  {
+    "label": "RLS \u03b2=0.995",
+    "final": 338.7,
+    "best": 500.0,
+    "time": 92.6,
+    "evals": [
+      {
+        "episode": 50,
+        "eval": 68.8
+      },
+      {
+        "episode": 100,
+        "eval": 268.45
+      },
+      {
+        "episode": 150,
+        "eval": 475.85
+      },
+      {
+        "episode": 200,
+        "eval": 500.0
+      },
+      {
+        "episode": 250,
+        "eval": 289.1
+      },
+      {
+        "episode": 300,
+        "eval": 267.3
+      },
+      {
+        "episode": 350,
+        "eval": 273.15
+      },
+      {
+        "episode": 400,
+        "eval": 291.35
+      },
+      {
+        "episode": 450,
+        "eval": 313.35
+      },
+      {
+        "episode": 500,
+        "eval": 336.1
+      }
+    ]
+  },
+  {
+    "label": "Buffer + recenter/50",
+    "final": 491.65,
+    "best": 500.0,
+    "time": 245.6,
+    "evals": [
+      {
+        "episode": 50,
+        "eval": 90.05
+      },
+      {
+        "episode": 100,
+        "eval": 261.35
+      },
+      {
+        "episode": 150,
+        "eval": 464.35
+      },
+      {
+        "episode": 200,
+        "eval": 475.6
+      },
+      {
+        "episode": 250,
+        "eval": 500.0
+      },
+      {
+        "episode": 300,
+        "eval": 500.0
+      },
+      {
+        "episode": 350,
+        "eval": 415.95
+      },
+      {
+        "episode": 400,
+        "eval": 500.0
+      },
+      {
+        "episode": 450,
+        "eval": 491.15
+      },
+      {
+        "episode": 500,
+        "eval": 484.9
+      }
+    ]
+  },
+  {
+    "label": "RLS \u03b2=0.995 + recenter/50",
+    "final": 500.0,
+    "best": 500.0,
+    "time": 111.1,
+    "evals": [
+      {
+        "episode": 50,
+        "eval": 110.35
+      },
+      {
+        "episode": 100,
+        "eval": 317.6
+      },
+      {
+        "episode": 150,
+        "eval": 500.0
+      },
+      {
+        "episode": 200,
+        "eval": 500.0
+      },
+      {
+        "episode": 250,
+        "eval": 500.0
+      },
+      {
+        "episode": 300,
+        "eval": 500.0
+      },
+      {
+        "episode": 350,
+        "eval": 500.0
+      },
+      {
+        "episode": 400,
+        "eval": 500.0
+      },
+      {
+        "episode": 450,
+        "eval": 500.0
+      },
+      {
+        "episode": 500,
+        "eval": 500.0
+      }
+    ]
+  }
+]
