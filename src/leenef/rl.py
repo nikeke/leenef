@@ -1,8 +1,9 @@
 """NEF-based reinforcement learning components.
 
 Provides :class:`NEFFeatures` (fixed random feature encoder with online
-state normalization) and :class:`NEFFQIAgent` (Fitted Q-Iteration with
-analytical least-squares solve).
+state normalization), :class:`NEFFQIAgent` (Fitted Q-Iteration with
+analytical least-squares solve), and :class:`NEFFQIEnsemble` (ensemble
+of agents for exploration via disagreement / Thompson sampling).
 
 The core idea: replace DQN's gradient-based Q-network updates with NEF's
 analytical solve.  Both approaches approximate Q(s, a); the difference
@@ -684,3 +685,127 @@ class NEFFQIAgent:
 
         self.solve()
         self.W_target.copy_(self.W)
+
+
+class NEFFQIEnsemble:
+    """Ensemble of NEFFQIAgents for exploration via disagreement.
+
+    Each member uses different random features (seeds) but trains on the
+    same experience.  Diverse projections produce diverse Q estimates;
+    disagreement signals uncertainty and drives exploration.
+
+    Two exploration strategies:
+
+    - **thompson**: at each step, sample a random member and follow its
+      greedy policy.  Equivalent to Thompson sampling with the ensemble
+      as a posterior approximation.
+    - **ucb**: take the action with highest (mean_Q + ucb_coeff * std_Q)
+      across members.  Optimistic in the face of uncertainty.
+
+    After the ε-greedy exploration period ends, the ensemble's diversity
+    provides ongoing exploration without ε noise.
+
+    Args:
+        n_members: number of ensemble members.
+        explore_strategy: ``"thompson"`` or ``"ucb"``.
+        ucb_coeff: coefficient for UCB exploration bonus (only used
+            when ``explore_strategy="ucb"``).
+        base_seed: starting seed; member *i* uses ``base_seed + i``.
+        **agent_kwargs: forwarded to each :class:`NEFFQIAgent`.
+    """
+
+    def __init__(
+        self,
+        n_members: int = 5,
+        explore_strategy: str = "thompson",
+        ucb_coeff: float = 1.0,
+        base_seed: int = 0,
+        **agent_kwargs,
+    ):
+        if explore_strategy not in ("thompson", "ucb"):
+            raise ValueError(
+                f"explore_strategy must be 'thompson' or 'ucb', got {explore_strategy!r}"
+            )
+        self.n_members = n_members
+        self.explore_strategy = explore_strategy
+        self.ucb_coeff = ucb_coeff
+        self.rng = np.random.default_rng(base_seed)
+
+        self.members: list[NEFFQIAgent] = []
+        for i in range(n_members):
+            kw = dict(agent_kwargs)
+            kw["seed"] = base_seed + i
+            self.members.append(NEFFQIAgent(**kw))
+
+    def select_action(self, obs: np.ndarray) -> int:
+        """Select action using ensemble exploration strategy.
+
+        During ε-greedy phase, each member's ε-greedy still applies
+        (Thompson picks a random member, then uses its ε-greedy).
+        After ε decays, ensemble diversity provides exploration.
+        """
+        if self.explore_strategy == "thompson":
+            idx = int(self.rng.integers(self.n_members))
+            return self.members[idx].select_action(obs)
+
+        # UCB: mean Q + coeff * std Q across members
+        q_all = torch.stack([m.q_values(obs) for m in self.members])
+        mean_q = q_all.mean(dim=0)
+        std_q = q_all.std(dim=0)
+        ucb = mean_q + self.ucb_coeff * std_q
+        return int(ucb.argmax().item())
+
+    def update(
+        self,
+        obs: np.ndarray,
+        action: int,
+        reward: float,
+        next_obs: np.ndarray,
+        done: bool,
+    ) -> None:
+        """Broadcast transition to all ensemble members."""
+        for member in self.members:
+            member.update(obs, action, reward, next_obs, done)
+
+    def end_episode(self) -> None:
+        """Signal end of episode to all members."""
+        for member in self.members:
+            member.end_episode()
+
+    def warmup(self, *, env, n_episodes: int = 20) -> None:
+        """Warmup all members using random exploration.
+
+        Unlike individual warmup, runs episodes once and broadcasts
+        transitions to all members (avoids N× environment interaction).
+        """
+        n_actions = self.members[0].n_actions
+        for _ in range(n_episodes):
+            obs, _ = env.reset()
+            done = False
+            while not done:
+                action = int(self.rng.integers(n_actions))
+                next_obs, reward, terminated, truncated, _ = env.step(action)
+                done = terminated or truncated
+                self.update(obs, action, reward, next_obs, done)
+                obs = next_obs
+            self.end_episode()
+
+        # Force initial solve on all members
+        for member in self.members:
+            member.solve()
+            member.W_target.copy_(member.W)
+
+    def q_values(self, obs: np.ndarray) -> Tensor:
+        """Mean Q-values across ensemble members."""
+        q_all = torch.stack([m.q_values(obs) for m in self.members])
+        return q_all.mean(dim=0)
+
+    @property
+    def _episode(self) -> int:
+        """Current episode count (from first member)."""
+        return self.members[0]._episode
+
+    @property
+    def _recentered_total(self) -> int:
+        """Total neurons recentered across all members."""
+        return sum(m._recentered_total for m in self.members)
