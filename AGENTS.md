@@ -35,6 +35,7 @@ python benchmarks/run_continual.py --scenario both --seed 0
 python benchmarks/run_continual.py --dataset cifar10 --scenario split --n-neurons 5000 --seed 0
 python benchmarks/run_continual.py --dataset cifar100 --scenario split --n-neurons 5000 --seed 0
 python benchmarks/run_capacity.py --seed 0
+python benchmarks/run_convnef_cl.py --seed 0
 
 # Colab suites (GPU)
 python benchmarks/colab_suites.py --suite row_focus --device auto --output-dir results/colab
