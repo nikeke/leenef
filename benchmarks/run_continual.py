@@ -704,7 +704,121 @@ def run_mlp_ewc(
     )
 
 
-# ── Reporting ─────────────────────────────────────────────────────────
+# ── Experience Replay baseline ────────────────────────────────────────
+
+
+class _ReplayBuffer:
+    """Fixed-size ring buffer for experience replay."""
+
+    def __init__(self, capacity: int, d_in: int, device: str = "cpu"):
+        self.capacity = capacity
+        self.x = torch.empty(capacity, d_in, device=device)
+        self.y = torch.empty(capacity, dtype=torch.long, device=device)
+        self.count = 0
+
+    def add(self, x: Tensor, y: Tensor) -> None:
+        """Reservoir sampling: each sample has equal probability of being stored."""
+        for i in range(len(x)):
+            total = self.count + i
+            if total < self.capacity:
+                idx = total
+            else:
+                idx = torch.randint(0, total + 1, (1,)).item()
+                if idx >= self.capacity:
+                    continue
+            self.x[idx] = x[i]
+            self.y[idx] = y[i]
+        self.count += len(x)
+
+    def sample(self, n: int) -> tuple[Tensor, Tensor]:
+        """Return up to n samples from the buffer."""
+        size = min(n, min(self.count, self.capacity))
+        idx = torch.randperm(min(self.count, self.capacity))[:size]
+        return self.x[idx], self.y[idx]
+
+    def __len__(self) -> int:
+        return min(self.count, self.capacity)
+
+
+def run_mlp_er(
+    tasks: list[dict],
+    scenario: str,
+    *,
+    d_hidden: int = 2000,
+    epochs: int = 10,
+    lr: float = 0.01,
+    buffer_size: int = 200,
+    replay_batch: int = 64,
+    seed: int = 0,
+) -> ContinualResult:
+    """MLP with Experience Replay (ER).
+
+    After each task, stores samples in a fixed-size buffer via reservoir
+    sampling.  During training, each mini-batch is augmented with replayed
+    samples from the buffer.
+
+    ``buffer_size`` is the total buffer capacity (across all tasks).
+    """
+    set_seed(seed)
+    d_in = tasks[0]["x_train"].shape[1]
+    n_classes = max(int(t["y_train"].max().item()) for t in tasks) + 1
+
+    model = SimpleMLP(d_in, d_hidden, n_classes)
+    buffer = _ReplayBuffer(buffer_size, d_in)
+
+    accuracy_matrix: list[list[float]] = []
+    fit_times: list[float] = []
+
+    for task in tasks:
+        t0 = time.perf_counter()
+        optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+        ce_loss = nn.CrossEntropyLoss()
+        model.train()
+
+        x_task, y_task = task["x_train"], task["y_train"]
+        batch_size = 256
+
+        for _ in range(epochs):
+            perm = torch.randperm(len(x_task))
+            for i in range(0, len(x_task), batch_size):
+                idx = perm[i : i + batch_size]
+                x_batch = x_task[idx]
+                y_batch = y_task[idx]
+
+                # Mix in replay samples if buffer is non-empty
+                if len(buffer) > 0:
+                    x_rep, y_rep = buffer.sample(replay_batch)
+                    x_batch = torch.cat([x_batch, x_rep])
+                    y_batch = torch.cat([y_batch, y_rep])
+
+                optimizer.zero_grad()
+                loss = ce_loss(model(x_batch), y_batch)
+                loss.backward()
+                optimizer.step()
+
+        model.eval()
+
+        # Add current task to buffer
+        buffer.add(x_task, y_task)
+
+        fit_times.append(time.perf_counter() - t0)
+        accuracy_matrix.append(evaluate_on_tasks(model, tasks))
+
+    return ContinualResult(
+        method=f"MLP-ER (buf={buffer_size})",
+        scenario=scenario,
+        n_tasks=len(tasks),
+        accuracy_matrix=accuracy_matrix,
+        fit_times=fit_times,
+        n_neurons=d_hidden,
+        config={
+            "d_hidden": d_hidden,
+            "epochs": epochs,
+            "lr": lr,
+            "buffer_size": buffer_size,
+            "replay_batch": replay_batch,
+        },
+    )
 
 
 def print_result(result: ContinualResult) -> None:
@@ -766,9 +880,11 @@ def run_scenario(
     mlp_epochs: int,
     mlp_lr: float,
     ewc_lambda: float,
+    er_buffer: int,
     seed: int,
     skip_mlp: bool,
     skip_ewc: bool,
+    skip_er: bool,
     skip_growing: bool = False,
     centers_strategies: list[str],
 ) -> list[ContinualResult]:
@@ -834,6 +950,20 @@ def run_scenario(
         print_result(r)
         results.append(r)
 
+    if not skip_er:
+        print(f"\n>>> MLP-ER (buffer={er_buffer}) ...")
+        r = run_mlp_er(
+            tasks,
+            scenario_name,
+            d_hidden=n_neurons,
+            epochs=mlp_epochs,
+            lr=mlp_lr,
+            buffer_size=er_buffer,
+            seed=seed,
+        )
+        print_result(r)
+        results.append(r)
+
     return results
 
 
@@ -872,6 +1002,8 @@ def main() -> None:
     parser.add_argument("--data-root", type=str, default="./data")
     parser.add_argument("--skip-mlp", action="store_true", help="skip MLP baselines")
     parser.add_argument("--skip-ewc", action="store_true", help="skip EWC baseline")
+    parser.add_argument("--skip-er", action="store_true", help="skip ER baseline")
+    parser.add_argument("--er-buffer", type=int, default=500, help="ER replay buffer capacity")
     parser.add_argument("--skip-growing", action="store_true", help="skip NEF-growing method")
     args = parser.parse_args()
 
@@ -906,9 +1038,11 @@ def main() -> None:
             mlp_epochs=args.mlp_epochs,
             mlp_lr=args.mlp_lr,
             ewc_lambda=args.ewc_lambda,
+            er_buffer=args.er_buffer,
             seed=args.seed,
             skip_mlp=args.skip_mlp,
             skip_ewc=args.skip_ewc,
+            skip_er=args.skip_er,
             skip_growing=args.skip_growing,
             centers_strategies=centers_strategies,
         )
@@ -929,9 +1063,11 @@ def main() -> None:
             mlp_epochs=args.mlp_epochs,
             mlp_lr=args.mlp_lr,
             ewc_lambda=args.ewc_lambda,
+            er_buffer=args.er_buffer,
             seed=args.seed,
             skip_mlp=args.skip_mlp,
             skip_ewc=args.skip_ewc,
+            skip_er=args.skip_er,
             skip_growing=args.skip_growing,
             centers_strategies=["none", "first_task", "all_tasks"],
         )
