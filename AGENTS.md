@@ -62,6 +62,18 @@ New Colab suites, benchmark parameters, and code changes should be
 challenge or extend them.  When results change the story, update the TR
 (following the maintenance rules below).
 
+## Running long commands
+
+Do **not** pipe long-running commands (benchmarks, training runs, sweeps)
+through buffering filters like `grep`, `grep -v`, `tail -f | grep`, etc.
+These filters buffer stdout and can hide all progress output for tens of
+minutes, making it impossible to tell whether the command is stuck or
+working.  Instead:
+
+- Use `python -u` (unbuffered stdout) when running Python scripts.
+- If you need to filter output, redirect to a file and grep afterward.
+- For interactive monitoring, run the command directly without pipes.
+
 ## Colab benchmark suite rules
 
 - If you change a Colab benchmark suite or its launcher workflow, **commit and
@@ -347,3 +359,19 @@ NEF's computational profile is dominated by three operations:
 - EWC baselines (per-sample Fisher) → GPU helps regardless of NEF size
 - Large sweeps or Colab suites → **L4** minimum (best cost/perf)
 - 50000+ neurons or ImageNet-scale → **G4** or **A100**
+
+### Colab compute unit costs
+
+Costs are in Google Colab compute units (CU) per hour.  $10 buys 100 CU
+($0.10/CU).  Verified against GCP/Colab pricing as of mid-2026.
+
+| GPU | CU/hr | $/hr | Notes |
+|-----|-------|------|-------|
+| T4 | 1.8–2.0 | $0.18–0.20 | Sometimes free on Colab; cheapest paid option |
+| L4 | ~4.8 | ~$0.48 | Best cost/perf for medium workloads |
+| A100 (40 GB) | ~12 | ~$1.20 | HBM bandwidth advantage for large solves |
+| A100 (80 GB) | ~15 | ~$1.50 | Only if 40 GB is insufficient |
+
+G4 and H100 are **not available on Colab**.  They require GCP Compute
+Engine VMs (on-demand pricing: G4 ~$2–3/hr, H100 ~$11/GPU-hr in
+8×packs).  Only use GCE if Colab's GPU options are insufficient.
