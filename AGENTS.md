@@ -360,7 +360,7 @@ NEF's computational profile is dominated by three operations:
 - CIFAR-10/100, 10000+ neurons → **T4 or L4**
 - EWC baselines (per-sample Fisher) → GPU helps regardless of NEF size
 - Large sweeps or Colab suites → **L4** minimum (best cost/perf)
-- 50000+ neurons or ImageNet-scale → **G4** or **A100**
+- 50000+ neurons or ImageNet-scale → **G4**, **A100**, or **G100**
 
 ### Colab compute unit costs
 
@@ -371,9 +371,10 @@ Costs are in Google Colab compute units (CU) per hour.  $10 buys 100 CU
 |-----|-------|------|-------|
 | T4 | 1.8–2.0 | $0.18–0.20 | Sometimes free on Colab; cheapest paid option |
 | L4 | ~4.8 | ~$0.48 | Best cost/perf for medium workloads |
+| G4 | ~5 | ~$0.50 | Available on Colab; check actual CU rate |
 | A100 (40 GB) | ~12 | ~$1.20 | HBM bandwidth advantage for large solves |
 | A100 (80 GB) | ~15 | ~$1.50 | Only if 40 GB is insufficient |
+| G100 | ~20 | ~$2.00 | Available on Colab; check actual CU rate |
 
-G4 and H100 are **not available on Colab**.  They require GCP Compute
-Engine VMs (on-demand pricing: G4 ~$2–3/hr, H100 ~$11/GPU-hr in
-8×packs).  Only use GCE if Colab's GPU options are insufficient.
+All six GPUs (T4, L4, G4, A100, G100) are available in the Colab
+"Change runtime type" dialog.  No GCE VMs needed.

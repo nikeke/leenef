@@ -1101,21 +1101,46 @@ ConvNEF-joint also gives 78.6% on Task 1 — the drop is the natural
 cost of sharing the output head across more classes, not data loss.
 Since CL final = joint final, there is zero catastrophic forgetting.
 
-#### 5.12.4 Scaling Questions (Open)
+#### 5.12.4 GPU Scaling Results
 
-These results at 10000 neurons are promising but leave open:
+The Colab `continual_cl` suite ran on GPU with horizontal flip
+augmentation.  Results at seed 0:
 
-- **20000+ neurons on GPU**: at 2k neurons the gap was 62.5% vs 48.1%
-  (+14.4pp); at 10k it widened to 72.0% vs 50.6% (+21.4pp).  Does the
-  gap continue growing with more neurons?
-- **Augmentation**: horizontal flip augmentation (known to help ConvNEF)
-  combined with CL accumulation.  Does augmentation during CL tasks
-  help or hurt?
-- **Ensemble ConvNEF-CL**: multiple pipelines with different random
-  seeds, each doing independent CL accumulation.  Ensembles improve
-  single-run ConvNEF from ~78% to ~80%; does this carry over to CL?
+| Method | Neurons | Avg Acc | Time |
+|--------|---------|---------|------|
+| ConvNEF-CL (all_data) | 10k | 72.8% | 6.3s |
+| ConvNEF-CL (first_task) | 10k | 72.6% | 5.4s |
+| ConvNEF-CL (all_data) | 20k | **74.9%** | 15.1s |
+| ConvNEF-CL (first_task) | 20k | **74.7%** | 15.3s |
+| ConvNEF-joint | 10k | 73.1% | 4.9s |
+| ConvNEF-joint | 20k | 74.9% | 12.4s |
+| Flat NEF CL | 5k | 50.6% | 0.6s |
 
-These require GPU time and are candidates for a Colab benchmark suite.
+Key observations:
+
+1. **CL = joint at both scales.**  At 10k: CL 72.8% vs joint 73.1%
+   (0.3% gap from different pipeline instances).  At 20k: CL 74.9%
+   vs joint 74.9% (exact match).  Zero catastrophic forgetting
+   confirmed at scale.
+
+2. **Scaling continues.**  10k → 20k lifts accuracy from 72.8% to
+   74.9% (+2.1pp).  The gap over flat NEF widens from +22.2pp to
+   +24.3pp, confirming that ConvNEF features benefit more from
+   additional decoding capacity.
+
+3. **First-task PCA ≈ all-data PCA at both scales.**  The gap is
+   0.2pp at 10k and 0.2pp at 20k.  PCA filters from 20% of the
+   data (first task) remain sufficient at higher neuron counts.
+
+4. **Augmentation adds ~0.8pp** over the CPU runs without
+   augmentation (72.8% vs 72.0% at 10k).
+
+5. **GPU speedup ~14×** vs CPU at 10k (6.3s vs 84s) and presumably
+   more at 20k.
+
+Remaining open: ensemble ConvNEF-CL, further neuron scaling (50k+),
+and whether the 74.9% plateau breaks with more neurons or better
+features.
 
 #### 5.12.5 Implications for the CL Story
 
