@@ -240,6 +240,37 @@ Not tested.  Expected to fail for the same reason as Acrobot: sparse
 reward (-1 per step, 200-step timeout).
 
 
+### 4.6 TD(λ) on LunarLander
+
+**TD(λ) hurts — any bootstrapping destabilizes the analytical solve.**
+
+| Method             | λ    | Best eval  | Final eval | Time    |
+|--------------------|------|------------|------------|---------|
+| **MC (pure)**      | 1.0  | **125.2**  | **103.5**  | 2595s   |
+| λ-return           | 0.9  | 18.3       | -75.1      | 2961s   |
+
+Both configs: RLS β=0.999, 8000 neurons, 1000 episodes, solve every 10.
+
+λ=0.9 peaked early (18.3 at ep 400) but then collapsed and never
+recovered.  By contrast, MC showed the characteristic late surge
+(ep 800–900) reaching 125.2.
+
+**Root cause:** bootstrapping creates a self-reinforcing error loop.
+With pure MC, targets are model-independent ground truth — each episode
+return is a noisy but unbiased estimate of the true value, regardless of
+how good Q currently is.  With λ-returns, even 10% of each intermediate
+target comes from max Q(s'), which is inaccurate early on.  In gradient-
+based RL this is mitigated by slow, averaged updates; in the analytical
+solve, bad targets directly shift the least-squares solution.  The RLS
+forgetting factor compounds the problem: contaminated sufficient
+statistics persist for ~1000 episodes (1/β window).
+
+**Key insight:** the analytical solve's greatest strength — computing the
+globally optimal weights for the given targets — becomes a weakness when
+targets are model-dependent.  MC targets are the natural fit because they
+preserve the model-independence that makes the analytical solve stable.
+
+
 ## 5. Summary Table
 
 | Environment    | NEF-FQI (MC) | NEF-FQI (RLS) | DQN     | Winner  | Why                           |
@@ -285,12 +316,17 @@ This is the core theoretical tension:
 - **TD targets** are biased but lower-variance, and work with sparse
   rewards — but the analytical solve's wholesale weight replacement
   amplifies bootstrapping instability.
+- **TD(λ)** (§4.6) does not help: even λ=0.9 (90% MC) destabilizes the
+  solve because 10% bootstrapping from inaccurate Q creates a
+  self-reinforcing error loop that the analytical solve cannot damp.
 - **SGD** (DQN) handles this by making small incremental updates that
   smooth over target shifts.  The analytical solve does not have this
   "damping" effect.
 
-Possible solutions not yet explored:
-- **TD(λ):** Blend MC and TD targets via eligibility traces
+**The fundamental constraint:** the analytical solve requires
+model-independent targets.  MC provides these; any form of TD
+bootstrapping violates this requirement.  The MC variance problem
+must be addressed through other means:
 - **Reward shaping:** Transform sparse rewards to give MC more signal
 - **Feature adaptation:** Learn encoders (violates the "fixed encoder"
   principle but may be necessary for higher dimensions)
@@ -376,16 +412,17 @@ coverage.  β=0.995 is too aggressive for LunarLander's high variance
 (best=47.3, only marginally better than baseline).  The gap to DQN
 (214.0) remains but is halved.
 
-### 8.3 TD(λ) targets
+### 8.3 TD(λ) targets ✅ TESTED — NEGATIVE
 
-The λ-return blends MC and TD:
+Implemented λ-returns (§4.6).  Even λ=0.9 (90% MC, 10% TD bootstrap)
+dramatically worsened LunarLander performance: best 18.3 vs MC's 125.2.
+Bootstrapping from inaccurate Q contaminates the analytical solve.
 
-    G_t^λ = (1-λ) Σ_{n=1}^{T-t-1} λ^{n-1} G_t^{(n)} + λ^{T-t-1} G_t
-
-For λ=0.8-0.9, this gives most of MC's stability with some of TD's
-lower variance.  The λ-return can be computed offline from stored
-episodes (no bootstrapping during the solve), preserving the analytical
-solve's stability.
+This is a fundamental incompatibility: the analytical solve needs
+model-independent targets.  MC provides these; TD does not.  This rules
+out any TD-based target improvement and confirms MC as the correct
+choice for NEF-FQI.  The variance problem must be addressed differently
+(e.g., reward shaping, environment-side changes, not target blending).
 
 ### 8.4 Online Woodbury updates (original Step 2)
 
