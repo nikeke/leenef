@@ -1,0 +1,194 @@
+{
+  "mode": "alpha-sweep",
+  "results": [
+    {
+      "method": "accumulate (trace-scaled \u03b1)",
+      "scenario": "split-cifar10",
+      "n_tasks": 5,
+      "n_neurons": 5000,
+      "final_avg_acc": 0.4803999960422516,
+      "forgetting": 0.15880000591278076,
+      "total_time": 16.710731965999003,
+      "batch_size": null,
+      "config": {
+        "alpha": 0.01,
+        "regularization": "trace-scaled"
+      }
+    },
+    {
+      "method": "wb-batch (\u03b1=1.0e-03)",
+      "scenario": "split-cifar10",
+      "n_tasks": 5,
+      "n_neurons": 5000,
+      "final_avg_acc": 0.15340000241994858,
+      "forgetting": 0.22880000621080399,
+      "total_time": 24.967047802994784,
+      "batch_size": null,
+      "config": {
+        "alpha": 0.001,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-online (\u03b1=1.0e-03)",
+      "scenario": "split-cifar10",
+      "n_tasks": 5,
+      "n_neurons": 5000,
+      "final_avg_acc": 0.473500007390976,
+      "forgetting": 0.1291999936103821,
+      "total_time": 53.72656602299685,
+      "batch_size": 500,
+      "config": {
+        "alpha": 0.001,
+        "batch_size": 500,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-batch (\u03b1=1.0e-02)",
+      "scenario": "split-cifar10",
+      "n_tasks": 5,
+      "n_neurons": 5000,
+      "final_avg_acc": 0.2843999952077866,
+      "forgetting": 0.12020000517368316,
+      "total_time": 25.089925209002104,
+      "batch_size": null,
+      "config": {
+        "alpha": 0.01,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-online (\u03b1=1.0e-02)",
+      "scenario": "split-cifar10",
+      "n_tasks": 5,
+      "n_neurons": 5000,
+      "final_avg_acc": 0.4736000061035156,
+      "forgetting": 0.12949999570846557,
+      "total_time": 54.01449542800401,
+      "batch_size": 500,
+      "config": {
+        "alpha": 0.01,
+        "batch_size": 500,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-batch (\u03b1=0.10)",
+      "scenario": "split-cifar10",
+      "n_tasks": 5,
+      "n_neurons": 5000,
+      "final_avg_acc": 0.4702000081539154,
+      "forgetting": 0.11399998664855956,
+      "total_time": 24.99095349399431,
+      "batch_size": null,
+      "config": {
+        "alpha": 0.1,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-online (\u03b1=0.10)",
+      "scenario": "split-cifar10",
+      "n_tasks": 5,
+      "n_neurons": 5000,
+      "final_avg_acc": 0.47350000143051146,
+      "forgetting": 0.13230000138282777,
+      "total_time": 53.59450172799552,
+      "batch_size": 500,
+      "config": {
+        "alpha": 0.1,
+        "batch_size": 500,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-batch (\u03b1=1.00)",
+      "scenario": "split-cifar10",
+      "n_tasks": 5,
+      "n_neurons": 5000,
+      "final_avg_acc": 0.4797999918460846,
+      "forgetting": 0.13679999709129334,
+      "total_time": 25.025386052999238,
+      "batch_size": null,
+      "config": {
+        "alpha": 1.0,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-online (\u03b1=1.00)",
+      "scenario": "split-cifar10",
+      "n_tasks": 5,
+      "n_neurons": 5000,
+      "final_avg_acc": 0.48109999895095823,
+      "forgetting": 0.13599999547004699,
+      "total_time": 53.995949518997804,
+      "batch_size": 500,
+      "config": {
+        "alpha": 1.0,
+        "batch_size": 500,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-batch (\u03b1=10.00)",
+      "scenario": "split-cifar10",
+      "n_tasks": 5,
+      "n_neurons": 5000,
+      "final_avg_acc": 0.4843000054359436,
+      "forgetting": 0.14339998364448547,
+      "total_time": 24.973883320002642,
+      "batch_size": null,
+      "config": {
+        "alpha": 10.0,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-online (\u03b1=10.00)",
+      "scenario": "split-cifar10",
+      "n_tasks": 5,
+      "n_neurons": 5000,
+      "final_avg_acc": 0.4844000041484833,
+      "forgetting": 0.14369999766349792,
+      "total_time": 53.77304035499401,
+      "batch_size": 500,
+      "config": {
+        "alpha": 10.0,
+        "batch_size": 500,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-batch (\u03b1=100.00)",
+      "scenario": "split-cifar10",
+      "n_tasks": 5,
+      "n_neurons": 5000,
+      "final_avg_acc": 0.48869999647140505,
+      "forgetting": 0.15290001034736633,
+      "total_time": 25.116037268999207,
+      "batch_size": null,
+      "config": {
+        "alpha": 100.0,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-online (\u03b1=100.00)",
+      "scenario": "split-cifar10",
+      "n_tasks": 5,
+      "n_neurons": 5000,
+      "final_avg_acc": 0.4887999951839447,
+      "forgetting": 0.15280001163482665,
+      "total_time": 53.70329423200019,
+      "batch_size": 500,
+      "config": {
+        "alpha": 100.0,
+        "batch_size": 500,
+        "regularization": "fixed"
+      }
+    }
+  ],
+  "extra": []
+}

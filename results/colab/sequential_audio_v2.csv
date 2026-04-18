@@ -1,0 +1,8 @@
+name,dataset,n_neurons,activation,encoder_strategy,solver,solver_kwargs,metric_name,train_metric,test_metric,fit_time
+StreamNEF-accumulate,SpeechCmds-mfcc40,8000,abs,hypersphere,accumulate-α0.05,"{""alpha"": 0.05, ""batch_size"": 500, ""window_size"": 10}",accuracy,0.9013329958660254,0.7488414357110404,29.242568781999807
+StreamNEF-accumulate,SpeechCmds-mfcc40,8000,abs,hypersphere,accumulate-α0.1,"{""alpha"": 0.1, ""batch_size"": 500, ""window_size"": 10}",accuracy,0.9012802665991732,0.7489323034984098,34.570396200999994
+StreamNEF-accumulate,SpeechCmds-mfcc40,16000,abs,hypersphere,accumulate-α0.05,"{""alpha"": 0.05, ""batch_size"": 250, ""window_size"": 10}",accuracy,0.9608327005821311,0.7625624716038164,89.78657693700006
+StreamNEF-accumulate,SpeechCmds-mfcc40,8000,abs,whitened,accumulate-α0.05,"{""alpha"": 0.05, ""batch_size"": 500, ""window_size"": 10}",accuracy,0.9002573188222391,0.7409359382099046,34.9263013650002
+StreamNEF-accumulate,sCIFAR10-row,8000,abs,hypersphere,accumulate-α0.05,"{""alpha"": 0.05, ""batch_size"": 500, ""window_size"": 4}",accuracy,0.77806,0.5497,8.505284263999783
+StreamNEF-accumulate,sCIFAR10-row,8000,abs,hypersphere,accumulate-α0.05,"{""alpha"": 0.05, ""batch_size"": 500, ""window_size"": 6}",accuracy,0.77844,0.5635,10.510041233000265
+StreamNEF-accumulate,sCIFAR10-row,16000,abs,hypersphere,accumulate-α0.05,"{""alpha"": 0.05, ""batch_size"": 250, ""window_size"": 4}",accuracy,0.90404,0.5315,34.12251227000024

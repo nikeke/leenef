@@ -1,0 +1,194 @@
+{
+  "mode": "alpha-sweep",
+  "results": [
+    {
+      "method": "accumulate (trace-scaled \u03b1)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.8930400013923645,
+      "forgetting": 0.018159985542297363,
+      "total_time": 14.460030766997079,
+      "batch_size": null,
+      "config": {
+        "alpha": 0.01,
+        "regularization": "trace-scaled"
+      }
+    },
+    {
+      "method": "wb-batch (\u03b1=1.0e-03)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.9069200038909913,
+      "forgetting": 0.01433999538421631,
+      "total_time": 15.05897634899884,
+      "batch_size": null,
+      "config": {
+        "alpha": 0.001,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-online (\u03b1=1.0e-03)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.9064000010490417,
+      "forgetting": 0.018759989738464357,
+      "total_time": 57.705913800993585,
+      "batch_size": 500,
+      "config": {
+        "alpha": 0.001,
+        "batch_size": 500,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-batch (\u03b1=1.0e-02)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.9069200038909913,
+      "forgetting": 0.014180004596710205,
+      "total_time": 14.858788240999274,
+      "batch_size": null,
+      "config": {
+        "alpha": 0.01,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-online (\u03b1=1.0e-02)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.906820011138916,
+      "forgetting": 0.018320000171661376,
+      "total_time": 57.834911190999264,
+      "batch_size": 500,
+      "config": {
+        "alpha": 0.01,
+        "batch_size": 500,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-batch (\u03b1=0.10)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.9069200038909913,
+      "forgetting": 0.010580003261566162,
+      "total_time": 14.93447136299801,
+      "batch_size": null,
+      "config": {
+        "alpha": 0.1,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-online (\u03b1=0.10)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.9067600011825562,
+      "forgetting": 0.018540000915527342,
+      "total_time": 57.590120058004686,
+      "batch_size": 500,
+      "config": {
+        "alpha": 0.1,
+        "batch_size": 500,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-batch (\u03b1=1.00)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.9069000005722045,
+      "forgetting": 0.017719995975494385,
+      "total_time": 14.926394301997789,
+      "batch_size": null,
+      "config": {
+        "alpha": 1.0,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-online (\u03b1=1.00)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.9069000005722045,
+      "forgetting": 0.018419992923736573,
+      "total_time": 57.78814941900055,
+      "batch_size": 500,
+      "config": {
+        "alpha": 1.0,
+        "batch_size": 500,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-batch (\u03b1=10.00)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.9060999989509583,
+      "forgetting": 0.01805999279022217,
+      "total_time": 14.88113437199354,
+      "batch_size": null,
+      "config": {
+        "alpha": 10.0,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-online (\u03b1=10.00)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.9060799837112427,
+      "forgetting": 0.018120002746582032,
+      "total_time": 57.743161692000285,
+      "batch_size": 500,
+      "config": {
+        "alpha": 10.0,
+        "batch_size": 500,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-batch (\u03b1=100.00)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.9049200057983399,
+      "forgetting": 0.0167199969291687,
+      "total_time": 14.96056786400004,
+      "batch_size": null,
+      "config": {
+        "alpha": 100.0,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "wb-online (\u03b1=100.00)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.9049200057983399,
+      "forgetting": 0.01674000024795532,
+      "total_time": 57.83167511900683,
+      "batch_size": 500,
+      "config": {
+        "alpha": 100.0,
+        "batch_size": 500,
+        "regularization": "fixed"
+      }
+    }
+  ],
+  "extra": []
+}

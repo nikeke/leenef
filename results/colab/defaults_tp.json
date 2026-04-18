@@ -1,0 +1,992 @@
+[
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 0.2960938400001396,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9552,
+    "train_metric": 0.9609166666666666
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "whitened",
+    "fit_time": 0.2766404349995355,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-whitened",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9627,
+    "train_metric": 0.9656
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 0.26717717300016375,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-class_contrast",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.8637,
+    "train_metric": 0.8569833333333333
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "local_pca",
+    "fit_time": 0.2222948490007184,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-local_pca",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9671,
+    "train_metric": 0.9695333333333334
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 0.22766133599998284,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-ddgain",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9569,
+    "train_metric": 0.9612166666666667
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "whitened",
+    "fit_time": 0.2545154970002841,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-whitened-ddgain",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9624,
+    "train_metric": 0.9657166666666667
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 0.2720737259996895,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-class_contrast-ddgain",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.8629,
+    "train_metric": 0.8557833333333333
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 0.22774045000005572,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.8575,
+    "train_metric": 0.88035
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "whitened",
+    "fit_time": 0.24996628900044016,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-whitened",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.8644,
+    "train_metric": 0.8826666666666667
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 0.23747719099992537,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-class_contrast",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.817,
+    "train_metric": 0.8270833333333333
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "local_pca",
+    "fit_time": 0.26043960400056676,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-local_pca",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.8367,
+    "train_metric": 0.8521166666666666
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 0.23089801399964927,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-ddgain",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.8577,
+    "train_metric": 0.8807333333333334
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "whitened",
+    "fit_time": 0.2677734099997906,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-whitened-ddgain",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.866,
+    "train_metric": 0.8837666666666667
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 0.22832800000014686,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-class_contrast-ddgain",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.8135,
+    "train_metric": 0.8240833333333333
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 0.31908945299983316,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.4809,
+    "train_metric": 0.53748
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "whitened",
+    "fit_time": 0.33193237599971326,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-whitened",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.4938,
+    "train_metric": 0.54276
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 0.3117191669998647,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-class_contrast",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.4159,
+    "train_metric": 0.4188
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "local_pca",
+    "fit_time": 0.3544919679998202,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-local_pca",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.4319,
+    "train_metric": 0.44118
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 0.3257031490002191,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-ddgain",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.4795,
+    "train_metric": 0.53938
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "whitened",
+    "fit_time": 0.3335566089999702,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-whitened-ddgain",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.4972,
+    "train_metric": 0.54566
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 0.33300154700009443,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "NEFLayer-class_contrast-ddgain",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.4096,
+    "train_metric": 0.41402
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 0.3138576979999925,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-greedy",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.952,
+    "train_metric": 0.9571666666666667
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 30.36500274700029,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9859,
+    "train_metric": 0.99935
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 31.679391835000388,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9844,
+    "train_metric": 0.99795
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 47.646700432000216,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.985,
+    "train_metric": 1.0
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 46.61746590199982,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9866,
+    "train_metric": 1.0
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "whitened",
+    "fit_time": 0.30316872900039016,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-greedy",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9572,
+    "train_metric": 0.9624333333333334
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "whitened",
+    "fit_time": 32.32259572299972,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.986,
+    "train_metric": 0.9992166666666666
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "whitened",
+    "fit_time": 30.595045180999477,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9858,
+    "train_metric": 0.9986333333333334
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "whitened",
+    "fit_time": 49.25052547700034,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.986,
+    "train_metric": 1.0
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "whitened",
+    "fit_time": 46.83295303200066,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.987,
+    "train_metric": 1.0
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 0.296808449999844,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-greedy",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9295,
+    "train_metric": 0.92525
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 32.088023739000164,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9749,
+    "train_metric": 0.977
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 30.33878466099941,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9748,
+    "train_metric": 0.9788666666666667
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 48.26572301400029,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.983,
+    "train_metric": 0.9999833333333333
+  },
+  {
+    "activation": "abs",
+    "dataset": "mnist",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 46.233648593,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9829,
+    "train_metric": 1.0
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 0.2966915359993436,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-greedy",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.8525,
+    "train_metric": 0.87495
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 32.4620548110006,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9001,
+    "train_metric": 0.9657666666666667
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 30.738917706999928,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9014,
+    "train_metric": 0.9674166666666667
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 48.255107263000355,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9047,
+    "train_metric": 0.9896
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 46.591114651999305,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9038,
+    "train_metric": 0.9912666666666666
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "whitened",
+    "fit_time": 0.3143920389993582,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-greedy",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.8594,
+    "train_metric": 0.8802333333333333
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "whitened",
+    "fit_time": 32.812529230999644,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9001,
+    "train_metric": 0.9734333333333334
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "whitened",
+    "fit_time": 30.691224449999936,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.901,
+    "train_metric": 0.9819333333333333
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "whitened",
+    "fit_time": 48.98460797300049,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9086,
+    "train_metric": 0.9964833333333334
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "whitened",
+    "fit_time": 47.63456724699972,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.9076,
+    "train_metric": 0.9979333333333333
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 0.30070607499965263,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-greedy",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.8238,
+    "train_metric": 0.83715
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 32.3345915660002,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.8736,
+    "train_metric": 0.8976
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 30.891203131999646,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.8797,
+    "train_metric": 0.9021833333333333
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 48.464829022999766,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.8997,
+    "train_metric": 0.9590333333333333
+  },
+  {
+    "activation": "abs",
+    "dataset": "fashion_mnist",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 47.058309777999966,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.8993,
+    "train_metric": 0.96045
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 0.30337692700049956,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-greedy",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.4535,
+    "train_metric": 0.51668
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 33.50610400000005,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.5072,
+    "train_metric": 0.56874
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 35.829372907000106,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.4967,
+    "train_metric": 0.52246
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 49.53343527299967,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.5776,
+    "train_metric": 0.80482
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 51.61494086099992,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.5829,
+    "train_metric": 0.77852
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "whitened",
+    "fit_time": 0.31979362899983244,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-greedy",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.4681,
+    "train_metric": 0.5271
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "whitened",
+    "fit_time": 33.74823812100021,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.5523,
+    "train_metric": 0.7426
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "whitened",
+    "fit_time": 36.937785735000034,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.5653,
+    "train_metric": 0.8281
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "whitened",
+    "fit_time": 49.577039711,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.5965,
+    "train_metric": 0.93326
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "whitened",
+    "fit_time": 52.03874606199952,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.5929,
+    "train_metric": 0.93352
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 0.2950558310003544,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-greedy",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.4396,
+    "train_metric": 0.44244
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 33.42510455699994,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.5218,
+    "train_metric": 0.60632
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 36.26891704599984,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.5278,
+    "train_metric": 0.62096
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 49.70760356699975,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-target_prop_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.5636,
+    "train_metric": 0.72754
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "class_contrast",
+    "fit_time": 51.87612591400011,
+    "metric_name": "accuracy",
+    "n_neurons": 3000,
+    "name": "NEFNet-hybrid_e2e",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.5549,
+    "train_metric": 0.77104
+  }
+]

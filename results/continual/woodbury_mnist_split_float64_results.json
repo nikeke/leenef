@@ -1,0 +1,95 @@
+{
+  "mode": "float64",
+  "results": [
+    {
+      "method": "accumulate (trace-scaled \u03b1)",
+      "scenario": "split-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.9339426994323731,
+      "forgetting": 0.026146209239959715,
+      "total_time": 2.729600405000383,
+      "batch_size": null,
+      "config": {
+        "alpha": 0.01,
+        "regularization": "trace-scaled"
+      }
+    },
+    {
+      "method": "accumulate-f64 (trace-scaled \u03b1)",
+      "scenario": "split-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.9339426994323731,
+      "forgetting": 0.026146209239959715,
+      "total_time": 2.8386448830060544,
+      "batch_size": null,
+      "config": {
+        "alpha": 0.01,
+        "regularization": "trace-scaled",
+        "accum_dtype": "float64"
+      }
+    },
+    {
+      "method": "woodbury-online (bs=500)",
+      "scenario": "split-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.9455061793327332,
+      "forgetting": 0.022066807746887206,
+      "total_time": 11.322147414000938,
+      "batch_size": 500,
+      "config": {
+        "alpha": 0.01,
+        "batch_size": 500,
+        "regularization": "fixed"
+      }
+    }
+  ],
+  "extra": [
+    {
+      "scenario": "split-mnist",
+      "n_neurons": 2000,
+      "alpha": 0.01,
+      "batch_size": 100,
+      "accum_dtype": "float64",
+      "drift_log": [
+        {
+          "task": 0,
+          "total_batches": 127,
+          "drift_wb_vs_refresh": 117.81908416748047,
+          "acc_woodbury": 0.2,
+          "acc_refreshed": 0.19914894104003905
+        },
+        {
+          "task": 1,
+          "total_batches": 248,
+          "drift_wb_vs_refresh": 27.696592330932617,
+          "acc_woodbury": 0.39475839138031005,
+          "acc_refreshed": 0.394856333732605
+        },
+        {
+          "task": 2,
+          "total_batches": 361,
+          "drift_wb_vs_refresh": 11.974081039428711,
+          "acc_woodbury": 0.5853396773338317,
+          "acc_refreshed": 0.5850370645523071
+        },
+        {
+          "task": 3,
+          "total_batches": 483,
+          "drift_wb_vs_refresh": 7.8555426597595215,
+          "acc_woodbury": 0.7728204488754272,
+          "acc_refreshed": 0.7729150176048278
+        },
+        {
+          "task": 4,
+          "total_batches": 601,
+          "drift_wb_vs_refresh": 7.444548606872559,
+          "acc_woodbury": 0.9454054713249207,
+          "acc_refreshed": 0.9454025626182556
+        }
+      ]
+    }
+  ]
+}

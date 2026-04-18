@@ -1,0 +1,153 @@
+{
+  "results": [
+    {
+      "method": "accumulate (trace-scaled \u03b1)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.8930400013923645,
+      "forgetting": 0.018159985542297363,
+      "total_time": 14.126458774000639,
+      "batch_size": null,
+      "config": {
+        "alpha": 0.01,
+        "regularization": "trace-scaled"
+      }
+    },
+    {
+      "method": "woodbury-batch (fixed \u03b1)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.9069200038909913,
+      "forgetting": 0.014180004596710205,
+      "total_time": 15.09551051800372,
+      "batch_size": null,
+      "config": {
+        "alpha": 0.01,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "woodbury-online (bs=500)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.906820011138916,
+      "forgetting": 0.018320000171661376,
+      "total_time": 57.70268479199876,
+      "batch_size": 500,
+      "config": {
+        "alpha": 0.01,
+        "batch_size": 500,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "woodbury-online (bs=100)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.9068000078201294,
+      "forgetting": 0.01836000680923462,
+      "total_time": 76.13147595799819,
+      "batch_size": 100,
+      "config": {
+        "alpha": 0.01,
+        "batch_size": 100,
+        "regularization": "fixed"
+      }
+    },
+    {
+      "method": "woodbury-online (bs=10)",
+      "scenario": "permuted-mnist",
+      "n_tasks": 5,
+      "n_neurons": 2000,
+      "final_avg_acc": 0.9067999958992005,
+      "forgetting": 0.018279993534088136,
+      "total_time": 494.9169565810007,
+      "batch_size": 10,
+      "config": {
+        "alpha": 0.01,
+        "batch_size": 10,
+        "regularization": "fixed"
+      }
+    }
+  ],
+  "drift": [
+    {
+      "scenario": "permuted-mnist",
+      "n_neurons": 2000,
+      "alpha": 0.01,
+      "batch_size": 10,
+      "n_tasks": 5,
+      "drift_log": [
+        {
+          "task": 0,
+          "total_batches": 6000,
+          "decoder_norm_woodbury": 31.460554122924805,
+          "drift_wb_vs_refresh": 191.23741149902344,
+          "drift_wb_vs_accum": 31.349365234375,
+          "drift_refresh_vs_accum": 189.17298889160156,
+          "acc_woodbury": 0.28056000024080274,
+          "acc_refreshed": 0.24771999716758727,
+          "acc_accumulate": 0.26864000260829923,
+          "acc_diff_drift": 0.03284000307321547,
+          "acc_diff_reg": 0.02092000544071196
+        },
+        {
+          "task": 1,
+          "total_batches": 12000,
+          "decoder_norm_woodbury": 1579.51318359375,
+          "drift_wb_vs_refresh": 1607.55859375,
+          "drift_wb_vs_accum": 1579.51123046875,
+          "drift_refresh_vs_accum": 298.5118408203125,
+          "acc_woodbury": 0.15437999814748765,
+          "acc_refreshed": 0.31868000477552416,
+          "acc_accumulate": 0.42653999030590056,
+          "acc_diff_drift": 0.1643000066280365,
+          "acc_diff_reg": 0.1078599855303764
+        },
+        {
+          "task": 2,
+          "total_batches": 18000,
+          "decoder_norm_woodbury": 320.378173828125,
+          "drift_wb_vs_refresh": 450.4895324707031,
+          "drift_wb_vs_accum": 320.367919921875,
+          "drift_refresh_vs_accum": 324.50653076171875,
+          "acc_woodbury": 0.4506199941039085,
+          "acc_refreshed": 0.38982000201940536,
+          "acc_accumulate": 0.5855999976396561,
+          "acc_diff_drift": 0.06079999208450315,
+          "acc_diff_reg": 0.19577999562025072
+        },
+        {
+          "task": 3,
+          "total_batches": 24000,
+          "decoder_norm_woodbury": 54.79667282104492,
+          "drift_wb_vs_refresh": 88.64324951171875,
+          "drift_wb_vs_accum": 54.72659683227539,
+          "drift_refresh_vs_accum": 74.36366271972656,
+          "acc_woodbury": 0.719780008494854,
+          "acc_refreshed": 0.6969200015068054,
+          "acc_accumulate": 0.7498399943113327,
+          "acc_diff_drift": 0.022860006988048576,
+          "acc_diff_reg": 0.052919992804527305
+        },
+        {
+          "task": 4,
+          "total_batches": 30000,
+          "decoder_norm_woodbury": 989.3170166015625,
+          "drift_wb_vs_refresh": 987.3247680664062,
+          "drift_wb_vs_accum": 989.3154907226562,
+          "drift_refresh_vs_accum": 139.65505981445312,
+          "acc_woodbury": 0.3048800051212311,
+          "acc_refreshed": 0.7000999927520752,
+          "acc_accumulate": 0.8930400013923645,
+          "acc_diff_drift": 0.39521998763084415,
+          "acc_diff_reg": 0.19294000864028926
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,347 @@
+[
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 6.014958143234253,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "Multi 32\u00d73 +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.722599983215332,
+    "train_metric": 0.8624399900436401
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 10.640382528305054,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "Multi 32\u00d73 +std +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7285999655723572,
+    "train_metric": 0.812720000743866
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 6.92773962020874,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "Multi 64\u00d73 +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7206999659538269,
+    "train_metric": 0.861739993095398
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 13.487141370773315,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "Multi 64\u00d73 +std +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7231999635696411,
+    "train_metric": 0.8128399848937988
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 5.188658952713013,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "64f p5 10k +std a=5e-3",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.005
+    },
+    "test_metric": 0.6976000070571899,
+    "train_metric": 0.8554799556732178
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 5.231401443481445,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "64f p5 10k +std a=2e-3",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.002
+    },
+    "test_metric": 0.6882999539375305,
+    "train_metric": 0.8689199686050415
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 5.300616025924683,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "64f p5 10k +std a=1e-3",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.001
+    },
+    "test_metric": 0.6890000104904175,
+    "train_metric": 0.8719399571418762
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 5.443893909454346,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "64f p5 10k +std a=5e-4",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.0005
+    },
+    "test_metric": 0.683899998664856,
+    "train_metric": 0.8758599758148193
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 8.621167659759521,
+    "metric_name": "accuracy",
+    "n_neurons": 15000,
+    "name": "64f p5 15k +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7038999795913696,
+    "train_metric": 0.8892399668693542
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 18.094119787216187,
+    "metric_name": "accuracy",
+    "n_neurons": 20000,
+    "name": "64f p5 20k +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.710099995136261,
+    "train_metric": 0.9217199683189392
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 44.33940529823303,
+    "metric_name": "accuracy",
+    "n_neurons": 30000,
+    "name": "64f p5 30k +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7093999981880188,
+    "train_metric": 0.9587199687957764
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 7.595028400421143,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "64f p5 spp1248 10k +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6890000104904175,
+    "train_metric": 0.8603799939155579
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 18.768856048583984,
+    "metric_name": "accuracy",
+    "n_neurons": 20000,
+    "name": "Multi 32\u00d73 20k +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7342999577522278,
+    "train_metric": 0.9353199601173401
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 21.116193056106567,
+    "metric_name": "accuracy",
+    "n_neurons": 20000,
+    "name": "Multi 64\u00d73 20k +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7263999581336975,
+    "train_metric": 0.9374199509620667
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 63.46712136268616,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "Diverse \u00d76 +std +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7353999614715576,
+    "train_metric": 0.8221399784088135
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 63.621930837631226,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "Diverse \u00d76 +gcn +std +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7299999594688416,
+    "train_metric": 0.8166599869728088
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 95.24631953239441,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "Diverse \u00d79 +std +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7376999855041504,
+    "train_metric": 0.8226799964904785
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 95.81442427635193,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "Diverse \u00d79 +gcn +std +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7321000099182129,
+    "train_metric": 0.8200399875640869
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 64.61298060417175,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "Multi 32\u00d73 \u00d75 +std +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.75,
+    "train_metric": 0.8351199626922607
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 75.75768375396729,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "Multi 64\u00d73 \u00d75 +gcn +std +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7472999691963196,
+    "train_metric": 0.8296200037002563
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 73.91011190414429,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "MS-diverse \u00d76 +std +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7500999569892883,
+    "train_metric": 0.8348199725151062
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 32.48455023765564,
+    "metric_name": "accuracy",
+    "n_neurons": 20000,
+    "name": "64f p5 20k +std +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7263000011444092,
+    "train_metric": 0.8601599931716919
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 34.9380145072937,
+    "metric_name": "accuracy",
+    "n_neurons": 20000,
+    "name": "Multi 32\u00d73 20k +std +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7488999962806702,
+    "train_metric": 0.8787199854850769
+  }
+]

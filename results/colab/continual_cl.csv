@@ -1,0 +1,8 @@
+name,dataset,n_neurons,activation,encoder_strategy,solver,solver_kwargs,metric_name,train_metric,test_metric,fit_time
+ConvNEF-CL (all_data),cifar10-split,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.7282000422477722,0.7282000422477722,6.315049122000346
+ConvNEF-CL (first_task),cifar10-split,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.7259000301361084,0.7259000301361084,5.353025532000629
+ConvNEF-CL (all_data),cifar10-split,20000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.7493000268936157,0.7493000268936157,15.143356493000283
+ConvNEF-CL (first_task),cifar10-split,20000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.7474000334739686,0.7474000334739686,15.285036602000218
+ConvNEF-joint (upper bound),cifar10-split,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.7311000347137451,0.7311000347137451,4.877858695000214
+ConvNEF-joint (upper bound),cifar10-split,20000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.7490000247955322,0.7490000247955322,12.432351126999947
+Flat NEF CL (baseline),cifar10-split,5000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.5055000245571136,0.5055000245571136,0.5880090559999189

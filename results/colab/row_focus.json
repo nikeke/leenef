@@ -1,0 +1,86 @@
+[
+  {
+    "activation": "abs",
+    "dataset": "sMNIST-row",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 8.14606548700067,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "StreamNEF-woodbury",
+    "solver": "woodbury-\u03b10.01",
+    "solver_kwargs": {
+      "alpha": 0.01,
+      "batch_size": 500,
+      "window_size": 10
+    },
+    "test_metric": 0.9724,
+    "train_metric": 0.9777166666666667
+  },
+  {
+    "activation": "abs",
+    "dataset": "sMNIST-row",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 1.1136378359988157,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "StreamNEF-accumulate",
+    "solver": "accumulate-\u03b10.01",
+    "solver_kwargs": {
+      "alpha": 0.01,
+      "batch_size": 500,
+      "window_size": 10
+    },
+    "test_metric": 0.9722,
+    "train_metric": 0.9776666666666667
+  },
+  {
+    "activation": "abs",
+    "dataset": "sMNIST-row",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 93.19069220600068,
+    "metric_name": "accuracy",
+    "n_neurons": 8000,
+    "name": "StreamNEF-woodbury",
+    "solver": "woodbury-\u03b10.005",
+    "solver_kwargs": {
+      "alpha": 0.005,
+      "batch_size": 500,
+      "window_size": 10
+    },
+    "test_metric": 0.983,
+    "train_metric": 0.9942833333333333
+  },
+  {
+    "activation": "abs",
+    "dataset": "sMNIST-row",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 8.29590131400073,
+    "metric_name": "accuracy",
+    "n_neurons": 8000,
+    "name": "StreamNEF-accumulate",
+    "solver": "accumulate-\u03b10.005",
+    "solver_kwargs": {
+      "alpha": 0.005,
+      "batch_size": 500,
+      "window_size": 10
+    },
+    "test_metric": 0.9854,
+    "train_metric": 0.995
+  },
+  {
+    "activation": "tanh/sigmoid",
+    "dataset": "sMNIST-row",
+    "encoder_strategy": "learned",
+    "fit_time": 22.258211115999075,
+    "metric_name": "accuracy",
+    "n_neurons": 128,
+    "name": "LSTM-128",
+    "solver": "adam",
+    "solver_kwargs": {
+      "epochs": 20,
+      "lr": 0.001
+    },
+    "test_metric": 0.9857,
+    "train_metric": 0.9951166666666666
+  }
+]

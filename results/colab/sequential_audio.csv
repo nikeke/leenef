@@ -1,0 +1,9 @@
+name,dataset,n_neurons,activation,encoder_strategy,solver,solver_kwargs,metric_name,train_metric,test_metric,fit_time
+StreamNEF-accumulate,SpeechCmds-mfcc40,4000,abs,hypersphere,accumulate-α0.01,"{""alpha"": 0.01, ""batch_size"": 500, ""window_size"": 10}",accuracy,0.8259195984139036,0.7084961381190368,13.11628057300004
+StreamNEF-accumulate,SpeechCmds-mfcc40,8000,abs,hypersphere,accumulate-α0.005,"{""alpha"": 0.005, ""batch_size"": 500, ""window_size"": 10}",accuracy,0.9013646334261368,0.7488414357110404,32.97360661900075
+LSTM-128,SpeechCmds-mfcc40,128,tanh/sigmoid,learned,adam,"{""epochs"": 30, ""lr"": 0.001}",accuracy,0.9499915633173036,0.8936846887778283,114.20017781299975
+LSTM-256,SpeechCmds-mfcc40,256,tanh/sigmoid,learned,adam,"{""epochs"": 30, ""lr"": 0.001}",accuracy,0.9755758035940268,0.9025897319400272,241.15093183299996
+StreamNEF-accumulate,sCIFAR10-row,4000,abs,hypersphere,accumulate-α0.01,"{""alpha"": 0.01, ""batch_size"": 500, ""window_size"": 4}",accuracy,0.67298,0.5411,2.870867112000269
+StreamNEF-accumulate,sCIFAR10-row,8000,abs,hypersphere,accumulate-α0.005,"{""alpha"": 0.005, ""batch_size"": 500, ""window_size"": 4}",accuracy,0.77874,0.5491,8.35433908199957
+LSTM-128,sCIFAR10-row,128,tanh/sigmoid,learned,adam,"{""epochs"": 50, ""lr"": 0.001}",accuracy,0.7996,0.5615,54.72258237599999
+LSTM-256,sCIFAR10-row,256,tanh/sigmoid,learned,adam,"{""epochs"": 50, ""lr"": 0.001}",accuracy,0.96416,0.5734,82.69337285700021

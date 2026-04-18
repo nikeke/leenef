@@ -1,0 +1,35 @@
+name,dataset,n_neurons,activation,encoder_strategy,solver,solver_kwargs,metric_name,train_metric,test_metric,fit_time
+Flat pixel 5k,cifar10,5000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.6286199688911438,0.5013999938964844,1.36057448387146
+PCA 32f p5 spp124 5k,cifar10,5000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.7180399894714355,0.6272000074386597,1.3058209419250488
+PCA 64f p5 spp124 5k,cifar10,5000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.7242799997329712,0.6319999694824219,1.7558460235595703
+PCA 64f p5 spp124 10k,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.797540009021759,0.6554999947547913,4.787498712539673
+PCA 128f p5 spp124 10k,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.7985799908638,0.6577999591827393,5.232542514801025
+PCA 256f p5 spp124 10k,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.005}",accuracy,0.8209599852561951,0.6525999903678894,5.3186421394348145
+PCA 64f p3 spp124 10k,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.7577399611473083,0.6146999597549438,4.289877414703369
+PCA 64f p7 spp124 10k,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8124600052833557,0.6664999723434448,5.287755966186523
+PCA 64f p5 spp124 10k +hflip,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.7462199926376343,0.6617000102996826,9.950704574584961
+PCA 64f p5 spp124 5k ×5,cifar10,5000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.7466399669647217,0.654699981212616,9.360639810562134
+PCA 64f p5 spp124 10k ×5,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8214799761772156,0.6780999898910522,30.021570920944214
+PCA 64f p5 spp124 10k ×10,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8273199796676636,0.6798999905586243,56.9354362487793
+PCA 64f p5 spp124 10k ×5 +hflip,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.7659599781036377,0.6823999881744385,54.48300909996033
+PCA 64f p5 spp124 10k +std,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8456799983978271,0.6976999640464783,5.830180883407593
+PCA 64f p5 spp124 10k +std +hflip,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.7977599501609802,0.7075999975204468,11.008563041687012
+PCA 128f p5 spp124 10k +std,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8427599668502808,0.6958999633789062,6.196662425994873
+PCA 64f p5 spp124 10k ×5 +std +hflip,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8179000020027161,0.7299999594688416,55.59182953834534
+PCA 64f p5 spp124 10k +lcn,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8306799530982971,0.6602999567985535,5.886500120162964
+PCA 64f p5 spp124 10k +lcn +std,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.820639967918396,0.6517999768257141,5.977019786834717
+PCA 64f p5 spp124 10k ×5 +lcn +std +hflip,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.7852199673652649,0.6908000111579895,56.01189565658569
+PCA 64f p5 spp124 10k +gcn,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8142199516296387,0.6548999547958374,5.7858991622924805
+PCA 64f p5 spp124 10k +gcn +lcn +std,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8162800073623657,0.6421999931335449,5.971154689788818
+PCA 64f p5 spp124 10k ×5 +gcn +lcn +std +hflip,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.783519983291626,0.6859999895095825,56.176836013793945
+PCA multi(32p3+32p5+32p7) spp124 10k,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8103599548339844,0.663599967956543,6.835783958435059
+PCA multi(32p3+32p5+32p7) spp124 10k +gcn +std,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8588599562644958,0.7073000073432922,6.930755138397217
+PCA multi(64p3+64p5+64p7) spp124 10k +gcn +std,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.857479989528656,0.7080999612808228,8.07760500907898
+PCA 64f p5 spp124 10k +patchnorm,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8306399583816528,0.684499979019165,7.782162189483643
+PCA 64f p5 spp124 10k +patchnorm +gcn +std,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8409199714660645,0.6764000058174133,7.85942268371582
+PCA 128f p5 spp124 10k +patchnorm +gcn +std,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8397799730300903,0.677299976348877,8.405514240264893
+PCA 64f p5 spp124 10k ×5 +patchnorm +gcn +std +hflip,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8124600052833557,0.7166999578475952,72.61874866485596
+PCA 64f p5 spp124 10k +whitened,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.6937999725341797,0.5546000003814697,6.400399446487427
+PCA 64f p5 spp124 10k +patchnorm +gcn +std +whitened,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8288799524307251,0.6797999739646912,8.495611190795898
+PCA diverse(p3/p5/p7) spp124 10k ×6 +gcn +std,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8733599781990051,0.7252999544143677,33.87546896934509
+PCA diverse(p3/p5/p7) spp124 10k ×6 +patchnorm +gcn +std,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8843599557876587,0.7286999821662903,46.52248024940491

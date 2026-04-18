@@ -1,0 +1,6 @@
+name,dataset,n_neurons,activation,encoder_strategy,solver,solver_kwargs,metric_name,train_metric,test_metric,fit_time
+StreamNEF-woodbury,sMNIST-row,2000,abs,hypersphere,woodbury-α0.01,"{""alpha"": 0.01, ""batch_size"": 500, ""window_size"": 10}",accuracy,0.9777166666666667,0.9724,8.14606548700067
+StreamNEF-accumulate,sMNIST-row,2000,abs,hypersphere,accumulate-α0.01,"{""alpha"": 0.01, ""batch_size"": 500, ""window_size"": 10}",accuracy,0.9776666666666667,0.9722,1.1136378359988157
+StreamNEF-woodbury,sMNIST-row,8000,abs,hypersphere,woodbury-α0.005,"{""alpha"": 0.005, ""batch_size"": 500, ""window_size"": 10}",accuracy,0.9942833333333333,0.983,93.19069220600068
+StreamNEF-accumulate,sMNIST-row,8000,abs,hypersphere,accumulate-α0.005,"{""alpha"": 0.005, ""batch_size"": 500, ""window_size"": 10}",accuracy,0.995,0.9854,8.29590131400073
+LSTM-128,sMNIST-row,128,tanh/sigmoid,learned,adam,"{""epochs"": 20, ""lr"": 0.001}",accuracy,0.9951166666666666,0.9857,22.258211115999075

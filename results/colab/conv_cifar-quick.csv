@@ -1,0 +1,2 @@
+name,dataset,n_neurons,activation,encoder_strategy,solver,solver_kwargs,metric_name,train_metric,test_metric,fit_time
+ConvNEF quick,cifar10,500,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.4644399881362915,0.4505999982357025,0.4861409664154053

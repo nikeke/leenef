@@ -1,0 +1,2 @@
+name,dataset,n_neurons,activation,encoder_strategy,solver,solver_kwargs,metric_name,train_metric,test_metric,fit_time
+ConvNEF-CL (all_data),cifar10-split,2000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.6274999976158142,0.6274999976158142,6.451196541005629

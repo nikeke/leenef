@@ -1,0 +1,15 @@
+name,dataset,n_neurons,activation,encoder_strategy,solver,solver_kwargs,metric_name,train_metric,test_metric,fit_time
+Multi 32×3 10k +std +crop,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8294399976730347,0.7202000021934509,10.786904335021973
+Multi 32×3 10k +std +crop+flip,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8215399980545044,0.7198999524116516,10.78267240524292
+Multi 32×3 10k +std +crop+flip n_aug=2,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8004399538040161,0.727899968624115,16.197737455368042
+Multi 32×3 10k +std +crop+flip n_aug=3,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.797540009021759,0.727899968624115,22.65994620323181
+Multi 32×3 20k +std +crop+flip,cifar10,20000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.88919997215271,0.7394999861717224,34.52359700202942
+Multi 32×3 20k +std +crop+flip n_aug=2,cifar10,20000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8715599775314331,0.7418999671936035,51.09326148033142
+Multi 32×3 ×5 +std +crop+flip,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8411200046539307,0.7482999563217163,65.09643220901489
+Multi 32×3 ×5 +std +crop+flip n_aug=2,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8258199691772461,0.7427999973297119,95.79950785636902
+Multi 32×3 ×10 +std +hflip,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.838699996471405,0.7563999891281128,129.7212245464325
+Multi 32×3 ×10 +std +crop+flip,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.843019962310791,0.7515000104904175,130.37178325653076
+Multi 32×3 ×20 +std +crop+flip,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8468999862670898,0.7502999901771545,260.7134952545166
+Diverse(p3/p5/p7) ×6 +std +crop+flip,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8281199932098389,0.7269999980926514,63.24820828437805
+Diverse(p3/p5/p7) ×9 +std +crop+flip,cifar10,10000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8297799825668335,0.7322999835014343,94.72678995132446
+Multi 32×3 20k ×5 +std +crop+flip,cifar10,20000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.9070799946784973,0.7696999907493591,174.96225666999817

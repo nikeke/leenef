@@ -1,0 +1,41 @@
+{
+  "environment": {
+    "cuda_available": true,
+    "device": "cuda",
+    "device_name": "Tesla T4",
+    "peak_memory_bytes": 52113408,
+    "platform": "Linux-6.6.113+-x86_64-with-glibc2.35",
+    "python": "3.12.13",
+    "torch": "2.10.0+cu128"
+  },
+  "finished_at_unix": 1775486231.0911732,
+  "results": [
+    {
+      "alpha": 0.01,
+      "dataset": "mnist",
+      "device": "cuda",
+      "fit_time": 0.09702822700091929,
+      "n_neurons": 256,
+      "name": "mnist_nef_smoke",
+      "test_accuracy": 0.7890625,
+      "test_samples": 256,
+      "train_accuracy": 0.99609375,
+      "train_samples": 512
+    },
+    {
+      "alpha": 0.01,
+      "batch_size": 64,
+      "dataset": "smnist_row",
+      "device": "cuda",
+      "fit_time": 0.029369530000622035,
+      "n_neurons": 256,
+      "name": "smnist_streaming_smoke",
+      "test_accuracy": 0.7578125,
+      "test_samples": 256,
+      "train_accuracy": 0.994140625,
+      "train_samples": 512,
+      "window_size": 5
+    }
+  ],
+  "wall_time": 23.175448179244995
+}

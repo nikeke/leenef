@@ -1,0 +1,17 @@
+[
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 0.4861409664154053,
+    "metric_name": "accuracy",
+    "n_neurons": 500,
+    "name": "ConvNEF quick",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.4505999982357025,
+    "train_metric": 0.4644399881362915
+  }
+]

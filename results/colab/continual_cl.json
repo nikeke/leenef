@@ -1,0 +1,107 @@
+[
+  {
+    "activation": "abs",
+    "dataset": "cifar10-split",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 6.315049122000346,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "ConvNEF-CL (all_data)",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7282000422477722,
+    "train_metric": 0.7282000422477722
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10-split",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 5.353025532000629,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "ConvNEF-CL (first_task)",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7259000301361084,
+    "train_metric": 0.7259000301361084
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10-split",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 15.143356493000283,
+    "metric_name": "accuracy",
+    "n_neurons": 20000,
+    "name": "ConvNEF-CL (all_data)",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7493000268936157,
+    "train_metric": 0.7493000268936157
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10-split",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 15.285036602000218,
+    "metric_name": "accuracy",
+    "n_neurons": 20000,
+    "name": "ConvNEF-CL (first_task)",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7474000334739686,
+    "train_metric": 0.7474000334739686
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10-split",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 4.877858695000214,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "ConvNEF-joint (upper bound)",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7311000347137451,
+    "train_metric": 0.7311000347137451
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10-split",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 12.432351126999947,
+    "metric_name": "accuracy",
+    "n_neurons": 20000,
+    "name": "ConvNEF-joint (upper bound)",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7490000247955322,
+    "train_metric": 0.7490000247955322
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10-split",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 0.5880090559999189,
+    "metric_name": "accuracy",
+    "n_neurons": 5000,
+    "name": "Flat NEF CL (baseline)",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.5055000245571136,
+    "train_metric": 0.5055000245571136
+  }
+]

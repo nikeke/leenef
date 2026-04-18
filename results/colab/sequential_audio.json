@@ -1,0 +1,134 @@
+[
+  {
+    "activation": "abs",
+    "dataset": "SpeechCmds-mfcc40",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 13.11628057300004,
+    "metric_name": "accuracy",
+    "n_neurons": 4000,
+    "name": "StreamNEF-accumulate",
+    "solver": "accumulate-\u03b10.01",
+    "solver_kwargs": {
+      "alpha": 0.01,
+      "batch_size": 500,
+      "window_size": 10
+    },
+    "test_metric": 0.7084961381190368,
+    "train_metric": 0.8259195984139036
+  },
+  {
+    "activation": "abs",
+    "dataset": "SpeechCmds-mfcc40",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 32.97360661900075,
+    "metric_name": "accuracy",
+    "n_neurons": 8000,
+    "name": "StreamNEF-accumulate",
+    "solver": "accumulate-\u03b10.005",
+    "solver_kwargs": {
+      "alpha": 0.005,
+      "batch_size": 500,
+      "window_size": 10
+    },
+    "test_metric": 0.7488414357110404,
+    "train_metric": 0.9013646334261368
+  },
+  {
+    "activation": "tanh/sigmoid",
+    "dataset": "SpeechCmds-mfcc40",
+    "encoder_strategy": "learned",
+    "fit_time": 114.20017781299975,
+    "metric_name": "accuracy",
+    "n_neurons": 128,
+    "name": "LSTM-128",
+    "solver": "adam",
+    "solver_kwargs": {
+      "epochs": 30,
+      "lr": 0.001
+    },
+    "test_metric": 0.8936846887778283,
+    "train_metric": 0.9499915633173036
+  },
+  {
+    "activation": "tanh/sigmoid",
+    "dataset": "SpeechCmds-mfcc40",
+    "encoder_strategy": "learned",
+    "fit_time": 241.15093183299996,
+    "metric_name": "accuracy",
+    "n_neurons": 256,
+    "name": "LSTM-256",
+    "solver": "adam",
+    "solver_kwargs": {
+      "epochs": 30,
+      "lr": 0.001
+    },
+    "test_metric": 0.9025897319400272,
+    "train_metric": 0.9755758035940268
+  },
+  {
+    "activation": "abs",
+    "dataset": "sCIFAR10-row",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 2.870867112000269,
+    "metric_name": "accuracy",
+    "n_neurons": 4000,
+    "name": "StreamNEF-accumulate",
+    "solver": "accumulate-\u03b10.01",
+    "solver_kwargs": {
+      "alpha": 0.01,
+      "batch_size": 500,
+      "window_size": 4
+    },
+    "test_metric": 0.5411,
+    "train_metric": 0.67298
+  },
+  {
+    "activation": "abs",
+    "dataset": "sCIFAR10-row",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 8.35433908199957,
+    "metric_name": "accuracy",
+    "n_neurons": 8000,
+    "name": "StreamNEF-accumulate",
+    "solver": "accumulate-\u03b10.005",
+    "solver_kwargs": {
+      "alpha": 0.005,
+      "batch_size": 500,
+      "window_size": 4
+    },
+    "test_metric": 0.5491,
+    "train_metric": 0.77874
+  },
+  {
+    "activation": "tanh/sigmoid",
+    "dataset": "sCIFAR10-row",
+    "encoder_strategy": "learned",
+    "fit_time": 54.72258237599999,
+    "metric_name": "accuracy",
+    "n_neurons": 128,
+    "name": "LSTM-128",
+    "solver": "adam",
+    "solver_kwargs": {
+      "epochs": 50,
+      "lr": 0.001
+    },
+    "test_metric": 0.5615,
+    "train_metric": 0.7996
+  },
+  {
+    "activation": "tanh/sigmoid",
+    "dataset": "sCIFAR10-row",
+    "encoder_strategy": "learned",
+    "fit_time": 82.69337285700021,
+    "metric_name": "accuracy",
+    "n_neurons": 256,
+    "name": "LSTM-256",
+    "solver": "adam",
+    "solver_kwargs": {
+      "epochs": 50,
+      "lr": 0.001
+    },
+    "test_metric": 0.5734,
+    "train_metric": 0.96416
+  }
+]

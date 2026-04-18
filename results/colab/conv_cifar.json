@@ -1,0 +1,512 @@
+[
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 1.36057448387146,
+    "metric_name": "accuracy",
+    "n_neurons": 5000,
+    "name": "Flat pixel 5k",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.5013999938964844,
+    "train_metric": 0.6286199688911438
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 1.3058209419250488,
+    "metric_name": "accuracy",
+    "n_neurons": 5000,
+    "name": "PCA 32f p5 spp124 5k",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6272000074386597,
+    "train_metric": 0.7180399894714355
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 1.7558460235595703,
+    "metric_name": "accuracy",
+    "n_neurons": 5000,
+    "name": "PCA 64f p5 spp124 5k",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6319999694824219,
+    "train_metric": 0.7242799997329712
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 4.787498712539673,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6554999947547913,
+    "train_metric": 0.797540009021759
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 5.232542514801025,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 128f p5 spp124 10k",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6577999591827393,
+    "train_metric": 0.7985799908638
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 5.3186421394348145,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 256f p5 spp124 10k",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.005
+    },
+    "test_metric": 0.6525999903678894,
+    "train_metric": 0.8209599852561951
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 4.289877414703369,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p3 spp124 10k",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6146999597549438,
+    "train_metric": 0.7577399611473083
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 5.287755966186523,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p7 spp124 10k",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6664999723434448,
+    "train_metric": 0.8124600052833557
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 9.950704574584961,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6617000102996826,
+    "train_metric": 0.7462199926376343
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 9.360639810562134,
+    "metric_name": "accuracy",
+    "n_neurons": 5000,
+    "name": "PCA 64f p5 spp124 5k \u00d75",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.654699981212616,
+    "train_metric": 0.7466399669647217
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 30.021570920944214,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k \u00d75",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6780999898910522,
+    "train_metric": 0.8214799761772156
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 56.9354362487793,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k \u00d710",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6798999905586243,
+    "train_metric": 0.8273199796676636
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 54.48300909996033,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k \u00d75 +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6823999881744385,
+    "train_metric": 0.7659599781036377
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 5.830180883407593,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6976999640464783,
+    "train_metric": 0.8456799983978271
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 11.008563041687012,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k +std +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7075999975204468,
+    "train_metric": 0.7977599501609802
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 6.196662425994873,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 128f p5 spp124 10k +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6958999633789062,
+    "train_metric": 0.8427599668502808
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 55.59182953834534,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k \u00d75 +std +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7299999594688416,
+    "train_metric": 0.8179000020027161
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 5.886500120162964,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k +lcn",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6602999567985535,
+    "train_metric": 0.8306799530982971
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 5.977019786834717,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k +lcn +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6517999768257141,
+    "train_metric": 0.820639967918396
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 56.01189565658569,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k \u00d75 +lcn +std +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6908000111579895,
+    "train_metric": 0.7852199673652649
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 5.7858991622924805,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k +gcn",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6548999547958374,
+    "train_metric": 0.8142199516296387
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 5.971154689788818,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k +gcn +lcn +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6421999931335449,
+    "train_metric": 0.8162800073623657
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 56.176836013793945,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k \u00d75 +gcn +lcn +std +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6859999895095825,
+    "train_metric": 0.783519983291626
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 6.835783958435059,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA multi(32p3+32p5+32p7) spp124 10k",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.663599967956543,
+    "train_metric": 0.8103599548339844
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 6.930755138397217,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA multi(32p3+32p5+32p7) spp124 10k +gcn +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7073000073432922,
+    "train_metric": 0.8588599562644958
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 8.07760500907898,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA multi(64p3+64p5+64p7) spp124 10k +gcn +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7080999612808228,
+    "train_metric": 0.857479989528656
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 7.782162189483643,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k +patchnorm",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.684499979019165,
+    "train_metric": 0.8306399583816528
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 7.85942268371582,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k +patchnorm +gcn +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6764000058174133,
+    "train_metric": 0.8409199714660645
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 8.405514240264893,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 128f p5 spp124 10k +patchnorm +gcn +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.677299976348877,
+    "train_metric": 0.8397799730300903
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 72.61874866485596,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k \u00d75 +patchnorm +gcn +std +hflip",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7166999578475952,
+    "train_metric": 0.8124600052833557
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 6.400399446487427,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k +whitened",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.5546000003814697,
+    "train_metric": 0.6937999725341797
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 8.495611190795898,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA 64f p5 spp124 10k +patchnorm +gcn +std +whitened",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.6797999739646912,
+    "train_metric": 0.8288799524307251
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 33.87546896934509,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA diverse(p3/p5/p7) spp124 10k \u00d76 +gcn +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7252999544143677,
+    "train_metric": 0.8733599781990051
+  },
+  {
+    "activation": "abs",
+    "dataset": "cifar10",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 46.52248024940491,
+    "metric_name": "accuracy",
+    "n_neurons": 10000,
+    "name": "PCA diverse(p3/p5/p7) spp124 10k \u00d76 +patchnorm +gcn +std",
+    "solver": "ridge",
+    "solver_kwargs": {
+      "alpha": 0.01
+    },
+    "test_metric": 0.7286999821662903,
+    "train_metric": 0.8843599557876587
+  }
+]

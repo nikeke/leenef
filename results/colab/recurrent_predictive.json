@@ -1,0 +1,128 @@
+[
+  {
+    "activation": "relu",
+    "dataset": "sMNIST-row",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 553.2273680870001,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "RecTP-row-reconstruction-seed0",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01,
+      "mode": "row",
+      "seed": 0,
+      "state_target": "reconstruction",
+      "tp_eta": 0.1,
+      "tp_iters": 50,
+      "tp_lr": 0.001
+    },
+    "test_metric": 0.2415,
+    "train_metric": 0.24346666666666666
+  },
+  {
+    "activation": "relu",
+    "dataset": "sMNIST-row",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 564.383281162,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "RecTP-row-reconstruction-seed1",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01,
+      "mode": "row",
+      "seed": 1,
+      "state_target": "reconstruction",
+      "tp_eta": 0.1,
+      "tp_iters": 50,
+      "tp_lr": 0.001
+    },
+    "test_metric": 0.2404,
+    "train_metric": 0.24325
+  },
+  {
+    "activation": "relu",
+    "dataset": "sMNIST-row",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 564.8812716140001,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "RecTP-row-reconstruction-seed2",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01,
+      "mode": "row",
+      "seed": 2,
+      "state_target": "reconstruction",
+      "tp_eta": 0.1,
+      "tp_iters": 50,
+      "tp_lr": 0.001
+    },
+    "test_metric": 0.2404,
+    "train_metric": 0.24311666666666668
+  },
+  {
+    "activation": "relu",
+    "dataset": "sMNIST-row",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 567.3109751509996,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "RecTP-row-predictive-seed0",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01,
+      "mode": "row",
+      "seed": 0,
+      "state_target": "predictive",
+      "tp_eta": 0.1,
+      "tp_iters": 50,
+      "tp_lr": 0.001
+    },
+    "test_metric": 0.3582,
+    "train_metric": 0.3685333333333333
+  },
+  {
+    "activation": "relu",
+    "dataset": "sMNIST-row",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 570.2295692949997,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "RecTP-row-predictive-seed1",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01,
+      "mode": "row",
+      "seed": 1,
+      "state_target": "predictive",
+      "tp_eta": 0.1,
+      "tp_iters": 50,
+      "tp_lr": 0.001
+    },
+    "test_metric": 0.3574,
+    "train_metric": 0.3641666666666667
+  },
+  {
+    "activation": "relu",
+    "dataset": "sMNIST-row",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 569.0668220019998,
+    "metric_name": "accuracy",
+    "n_neurons": 2000,
+    "name": "RecTP-row-predictive-seed2",
+    "solver": "tikhonov",
+    "solver_kwargs": {
+      "alpha": 0.01,
+      "mode": "row",
+      "seed": 2,
+      "state_target": "predictive",
+      "tp_eta": 0.1,
+      "tp_iters": 50,
+      "tp_lr": 0.001
+    },
+    "test_metric": 0.3647,
+    "train_metric": 0.37115
+  }
+]

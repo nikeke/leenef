@@ -1,0 +1,85 @@
+[
+  {
+    "activation": "abs",
+    "dataset": "sMNIST-pixel",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 27.092907195999942,
+    "metric_name": "accuracy",
+    "n_neurons": 4000,
+    "name": "StreamNEF-accumulate",
+    "solver": "accumulate-\u03b10.01",
+    "solver_kwargs": {
+      "alpha": 0.01,
+      "batch_size": 250,
+      "window_size": 28
+    },
+    "test_metric": 0.1595,
+    "train_metric": 0.16818333333333332
+  },
+  {
+    "activation": "abs",
+    "dataset": "sMNIST-pixel",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 29.502458320001097,
+    "metric_name": "accuracy",
+    "n_neurons": 4000,
+    "name": "StreamNEF-accumulate",
+    "solver": "accumulate-\u03b10.005",
+    "solver_kwargs": {
+      "alpha": 0.005,
+      "batch_size": 250,
+      "window_size": 56
+    },
+    "test_metric": 0.5161,
+    "train_metric": 0.5349333333333334
+  },
+  {
+    "activation": "abs",
+    "dataset": "sMNIST-pixel_permuted",
+    "encoder_strategy": "hypersphere",
+    "fit_time": 29.614680005999617,
+    "metric_name": "accuracy",
+    "n_neurons": 4000,
+    "name": "StreamNEF-accumulate",
+    "solver": "accumulate-\u03b10.005",
+    "solver_kwargs": {
+      "alpha": 0.005,
+      "batch_size": 250,
+      "window_size": 56
+    },
+    "test_metric": 0.9142,
+    "train_metric": 0.9350333333333334
+  },
+  {
+    "activation": "tanh/sigmoid",
+    "dataset": "sMNIST-pixel",
+    "encoder_strategy": "learned",
+    "fit_time": 283.92124529800094,
+    "metric_name": "accuracy",
+    "n_neurons": 128,
+    "name": "LSTM-128",
+    "solver": "adam",
+    "solver_kwargs": {
+      "epochs": 20,
+      "lr": 0.001
+    },
+    "test_metric": 0.1154,
+    "train_metric": 0.11445
+  },
+  {
+    "activation": "tanh/sigmoid",
+    "dataset": "sMNIST-pixel_permuted",
+    "encoder_strategy": "learned",
+    "fit_time": 284.73321892499916,
+    "metric_name": "accuracy",
+    "n_neurons": 128,
+    "name": "LSTM-128",
+    "solver": "adam",
+    "solver_kwargs": {
+      "epochs": 20,
+      "lr": 0.001
+    },
+    "test_metric": 0.8232,
+    "train_metric": 0.8307
+  }
+]

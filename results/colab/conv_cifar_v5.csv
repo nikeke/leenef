@@ -1,0 +1,13 @@
+name,dataset,n_neurons,activation,encoder_strategy,solver,solver_kwargs,metric_name,train_metric,test_metric,fit_time
+Multi 32×3 20k ×20 +std +hflip,cifar10,20000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8993799686431885,0.7770999670028687,738.9939398765564
+Multi 48×3 20k ×5 +std +hflip,cifar10,20000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8978399634361267,0.7726999521255493,194.95456862449646
+Multi 48×3 20k ×10 +std +hflip,cifar10,20000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8995199799537659,0.7734999656677246,388.8306632041931
+Multi 64×3 20k ×5 +std +hflip,cifar10,20000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8971999883651733,0.7685999870300293,204.58512377738953
+Multi 64×3 20k ×10 +std +hflip,cifar10,20000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8988399505615234,0.7738999724388123,410.03495740890503
+Multi 32×3 20k ×5 +std +flip+cutout,cifar10,20000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.909500002861023,0.7594000101089478,188.83019638061523
+Multi 32×3 20k ×10 +std +flip+cutout,cifar10,20000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.9068399667739868,0.7631999850273132,377.51938128471375
+Hier 64→128 20k +std,cifar10,20000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.9357999563217163,0.6635000109672546,20.882289171218872
+Hier 64→128 20k +std +hflip,cifar10,20000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8593199849128723,0.7006999850273132,38.06071162223816
+Hier 64→128 20k ×5 +std +hflip,cifar10,20000,abs,hypersphere,ridge,"{""alpha"": 0.01}",accuracy,0.8992999792098999,0.7461999654769897,190.1432569026947
+Multi 32×3 30k ×5 +std +hflip α=2e-2,cifar10,30000,abs,hypersphere,ridge,"{""alpha"": 0.02}",accuracy,0.9112599492073059,0.7777000069618225,755.7106566429138
+Multi 48×3 30k ×5 +std +hflip α=2e-2,cifar10,30000,abs,hypersphere,ridge,"{""alpha"": 0.02}",accuracy,0.9142799973487854,0.7787999510765076,1079.6561884880066
