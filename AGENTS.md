@@ -341,7 +341,7 @@ unless the benchmark genuinely needs the memory or bandwidth.
 | L4 | 24 GB GDDR6 | 30 | 300 GB/s | Medium matmuls, ConvNEF, EWC baselines |
 | G4 (RTX PRO 6000 Blackwell) | 96 GB GDDR7 | ~100 | ~900 GB/s | Large neuron counts (50k+), big AᵀA, ImageNet-scale |
 | A100 | 80 GB HBM2e | 19.5 (156 TF16) | 2 TB/s | HBM-bandwidth-bound ops, very large batch solves |
-| H100 | 80 GB HBM3 | 51 (990 TF16) | 3.35 TB/s | Only if A100 is bottleneck; overkill for most NEF work |
+| H100 (PCIe) | 80 GB HBM2e | 51 (~1000 TF16) | 2 TB/s | Only if A100 is bottleneck; overkill for most NEF work |
 
 ### When to use a GPU
 
@@ -360,7 +360,7 @@ NEF's computational profile is dominated by three operations:
 - CIFAR-10/100, 10000+ neurons → **T4 or L4**
 - EWC baselines (per-sample Fisher) → GPU helps regardless of NEF size
 - Large sweeps or Colab suites → **L4** minimum (best cost/perf)
-- 50000+ neurons or ImageNet-scale → **G4**, **A100**, or **G100**
+- 50000+ neurons or ImageNet-scale → **G4**, **A100**, or **H100**
 
 ### Colab compute unit costs
 
@@ -374,7 +374,7 @@ Costs are in Google Colab compute units (CU) per hour.  $10 buys 100 CU
 | G4 | ~5 | ~$0.50 | Available on Colab; check actual CU rate |
 | A100 (40 GB) | ~12 | ~$1.20 | HBM bandwidth advantage for large solves |
 | A100 (80 GB) | ~15 | ~$1.50 | Only if 40 GB is insufficient |
-| G100 | ~20 | ~$2.00 | Available on Colab; check actual CU rate |
+| H100 | ~20 | ~$2.00 | Available on Colab; check actual CU rate |
 
-All six GPUs (T4, L4, G4, A100, G100) are available in the Colab
+All five GPUs (T4, L4, G4, A100, H100) are available in the Colab
 "Change runtime type" dialog.  No GCE VMs needed.

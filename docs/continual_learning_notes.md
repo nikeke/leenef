@@ -1,5 +1,9 @@
 # Continual Learning with NEF — Research Notes
 
+**Hardware note:** All timings are on CPU (AMD Ryzen 5 PRO 5650U,
+6 cores, 30 GB RAM) unless explicitly marked "GPU".  GPU results
+(Sections 5.12.4, 5.14.5) were collected on a Colab T4.
+
 ## 1. Motivation
 
 The deep learning community's biggest unsolved problem is catastrophic
