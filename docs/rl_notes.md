@@ -254,36 +254,82 @@ boundaries without forgetting.  This connects directly to the CL story.
 
 ## 8. Open Questions and Next Steps
 
-### 8.1 Online Woodbury updates (Step 2)
+### 8.1 Exponentially-weighted sufficient statistics
+
+Instead of `AᵀA = Σ A_k^T A_k` (all data weighted equally), apply an
+exponential forgetting factor:
+
+    AᵀA ← β · AᵀA + A_batch^T A_batch
+    AᵀY ← β · AᵀY + A_batch^T Y_batch
+
+Old data fades with weight β^k.  This is **Recursive Least Squares
+(RLS) with forgetting factor** — a classic control theory technique.
+Benefits for RL:
+
+- Policy changes → old Q-values are misleading → forgetting helps.
+- No replay buffer needed: the sufficient statistics ARE the memory.
+- Still analytical: solve W = (AᵀA + αI)⁻¹ AᵀY as before.
+- Directly analogous to biological synaptic decay.
+- Can combine with Woodbury updates for O(n²) per-episode cost.
+
+β ≈ 0.99-0.999 (effective window of ~100-1000 episodes).  Too low →
+forgets too fast; too high → adapts too slowly.  Sweep needed.
+
+This is the most promising direction: it would eliminate both the replay
+buffer AND the stale-data problem, while keeping the analytical solve.
+
+### 8.2 Dead neuron recentering
+
+Neurons with centers far from the visited state space barely fire.
+Periodically:
+
+1. Measure mean activation per neuron over recent episodes.
+2. If activation < threshold (e.g. 5th percentile), the neuron is "dead."
+3. Recenter the dead neuron to a recently observed state:
+   `bias_i = -gain_i * (new_center · encoder_i)`.
+4. Reset that neuron's row/column in AᵀA and AᵀY (partial reset).
+
+This is **gradient-free resource allocation** — analogous to the "reset"
+mechanism in recent deep RL papers (Lyle et al., 2023) but much cleaner
+because the recentering is analytical (just change the bias) and the
+solve remains exact.
+
+Expected benefit: LunarLander (8D) should improve dramatically since
+neurons would cover the actually-visited state manifold rather than being
+spread uniformly in the 8D hypercube.
+
+Connects directly to the CL story: data-driven centers are our advantage
+in supervised CL; adaptive centers are the RL extension.
+
+### 8.3 TD(λ) targets
+
+The λ-return blends MC and TD:
+
+    G_t^λ = (1-λ) Σ_{n=1}^{T-t-1} λ^{n-1} G_t^{(n)} + λ^{T-t-1} G_t
+
+For λ=0.8-0.9, this gives most of MC's stability with some of TD's
+lower variance.  The λ-return can be computed offline from stored
+episodes (no bootstrapping during the solve), preserving the analytical
+solve's stability.
+
+### 8.4 Online Woodbury updates (original Step 2)
 
 Replace the full-buffer solve with episode-by-episode Woodbury updates.
-Each episode adds rank-k updates to (AᵀA)⁻¹.  This eliminates the
-replay buffer entirely — one pass, no storage.
+Each episode adds rank-k updates to (AᵀA)⁻¹.  Combines naturally with
+§8.1 (forgetting factor on the Woodbury inverse).
 
-Question: does Woodbury's numerical drift matter in RL where targets are
-inherently noisy?  The CL experiments showed Woodbury ≈ accumulate when
-α is well-tuned.
+### 8.5 Ensemble exploration (original Step 3)
 
-### 8.2 Ensemble exploration (Step 3)
+Train N NEFFeature encoders with different random seeds.  Explore where
+they disagree (high variance = high uncertainty).  This is Thompson
+sampling with random-feature posterior approximation.
 
-Train N NEFFeature encoders with different random seeds.  Each produces
-a different Q-estimate.  Explore where they disagree (high variance =
-high uncertainty).  This is Thompson sampling with random-feature
-posterior approximation.
-
-### 8.3 Continual RL (Step 4)
+### 8.6 Continual RL (original Step 4)
 
 Sequential tasks with changing dynamics or rewards.  The AᵀA/AᵀY
-accumulation should retain knowledge across tasks.  This is the CL+RL
-synthesis — the paper's potential climax.
+accumulation should retain knowledge across tasks — the CL+RL synthesis.
 
-### 8.4 TD(λ) targets
-
-Blend MC and TD to get the best of both.  λ=1 is pure MC, λ=0 is pure
-TD.  Intermediate values may avoid both MC's high variance and TD's
-bootstrapping instability.
-
-### 8.5 Scaling neurons with state dimension
+### 8.7 Scaling neurons with state dimension
 
 The results suggest a scaling law: neurons needed grows rapidly with
 state dimension.  CartPole (4D, 2000 neurons) works; LunarLander
