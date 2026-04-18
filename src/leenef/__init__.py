@@ -13,6 +13,7 @@ from .ensemble import NEFEnsemble
 from .layers import NEFLayer
 from .networks import NEFNetwork
 from .recurrent import RecurrentNEFLayer
+from .rl import NEFFeatures, NEFFQIAgent
 from .solvers import SOLVERS, solve_decoders, solve_from_normal_equations
 from .streaming import StreamingNEFClassifier
 
@@ -25,6 +26,8 @@ __all__ = [
     "ConvNEFStage",
     "ConvNEFPipeline",
     "ConvNEFEnsemble",
+    "NEFFeatures",
+    "NEFFQIAgent",
     "local_contrast_normalize",
     "global_contrast_normalize",
     "make_encoders",
