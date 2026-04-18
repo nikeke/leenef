@@ -328,8 +328,7 @@ Command: `python benchmarks/run_capacity.py --max-tasks 100 --neuron-counts 500 
 
 **Joint-training equivalence spot-checks:**
 - 500 neurons, 100 tasks: accum=34.83%, joint=34.83%, **gap=0.0000%**
-- 10000 neurons, 100 tasks: expected **gap=0.0000%** (mathematically
-  guaranteed; confirmation run in progress at time of writing)
+- 10000 neurons, 100 tasks: accum=71.84%, joint=71.84%, **gap=0.0000%**
 
 **Key findings:**
 
