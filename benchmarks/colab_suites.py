@@ -2927,6 +2927,193 @@ def run_sequential_audio_v2_suite(args: argparse.Namespace) -> list:
     ]
 
 
+def run_continual_cl_suite(args: argparse.Namespace) -> list:
+    """ConvNEF + continual learning on Split-CIFAR-10.
+
+    Tests gradient-free convolutional features as a fixed encoder for
+    continual analytical decoding.  Compares feature learning modes
+    (all_data, first_task) and neuron counts (10k, 20k).
+
+    Recommended GPU: L4 (~4.8 CU/hr).  Estimated runtime: ~15–25 min.
+    """
+    import torch
+
+    from benchmarks.run_convnef_cl import (
+        ConvNEFCLResult,
+        load_cifar10_images,
+        run_convnef_cl,
+        run_convnef_joint,
+        run_flat_nef_cl,
+        split_cifar10_tasks,
+    )
+
+    dev = args.device
+    if dev == "auto":
+        dev = "cuda" if torch.cuda.is_available() else "cpu"
+    set_benchmark_seed(args.seed)
+
+    print("Loading CIFAR-10...", flush=True)
+    x_train, y_train, x_test, y_test = load_cifar10_images(args.data_root, dev)
+    tasks = split_cifar10_tasks(x_train, y_train, x_test, y_test)
+
+    multi_stages = [
+        {"n_filters": 32, "patch_size": 3, "pool_size": 1},
+        {"n_filters": 32, "patch_size": 5, "pool_size": 1},
+        {"n_filters": 32, "patch_size": 7, "pool_size": 1},
+    ]
+
+    def _to_benchmark(r: ConvNEFCLResult) -> BenchmarkResult:
+        """Convert CL result to BenchmarkResult for incremental saves."""
+        return BenchmarkResult(
+            name=r.method,
+            dataset="cifar10-split",
+            n_neurons=r.n_neurons,
+            activation="abs",
+            encoder_strategy="hypersphere",
+            solver="ridge",
+            solver_kwargs={"alpha": r.config.get("alpha", 0.01)},
+            metric_name="accuracy",
+            train_metric=r.final_avg_accuracy,
+            test_metric=r.final_avg_accuracy,
+            fit_time=r.total_time,
+        )
+
+    def _run_cl(label: str, fn, **kwargs) -> BenchmarkResult:
+        print(f"Running {label}...", flush=True)
+        result = fn(**kwargs)
+        br = _to_benchmark(result)
+        _record_incremental_result(br)
+        print(
+            f"Finished {label}: avg_acc={result.final_avg_accuracy:.2%}, "
+            f"forgetting={result.forgetting:.2%}, time={result.total_time:.1f}s",
+            flush=True,
+        )
+        return br
+
+    conv_common = dict(
+        stages=multi_stages,
+        alpha=1e-2,
+        pool_levels=[1, 2, 4],
+        pool_order=1,
+        standardize=True,
+        parallel=True,
+        fit_subsample=10_000,
+        batch_size=1000,
+        augment_flip=True,
+        n_augment=1,
+        seed=args.seed,
+    )
+
+    if args.quick:
+        quick_stages = [{"n_filters": 16, "patch_size": 5, "pool_size": 2}]
+        return [
+            _run_cl(
+                "ConvNEF-CL all_data 2k quick",
+                run_convnef_cl,
+                tasks=tasks,
+                feature_images=x_train,
+                feature_mode="all_data",
+                stages=quick_stages,
+                n_neurons=2000,
+                alpha=1e-2,
+                pool_levels=[1, 2, 4],
+                standardize=True,
+                parallel=False,
+                fit_subsample=5000,
+                batch_size=500,
+                seed=args.seed,
+            ),
+        ]
+
+    results = []
+
+    # ── 10k neurons ────────────────────────────────────────────────────
+    results.append(
+        _run_cl(
+            "ConvNEF-CL (all_data) 10k +flip",
+            run_convnef_cl,
+            tasks=tasks,
+            feature_images=x_train,
+            feature_mode="all_data",
+            n_neurons=10_000,
+            **conv_common,
+        )
+    )
+    results.append(
+        _run_cl(
+            "ConvNEF-CL (first_task) 10k +flip",
+            run_convnef_cl,
+            tasks=tasks,
+            feature_images=tasks[0]["x_train"],
+            feature_mode="first_task",
+            n_neurons=10_000,
+            **conv_common,
+        )
+    )
+
+    # ── 20k neurons ────────────────────────────────────────────────────
+    results.append(
+        _run_cl(
+            "ConvNEF-CL (all_data) 20k +flip",
+            run_convnef_cl,
+            tasks=tasks,
+            feature_images=x_train,
+            feature_mode="all_data",
+            n_neurons=20_000,
+            **conv_common,
+        )
+    )
+    results.append(
+        _run_cl(
+            "ConvNEF-CL (first_task) 20k +flip",
+            run_convnef_cl,
+            tasks=tasks,
+            feature_images=tasks[0]["x_train"],
+            feature_mode="first_task",
+            n_neurons=20_000,
+            **conv_common,
+        )
+    )
+
+    # ── Joint baselines (non-CL ceiling) ───────────────────────────────
+    results.append(
+        _run_cl(
+            "ConvNEF-joint 10k +flip",
+            run_convnef_joint,
+            x_train=x_train,
+            y_train=y_train,
+            tasks=tasks,
+            n_neurons=10_000,
+            **conv_common,
+        )
+    )
+    results.append(
+        _run_cl(
+            "ConvNEF-joint 20k +flip",
+            run_convnef_joint,
+            x_train=x_train,
+            y_train=y_train,
+            tasks=tasks,
+            n_neurons=20_000,
+            **conv_common,
+        )
+    )
+
+    # ── Flat NEF CL baseline ──────────────────────────────────────────
+    results.append(
+        _run_cl(
+            "Flat NEF CL 5k",
+            run_flat_nef_cl,
+            tasks=tasks,
+            n_neurons=5000,
+            alpha=1e-2,
+            seed=args.seed,
+        )
+    )
+
+    return results
+
+
 SUITES = {
     "row_focus": run_row_focus_suite,
     "sequential_hard": run_sequential_hard_suite,
@@ -2941,6 +3128,7 @@ SUITES = {
     "defaults_tp": run_defaults_tp_suite,
     "sequential_audio": run_sequential_audio_suite,
     "sequential_audio_v2": run_sequential_audio_v2_suite,
+    "continual_cl": run_continual_cl_suite,
 }
 
 

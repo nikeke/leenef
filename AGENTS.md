@@ -43,6 +43,7 @@ python benchmarks/colab_suites.py --suite sequential_hard --device auto --output
 python benchmarks/colab_suites.py --suite sequential_audio --device auto --output-dir results/colab
 python benchmarks/colab_suites.py --suite sequential_audio_v2 --device auto --output-dir results/colab
 python benchmarks/colab_suites.py --suite conv_cifar --device auto --output-dir results/colab
+python benchmarks/colab_suites.py --suite continual_cl --device auto --output-dir results/colab
 ```
 
 ## Technical report as design reference
