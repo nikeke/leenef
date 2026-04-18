@@ -167,34 +167,42 @@ not an NEF-specific failure.
 
 ### 4.3 LunarLander-v3
 
-**DQN wins overall, but RLS+recentering closes half the gap.**
+**DQN wins overall, but RLS forgetting closes half the gap.**
 
 | Method                            | Neurons | Episodes | Best eval  | Final eval | Time     |
 |-----------------------------------|---------|----------|------------|------------|----------|
 | NEF-FQI MC (baseline)             | 8000    | 1000     | 40.8       | 14.1       | 3590.3s  |
+| Recenter-only /100                | 8000    | 1000     | 64.2       | 19.7       | 3769.5s  |
 | RLS β=0.995 + recenter/100        | 8000    | 1000     | 47.3       | 32.6       | 2580.5s  |
+| RLS β=0.999 only                  | 8000    | 1000     | 109.0      | 82.6       | 2685.8s  |
 | **RLS β=0.999 + recenter/100**    | 8000    | 1000     | **109.4**  | **102.2**  | 2621.1s  |
 | DQN 256×2                         | —       | 1000     | **214.0**  | 208.8      | 520.7s   |
 
-RLS β=0.999 + recentering is a major improvement over the baseline:
-**best 109.4 vs 40.8** (2.7×), final 102.2 vs 14.1 (7.2×).  The agent
-shows a dramatic late surge — flat around -40 through episode 800, then
-jumping to +109 by episode 950 — suggesting the feature space reaches a
-critical coverage threshold after several rounds of recentering.
+**Ablation analysis:**
+
+- **RLS forgetting is the primary driver.** RLS-only reaches best=109.0,
+  nearly matching the combined 109.4.  Forgetting old data lets the solver
+  adapt to the improving policy instead of fitting a mixture of early
+  (random) and late (good) behavior.
+- **Recentering alone helps modestly** (64.2 vs 40.8 baseline) but is
+  highly oscillatory (swings from +64 to -19 in consecutive evals).  Full
+  buffer retains all history including early bad episodes, limiting
+  adaptation.
+- **The combination adds stability:** final 102.2 vs 82.6 for RLS-only.
+  Recentering keeps features covering the visited manifold, which smooths
+  the late-phase performance.  But it is not the primary mechanism.
+- **RLS also eliminates the replay buffer** and runs faster (no
+  re-encoding of the full buffer at each solve).
 
 β=0.999 (effective window ~1000 episodes) substantially outperforms
 β=0.995 (effective window ~200 episodes).  LunarLander's high reward
 variance requires longer memory than CartPole.
 
 The gap to DQN (214.0) remains significant.  Contributing factors:
-- 8D state space may need more than 8000 random features
 - MC returns have high variance due to wide reward range
   (crash ≈ -100, successful landing ≈ +200)
 - DQN's learned features adapt to the reward structure; NEF's are fixed
-
-The late-surge pattern is encouraging — it suggests more episodes could
-push results higher.  However, neuron scaling experiments (§4.5) show
-that more neurons actually hurt at fixed episode budget.
+- Neuron scaling does not help (§4.4) — the bottleneck is MC variance
 
 ### 4.4 Neuron Scaling on LunarLander
 
