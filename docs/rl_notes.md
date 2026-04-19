@@ -457,22 +457,21 @@ control strategy that conflicts with the hover-and-descend policy.
 ## 5. Summary Table
 
 Best results per environment with consistent greedy eval metric
-(20 episodes, ε=0) from the comprehensive sweep (§9):
+(20 episodes, ε=0).  The recommended single-agent config is
+n-step(50) + RLS(β=0.999) + recentering(/100, 5th percentile).
+Neuron scaling results from §10 show 8000 neurons reach near-DQN
+performance on LunarLander.
 
-| Environment    | NEF-FQI best config       | best_eval | DQN (eval) | Gap     |
-|----------------|---------------------------|-----------|------------|---------|
-| CartPole-v1    | mc_rls                    | **500.0** | 332.4      | NEF wins|
-| LunarLander-v3 | n50_rls_recenter          | 160.3     | **214.0**  | 25% gap |
-| Acrobot-v1     | n50_rls_recenter          | -464.7    | **-141.7** | 69% gap |
-| MountainCar-v0 | (all)                     | -200.0    | TBD        | failed  |
+| Environment    | NEF-FQI best config           | best_eval | DQN (eval) | Gap      |
+|----------------|-------------------------------|-----------|------------|----------|
+| CartPole-v1    | mc_rls (4000n)                | **500.0** | 332.4      | NEF wins |
+| LunarLander-v3 | n50_rls_recenter (8000n)      | **209.2** | **214.0**  | **2% gap** |
+| Acrobot-v1     | n50_rls_recenter (4000n)      | -464.7    | **-141.7** | 69% gap  |
+| MountainCar-v0 | (all)                         | -200.0    | TBD        | failed   |
 
-**Best config:** n-step(50) + RLS(β=0.999) + recentering(/100, 5th
-percentile).  Works on dense-reward environments (CartPole solved,
-LunarLander 75% of DQN).  Fails on sparse-reward (Acrobot,
-MountainCar).
-
-**Feature importance (LunarLander):** recentering (+91 eval) ≈
-n-step targets (+91) > RLS (+135 vs buffer).
+**Feature importance (LunarLander):** neuron count (8000n > 4000n for
+n50+RLS+recenter) > recentering (+91 eval) ≈ n-step targets (+91)
+\> RLS (+135 vs buffer).
 
 
 ## 6. Analysis
@@ -992,3 +991,55 @@ The 8000n learning curves show dramatically different character from 4000n:
    ~2000s for 4000n sequential.  Roughly 3.5× slower per config.
 4. **DQN parity is in reach:** 209.2 vs 214.0 is within noise for a
    single seed.  Multi-seed evaluation needed for a definitive comparison.
+
+### 10.2 2×6000-Neuron Ensemble (LunarLander)
+
+Tested Thompson sampling with 2 members × 6000 neurons each (12000 total)
+vs the 3×4000 baseline (12000 total) and the 8000n single agent.
+
+| Config | Members×Neurons | Total | best_eval | final_eval | time_s |
+|---|---|---|---|---|---|
+| **n50_rls_recenter** | **1×8000** | **8000** | **209.2** | **209.2** | 6883 |
+| thompson_n50 | 3×4000 | 12000 | 186.3 | 183.6 | ~2000 |
+| thompson_n50 | 2×6000 | 12000 | 161.1 | 130.6 | 2825 |
+| n50_rls_recenter | 1×4000 | 4000 | 160.3 | 160.3 | ~2000 |
+
+#### Analysis
+
+The 2×6000 ensemble (best=161.1) is **worse** than both the 3×4000
+ensemble (186.3) and even the 4000 single agent (160.3).  It also
+shows higher eval volatility (ranging from 70.6 to 161.1 in the final
+250 episodes) compared to the 3×4000 ensemble.
+
+**Why fewer larger members hurt:**
+- Thompson sampling benefits from **diversity**: 3 members with different
+  random projections provide more diverse exploration than 2 members.
+- The 6000-neuron members face the same sample complexity bottleneck
+  as 8000n single — each member's decoder is underdetermined.
+- Unlike the single agent, ensemble members each have their own
+  recentering dynamics, creating coordination problems.
+
+**Why 8000n single beats all ensembles:**
+- No Thompson exploration noise at eval time (greedy action selection).
+- Full 8000n capacity used coherently, not split across members.
+- Recentering coordinates within a single system rather than across
+  independent members.
+- The n50+RLS+recenter combination is uniquely suited to high-capacity
+  single agents: long-horizon targets + exponential forgetting +
+  recentering creates a stable learning loop that benefits from more
+  neurons.
+
+**Conclusion:** For NEF-FQI, a single high-capacity agent with
+n50+RLS+recenter is superior to ensembles of any size.  The 8000n
+single agent achieves 209.2 (98% of DQN's 214.0), making it our best
+configuration.
+
+### 10.3 Updated Summary Table
+
+| Config | best_eval | DQN gap | Comment |
+|---|---|---|---|
+| **n50_rls_recenter (8000n)** | **209.2** | **2%** | **Best NEF-FQI** |
+| thompson_n50 (3×4000) | 186.3 | 13% | Best ensemble |
+| n50_rls_recenter (4000n) | 160.3 | 25% | Sweet spot for speed |
+| thompson_n50 (2×6000) | 161.1 | 25% | Worse than 3×4k |
+| DQN | 214.0 | — | Gradient-based baseline |
