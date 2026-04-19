@@ -82,16 +82,26 @@ def run_experiment(
     eval_every=50,
     eval_episodes=20,
 ):
-    """Run one experiment with both training and eval metrics."""
+    """Run one experiment with both training and eval metrics.
+
+    ``ensemble_members`` can be:
+    - None — single agent
+    - int — ensemble with that many members (Thompson strategy)
+    - (int, str) — ensemble with (n_members, explore_strategy)
+    """
     env = gym.make(env_name)
     d_obs = env.observation_space.shape[0]
     n_actions = env.action_space.n
     env.close()
 
     if ensemble_members:
+        if isinstance(ensemble_members, tuple):
+            n_mem, strategy = ensemble_members
+        else:
+            n_mem, strategy = ensemble_members, "thompson"
         agent = NEFFQIEnsemble(
-            n_members=ensemble_members,
-            explore_strategy="thompson",
+            n_members=n_mem,
+            explore_strategy=strategy,
             d_obs=d_obs,
             n_actions=n_actions,
             base_seed=seed,
@@ -156,8 +166,10 @@ def run_experiment(
     recentered = 0
     if ensemble_members:
         recentered = sum(getattr(m, "_recentered_total", 0) for m in agent.members)
+        n_mem_out = n_mem
     else:
         recentered = getattr(agent, "_recentered_total", 0)
+        n_mem_out = None
 
     return {
         "label": label,
@@ -168,7 +180,7 @@ def run_experiment(
         "time_s": round(elapsed, 1),
         "recentered": recentered,
         "config": agent_kwargs,
-        "ensemble_members": ensemble_members,
+        "ensemble_members": n_mem_out,
         "eval_history": eval_history,
         "rewards": [round(float(r), 1) for r in rewards],
     }
@@ -379,6 +391,42 @@ def get_all_configs(env_name):
         3,
     )
 
+    # --- Thompson without recentering (replicates §4.7 conditions) ---
+
+    configs["thompson_n50_norecenter"] = (
+        {
+            **base,
+            "target_mode": "nstep",
+            "n_step": 50,
+            "forget_factor": 0.999,
+        },
+        3,
+    )
+
+    # --- Voting ensemble (majority vote, Thompson tiebreak) ---
+
+    configs["voting_n50_recenter"] = (
+        {
+            **base,
+            "target_mode": "nstep",
+            "n_step": 50,
+            "forget_factor": 0.999,
+            "recenter_interval": 100,
+            "recenter_percentile": 5.0,
+        },
+        (3, "voting"),
+    )
+
+    configs["voting_n50_norecenter"] = (
+        {
+            **base,
+            "target_mode": "nstep",
+            "n_step": 50,
+            "forget_factor": 0.999,
+        },
+        (3, "voting"),
+    )
+
     return configs
 
 
@@ -457,10 +505,17 @@ def main():
             if ens is not None:  # ensemble configs only
                 kw["n_neurons"] = args.ensemble_neurons
     if args.ensemble_members:
-        all_configs = {
-            label: (kw, args.ensemble_members if ens is not None else ens)
-            for label, (kw, ens) in all_configs.items()
-        }
+        new_configs = {}
+        for label, (kw, ens) in all_configs.items():
+            if ens is not None:
+                # Preserve strategy from tuple, just override member count
+                if isinstance(ens, tuple):
+                    new_configs[label] = (kw, (args.ensemble_members, ens[1]))
+                else:
+                    new_configs[label] = (kw, args.ensemble_members)
+            else:
+                new_configs[label] = (kw, ens)
+        all_configs = new_configs
 
     if args.configs:
         configs = {k: v for k, v in all_configs.items() if k in args.configs}

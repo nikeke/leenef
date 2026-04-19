@@ -887,11 +887,13 @@ class NEFFQIEnsemble:
     same experience.  Diverse projections produce diverse Q estimates;
     disagreement signals uncertainty and drives exploration.
 
-    Two exploration strategies:
+    Three exploration strategies:
 
     - **thompson**: at each step, sample a random member and follow its
       greedy policy.  Equivalent to Thompson sampling with the ensemble
       as a posterior approximation.
+    - **voting**: majority vote on the greedy action of each member.
+      Ties are broken by Thompson sampling (random member).
     - **ucb**: take the action with highest (mean_Q + ucb_coeff * std_Q)
       across members.  Optimistic in the face of uncertainty.
 
@@ -900,7 +902,7 @@ class NEFFQIEnsemble:
 
     Args:
         n_members: number of ensemble members.
-        explore_strategy: ``"thompson"`` or ``"ucb"``.
+        explore_strategy: ``"thompson"``, ``"voting"``, or ``"ucb"``.
         ucb_coeff: coefficient for UCB exploration bonus (only used
             when ``explore_strategy="ucb"``).
         base_seed: starting seed; member *i* uses ``base_seed + i``.
@@ -915,9 +917,10 @@ class NEFFQIEnsemble:
         base_seed: int = 0,
         **agent_kwargs,
     ):
-        if explore_strategy not in ("thompson", "ucb"):
+        if explore_strategy not in ("thompson", "ucb", "voting"):
             raise ValueError(
-                f"explore_strategy must be 'thompson' or 'ucb', got {explore_strategy!r}"
+                f"explore_strategy must be 'thompson', 'voting', or 'ucb', "
+                f"got {explore_strategy!r}"
             )
         self.n_members = n_members
         self.explore_strategy = explore_strategy
@@ -938,6 +941,19 @@ class NEFFQIEnsemble:
         After ε decays, ensemble diversity provides exploration.
         """
         if self.explore_strategy == "thompson":
+            idx = int(self.rng.integers(self.n_members))
+            return self.members[idx].select_action(obs)
+
+        if self.explore_strategy == "voting":
+            votes = [m.select_action(obs) for m in self.members]
+            counts: dict[int, int] = {}
+            for v in votes:
+                counts[v] = counts.get(v, 0) + 1
+            max_count = max(counts.values())
+            winners = [a for a, c in counts.items() if c == max_count]
+            if len(winners) == 1:
+                return winners[0]
+            # Tie-break: Thompson (random member among those that voted for a winner)
             idx = int(self.rng.integers(self.n_members))
             return self.members[idx].select_action(obs)
 
