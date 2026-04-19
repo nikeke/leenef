@@ -1,10 +1,12 @@
 # leenef
 
-Supervised learning with the Neural Engineering Framework (NEF) of
+Machine learning with the Neural Engineering Framework (NEF) of
 Eliasmith and Anderson, using rate-based neurons on PyTorch.
 
-**[Technical report](docs/technical_report.md)** — full background, method
-details, and benchmark analysis.
+**[Technical report](docs/technical_report.md)** — supervised learning
+background, method details, and benchmark analysis.
+**[RL research notes](docs/rl_notes.md)** — reinforcement learning
+experiments and continual RL analysis.
 
 ## Overview
 
@@ -28,6 +30,12 @@ The library provides:
 - `StreamingNEFClassifier` — delay-line reservoir temporal classifier
 - `ConvNEFStage`, `ConvNEFPipeline`, `ConvNEFEnsemble` — gradient-free
   convolutional feature extraction and ensembles
+- `NEFFQIAgent` — RL via Fitted Q-Iteration with analytical solve
+- `NEFFQIEnsemble` — RL ensemble with Thompson sampling / UCB exploration
+
+All supervised modules support incremental / online learning via
+`partial_fit` + `solve_accumulated`, enabling **continual learning**
+without replay buffers, regularization penalties, or gradient descent.
 
 ## Quick start
 
@@ -123,8 +131,10 @@ analysis, and competitive context.
 | `src/leenef/recurrent.py` | `RecurrentNEFLayer` — temporal decode-then-re-encode loop |
 | `src/leenef/streaming.py` | `StreamingNEFClassifier` — delay-line reservoir temporal classifier with batch, Woodbury, and accumulate+solve training |
 | `src/leenef/conv.py` | `ConvNEFStage`, `ConvNEFPipeline`, `ConvNEFEnsemble` — gradient-free convolutional feature extraction and multi-scale ensembles |
+| `src/leenef/rl.py` | `NEFFeatures`, `NEFFQIAgent`, `NEFFQIEnsemble` — reinforcement learning with analytical Q-value solve, Thompson sampling, exponential forgetting, and dead neuron recentering |
 | `src/leenef/encoders.py` | Encoder strategies (`hypersphere`, `gaussian`, `sparse`, `receptive_field`, `whitened`, `class_contrast`, `local_pca`) |
 | `src/leenef/activations.py` | Activations (`abs`, `relu`, `softplus`, `lif_rate`) |
 | `src/leenef/solvers.py` | Decoder solvers (`tikhonov`, `cholesky`, `lstsq`) plus `solve_from_normal_equations` |
-| `benchmarks/` | Feed-forward, recurrent, streaming, and ConvNEF benchmark harnesses |
-| `docs/technical_report.md` | Full technical report |
+| `benchmarks/` | Feed-forward, recurrent, streaming, ConvNEF, continual learning, and RL benchmark harnesses |
+| `docs/technical_report.md` | Supervised learning technical report |
+| `docs/rl_notes.md` | RL research notes — NEF-FQI, Thompson ensembles, continual RL |

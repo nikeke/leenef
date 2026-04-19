@@ -188,7 +188,7 @@ summary tables, figure captions, and even the title.
 
 This project implements the Neural Engineering Framework (NEF) of Eliasmith
 and Anderson for
-supervised learning using rate-based neurons on top of PyTorch.
+machine learning using rate-based neurons on top of PyTorch.
 
 A **NEF layer** has three stages:
 

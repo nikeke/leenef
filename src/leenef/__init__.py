@@ -1,4 +1,4 @@
-"""leenef — NEF supervised learning experiments."""
+"""leenef — machine learning with the Neural Engineering Framework."""
 
 from .activations import ACTIVATIONS, make_activation
 from .conv import (
@@ -13,7 +13,7 @@ from .ensemble import NEFEnsemble
 from .layers import NEFLayer
 from .networks import NEFNetwork
 from .recurrent import RecurrentNEFLayer
-from .rl import NEFFeatures, NEFFQIAgent
+from .rl import NEFFeatures, NEFFQIAgent, NEFFQIEnsemble
 from .solvers import SOLVERS, solve_decoders, solve_from_normal_equations
 from .streaming import StreamingNEFClassifier
 
@@ -28,6 +28,7 @@ __all__ = [
     "ConvNEFEnsemble",
     "NEFFeatures",
     "NEFFQIAgent",
+    "NEFFQIEnsemble",
     "local_contrast_normalize",
     "global_contrast_normalize",
     "make_encoders",
