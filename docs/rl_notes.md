@@ -614,3 +614,107 @@ This is a meaningful insight: in online RL with forgetting, the neuron
 count must be matched to the effective data window, not just the state
 dimension.  The optimal count depends on β, solve_every, and episode
 length.
+
+### 8.8 EMA activity tracking and MC alternatives ✅ TESTED
+
+Implemented and benchmarked three enhancements and two MC alternatives
+on LunarLander-v3 (4000 neurons, β=0.999, 1000 episodes, seed=0).
+
+#### EMA activity tracker
+
+Replaces cumulative mean activity with exponentially-decaying average
+for dead neuron detection:
+
+    ema_i ← decay · ema_i + (1 − decay) · mean_batch_activity_i
+
+Threshold uses same percentile logic but on EMA values.  After
+recentering, newcomers receive `mean(ema)` (fair start).  Tested with
+`activity_decay=0.99`.
+
+#### n-step returns
+
+Truncated MC with fixed horizon n (no bootstrapping):
+
+    G_t^(n) = Σ_{k=0}^{min(n, T-t)-1} γ^k r_{t+k}
+
+Computed at episode end using backward sum, same pattern as MC but
+capped.  Reduces variance from distant-future rewards while preserving
+model-independent targets (no Q bootstrap).
+
+#### Streaming eligibility traces
+
+Forward computation equivalent to MC returns:
+
+    e_a ← γ · e_a + Φ(s)    (taken action)
+    e_b ← γ · e_b           (other actions)
+    AᵀY_a += e_a · r
+
+Mathematically equivalent to MC (verified: W diff = 0.0 with frozen
+stats), but in practice per-step encoding uses different running
+observation stats than batch encoding at episode end, causing
+divergence.
+
+AᵀA deferred to episode-end batch matmul for performance (per-step
+`addr_()` on 4000×4000 float64 was ~100s overhead per episode).
+
+#### Differential rewards
+
+Eligibility traces with EMA reward baseline:
+
+    r̄ ← decay · r̄ + (1 − decay) · r
+    target = r − r̄
+
+Fully online with no episode boundary dependency.  Same deferred-AᵀA
+optimization as eligibility mode.
+
+#### Results
+
+| Config | best_50 | final_50 | time_s |
+|-------------|---------|----------|--------|
+| **nstep50** | **168.0** | **163.3** | 605 |
+| mc | 94.2 | 67.3 | 574 |
+| mc_ema | 72.6 | 64.1 | 577 |
+| nstep20 | 72.4 | 59.5 | 601 |
+| eligibility | 2.6 | -6.4 | 375 |
+| differential | -3.0 | -11.9 | 376 |
+
+#### Analysis
+
+**n-step(50) is the clear winner** — 78% improvement over MC on
+best_50 (168.0 vs 94.2), 143% on final_50 (163.3 vs 67.3).  This
+closes 78% of the DQN gap (214.0) for a single agent, up from 44%
+with MC.  Combined with Thompson ensemble (3×4k), this could
+potentially exceed DQN.
+
+**Why n-step(50) works:** LunarLander episodes are 200-1000 steps.
+Full MC returns assign credit for early actions based on everything
+that happens afterward, creating high variance.  n=50 provides a
+natural credit-assignment horizon (~0.5-2s of simulated time at 50Hz)
+that captures relevant consequences while filtering noise from
+distant future.  The key: no bootstrapping (unlike TD), so targets
+remain model-independent and analytically stable.
+
+**Why n=20 is too short:** at γ=0.99, n=20 captures γ^20 ≈ 82% of
+the total discounted return.  n=50 captures γ^50 ≈ 61%.  But the
+variance reduction from n=20's short horizon is offset by losing too
+much signal from the 20-50 step range where landing decisions have
+their strongest effect.
+
+**EMA recentering:** no significant improvement over flat-mean
+recentering in this single-agent setup.  Both recenter 2000 neurons
+(50% of 4000 over 1000 episodes).  EMA may matter more in longer
+runs where neuron activity patterns shift gradually.
+
+**Eligibility/differential: negative.** The mathematical equivalence
+with MC holds under frozen observation stats, but in practice the
+per-step encoding uses incrementally-updated running mean/std that
+differ from the batch stats used by MC mode.  This causes the feature
+representations to diverge, destroying the equivalence.  Would need
+frozen stats or a separate stats mechanism to be practical.
+
+**Key insight:** for analytical solvers, *variance reduction* in
+targets matters more than anything else.  MC has too much variance,
+TD has bootstrap instability, and n-step(50) hits the sweet spot.
+This is a principled finding: the analytical solve amplifies target
+noise because it fits *exactly* to whatever targets it sees (no SGD
+smoothing).  Lower-variance targets → better least-squares fit.

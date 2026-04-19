@@ -10,15 +10,25 @@ analytical solve.  Both approaches approximate Q(s, a); the difference
 is *how* the approximation weights are updated — SGD mini-batches vs.
 one-shot least-squares on the full replay buffer.
 
-Two target modes are supported:
+Five target modes are supported:
 
 - **mc** (Monte Carlo): regression targets are discounted episode
   returns G_t = Σ γ^k r_{t+k}.  No bootstrapping, no target network.
   Optionally blended with TD via ``td_lambda`` (λ-returns).
 - **td** (Temporal Difference): bootstrapped targets y = r + γ max Q(s').
   Requires a Polyak-averaged target weight matrix for stability.
+- **nstep**: truncated n-step returns G_t^(n) = Σ_{k=0}^{n-1} γ^k r_{t+k}.
+  Like MC but with a fixed horizon, reducing variance at the cost of
+  slight bias.  No bootstrapping.
+- **eligibility**: streaming eligibility traces that compute MC returns
+  forward.  At each step, e_a ← γ·e_a + Φ(s), AᵀY += e·r.
+  Mathematically equivalent to MC but constant memory (no episode
+  buffer) and supports mid-episode solves.  Requires ``forget_factor``.
+- **differential**: eligibility traces with EMA reward baseline.
+  Target is r_t − r̄ (above-average reward credit).  Fully online,
+  no episode-boundary dependency.  Requires ``forget_factor``.
 
-Two optional mechanisms improve performance:
+Optional mechanisms improve performance:
 
 - **Exponential forgetting** (RLS): sufficient statistics decay as
   AᵀA ← β·AᵀA + batch, eliminating the replay buffer while adapting
@@ -26,6 +36,8 @@ Two optional mechanisms improve performance:
 - **Dead neuron recentering**: neurons with low mean activation are
   recentered to recently visited states, improving feature coverage
   without gradient descent.
+- **EMA activity tracking**: exponentially-decayed per-neuron activity
+  for smoother dead neuron detection (``activity_decay`` parameter).
 """
 
 from __future__ import annotations
@@ -70,6 +82,10 @@ class NEFFeatures:
         seed: random seed for reproducibility.
         track_activations: if True, accumulate per-neuron activation
             statistics for dead neuron detection.
+        activity_decay: if set, use exponentially-decayed activity
+            tracking instead of cumulative mean.  Typical values
+            0.99–0.999.  Enables smoother dead neuron detection that
+            adapts to changing feature usage over time.
     """
 
     def __init__(
@@ -83,6 +99,7 @@ class NEFFeatures:
         encoder_kwargs: dict | None = None,
         seed: int = 0,
         track_activations: bool = False,
+        activity_decay: float | None = None,
     ):
         rng = torch.Generator().manual_seed(seed)
         self.n_neurons = n_neurons
@@ -130,6 +147,9 @@ class NEFFeatures:
 
         # Activation tracking for dead neuron detection
         self._track_activations = track_activations
+        self._activity_decay = activity_decay
+        if activity_decay is not None:
+            self._ema_activity = torch.zeros(n_neurons)
         self._act_sum = torch.zeros(n_neurons)
         self._act_count = 0
 
@@ -171,8 +191,15 @@ class NEFFeatures:
         features = self._act_module(pre)
 
         if self._track_activations:
-            self._act_sum += features.detach().sum(dim=0)
-            self._act_count += features.shape[0]
+            if self._activity_decay is not None:
+                batch_mean = features.detach().mean(dim=0)
+                self._ema_activity = (
+                    self._activity_decay * self._ema_activity
+                    + (1 - self._activity_decay) * batch_mean
+                )
+            else:
+                self._act_sum += features.detach().sum(dim=0)
+                self._act_count += features.shape[0]
 
         if squeeze:
             features = features.squeeze(0)
@@ -187,12 +214,29 @@ class NEFFeatures:
         return self._act_sum / self._act_count
 
     def reset_activation_stats(self) -> None:
-        """Reset activation tracking counters."""
-        self._act_sum.zero_()
-        self._act_count = 0
+        """Reset activation tracking counters.
+
+        For EMA mode, sets all neurons to current mean (fair restart).
+        For cumulative mode, zeroes all counters.
+        """
+        if self._activity_decay is not None:
+            mean_val = self._ema_activity.mean().item()
+            self._ema_activity.fill_(mean_val)
+        else:
+            self._act_sum.zero_()
+            self._act_count = 0
 
     def dead_neuron_indices(self, percentile: float = 5.0) -> Tensor:
-        """Return indices of neurons below the given activation percentile."""
+        """Return indices of neurons below the given activation percentile.
+
+        Uses EMA activity when ``activity_decay`` is set, otherwise
+        uses cumulative mean activations.
+        """
+        if self._activity_decay is not None:
+            if self._ema_activity.sum() == 0:
+                return torch.tensor([], dtype=torch.long)
+            threshold = torch.quantile(self._ema_activity, percentile / 100.0)
+            return torch.where(self._ema_activity <= threshold)[0]
         if self._act_count == 0:
             return torch.tensor([], dtype=torch.long)
         mean_act = self.mean_activations()
@@ -216,7 +260,7 @@ class NEFFeatures:
 class NEFFQIAgent:
     """Fitted Q-Iteration with fixed random NEF features.
 
-    Supports two target modes:
+    Supports five target modes:
 
     - **mc**: Monte Carlo returns.  Each solve uses actual discounted
       episode returns G_t = Σ γ^k r_{t+k}.  When ``td_lambda`` is set
@@ -225,6 +269,11 @@ class NEFFQIAgent:
       + λ G_{t+1}^λ].
     - **td**: bootstrapped TD targets with Polyak-averaged target
       weights.  Each solve computes y = r + γ(1-d) max Q_target(s').
+    - **nstep**: truncated n-step returns (no bootstrapping).
+    - **eligibility**: streaming MC via eligibility traces.
+      Requires ``forget_factor``.
+    - **differential**: eligibility traces + EMA reward baseline.
+      Requires ``forget_factor``.
 
     Per-action analytical solve::
 
@@ -252,17 +301,23 @@ class NEFFQIAgent:
         solve_batch: subsample buffer to this size for solve (None = all).
         tau: Polyak averaging coefficient for target weights (TD mode).
         fqi_iters: number of FQI iterations per solve (TD mode).
-        target_mode: ``"mc"`` or ``"td"``.
+        target_mode: ``"mc"``, ``"td"``, ``"nstep"``, ``"eligibility"``,
+            or ``"differential"``.
         td_lambda: λ for λ-returns in MC mode.  ``None`` or ``1.0``
             gives pure MC; ``0.0`` gives one-step TD.  Typical values
             0.8–0.95 reduce MC variance with minimal bias.
         forget_factor: RLS forgetting factor β ∈ (0, 1].  When set,
             uses exponentially-weighted sufficient statistics instead
             of a replay buffer.  Typical values: 0.99–0.999.
+        n_step: horizon for n-step returns (default 20).
+        reward_ema_decay: EMA decay for reward baseline in differential
+            mode (default 0.99).
         recenter_interval: if set, check for dead neurons every N
             episodes and recenter them to recently observed states.
         recenter_percentile: activation percentile below which neurons
             are considered dead (default 5.0).
+        activity_decay: if set, use EMA activity tracking for
+            recentering instead of cumulative mean.
         features_kwargs: extra keyword arguments forwarded to
             :class:`NEFFeatures` (e.g. ``centers``,
             ``encoder_strategy``).
@@ -287,11 +342,20 @@ class NEFFQIAgent:
         target_mode: str = "mc",
         td_lambda: float | None = None,
         forget_factor: float | None = None,
+        n_step: int = 20,
+        reward_ema_decay: float = 0.99,
         recenter_interval: int | None = None,
         recenter_percentile: float = 5.0,
+        activity_decay: float | None = None,
         features_kwargs: dict | None = None,
         seed: int = 0,
     ):
+        valid_modes = ("mc", "td", "nstep", "eligibility", "differential")
+        if target_mode not in valid_modes:
+            raise ValueError(f"target_mode must be one of {valid_modes}, got {target_mode!r}")
+        if target_mode in ("eligibility", "differential") and forget_factor is None:
+            raise ValueError(f"target_mode={target_mode!r} requires forget_factor")
+
         self.n_actions = n_actions
         self.n_neurons = n_neurons
         self.gamma = gamma
@@ -306,6 +370,8 @@ class NEFFQIAgent:
         self.target_mode = target_mode
         self.td_lambda = td_lambda
         self.forget_factor = forget_factor
+        self.n_step = n_step
+        self.reward_ema_decay = reward_ema_decay
         self.recenter_interval = recenter_interval
         self.recenter_percentile = recenter_percentile
         self.rng = np.random.default_rng(seed)
@@ -313,6 +379,8 @@ class NEFFQIAgent:
         feat_kw = dict(features_kwargs or {})
         if recenter_interval is not None:
             feat_kw["track_activations"] = True
+            if activity_decay is not None:
+                feat_kw["activity_decay"] = activity_decay
         self.features = NEFFeatures(d_obs, n_neurons, seed=seed, **feat_kw)
 
         # Replay buffer (used only in non-RLS mode)
@@ -336,6 +404,14 @@ class NEFFQIAgent:
         # Recent observations for recentering
         if recenter_interval is not None:
             self._recent_obs: deque[np.ndarray] = deque(maxlen=2000)
+
+        # Eligibility traces for streaming modes
+        if target_mode in ("eligibility", "differential"):
+            self._eligibility = torch.zeros(n_actions, n_neurons, dtype=torch.float64)
+            self._aty_ep = torch.zeros(n_actions, n_neurons, dtype=torch.float64)
+            self._ep_features: list[tuple[Tensor, int]] = []
+        if target_mode == "differential":
+            self._reward_ema = 0.0
 
         self._episode = 0
         self._total_steps = 0
@@ -401,8 +477,10 @@ class NEFFQIAgent:
         if self.recenter_interval is not None:
             self._recent_obs.append(obs.copy())
 
-        if self.target_mode == "mc":
-            if self._use_lambda_returns:
+        if self.target_mode in ("eligibility", "differential"):
+            self._step_accumulate(obs, action, reward, done)
+        elif self.target_mode in ("mc", "nstep"):
+            if self.target_mode == "mc" and self._use_lambda_returns:
                 self._episode_transitions.append((obs, action, reward, next_obs))
             else:
                 self._episode_transitions.append((obs, action, reward))
@@ -418,7 +496,9 @@ class NEFFQIAgent:
         if not transitions:
             return
 
-        if self._use_lambda_returns:
+        if self.target_mode == "nstep":
+            episode_data = self._compute_nstep_returns(transitions)
+        elif self._use_lambda_returns:
             episode_data = self._compute_lambda_returns(transitions)
         else:
             episode_data = self._compute_mc_returns(transitions)
@@ -442,6 +522,111 @@ class NEFFQIAgent:
             episode_data.append((obs, action, G))
         episode_data.reverse()
         return episode_data
+
+    def _compute_nstep_returns(
+        self,
+        transitions: list[tuple],
+    ) -> list[tuple[np.ndarray, int, float]]:
+        """Truncated n-step returns (no bootstrapping).
+
+        G_t^(n) = Σ_{k=0}^{min(n,T-t)-1} γ^k r_{t+k}
+
+        Like MC but capped at n steps.  Reduces variance at the cost
+        of ignoring rewards beyond the horizon.
+        """
+        T = len(transitions)
+        n = self.n_step
+        rewards = [t[2] for t in transitions]
+        episode_data: list[tuple[np.ndarray, int, float]] = []
+        for t in range(T):
+            G = 0.0
+            horizon = min(n, T - t)
+            for k in reversed(range(horizon)):
+                G = rewards[t + k] + self.gamma * G
+            obs, action = transitions[t][0], transitions[t][1]
+            episode_data.append((obs, action, G))
+        return episode_data
+
+    def _step_accumulate(
+        self,
+        obs: np.ndarray,
+        action: int,
+        reward: float,
+        done: bool,
+    ) -> None:
+        """Per-step accumulation for eligibility/differential modes.
+
+        For eligibility mode, this is mathematically equivalent to MC
+        returns but computed forward via eligibility traces:
+
+            e_a ← γ · e_a + Φ(s)    (for taken action a)
+            e_b ← γ · e_b           (for other actions b)
+            AᵀY_a += e_a · r        (for all actions)
+
+        The sum Σ_t e_t · r_t = Σ_k Φ(s_k) · G_k exactly reproduces
+        MC returns without needing to store episode transitions or
+        compute backward.
+
+        For differential mode, uses r − r̄ instead of r, where r̄ is
+        an EMA reward baseline.
+
+        AᵀA is deferred to episode end (batch matmul) for performance.
+        Per-step eligibility and AᵀY updates are O(n_neurons × n_actions).
+        """
+        phi = self.features.encode(torch.from_numpy(obs).float()).detach()
+        phi_f64 = phi.double()
+
+        # Buffer features for batch AᵀA at episode end
+        self._ep_features.append((phi_f64, action))
+
+        # Decay all eligibility traces, add feature for taken action
+        self._eligibility *= self.gamma
+        self._eligibility[action] += phi_f64
+
+        # Compute target
+        if self.target_mode == "differential":
+            alpha = 1 - self.reward_ema_decay
+            self._reward_ema = self.reward_ema_decay * self._reward_ema + alpha * reward
+            target = reward - self._reward_ema
+        else:
+            target = reward
+
+        # Accumulate eligibility-weighted target for ALL actions (O(n × n_actions))
+        for a in range(self.n_actions):
+            self._aty_ep[a] += self._eligibility[a] * target
+
+        if done:
+            self._flush_eligibility_episode()
+
+    def _flush_eligibility_episode(self) -> None:
+        """Batch-process deferred AᵀA and merge episode stats."""
+        features_data = self._ep_features
+        self._ep_features = []
+
+        if not features_data:
+            return
+
+        beta = self.forget_factor
+
+        # Batch AᵀA computation (like MC mode)
+        actions_arr = np.array([a for _, a in features_data])
+        phi_all = torch.stack([phi for phi, _ in features_data])
+
+        for a in range(self.n_actions):
+            mask = actions_arr == a
+            self._ata[a] *= beta
+            if mask.sum() > 0:
+                phi_a = phi_all[mask]
+                self._ata[a] += phi_a.T @ phi_a
+            self._n_accumulated[a] += int(mask.sum())
+
+        # Merge per-episode AᵀY into global with decay
+        for a in range(self.n_actions):
+            self._aty[a] = beta * self._aty[a] + self._aty_ep[a]
+            self._aty_ep[a].zero_()
+
+        # Reset eligibility traces
+        self._eligibility.zero_()
 
     def _compute_lambda_returns(
         self,
@@ -638,7 +823,8 @@ class NEFFQIAgent:
 
         dead = self.features.dead_neuron_indices(self.recenter_percentile)
         if len(dead) == 0:
-            self.features.reset_activation_stats()
+            if self.features._activity_decay is None:
+                self.features.reset_activation_stats()
             return 0
 
         recent_t = torch.tensor(np.array(recent), dtype=torch.float32)
@@ -655,7 +841,14 @@ class NEFFQIAgent:
                 self._aty[a][dead] = 0
 
         self._recentered_total += len(dead)
-        self.features.reset_activation_stats()
+
+        # EMA: give recentered neurons a fair start (current mean)
+        # Cumulative: reset all counters
+        if self.features._activity_decay is not None:
+            avg = self.features._ema_activity.mean()
+            self.features._ema_activity[dead] = avg
+        else:
+            self.features.reset_activation_stats()
         return len(dead)
 
     def warmup(
