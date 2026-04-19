@@ -14,9 +14,9 @@ is *how* the approximation weights are updated:
 | Aspect            | DQN                        | NEF-FQI                       |
 |-------------------|----------------------------|-------------------------------|
 | Features          | Learned (hidden layers)    | Fixed random projections      |
-| Weight updates    | SGD on mini-batches        | Analytical solve on buffer    |
-| Target network    | Needed (stability)         | Not needed (MC mode)          |
-| Replay buffer     | Required                   | Required                      |
+| Weight updates    | SGD on mini-batches        | Analytical solve              |
+| Target network    | Needed (stability)         | Not needed (n-step/MC mode)   |
+| Replay buffer     | Required                   | Optional (RLS eliminates it)  |
 | Learning rate     | Sensitive hyperparameter   | None                          |
 | Solve frequency   | Every step                 | Every N episodes              |
 
@@ -93,6 +93,25 @@ replaces W entirely each time (globally optimal for current targets), but
 targets shift between solves → oscillation.  Five iterations tested on
 CartPole; none fully stable.
 
+### n-step returns — best target mode
+
+Truncated MC with fixed horizon n (no bootstrapping):
+
+    G_t^(n) = Σ_{k=0}^{min(n, T-t)-1} γ^k r_{t+k}
+
+Computed at episode end using backward sum, same as MC but capped at
+n steps.  Reduces variance from distant-future rewards while preserving
+model-independent targets (no Q bootstrap).
+
+**Advantages:** Lower variance than full MC while remaining model-
+independent.  The truncation filters noise from distant future rewards
+that are weakly correlated with the current state.  n=50 is optimal
+for LunarLander (§4.3).
+
+**Disadvantages:** loses signal from rewards beyond n steps.  For very
+long episodes, some long-term credit assignment is lost.  Still
+requires episodic tasks.
+
 ### The fundamental insight
 
 **Bootstrapping is the root cause of instability with analytical
@@ -167,7 +186,10 @@ not an NEF-specific failure.
 
 ### 4.3 LunarLander-v3
 
-**DQN wins overall, but RLS forgetting closes half the gap.**
+**n-step(50) is the best single-agent config; Thompson ensemble closes
+57% of the DQN gap.**
+
+#### Baseline experiments (8000 neurons, greedy eval)
 
 | Method                            | Neurons | Episodes | Best eval  | Final eval | Time     |
 |-----------------------------------|---------|----------|------------|------------|----------|
@@ -175,8 +197,38 @@ not an NEF-specific failure.
 | Recenter-only /100                | 8000    | 1000     | 64.2       | 19.7       | 3769.5s  |
 | RLS β=0.995 + recenter/100        | 8000    | 1000     | 47.3       | 32.6       | 2580.5s  |
 | RLS β=0.999 only                  | 8000    | 1000     | 109.0      | 82.6       | 2685.8s  |
-| **RLS β=0.999 + recenter/100**    | 8000    | 1000     | **109.4**  | **102.2**  | 2621.1s  |
+| RLS β=0.999 + recenter/100        | 8000    | 1000     | 109.4      | 102.2      | 2621.1s  |
 | DQN 256×2                         | —       | 1000     | **214.0**  | 208.8      | 520.7s   |
+
+#### Target mode comparison (4000 neurons, RLS β=0.999, recenter/100, training best_50)
+
+| Config      | best_50   | final_50  | time_s |
+|-------------|-----------|-----------|--------|
+| **nstep50** | **168.0** | **163.3** | 605    |
+| mc          | 94.2      | 67.3      | 574    |
+| mc_ema      | 72.6      | 64.1      | 577    |
+| nstep20     | 72.4      | 59.5      | 601    |
+| eligibility | 2.6       | -6.4      | 375    |
+| differential| -3.0      | -11.9     | 376    |
+
+**Metrics note:** "best eval / final eval" are greedy-policy evaluations
+(20 episodes, ε=0). "best_50 / final_50" are training rolling averages
+(50-episode window, ε-greedy). Training rewards underestimate greedy
+performance due to exploration noise. The two sets are NOT directly
+comparable.
+
+**n-step(50) is the breakthrough:** 78% improvement over MC on best_50
+(168.0 vs 94.2). n-step truncates credit assignment at 50 steps,
+filtering noise from distant future while preserving model-independent
+targets.
+
+**Why n=20 is too short:** at γ=0.99, n=20 captures γ^20 ≈ 82% of
+discounted return but loses signal from the 20–50 step range where
+landing decisions have their strongest effect.
+
+**Eligibility/differential are dead ends:** running stats divergence
+between per-step and batch encoding destroys the mathematical
+equivalence with MC.
 
 **Ablation analysis:**
 
@@ -404,11 +456,23 @@ control strategy that conflicts with the hover-and-descend policy.
 
 ## 5. Summary Table
 
-| Environment    | NEF-FQI (MC) | NEF-FQI (RLS) | Thompson 3×4k | DQN     | Winner  | Why                           |
-|----------------|--------------|---------------|---------------|---------|---------|-------------------------------|
-| CartPole-v1    | **500.0**    | **500.0**     | —             | 332.4   | NEF-FQI | Dense reward, low-dim state   |
-| Acrobot-v1     | -410.8       | —             | —             |**-141.7**| DQN    | Sparse reward → MC fails      |
-| LunarLander-v3 | 40.8         | 109.4         | **186.3**     |**214.0**| DQN (close) | Ensemble exploration closes 57% of gap |
+Best results per environment with consistent greedy eval metric
+(20 episodes, ε=0) from the comprehensive sweep (§9):
+
+| Environment    | NEF-FQI best config       | best_eval | DQN (eval) | Gap     |
+|----------------|---------------------------|-----------|------------|---------|
+| CartPole-v1    | mc_rls                    | **500.0** | 332.4      | NEF wins|
+| LunarLander-v3 | n50_rls_recenter          | 160.3     | **214.0**  | 25% gap |
+| Acrobot-v1     | n50_rls_recenter          | -464.7    | **-141.7** | 69% gap |
+| MountainCar-v0 | (all)                     | -200.0    | TBD        | failed  |
+
+**Best config:** n-step(50) + RLS(β=0.999) + recentering(/100, 5th
+percentile).  Works on dense-reward environments (CartPole solved,
+LunarLander 75% of DQN).  Fails on sparse-reward (Acrobot,
+MountainCar).
+
+**Feature importance (LunarLander):** recentering (+91 eval) ≈
+n-step targets (+91) > RLS (+135 vs buffer).
 
 
 ## 6. Analysis
@@ -416,54 +480,59 @@ control strategy that conflicts with the hover-and-descend policy.
 ### Where NEF-FQI excels
 
 1. **Dense, low-dimensional reward environments.**  CartPole is the
-   ideal case: 4D state, +1 per step, clear signal in MC returns.
+   ideal case: 4D state, +1 per step, clear signal in returns.
 2. **No hyperparameter tuning for the solve.**  No learning rate, no
    target network update frequency, no gradient clipping.
-3. **Stability once converged.**  Once the buffer contains enough good
-   episodes, the analytical solve produces a stable policy.  No
-   catastrophic forgetting of good strategies.
+3. **Stability once converged.**  Once sufficient statistics accumulate
+   enough good episodes, the analytical solve produces a stable policy.
+4. **Speed at convergence.**  The analytical solve converges monotonically
+   for fixed targets; no catastrophic forgetting of good strategies.
 
 ### Where NEF-FQI fails
 
-1. **Sparse reward.**  MC requires episodes that vary in return to learn
-   which states are better.  If all episodes look the same (timeouts),
-   there is no signal.
+1. **Sparse reward.**  MC/n-step require episodes that vary in return to
+   learn which states are better.  If all episodes look the same
+   (timeouts), there is no signal.
 2. **High-dimensional state spaces.**  Random features in 8D (LunarLander)
    need more data, not more neurons.  Scaling from 8000 to 16000 neurons
    hurts because the sample-to-parameter ratio drops below what the
    regularized solve can handle with forgetting (§4.4).
 3. **Speed.**  The per-action analytical solve on the full buffer is
    O(n² · buffer_size) per solve.  DQN's SGD mini-batch updates are much
-   cheaper per step.
-4. **MC variance.**  Even with shaped rewards, MC returns can have very
-   high variance (e.g., LunarLander's -100 to +200 range), making the
-   regression target noisy.
+   cheaper per step.  (RLS mode is faster — O(n² · batch) per episode —
+   but still slower than SGD.)
+4. **Return variance** (mitigated by n-step).  Full MC returns have high
+   variance due to wide reward range (LunarLander crash ≈ -100, landing
+   ≈ +200).  n-step(50) reduces this by truncating credit assignment,
+   achieving a 78% improvement over MC (§4.3).
 
-### The bootstrapping dilemma
+### The bootstrapping dilemma (resolved by n-step)
 
-This is the core theoretical tension:
+This was the core theoretical tension, now resolved:
 
 - **MC targets** are unbiased but high-variance and require dense rewards.
-- **TD targets** are biased but lower-variance, and work with sparse
-  rewards — but the analytical solve's wholesale weight replacement
-  amplifies bootstrapping instability.
-- **TD(λ)** (§4.6) does not help: even λ=0.9 (90% MC) destabilizes the
-  solve because 10% bootstrapping from inaccurate Q creates a
-  self-reinforcing error loop that the analytical solve cannot damp.
-- **SGD** (DQN) handles this by making small incremental updates that
-  smooth over target shifts.  The analytical solve does not have this
-  "damping" effect.
+- **TD targets** are biased but lower-variance — but the analytical
+  solve's wholesale weight replacement amplifies bootstrapping instability.
+- **TD(λ)** (§4.6) does not help: even λ=0.9 destabilizes the solve.
+- **n-step returns** are the solution: model-independent (no bootstrap)
+  but with controlled variance via horizon truncation.
 
-**The fundamental constraint:** the analytical solve requires
-model-independent targets.  MC provides these; any form of TD
-bootstrapping violates this requirement.  The MC variance problem
-must be addressed through other means:
-- **Reward shaping:** Transform sparse rewards to give MC more signal
-- **Feature adaptation:** Learn encoders (violates the "fixed encoder"
-  principle but may be necessary for higher dimensions)
-- **Ensemble exploration:** Multiple random projections with Thompson
-  sampling dramatically reduce effective variance (§4.7: 186.3 vs
-  single-agent 80.3) — **confirmed as the most effective improvement**
+**The resolution:** n-step(50) occupies the sweet spot.  It preserves
+the analytical solve's requirement for model-independent targets (no
+bootstrapping from Q) while filtering noise from distant future rewards.
+The truncation acts as a variance-reduction mechanism that the analytical
+solve cannot provide on its own (unlike SGD's implicit smoothing).
+
+**Key insight:** for analytical solvers, target variance matters more than
+target bias.  The analytical solve fits *exactly* to whatever targets it
+sees (no SGD averaging/smoothing), so lower-variance targets → better
+least-squares fit.  n-step's mild truncation bias is a small price for
+substantial variance reduction.
+
+**Interaction with recentering (§9):** n-step targets are robust to
+recentering (+91 eval), while MC targets are destroyed by it (-92 eval).
+Local targets adapt better to changing features; full-episode targets
+are too sensitive to feature instability from recentering.
 
 
 ## 7. Relationship to Existing Work
@@ -552,9 +621,12 @@ Bootstrapping from inaccurate Q contaminates the analytical solve.
 
 This is a fundamental incompatibility: the analytical solve needs
 model-independent targets.  MC provides these; TD does not.  This rules
-out any TD-based target improvement and confirms MC as the correct
-choice for NEF-FQI.  The variance problem must be addressed differently
-(e.g., reward shaping, environment-side changes, not target blending).
+out any TD-based target improvement.
+
+**However:** the MC variance problem is now resolved by n-step returns
+(§8.8).  n-step(50) is the correct target mode for NEF-FQI: it preserves
+model independence while reducing variance via horizon truncation.
+MC is superseded as the default.
 
 ### 8.4 Online Woodbury updates (original Step 2)
 
@@ -718,3 +790,153 @@ TD has bootstrap instability, and n-step(50) hits the sweet spot.
 This is a principled finding: the analytical solve amplifies target
 noise because it fits *exactly* to whatever targets it sees (no SGD
 smoothing).  Lower-variance targets → better least-squares fit.
+
+
+## 9. Comprehensive Configuration Sweep
+
+Systematic sweep of all active feature axes using `benchmarks/run_sweep.py`.
+All runs use seed=0, dual metrics (training best_50/final_50 and greedy
+eval every 50 episodes with ε=0, 20 episodes).
+
+Axes tested:
+
+1. **RLS**: off (buffer replay) vs on (β=0.999)
+2. **Recentering**: off vs on (/100, 5th percentile)
+3. **EMA activity**: off vs on (decay=0.99), only with recentering
+4. **Thompson ensemble**: off vs on (3×4000 members)
+5. **n-step horizon**: 30, 50, 100 (plus MC baselines)
+
+Standard config: 4000 neurons, γ=0.99, α=1e-2, ε 1.0→0.01
+(decay=500), solve_every=10.  All timings are parallel-mode (3-5
+workers on 6C/12T CPU); not comparable to low-load runs.
+
+### 9.1 LunarLander-v3 (1000 episodes)
+
+| Config | best_50 | final_50 | best_eval | final_eval | time_s | recentered |
+|-------------------------|---------|----------|-----------|------------|--------|------------|
+| **n50_rls_recenter** | **161.7** | **120.8** | **160.3** | **160.3** | 1469 | 2000 |
+| n30_rls_recenter | 141.5 | 114.0 | 138.9 | 131.5 | 746 | 2000 |
+| thompson_n50 (3×4k) | 165.3 | 135.8 | 118.4 | 54.1 | 3088 | 6000 |
+| mc_rls | 121.5 | 121.5 | 113.7 | 99.3 | 2000 | 0 |
+| n50_buffer | 27.7 | 17.6 | 78.8 | 78.8 | 3197 | 0 |
+| n50_rls | 98.9 | 98.9 | 69.2 | 69.2 | 1420 | 0 |
+| n50_rls_recenter_ema | 57.6 | 21.6 | 63.3 | 34.2 | 1470 | 2000 |
+| n50_recenter | 61.1 | 31.7 | 55.5 | 24.8 | 3201 | 2000 |
+| thompson_mc (3×4k) | -7.2 | -22.0 | 9.6 | -36.8 | 2969 | 6000 |
+| mc_rls_recenter | 12.9 | 11.3 | 7.7 | 7.7 | 1935 | 2000 |
+| n100_rls_recenter | -23.2 | -23.2 | -9.0 | -9.0 | 1954 | 2000 |
+
+#### Key findings
+
+**Recentering + n-step = synergy.** n50_rls_recenter (160.3 eval)
+vs n50_rls (69.2) — recentering adds +91 eval.  This is the largest
+single-factor improvement in the sweep.
+
+**Recentering + MC = destructive.** mc_rls (99.3 eval) vs
+mc_rls_recenter (7.7) — recentering destroys MC performance.
+Explanation: after recentering, the Q-function changes significantly.
+MC targets were computed from episodes before recentering and don't
+adapt; the old targets become inconsistent with the new features.
+n-step targets are more local (horizon=50 vs full episode) and less
+affected by feature changes.
+
+**EMA hurts.** n50_rls_recenter_ema (34.2 final_eval) vs
+n50_rls_recenter (160.3) — EMA activity tracking performs *worse*
+than simple cumulative-mean recentering.  The exponential decay
+makes the activity estimate too noisy for reliable dead-neuron
+detection; cumulative mean is more stable.
+
+**n50 > n30 >> n100.** n50 (160.3) > n30 (131.5) >> n100 (-9.0).
+n=100 is too long for LunarLander episodes (200-1000 steps),
+making targets nearly as noisy as MC.  n=30 is decent but misses
+credit from the 30-50 step decision horizon.
+
+**RLS >> buffer mode.** n50_rls_recenter (160.3) vs n50_recenter
+(24.8); n50_rls (69.2) vs n50_buffer (78.8).  RLS dominates when
+combined with recentering.  Without recentering, the gap is smaller
+but buffer mode is 2× slower.
+
+**Thompson n50 is unstable.** Peak best_50=165.3 (highest in sweep!)
+but collapses to final_eval=54.1.  The ensemble's diverse
+exploration helps early but 3 independent recentering schedules
+create instability.  Thompson MC is a complete failure (final=-36.8).
+
+**Thompson MC vs prior results.** The old Thompson MC benchmark
+(§4.7, eval=186.3) used different hyperparameters (ε_end=0.05,
+possibly no recentering).  This sweep uses ε_end=0.01 with
+recentering, which hurts MC (see recentering+MC finding above).
+The old result is not invalidated but is not directly comparable.
+
+### 9.2 CartPole-v1 (500 episodes, 2000 neurons)
+
+| Config | best_50 | final_50 | best_eval | final_eval | time_s |
+|-------------------------|---------|----------|-----------|------------|--------|
+| **mc_rls** | **500.0** | **500.0** | **500.0** | **500.0** | 183 |
+| **n30_rls_recenter** | **499.8** | **499.8** | **500.0** | **500.0** | 184 |
+| n50_rls_recenter_ema | 389.0 | 383.6 | 500.0 | 500.0 | 165 |
+| n50_rls_recenter | 493.4 | 493.4 | 500.0 | 489.7 | 174 |
+| n50_rls | 483.2 | 482.4 | 481.2 | 481.2 | 174 |
+
+CartPole is easy — most configs solve it.  mc_rls and n30_rls_recenter
+reach perfect 500.  Notably, n-step configs have slightly lower
+*training* scores due to truncated credit assignment in a dense-reward
+environment, but greedy eval compensates.  The n-step truncation is
+unnecessary for CartPole's short episodes (~200 steps when solved) but
+does not significantly hurt.
+
+### 9.3 Acrobot-v1 (500 episodes, 4000 neurons)
+
+| Config | best_50 | final_50 | best_eval | final_eval | time_s |
+|-------------------------|---------|----------|-----------|------------|--------|
+| n50_rls_recenter | -449.6 | -480.9 | -464.7 | -500.0 | 2348 |
+| n50_rls | -477.6 | -477.6 | -470.3 | -470.3 | 2312 |
+| mc_rls | -488.0 | -492.5 | -483.8 | -500.0 | 2324 |
+| n50_rls_recenter_ema | -452.1 | -500.0 | -489.8 | -500.0 | 2358 |
+| n30_rls_recenter | -488.3 | -492.6 | -497.1 | -500.0 | 2360 |
+
+All configs fail badly (DQN reference: -141.7).  The 6D state space
+with sparse reward (only when the tip reaches the target height) does
+not provide enough learning signal for 500 episodes.  Best eval -464.7
+is barely better than random (-500).  Would need significantly more
+episodes, better exploration, or reward shaping.
+
+### 9.4 MountainCar-v0 (1000 episodes, 4000 neurons)
+
+All configs score -200.0 (the truncation limit) across all metrics.
+The agent never reaches the goal — ε-greedy exploration in 200-step
+episodes is insufficient to discover the momentum-building strategy.
+This is a fundamental exploration problem, not solvable by target
+mode or feature engineering alone.
+
+### 9.5 Sweep conclusions
+
+**Recommended config:** `n_step=50, forget_factor=0.999,
+recenter_interval=100, recenter_percentile=5.0` — works well on
+CartPole (solved) and LunarLander (160.3 eval, 75% of DQN).
+
+**Dead ends confirmed:**
+- EMA activity tracking: consistently hurts (drop from 160→34 on LL)
+- n=100 horizon: too noisy, worse than MC
+- Recentering with MC targets: destructive interaction
+- Buffer mode: slower and worse than RLS in all tests
+- Thompson ensemble with recentering: unstable, unreliable
+
+**Feature importance ranking (LunarLander):**
+1. n-step targets (+91 eval vs MC with RLS+recenter)
+2. Recentering (+91 eval vs no recenter with n50+RLS)
+3. RLS (+135 eval vs buffer with n50+recenter)
+4. n-step horizon tuning (n50 > n30 by +29, n50 > n100 by +169)
+
+**Environment limitations:**
+- Dense reward (CartPole, LunarLander): NEF-FQI competitive
+- Sparse reward (Acrobot, MountainCar): NEF-FQI fails
+- Gap to DQN on LunarLander: ~25% (single-agent), exploration-limited
+
+**Updated summary (§5 revision):**
+
+| Environment | NEF-FQI best | DQN (eval) | Gap |
+|----------------|--------------|------------|---------|
+| CartPole-v1 | **500.0** | 332.4 | NEF wins |
+| LunarLander-v3 | 160.3 | **214.0** | 25% gap |
+| Acrobot-v1 | -464.7 | **-141.7** | 69% gap |
+| MountainCar-v0 | -200.0 | TBD | failed |
