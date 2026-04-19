@@ -76,6 +76,28 @@ working.  Instead:
 - If you need to filter output, redirect to a file and grep afterward.
 - For interactive monitoring, run the command directly without pipes.
 
+**Never pipe through `head` or `head -N`.**  `head` reads N lines and
+then exits, sending SIGPIPE to the upstream process.  Python handles
+SIGPIPE by raising `BrokenPipeError` on the next `print()`.  If the
+script uses `multiprocessing`, child workers inherit the broken pipe
+and all their `print()` calls silently fail.  More critically, output
+appears to stop entirely even though the processes continue running,
+making it impossible to monitor progress.
+
+**Python multiprocessing and stdout buffering.**  When using
+`multiprocessing.Pool` with `map()` or `imap_unordered()`, child
+workers inherit the parent's stdout.  Python buffers stdout by default
+when it's not a TTY (e.g., when piped).  To ensure progress output
+from workers appears promptly:
+
+- Run with `python -u` to disable stdout buffering, or
+- Use `flush=True` in `print()` calls inside workers, or
+- Set `PYTHONUNBUFFERED=1` in the environment.
+
+When running sweep scripts that save results to JSON, prefer
+`imap_unordered` over `map` so results are saved incrementally as
+each worker finishes, rather than waiting for all workers to complete.
+
 ## Colab benchmark suite rules
 
 - If you change a Colab benchmark suite or its launcher workflow, **commit and
