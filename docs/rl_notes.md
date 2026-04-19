@@ -937,6 +937,58 @@ CartPole (solved) and LunarLander (160.3 eval, 75% of DQN).
 | Environment | NEF-FQI best | DQN (eval) | Gap |
 |----------------|--------------|------------|---------|
 | CartPole-v1 | **500.0** | 332.4 | NEF wins |
-| LunarLander-v3 | 160.3 | **214.0** | 25% gap |
+| LunarLander-v3 | **209.2** | **214.0** | **2% gap** |
 | Acrobot-v1 | -464.7 | **-141.7** | 69% gap |
 | MountainCar-v0 | -200.0 | TBD | failed |
+
+## 10. Neuron Scaling Experiments
+
+The comprehensive sweep (§9) used 4000 neurons throughout.  This section
+tests whether more capacity helps or hurts.
+
+### 10.1 8000-Neuron Single-Agent (LunarLander)
+
+Tested the top three 4000n configs with doubled capacity (8000 neurons).
+All runs: 1000 episodes, seed 42, 3 workers in parallel (⚠ timings not
+comparable to low-load runs).
+
+| Config (8000n) | best_eval | final_eval | time_s | vs 4000n best | vs 4000n final |
+|---|---|---|---|---|---|
+| **n50_rls_recenter** | **209.2** | **209.2** | 6883 | 160.3 → **+30%** | 160.3 → **+30%** |
+| n30_rls_recenter | 97.5 | 97.5 | 6884 | 138.9 → −30% | 131.5 → −26% |
+| mc_rls | 37.0 | −50.4 | 6694 | 113.7 → −67% | 99.3 → crashed |
+
+**Key finding: n50_rls_recenter at 8000n reaches 209.2 — 98% of DQN's
+214.0.**  This closes the gap from 25% to just 2%.
+
+#### Analysis
+
+The 8000n learning curves show dramatically different character from 4000n:
+
+- **Extremely slow early learning:** All three configs were negative until
+  ep 650–700 (vs ep 300–400 for 4000n).  The 8000×4 decoder matrix needs
+  more data to become well-conditioned.
+- **Late-stage surge for n50:** n50_rls_recenter jumped from 89.1 (ep 950)
+  to 209.2 (ep 1000) — a single-block +120 leap.  This suggests the
+  decoder system was approaching a phase transition where accumulated
+  data finally overcomes the underdetermined regime.
+- **n30 and MC fail to benefit:** n30's shorter horizon doesn't accumulate
+  enough target signal to fill 8000 dimensions.  MC's high variance
+  compounds the problem.  Only n50's moderate horizon+variance balance
+  works with high capacity.
+- **Recentering count:** 4000 neurons recentered across 1000 episodes
+  (50% of 8000), indicating active resource reallocation was crucial for
+  the late convergence.
+
+#### Implications
+
+1. **Capacity helps, but only with the right config:** n50+RLS+recenter
+   is the only combination that benefits from doubling neurons.  All
+   others degrade.
+2. **Sample complexity bottleneck:** 8000n needs ~800+ episodes to reach
+   positive territory.  4000n reaches it by ep 400.  More episodes
+   (e.g., 2000) might push 8000n even higher, but this was not tested.
+3. **Training cost:** 8000n takes ~6900s (parallel, high-load) vs
+   ~2000s for 4000n sequential.  Roughly 3.5× slower per config.
+4. **DQN parity is in reach:** 209.2 vs 214.0 is within noise for a
+   single seed.  Multi-seed evaluation needed for a definitive comparison.

@@ -414,6 +414,18 @@ def main():
         help="Specific config labels to run (default: all)",
     )
     parser.add_argument("--episodes", type=int, default=None)
+    parser.add_argument(
+        "--neurons", type=int, default=None, help="Override n_neurons in all configs"
+    )
+    parser.add_argument(
+        "--ensemble-neurons",
+        type=int,
+        default=None,
+        help="Override n_neurons for ensemble members",
+    )
+    parser.add_argument(
+        "--ensemble-members", type=int, default=None, help="Override ensemble member count"
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
         "--parallel",
@@ -434,6 +446,22 @@ def main():
     seed = args.seed
 
     all_configs = get_all_configs(env_name)
+
+    # Override neuron counts if requested
+    if args.neurons:
+        for label, (kw, ens) in all_configs.items():
+            if ens is None:  # single-agent configs only
+                kw["n_neurons"] = args.neurons
+    if args.ensemble_neurons:
+        for label, (kw, ens) in all_configs.items():
+            if ens is not None:  # ensemble configs only
+                kw["n_neurons"] = args.ensemble_neurons
+    if args.ensemble_members:
+        all_configs = {
+            label: (kw, args.ensemble_members if ens is not None else ens)
+            for label, (kw, ens) in all_configs.items()
+        }
+
     if args.configs:
         configs = {k: v for k, v in all_configs.items() if k in args.configs}
         unknown = set(args.configs) - set(all_configs.keys())
