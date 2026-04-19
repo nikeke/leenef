@@ -242,13 +242,18 @@ class NEFFeatures:
                 # mean so they aren't immediately flagged as dead again.
                 self._act_sum[indices] = self._act_sum.mean()
 
-    def dead_neuron_indices(self, percentile: float = 5.0, min_relative: float = 0.1) -> Tensor:
-        """Return indices of genuinely inactive neurons.
+    def dead_neuron_indices(self, percentile: float = 5.0, min_relative: float = 0.0) -> Tensor:
+        """Return indices of neurons with the lowest activity.
 
-        A neuron is "dead" only if its activity is both below the given
-        *percentile* of all neurons AND below *min_relative* × the
-        population mean.  The absolute floor prevents recentering when
-        all neurons are similarly active.
+        Returns neurons whose activity is at or below the given
+        *percentile*.  When *min_relative* > 0, an additional absolute
+        floor is applied: neurons must also be below *min_relative* ×
+        the population mean, preventing recentering when all neurons
+        are similarly active.
+
+        With the default ``min_relative=0`` the method acts as pure
+        rotation recentering — the bottom *percentile* is always
+        refreshed, continuously adapting the representation.
 
         Uses EMA activity when ``activity_decay`` is set, otherwise
         uses cumulative mean activations.
@@ -262,9 +267,10 @@ class NEFFeatures:
                 return torch.tensor([], dtype=torch.long)
             act = self.mean_activations()
 
-        pctl_threshold = torch.quantile(act, percentile / 100.0)
-        abs_threshold = act.mean() * min_relative
-        threshold = min(pctl_threshold.item(), abs_threshold.item())
+        threshold = torch.quantile(act, percentile / 100.0)
+        if min_relative > 0:
+            abs_threshold = act.mean() * min_relative
+            threshold = min(threshold.item(), abs_threshold.item())
         return torch.where(act <= threshold)[0]
 
     def recenter(self, indices: Tensor, new_centers: Tensor) -> None:
