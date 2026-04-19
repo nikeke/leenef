@@ -1051,17 +1051,129 @@ shows higher eval volatility (ranging from 70.6 to 161.1 in the final
   recentering creates a stable learning loop that benefits from more
   neurons.
 
-**Conclusion:** For NEF-FQI, a single high-capacity agent with
-n50+RLS+recenter is superior to ensembles of any size.  The 8000n
-single agent achieves 209.2 (98% of DQN's 214.0), making it our best
-configuration.
+**Conclusion:** For Thompson ensembles, a single high-capacity agent
+with n50+RLS+recenter is superior.  See §10.4 for voting ensembles,
+which change this conclusion.
 
-### 10.3 Updated Summary Table
+### 10.3 Voting Ensemble and No-Recenter Ablation (3×4000n)
+
+Tested three new ensemble configurations on LunarLander, all with
+n50+RLS, ε_end=0.01, ε_decay=500, 3×4000 neurons.  The voting
+strategy uses majority vote across members with Thompson tiebreaking.
+All timings are high-load (parallel, run alongside other experiments).
+Recentering uses cumulative-mean activity tracking.
+
+| Config | Strategy | Recenter | best_eval | final_eval | best_50 | time_s |
+|---|---|---|---|---|---|---|
+| **voting_n50_recenter** | **voting** | **yes** | **202.9** | **201.4** | **232.2** | 4139 |
+| thompson_n50_norecenter | thompson | no | 158.4 | 158.4 | 169.2 | 4100 |
+| voting_n50_norecenter | voting | no | -48.7 | -50.0 | -46.8 | 2374 |
+
+Comparison with prior ensemble results (different ε schedules noted):
+
+| Config | ε_end | Recenter | best_eval |
+|---|---|---|---|
+| **voting_n50_recenter** | **0.01** | **yes** | **202.9** |
+| thompson_n50 (§4.7) | 0.05 | no | 186.3 |
+| thompson_n50_norecenter | 0.01 | no | 158.4 |
+| thompson_n50 (sweep §9) | 0.01 | yes | 118.4 |
+| voting_n50_norecenter | 0.01 | no | -48.7 |
+
+#### Eval trajectories
+
+- **Voting + recenter:** Slow start, breakthrough at ep 700 (from -58.4
+  to 124.5), then rapid climb to 202.9 by ep 900.  Same "late
+  breakthrough" pattern as 8000n single-agent.  Still climbing at ep
+  1000 — more episodes might push higher.
+- **Thompson no-recenter:** Gradual improvement, positive at ep 650,
+  steadily climbing to 158.4.  Still trending upward — no plateau.
+- **Voting no-recenter:** Plateaus at -50 to -65 from ep 250 onward.
+  Never goes positive.
+
+#### Analysis
+
+**Voting + recenter is the new best ensemble (202.9, 95% of DQN):**
+- Majority vote produces a stable consensus policy from diverse members.
+- Recentering adapts neurons to the current value function, which is
+  critical for voting since consensus from stale neurons is meaningless.
+- The late-breakthrough pattern (ep 700) suggests recentering accumulates
+  improvements until the neurons align well enough for a coherent policy.
+- 6000 neurons were recentered across 1000 episodes (50% of 12000
+  total), confirming active resource reallocation.
+
+**Recentering interaction by strategy:**
+- **Voting + recenter = excellent (202.9):** Recentering improves each
+  member, voting aggregates coherent improvements.
+- **Thompson + recenter = harmful (118.4 < 158.4):** Each member
+  recenters independently, destabilizing the random projections that
+  Thompson relies on for diverse exploration.
+- **Voting without recenter = fails (-48.7):** Without neuron
+  adaptation, voting consensus from random projections is meaningless.
+- **Thompson without recenter = decent (158.4):** Thompson's
+  stochastic selection compensates for lack of adaptation.
+
+**ε schedule matters for Thompson:**
+- §4.7 (ε_end=0.05): 186.3 — more exploration helps Thompson.
+- New (ε_end=0.01): 158.4 — less exploration hurts Thompson.
+- This suggests Thompson benefits from sustained exploration more
+  than voting does.
+
+### 10.4 6000-Neuron Single Agent (LunarLander)
+
+Tested n50_rls_recenter at 6000 neurons to fill the gap between
+4000n and 8000n.  Low-load timing (run alongside ensemble sweep,
+OMP_NUM_THREADS=2).
+
+| Config | Neurons | best_eval | final_eval | time_s |
+|---|---|---|---|---|
+| n50_rls_recenter | 8000 | **209.2** | **209.2** | 6883 |
+| n50_rls_recenter | 6000 | -24.1 | -24.1 | 4386 |
+| n50_rls_recenter | 4000 | 160.3 | 160.3 | ~1500 |
+
+#### Eval trajectory
+
+```
+ep  400:  -70.0    ep  800:  -36.6
+ep  500:  -59.6    ep  900:  -53.0
+ep  650:  -31.3    ep 1000:  -24.1
+```
+
+The 6000n agent improves slowly (from -412 to -24) but never goes
+positive.  Training rewards show occasional spikes (240.7, 219.7 late)
+but the eval policy remains poor.  3000 neurons were recentered.
+
+#### Analysis: non-monotonic scaling
+
+The 4000n→6000n→8000n scaling is surprisingly non-monotonic:
+4000n=160.3, 6000n=-24.1, 8000n=209.2.  This is a single-seed
+result, so high variance is likely part of the explanation.
+
+Possible factors:
+1. **Sample complexity phase transition:** 6000n may be in a "valley"
+   where there are too many parameters for the data volume (1000×~200
+   transitions ≈ 200k samples) but not enough neurons for the
+   recentering mechanism to find good configurations.
+2. **Recentering dynamics:** At 6000n, recentering may be too
+   aggressive (replacing too many neurons) or not aggressive enough
+   (not enough dead neurons to replace).
+3. **Seed sensitivity:** The 5th-percentile threshold + random
+   initialization may be sensitive to the particular random seed.
+   Multi-seed evaluation would clarify.
+
+**Conclusion:** 6000n is in a difficult regime for this seed.  The
+result underscores the importance of multi-seed evaluation and suggests
+that 4000n (fast, reliable) or 8000n (slow, high ceiling) are the
+practical choices.
+
+### 10.5 Updated Summary Table
 
 | Config | best_eval | DQN gap | Comment |
 |---|---|---|---|
-| **n50_rls_recenter (8000n)** | **209.2** | **2%** | **Best NEF-FQI** |
-| thompson_n50 (3×4000) | 186.3 | 13% | Best ensemble |
-| n50_rls_recenter (4000n) | 160.3 | 25% | Sweet spot for speed |
+| **n50_rls_recenter (8000n)** | **209.2** | **2%** | **Best overall** |
+| **voting+recenter (3×4000)** | **202.9** | **5%** | **Best ensemble** |
+| thompson_n50 (3×4000, §4.7) | 186.3 | 13% | ε_end=0.05, no recenter |
+| n50_rls_recenter (4000n) | 160.3 | 25% | Speed–quality sweet spot |
+| thompson_n50_norecenter (3×4000) | 158.4 | 26% | ε_end=0.01 |
 | thompson_n50 (2×6000) | 161.1 | 25% | Worse than 3×4k |
+| n50_rls_recenter (6000n) | -24.1 | — | Non-monotonic, single seed |
 | DQN | 214.0 | — | Gradient-based baseline |

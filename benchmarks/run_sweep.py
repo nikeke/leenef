@@ -144,7 +144,10 @@ def run_experiment(
             eval_ret = evaluate_greedy(agent, env_name, eval_episodes, seed=10000)
             eval_history.append({"episode": ep + 1, "eval": round(eval_ret, 1)})
             r50 = np.mean(rewards[-50:]) if len(rewards) >= 50 else np.mean(rewards)
-            print(f"  [{label}] ep {ep + 1:4d}  train_50={r50:7.1f}  eval={eval_ret:7.1f}")
+            print(
+                f"  [{label}] ep {ep + 1:4d}  train_50={r50:7.1f}  eval={eval_ret:7.1f}",
+                flush=True,
+            )
 
     elapsed = time.time() - t_start
     env.close()
@@ -204,7 +207,7 @@ def _worker(args):
             ensemble_members=ensemble_members,
         )
     except Exception as e:
-        print(f"  [{label}] FAILED: {e}")
+        print(f"  [{label}] FAILED: {e}", flush=True)
         return {"label": label, "error": str(e)}
 
 
@@ -348,6 +351,18 @@ def get_all_configs(env_name):
         None,
     )
 
+    configs["n70_rls_recenter"] = (
+        {
+            **base,
+            "target_mode": "nstep",
+            "n_step": 70,
+            "forget_factor": 0.999,
+            "recenter_interval": 100,
+            "recenter_percentile": 5.0,
+        },
+        None,
+    )
+
     # --- MC baselines for comparison ---
 
     configs["mc_rls_recenter"] = (
@@ -425,6 +440,20 @@ def get_all_configs(env_name):
             "forget_factor": 0.999,
         },
         (3, "voting"),
+    )
+
+    # --- 4-member voting (total 12k with 3000n each) ---
+
+    configs["voting4_n50_recenter"] = (
+        {
+            **base,
+            "target_mode": "nstep",
+            "n_step": 50,
+            "forget_factor": 0.999,
+            "recenter_interval": 100,
+            "recenter_percentile": 5.0,
+        },
+        (4, "voting"),
     )
 
     return configs

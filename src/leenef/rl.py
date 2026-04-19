@@ -213,35 +213,59 @@ class NEFFeatures:
             return torch.zeros(self.n_neurons)
         return self._act_sum / self._act_count
 
-    def reset_activation_stats(self) -> None:
+    def reset_activation_stats(self, indices: Tensor | None = None) -> None:
         """Reset activation tracking counters.
 
-        For EMA mode, sets all neurons to current mean (fair restart).
-        For cumulative mode, zeroes all counters.
+        Parameters
+        ----------
+        indices : Tensor or None
+            If given, reset only those neurons.  If *None*, reset all.
+            For EMA mode, reset neurons get the current global mean
+            (fair restart).  For cumulative mode, reset neurons get
+            zero sums (the sample count is not changed so surviving
+            neurons keep their long-term statistics).
         """
+        if indices is not None and len(indices) == 0:
+            return
         if self._activity_decay is not None:
             mean_val = self._ema_activity.mean().item()
-            self._ema_activity.fill_(mean_val)
+            if indices is None:
+                self._ema_activity.fill_(mean_val)
+            else:
+                self._ema_activity[indices] = mean_val
         else:
-            self._act_sum.zero_()
-            self._act_count = 0
+            if indices is None:
+                self._act_sum.zero_()
+                self._act_count = 0
+            else:
+                # Give recentered neurons a fair start at the current
+                # mean so they aren't immediately flagged as dead again.
+                self._act_sum[indices] = self._act_sum.mean()
 
-    def dead_neuron_indices(self, percentile: float = 5.0) -> Tensor:
-        """Return indices of neurons below the given activation percentile.
+    def dead_neuron_indices(self, percentile: float = 5.0, min_relative: float = 0.1) -> Tensor:
+        """Return indices of genuinely inactive neurons.
+
+        A neuron is "dead" only if its activity is both below the given
+        *percentile* of all neurons AND below *min_relative* × the
+        population mean.  The absolute floor prevents recentering when
+        all neurons are similarly active.
 
         Uses EMA activity when ``activity_decay`` is set, otherwise
         uses cumulative mean activations.
         """
         if self._activity_decay is not None:
-            if self._ema_activity.sum() == 0:
+            act = self._ema_activity
+            if act.sum() == 0:
                 return torch.tensor([], dtype=torch.long)
-            threshold = torch.quantile(self._ema_activity, percentile / 100.0)
-            return torch.where(self._ema_activity <= threshold)[0]
-        if self._act_count == 0:
-            return torch.tensor([], dtype=torch.long)
-        mean_act = self.mean_activations()
-        threshold = torch.quantile(mean_act, percentile / 100.0)
-        return torch.where(mean_act <= threshold)[0]
+        else:
+            if self._act_count == 0:
+                return torch.tensor([], dtype=torch.long)
+            act = self.mean_activations()
+
+        pctl_threshold = torch.quantile(act, percentile / 100.0)
+        abs_threshold = act.mean() * min_relative
+        threshold = min(pctl_threshold.item(), abs_threshold.item())
+        return torch.where(act <= threshold)[0]
 
     def recenter(self, indices: Tensor, new_centers: Tensor) -> None:
         """Recenter neurons at *indices* to *new_centers*.
@@ -823,8 +847,6 @@ class NEFFQIAgent:
 
         dead = self.features.dead_neuron_indices(self.recenter_percentile)
         if len(dead) == 0:
-            if self.features._activity_decay is None:
-                self.features.reset_activation_stats()
             return 0
 
         recent_t = torch.tensor(np.array(recent), dtype=torch.float32)
@@ -842,13 +864,9 @@ class NEFFQIAgent:
 
         self._recentered_total += len(dead)
 
-        # EMA: give recentered neurons a fair start (current mean)
-        # Cumulative: reset all counters
-        if self.features._activity_decay is not None:
-            avg = self.features._ema_activity.mean()
-            self.features._ema_activity[dead] = avg
-        else:
-            self.features.reset_activation_stats()
+        # Reset activity stats only for recentered neurons so surviving
+        # neurons keep their long-term statistics.
+        self.features.reset_activation_stats(dead)
         return len(dead)
 
     def warmup(
