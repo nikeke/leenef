@@ -4,6 +4,13 @@ Research notes for NEF-based reinforcement learning experiments.
 
 Hardware: CPU = AMD Ryzen 5 PRO 5650U (6C/12T, 30 GB RAM), no GPU.
 
+**Recentering note:** all recentering results use **cumulative-mean**
+activity tracking (the original implementation) unless explicitly
+labeled `_ema`.  EMA activity tracking was tested as a separate
+configuration and found to hurt performance (see §8.8 and §9.1).
+The §4.7 ensemble results used **no recentering** — unlike the
+sweep (§9) which includes recentering in Thompson configs.
+
 
 ## 1. Concept
 
@@ -139,7 +146,8 @@ grows.  No deadly triad, no target network, no Polyak averaging.
 NEF-FQI reaches the maximum score of 500 (environment ceiling) from
 episode 350 onward.  DQN peaks at 332 but never stabilizes.
 
-**RLS forgetting + dead neuron recentering** (2000 neurons, 500 episodes):
+**RLS forgetting + dead neuron recentering** (2000 neurons, 500 episodes,
+cumulative-mean activity tracking for dead neuron detection):
 
 | Config                       | Best eval | Final eval | Time    |
 |------------------------------|-----------|------------|---------|
@@ -189,7 +197,7 @@ not an NEF-specific failure.
 **n-step(50) is the best single-agent config; Thompson ensemble closes
 57% of the DQN gap.**
 
-#### Baseline experiments (8000 neurons, greedy eval)
+#### Baseline experiments (8000 neurons, greedy eval, cumulative-mean recentering)
 
 | Method                            | Neurons | Episodes | Best eval  | Final eval | Time     |
 |-----------------------------------|---------|----------|------------|------------|----------|
@@ -200,7 +208,7 @@ not an NEF-specific failure.
 | RLS β=0.999 + recenter/100        | 8000    | 1000     | 109.4      | 102.2      | 2621.1s  |
 | DQN 256×2                         | —       | 1000     | **214.0**  | 208.8      | 520.7s   |
 
-#### Target mode comparison (4000 neurons, RLS β=0.999, recenter/100, training best_50)
+#### Target mode comparison (4000 neurons, RLS β=0.999, cumulative-mean recenter/100, training best_50)
 
 | Config      | best_50   | final_50  | time_s |
 |-------------|-----------|-----------|--------|
@@ -335,6 +343,8 @@ preserve the model-independence that makes the analytical solve stable.
 
 All configs: RLS β=0.999, solve every 10, 1000 episodes, ε 1.0→0.05.
 Ensemble members share experience (broadcast transitions to all).
+**No recentering** in this experiment — unlike the sweep (§9) which
+uses recentering.  This partly explains the gap vs sweep results.
 
 **Thompson 3×4k closes 57% of the gap to DQN** (214.0).  The learning
 curve shows a characteristic pattern: slow start (worse than single
@@ -627,11 +637,17 @@ out any TD-based target improvement.
 model independence while reducing variance via horizon truncation.
 MC is superseded as the default.
 
-### 8.4 Online Woodbury updates (original Step 2)
+### 8.4 Online Woodbury updates (original Step 2) ✅ ADDRESSED
 
-Replace the full-buffer solve with episode-by-episode Woodbury updates.
-Each episode adds rank-k updates to (AᵀA)⁻¹.  Combines naturally with
-§8.1 (forgetting factor on the Woodbury inverse).
+The original idea was to maintain (AᵀA)⁻¹ directly via rank-k Woodbury
+updates.  This was implemented and tested in the CL path (see
+`continuous_fit()` in `layers.py`).  For RL, we instead implemented
+RLS-style exponential forgetting on the sufficient statistics
+(`AᵀA ← β·AᵀA + batch`), which achieves the same goal — buffer-free
+online updates — without the numerical drift risk of maintaining an
+explicit inverse.  The RLS approach is simpler, numerically stable
+(float64 accumulation), and has been the backbone of all our best RL
+results.  A direct Woodbury inverse in RL is not needed.
 
 ### 8.5 Ensemble exploration (original Step 3) ✅ TESTED
 
@@ -800,10 +816,14 @@ eval every 50 episodes with ε=0, 20 episodes).
 Axes tested:
 
 1. **RLS**: off (buffer replay) vs on (β=0.999)
-2. **Recentering**: off vs on (/100, 5th percentile)
+2. **Recentering**: off vs on (/100, 5th percentile, cumulative-mean)
 3. **EMA activity**: off vs on (decay=0.99), only with recentering
 4. **Thompson ensemble**: off vs on (3×4000 members)
 5. **n-step horizon**: 30, 50, 100 (plus MC baselines)
+
+All recentering configs use **cumulative-mean** activity tracking
+unless explicitly labeled `_ema`.  EMA was tested as a separate axis
+(`n50_rls_recenter_ema`) and found to hurt consistently.
 
 Standard config: 4000 neurons, γ=0.99, α=1e-2, ε 1.0→0.01
 (decay=500), solve_every=10.  All timings are parallel-mode (3-5
@@ -861,10 +881,11 @@ exploration helps early but 3 independent recentering schedules
 create instability.  Thompson MC is a complete failure (final=-36.8).
 
 **Thompson MC vs prior results.** The old Thompson MC benchmark
-(§4.7, eval=186.3) used different hyperparameters (ε_end=0.05,
-possibly no recentering).  This sweep uses ε_end=0.01 with
-recentering, which hurts MC (see recentering+MC finding above).
-The old result is not invalidated but is not directly comparable.
+(§4.7, eval=186.3) used **no recentering** and ε_end=0.05.  This
+sweep uses ε_end=0.01 with recentering, which hurts MC (see
+recentering+MC finding above).  The §4.7 result is not invalidated
+but is not directly comparable — a fair comparison requires either
+Thompson without recentering or the old ε schedule.
 
 ### 9.2 CartPole-v1 (500 episodes, 2000 neurons)
 
@@ -947,7 +968,8 @@ tests whether more capacity helps or hurts.
 
 ### 10.1 8000-Neuron Single-Agent (LunarLander)
 
-Tested the top three 4000n configs with doubled capacity (8000 neurons).
+Tested the top three 4000n configs with doubled capacity (8000 neurons,
+cumulative-mean recentering where applicable).
 All runs: 1000 episodes, seed 42, 3 workers in parallel (⚠ timings not
 comparable to low-load runs).
 
