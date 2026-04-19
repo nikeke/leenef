@@ -12,7 +12,7 @@ one-shot least-squares on the full replay buffer.
 
 Two target modes are supported:
 
-- **mc** (Monte Carlo): regression targets are undiscounted episode
+- **mc** (Monte Carlo): regression targets are discounted episode
   returns G_t = Σ γ^k r_{t+k}.  No bootstrapping, no target network.
   Optionally blended with TD via ``td_lambda`` (λ-returns).
 - **td** (Temporal Difference): bootstrapped targets y = r + γ max Q(s').
