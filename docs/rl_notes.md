@@ -322,6 +322,86 @@ features — it's the exploration diversity.
 | DQN (reference)             | 214.0     | 214.0      |
 
 
+### 4.8 Continual RL: Sequential LunarLander Variants
+
+**Strong forward transfer between related tasks; destructive interference
+from dissimilar dynamics.**
+
+Three task variants sharing the same 8D observation space:
+- **A_default:** gravity=-10, no wind (standard LunarLander)
+- **B_lowgrav:** gravity=-5, no wind (easier physics)
+- **C_wind:** gravity=-10, wind=15, turbulence=1.5 (lateral forces)
+
+All configs: 4000 neurons, MC targets, solve every 10, 500 episodes/task.
+
+#### Separate agents (upper bound per task)
+
+| Task      | Own score | Cross-task A | Cross-task B | Cross-task C |
+|-----------|-----------|--------------|--------------|--------------|
+| A_default | 19.7      | —            | 36.0         | -61.2        |
+| B_lowgrav | 136.3     | 38.8         | —            | -58.1        |
+| C_wind    | -94.0     | -79.2        | -62.6        | —            |
+
+B is easiest (136.3), C is hardest (never positive).  B-trained agent
+transfers to A (38.8 > A's own 19.7) — landing skills are shared.
+
+#### Continual (β=0.999, mild forgetting)
+
+Sequential A → B → C, one agent, no reset.
+
+| After phase | A       | B       | C       |
+|-------------|---------|---------|---------|
+| A (ep 500)  | -34.3   | -58.9   | -106.1  |
+| B (ep 500)  | **87.9**| 96.4    | -87.4   |
+| C (ep 500)  | -14.3   | 32.4    | -57.5   |
+
+After phase B: A jumps from -34.3 to **87.9** — massive forward transfer.
+After phase C: A drops to -14.3, B drops to 32.4.  RLS decay (β^500≈0.61)
+lets C data gradually overwrite A/B knowledge.
+
+#### Continual (β=1.0, pure accumulation)
+
+| After phase | A        | B        | C       |
+|-------------|----------|----------|---------|
+| A (ep 500)  | -7.3     | -101.8   | -132.3  |
+| B (ep 500)  | **165.1**| **178.4**| -43.9   |
+| C (ep 500)  | -25.9    | -47.5    | -69.9   |
+
+**Peak result after phase B:** A=165.1 (8× separate), B=178.4 (31%
+better than separate).  At ep 300 of phase B, the agent even achieved
+C=9.3 — positive on the untrained wind task via zero-shot transfer!
+
+But phase C destroys everything: A drops from 165 to -26, B from 178
+to -48.  Wind transitions actively corrupt the Q-function for non-wind
+tasks.
+
+#### Analysis: why C destroys prior knowledge
+
+The structural difference from CL classification is fundamental:
+
+- **CL classification:** each class has its own decoder column.  Adding
+  class 5 data cannot corrupt class 0 weights.  No conflict by design.
+- **CL RL:** all tasks share the same Q-function (same action space).
+  The optimal action in a given state differs between tasks.  State
+  (x=0, vy=-1) might need "fire main engine" in normal gravity but
+  "do nothing" in low gravity.  Conflicting targets for the same
+  features cause destructive interference.
+
+The A↔B transfer works because their physics are similar enough that
+the same general "slow down, center, land" strategy works for both.
+Wind (task C) requires lateral correction — a fundamentally different
+control strategy that conflicts with the hover-and-descend policy.
+
+**Implications for the paper:**
+1. NEF's additive accumulation prevents *data-level* forgetting (old
+   AᵀA/AᵀY persist) but cannot prevent *objective-level* interference
+   when tasks have conflicting optimal policies.
+2. Forward transfer between related tasks is powerful (8×) and inherent
+   to the shared representation.
+3. Solutions for conflicting tasks: multi-head Q (one per task), task-
+   conditioned features, or ensemble members specializing per task.
+
+
 ## 5. Summary Table
 
 | Environment    | NEF-FQI (MC) | NEF-FQI (RLS) | Thompson 3×4k | DQN     | Winner  | Why                           |
@@ -501,10 +581,25 @@ exploration strategies tested:
 Thompson is the clear winner and should be the default ensemble strategy
 for NEF-FQI.  See §4.7 for full analysis.
 
-### 8.6 Continual RL (original Step 4)
+### 8.6 Continual RL (original Step 4) ✅ TESTED — MIXED
 
-Sequential tasks with changing dynamics or rewards.  The AᵀA/AᵀY
-accumulation should retain knowledge across tasks — the CL+RL synthesis.
+Sequential LunarLander variants (gravity, wind).  See §4.8 for full
+results.
+
+**Positive:** massive forward transfer between related tasks (A↔B).
+After training on A then B, A performance jumps 8× vs separate agent.
+Pure accumulation (β=1.0) reaches 165.1 on A and 178.4 on B.
+
+**Negative:** dissimilar task dynamics (wind) cause destructive
+interference.  Phase C drops A from 165 to -26 and B from 178 to -48.
+
+**Root cause:** unlike CL classification where each class has its own
+output dimension, RL tasks share the Q-function.  Conflicting optimal
+policies for the same state create interference that accumulation
+cannot prevent.
+
+**Possible solutions:** multi-head Q (task-specific decoders), task-
+conditioned features, or ensemble specialization.
 
 ### 8.7 Scaling neurons with state dimension ✅ TESTED
 
