@@ -151,7 +151,7 @@ class NEFFeatures:
         if activity_decay is not None:
             self._ema_activity = torch.zeros(n_neurons)
         self._act_sum = torch.zeros(n_neurons)
-        self._act_count = 0
+        self._act_count = 0.0
 
     def update_stats(self, obs_batch: Tensor) -> None:
         """Update running mean/variance with a batch of observations."""
@@ -213,34 +213,80 @@ class NEFFeatures:
             return torch.zeros(self.n_neurons)
         return self._act_sum / self._act_count
 
-    def reset_activation_stats(self, indices: Tensor | None = None) -> None:
-        """Reset activation tracking counters.
+    def apply_broadness(self, broadness: float, recentered: Tensor) -> None:
+        """Apply broadness-based activity stat decay after recentering.
 
         Parameters
         ----------
-        indices : Tensor or None
-            If given, reset only those neurons.  If *None*, reset all.
-            For EMA mode, reset neurons get the current global mean
-            (fair restart).  For cumulative mode, reset neurons get
-            zero sums (the sample count is not changed so surviving
-            neurons keep their long-term statistics).
+        broadness : float in [0, 1]
+            0 = focused (only recentered neurons' stats are reset),
+            1 = broad (all stats reset — fresh start),
+            in between = partial forgetting of non-recentered history.
+        recentered : Tensor
+            Indices of neurons that were just recentered.
         """
-        if indices is not None and len(indices) == 0:
+        if len(recentered) == 0:
             return
+
         if self._activity_decay is not None:
-            mean_val = self._ema_activity.mean().item()
-            if indices is None:
+            if broadness >= 1.0:
+                # Broad: equalize all to current mean (original behavior)
+                mean_val = self._ema_activity.mean().item()
                 self._ema_activity.fill_(mean_val)
             else:
-                self._ema_activity[indices] = mean_val
+                alive = torch.ones(self.n_neurons, dtype=torch.bool)
+                alive[recentered] = False
+                if broadness > 0 and alive.any():
+                    self._ema_activity[alive] *= 1.0 - broadness
+                mean_val = (
+                    self._ema_activity[alive].mean().item()
+                    if alive.any()
+                    else self._ema_activity.mean().item()
+                )
+                self._ema_activity[recentered] = mean_val
         else:
-            if indices is None:
+            if broadness >= 1.0:
+                # Broad: full reset (original behavior)
                 self._act_sum.zero_()
-                self._act_count = 0
+                self._act_count = 0.0
             else:
-                # Give recentered neurons a fair start at the current
-                # mean so they aren't immediately flagged as dead again.
-                self._act_sum[indices] = self._act_sum.mean()
+                alive = torch.ones(self.n_neurons, dtype=torch.bool)
+                alive[recentered] = False
+                if broadness > 0 and alive.any():
+                    keep = 1.0 - broadness
+                    self._act_sum[alive] *= keep
+                    self._act_count = max(1.0, self._act_count * keep)
+                fair_start = (
+                    self._act_sum[alive].mean().item()
+                    if alive.any()
+                    else self._act_sum.mean().item()
+                )
+                self._act_sum[recentered] = fair_start
+
+    def activity_stats(self) -> dict:
+        """Return a snapshot of per-neuron activity distribution.
+
+        Useful for diagnosing recentering behavior and tuning
+        ``min_relative``.
+        """
+        if self._activity_decay is not None:
+            act = self._ema_activity
+        elif self._act_count > 0:
+            act = self.mean_activations()
+        else:
+            return {"count": 0}
+        return {
+            "count": int(self._act_count) if self._activity_decay is None else -1,
+            "mean": round(act.mean().item(), 6),
+            "std": round(act.std().item(), 6),
+            "min": round(act.min().item(), 6),
+            "max": round(act.max().item(), 6),
+            "p5": round(torch.quantile(act, 0.05).item(), 6),
+            "p25": round(torch.quantile(act, 0.25).item(), 6),
+            "p50": round(torch.quantile(act, 0.50).item(), 6),
+            "p75": round(torch.quantile(act, 0.75).item(), 6),
+            "min_over_mean": round((act.min() / act.mean()).item(), 4) if act.mean() > 0 else 0.0,
+        }
 
     def dead_neuron_indices(self, percentile: float = 5.0, min_relative: float = 0.0) -> Tensor:
         """Return indices of neurons with the lowest activity.
@@ -346,11 +392,14 @@ class NEFFQIAgent:
             episodes and recenter them to recently observed states.
         recenter_percentile: activation percentile below which neurons
             are considered dead (default 5.0).
-        recenter_mode: ``"broad"`` resets ALL neurons' stats after each
-            recenter (good for high capacity — broad encoder search).
-            ``"focused"`` resets only recentered neurons' stats to the
-            current mean (good for low capacity — targeted recycling).
-            Default ``"broad"``.
+        recenter_min_relative: additional absolute floor for dead neuron
+            detection.  A neuron must be below *both* the percentile
+            threshold and ``min_relative × mean_activity`` to be
+            recentered.  Default 0 (pure rotation).
+        broadness: controls how much activity history is forgotten
+            after recentering.  0 = focused (only recentered neurons'
+            stats reset), 1 = broad (full history reset), in between =
+            partial forgetting.  Default 1.0.
         activity_decay: if set, use EMA activity tracking for
             recentering instead of cumulative mean.
         features_kwargs: extra keyword arguments forwarded to
@@ -381,7 +430,8 @@ class NEFFQIAgent:
         reward_ema_decay: float = 0.99,
         recenter_interval: int | None = None,
         recenter_percentile: float = 5.0,
-        recenter_mode: str = "broad",
+        recenter_min_relative: float = 0.0,
+        broadness: float = 1.0,
         activity_decay: float | None = None,
         features_kwargs: dict | None = None,
         seed: int = 0,
@@ -391,8 +441,8 @@ class NEFFQIAgent:
             raise ValueError(f"target_mode must be one of {valid_modes}, got {target_mode!r}")
         if target_mode in ("eligibility", "differential") and forget_factor is None:
             raise ValueError(f"target_mode={target_mode!r} requires forget_factor")
-        if recenter_mode not in ("broad", "focused"):
-            raise ValueError(f"recenter_mode must be 'broad' or 'focused', got {recenter_mode!r}")
+        if not 0.0 <= broadness <= 1.0:
+            raise ValueError(f"broadness must be in [0, 1], got {broadness!r}")
 
         self.n_actions = n_actions
         self.n_neurons = n_neurons
@@ -412,8 +462,10 @@ class NEFFQIAgent:
         self.reward_ema_decay = reward_ema_decay
         self.recenter_interval = recenter_interval
         self.recenter_percentile = recenter_percentile
-        self.recenter_mode = recenter_mode
+        self.recenter_min_relative = recenter_min_relative
+        self.broadness = broadness
         self.rng = np.random.default_rng(seed)
+        self._torch_rng = torch.Generator().manual_seed(seed + 1)
 
         feat_kw = dict(features_kwargs or {})
         if recenter_interval is not None:
@@ -456,6 +508,7 @@ class NEFFQIAgent:
         self._total_steps = 0
         self._solve_count = 0
         self._recentered_total = 0
+        self._recenter_log: list[dict] = []
 
     @property
     def _use_lambda_returns(self) -> bool:
@@ -852,6 +905,7 @@ class NEFFQIAgent:
     def _recenter_dead(self) -> int:
         """Recenter dead neurons to recently observed states.
 
+        Logs activity distribution stats for each recenter event.
         Returns the number of neurons recentered.
         """
         if self.recenter_interval is None:
@@ -860,12 +914,17 @@ class NEFFQIAgent:
         if len(recent) < 100:
             return 0
 
-        dead = self.features.dead_neuron_indices(self.recenter_percentile)
+        # Collect pre-recenter activity stats
+        stats = self.features.activity_stats()
+
+        dead = self.features.dead_neuron_indices(
+            self.recenter_percentile, self.recenter_min_relative
+        )
         if len(dead) == 0:
             return 0
 
         recent_t = torch.tensor(np.array(recent), dtype=torch.float32)
-        idx = torch.randint(len(recent_t), (len(dead),))
+        idx = torch.randint(len(recent_t), (len(dead),), generator=self._torch_rng)
         new_centers = recent_t[idx]
 
         self.features.recenter(dead, new_centers)
@@ -879,13 +938,17 @@ class NEFFQIAgent:
 
         self._recentered_total += len(dead)
 
-        # Reset activity stats based on recenter_mode:
-        # "broad"   — reset ALL neurons (old behavior: broad encoder search)
-        # "focused" — reset only recentered neurons (targeted recycling)
-        if self.recenter_mode == "broad":
-            self.features.reset_activation_stats()
-        else:
-            self.features.reset_activation_stats(dead)
+        # Log recenter event
+        self._recenter_log.append(
+            {
+                "episode": self._episode,
+                "n_dead": len(dead),
+                "activity": stats,
+            }
+        )
+
+        # Apply broadness-based stat decay
+        self.features.apply_broadness(self.broadness, dead)
         return len(dead)
 
     def warmup(

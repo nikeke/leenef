@@ -167,11 +167,15 @@ def run_experiment(
     final_eval = eval_history[-1]["eval"] if eval_history else None
 
     recentered = 0
+    recenter_log = []
     if ensemble_members:
         recentered = sum(getattr(m, "_recentered_total", 0) for m in agent.members)
+        for m in agent.members:
+            recenter_log.extend(getattr(m, "_recenter_log", []))
         n_mem_out = n_mem
     else:
         recentered = getattr(agent, "_recentered_total", 0)
+        recenter_log = getattr(agent, "_recenter_log", [])
         n_mem_out = None
 
     return {
@@ -186,6 +190,7 @@ def run_experiment(
         "ensemble_members": n_mem_out,
         "eval_history": eval_history,
         "rewards": [round(float(r), 1) for r in rewards],
+        "recenter_log": recenter_log,
     }
 
 
@@ -274,7 +279,7 @@ def get_all_configs(env_name):
 
     # --- Single agent: n-step ablation ---
 
-    # n50 + RLS + recenter (our current best single-agent)
+    # n50 + RLS + recenter (broadness=1.0 — our default broad recentering)
     configs["n50_rls_recenter"] = (
         {
             **base,
@@ -287,7 +292,7 @@ def get_all_configs(env_name):
         None,
     )
 
-    # n50 + RLS + focused recenter (per-neuron stats — best at 4000n)
+    # n50 + RLS + focused recenter (broadness=0.0)
     configs["n50_rls_recenter_focused"] = (
         {
             **base,
@@ -296,7 +301,7 @@ def get_all_configs(env_name):
             "forget_factor": 0.999,
             "recenter_interval": 100,
             "recenter_percentile": 5.0,
-            "recenter_mode": "focused",
+            "broadness": 0.0,
         },
         None,
     )
