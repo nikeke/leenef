@@ -216,34 +216,42 @@ class NEFFeatures:
     def apply_broadness(self, broadness: float, recentered: Tensor) -> None:
         """Apply broadness-based activity stat decay after recentering.
 
-        Sets recentered neurons to the current mean activity, then scales
-        all stats by ``(1 - broadness)``.  Special-cases broadness=1 (full
-        reset) for numerical stability.
+        Sets recentered neurons to the current mean activity of the
+        non-recentered population, then scales all tracked activity stats
+        by ``(1 - broadness)``.
 
         Parameters
         ----------
         broadness : float in [0, 1]
             0 = focused (recentered neurons get the mean, rest unchanged),
-            1 = broad (full reset — all stats zeroed),
+            1 = broad (all tracked activity is forgotten),
             in between = recentered get the mean, then everything decays.
         recentered : Tensor
             Indices of neurons that were just recentered (may be empty).
         """
-        if broadness >= 1.0:
-            if self._activity_decay is not None:
-                self._ema_activity.zero_()
-            else:
-                self._act_sum.zero_()
-                self._act_count = 0.0
-            return
+        keep = 1.0 - broadness
+        n_recentered = int(recentered.numel())
+        n_alive = self.n_neurons - n_recentered
 
         if self._activity_decay is not None:
-            self._ema_activity[recentered] = self._ema_activity.mean().item()
-            self._ema_activity *= 1.0 - broadness
+            if n_recentered > 0:
+                if n_alive > 0:
+                    alive_mean = (
+                        self._ema_activity.sum() - self._ema_activity[recentered].sum()
+                    ) / n_alive
+                else:
+                    alive_mean = self._ema_activity.mean()
+                self._ema_activity[recentered] = alive_mean
+            self._ema_activity *= keep
         else:
-            self._act_sum[recentered] = self._act_sum.mean().item()
-            self._act_sum *= 1.0 - broadness
-            self._act_count = max(1.0, self._act_count * (1.0 - broadness))
+            if n_recentered > 0:
+                if n_alive > 0:
+                    alive_mean = (self._act_sum.sum() - self._act_sum[recentered].sum()) / n_alive
+                else:
+                    alive_mean = self._act_sum.mean()
+                self._act_sum[recentered] = alive_mean
+            self._act_sum *= keep
+            self._act_count *= keep
 
     def activity_stats(self) -> dict:
         """Return a snapshot of per-neuron activity distribution.
@@ -258,7 +266,7 @@ class NEFFeatures:
         else:
             return {"count": 0}
         return {
-            "count": int(self._act_count) if self._activity_decay is None else -1,
+            "count": round(self._act_count, 3) if self._activity_decay is None else -1,
             "mean": round(act.mean().item(), 6),
             "std": round(act.std().item(), 6),
             "min": round(act.min().item(), 6),
