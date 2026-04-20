@@ -216,52 +216,34 @@ class NEFFeatures:
     def apply_broadness(self, broadness: float, recentered: Tensor) -> None:
         """Apply broadness-based activity stat decay after recentering.
 
+        Sets recentered neurons to the current mean activity, then scales
+        all stats by ``(1 - broadness)``.  Special-cases broadness=1 (full
+        reset) for numerical stability.
+
         Parameters
         ----------
         broadness : float in [0, 1]
-            0 = focused (only recentered neurons' stats are reset),
-            1 = broad (all stats reset — fresh start),
-            in between = partial forgetting of non-recentered history.
+            0 = focused (recentered neurons get the mean, rest unchanged),
+            1 = broad (full reset — all stats zeroed),
+            in between = recentered get the mean, then everything decays.
         recentered : Tensor
-            Indices of neurons that were just recentered.
+            Indices of neurons that were just recentered (may be empty).
         """
-        if len(recentered) == 0:
+        if broadness >= 1.0:
+            if self._activity_decay is not None:
+                self._ema_activity.zero_()
+            else:
+                self._act_sum.zero_()
+                self._act_count = 0.0
             return
 
         if self._activity_decay is not None:
-            if broadness >= 1.0:
-                # Broad: equalize all to current mean (original behavior)
-                mean_val = self._ema_activity.mean().item()
-                self._ema_activity.fill_(mean_val)
-            else:
-                alive = torch.ones(self.n_neurons, dtype=torch.bool)
-                alive[recentered] = False
-                if broadness > 0 and alive.any():
-                    self._ema_activity[alive] *= 1.0 - broadness
-                mean_val = (
-                    self._ema_activity[alive].mean().item()
-                    if alive.any()
-                    else self._ema_activity.mean().item()
-                )
-                self._ema_activity[recentered] = mean_val
+            self._ema_activity[recentered] = self._ema_activity.mean().item()
+            self._ema_activity *= 1.0 - broadness
         else:
-            if broadness >= 1.0:
-                # Broad: full reset (original behavior)
-                self._act_sum.zero_()
-                self._act_count = 0.0
-            else:
-                alive = torch.ones(self.n_neurons, dtype=torch.bool)
-                alive[recentered] = False
-                if broadness > 0 and alive.any():
-                    keep = 1.0 - broadness
-                    self._act_sum[alive] *= keep
-                    self._act_count = max(1.0, self._act_count * keep)
-                fair_start = (
-                    self._act_sum[alive].mean().item()
-                    if alive.any()
-                    else self._act_sum.mean().item()
-                )
-                self._act_sum[recentered] = fair_start
+            self._act_sum[recentered] = self._act_sum.mean().item()
+            self._act_sum *= 1.0 - broadness
+            self._act_count = max(1.0, self._act_count * (1.0 - broadness))
 
     def activity_stats(self) -> dict:
         """Return a snapshot of per-neuron activity distribution.
