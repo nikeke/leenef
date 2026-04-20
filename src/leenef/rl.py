@@ -346,6 +346,11 @@ class NEFFQIAgent:
             episodes and recenter them to recently observed states.
         recenter_percentile: activation percentile below which neurons
             are considered dead (default 5.0).
+        recenter_mode: ``"broad"`` resets ALL neurons' stats after each
+            recenter (good for high capacity — broad encoder search).
+            ``"focused"`` resets only recentered neurons' stats to the
+            current mean (good for low capacity — targeted recycling).
+            Default ``"broad"``.
         activity_decay: if set, use EMA activity tracking for
             recentering instead of cumulative mean.
         features_kwargs: extra keyword arguments forwarded to
@@ -376,6 +381,7 @@ class NEFFQIAgent:
         reward_ema_decay: float = 0.99,
         recenter_interval: int | None = None,
         recenter_percentile: float = 5.0,
+        recenter_mode: str = "broad",
         activity_decay: float | None = None,
         features_kwargs: dict | None = None,
         seed: int = 0,
@@ -385,6 +391,8 @@ class NEFFQIAgent:
             raise ValueError(f"target_mode must be one of {valid_modes}, got {target_mode!r}")
         if target_mode in ("eligibility", "differential") and forget_factor is None:
             raise ValueError(f"target_mode={target_mode!r} requires forget_factor")
+        if recenter_mode not in ("broad", "focused"):
+            raise ValueError(f"recenter_mode must be 'broad' or 'focused', got {recenter_mode!r}")
 
         self.n_actions = n_actions
         self.n_neurons = n_neurons
@@ -404,6 +412,7 @@ class NEFFQIAgent:
         self.reward_ema_decay = reward_ema_decay
         self.recenter_interval = recenter_interval
         self.recenter_percentile = recenter_percentile
+        self.recenter_mode = recenter_mode
         self.rng = np.random.default_rng(seed)
 
         feat_kw = dict(features_kwargs or {})
@@ -870,9 +879,13 @@ class NEFFQIAgent:
 
         self._recentered_total += len(dead)
 
-        # Reset activity stats only for recentered neurons so surviving
-        # neurons keep their long-term statistics.
-        self.features.reset_activation_stats(dead)
+        # Reset activity stats based on recenter_mode:
+        # "broad"   — reset ALL neurons (old behavior: broad encoder search)
+        # "focused" — reset only recentered neurons (targeted recycling)
+        if self.recenter_mode == "broad":
+            self.features.reset_activation_stats()
+        else:
+            self.features.reset_activation_stats(dead)
         return len(dead)
 
     def warmup(

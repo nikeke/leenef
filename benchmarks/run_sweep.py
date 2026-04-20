@@ -287,6 +287,20 @@ def get_all_configs(env_name):
         None,
     )
 
+    # n50 + RLS + focused recenter (per-neuron stats — best at 4000n)
+    configs["n50_rls_recenter_focused"] = (
+        {
+            **base,
+            "target_mode": "nstep",
+            "n_step": 50,
+            "forget_factor": 0.999,
+            "recenter_interval": 100,
+            "recenter_percentile": 5.0,
+            "recenter_mode": "focused",
+        },
+        None,
+    )
+
     # n50 + RLS only (no recenter)
     configs["n50_rls"] = (
         {**base, "target_mode": "nstep", "n_step": 50, "forget_factor": 0.999},
