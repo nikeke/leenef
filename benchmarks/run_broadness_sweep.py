@@ -24,6 +24,11 @@ import torch
 from leenef.rl import NEFFQIAgent, NEFFQIEnsemble
 
 
+def _format_broadness(broadness: float) -> str:
+    """Format broadness values without collapsing nearby settings."""
+    return f"{broadness:.3f}".rstrip("0").rstrip(".")
+
+
 def evaluate_greedy(agent, env_name, n_episodes=20, seed=42):
     """Evaluate with greedy policy."""
     env = gym.make(env_name)
@@ -176,7 +181,7 @@ def main():
     tasks = []
     for b in broadness_values:
         for s in args.seeds:
-            label = f"b{b:.1f}_s{s}"
+            label = f"b{_format_broadness(b)}_s{s}"
             if label in existing and "error" not in existing[label]:
                 print(f"  Skipping {label} (already completed)")
                 continue
@@ -231,8 +236,9 @@ def main():
             key=lambda r: r.get("seed", 0),
         )
         for r in seeds_for_b:
+            b_str = _format_broadness(r["broadness"])
             print(
-                f"{b:>10.1f} {r.get('seed', '?'):>5} {r['best_50']:>8.1f} {r['final_50']:>9.1f} "
+                f"{b_str:>10} {r.get('seed', '?'):>5} {r['best_50']:>8.1f} {r['final_50']:>9.1f} "
                 f"{r.get('best_eval', 'N/A'):>10} {r.get('final_eval', 'N/A'):>11} "
                 f"{r['time_s']:>7.0f} {r.get('recentered', 0):>9d}"
             )
