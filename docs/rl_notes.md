@@ -1177,3 +1177,155 @@ practical choices.
 | thompson_n50 (2×6000) | 161.1 | 25% | Worse than 3×4k |
 | n50_rls_recenter (6000n) | -24.1 | — | Non-monotonic, single seed |
 | DQN | 214.0 | — | Gradient-based baseline |
+
+
+## 11. Recentering Bug Investigation
+
+### 11.1 The Bug
+
+All prior recentering results used a version where `reset_activation_stats()`
+zeroed ALL neurons' cumulative stats after each recentering call.  Since
+the 5th-percentile threshold is relative, fresh short-window stats always
+yielded exactly `n × 0.05` neurons per check — a deterministic rotation
+through the entire neuron population, not data-driven dead-neuron
+replacement.
+
+Proof: all recentered counts were exactly `n × 0.05 × (episodes / interval)`.
+For 4000n, 1000 episodes, interval 100: 4000 × 0.05 × 10 = 2000.
+
+### 11.2 The Fix Attempt
+
+Added two changes to `reset_activation_stats()`:
+1. Per-neuron reset: only recentered neurons' stats are cleared (set to
+   the current mean activity for a fair start).  Non-recentered neurons
+   keep their long-term cumulative stats.
+2. Absolute activity floor: `min_relative=0.1` — neurons must be below
+   10% of the population mean to be considered dead.
+
+### 11.3 Results: Absolute Floor Prevents All Recentering
+
+With `abs` activation, even the weakest neuron has ~36% of the mean
+activity.  The `min_relative=0.1` threshold is never reached, so
+**zero neurons are recentered**.
+
+| Config | Rotation (buggy) | No-recenter (fixed) | Δ |
+|---|---|---|---|
+| 4000n single | 160.3 | 162.5 | +2.2 |
+| 8000n single | **209.2** | 66.2 | **−143.0** |
+| voting 3×4000 | 202.9 | 174.6 | −28.3 |
+| voting4 4×3000 | N/A | 15.4 | — |
+
+All fixed-recentering runs had recenter=0.  The 4000n result is nearly
+identical (pure noise), but **8000n collapsed from 209.2 to 66.2** — a
+67% drop.  The rotation mechanism was the primary driver of 8000n's
+success.
+
+### 11.4 Reframing: Rotation Recentering as a Feature
+
+The "buggy" behavior is actually a useful mechanism:
+- **Rotation recentering** = continuously refresh the bottom percentile
+  of neurons by replacing them with random data-centered projections.
+- This acts as **gradient-free representation adaptation** — the fixed
+  encoder assumption is softened by constantly recycling the weakest
+  members.
+- At higher capacity (8000n), rotation is essential: without it, many
+  neurons are redundant and the representation doesn't adapt.
+- At lower capacity (4000n), all neurons are needed and rotation adds
+  noise without benefit.
+
+### 11.5 Final Design
+
+Restored `min_relative=0.0` as default — pure rotation recentering,
+always refreshing the bottom percentile.  The per-neuron stats reset
+is preserved from the fix: recentered neurons get the current mean
+activity (fair start), while surviving neurons keep their long-term
+stats.  This is a genuine improvement over the original global reset:
+
+| Behavior | Original (global reset) | Improved (per-neuron reset) |
+|---|---|---|
+| Stats after recenter | ALL zeros | Only recentered = mean |
+| Selection basis | Random (fresh window) | Cumulative weakness |
+| Unique neurons recycled | ~rotating through all | Focuses on truly weak |
+
+**§11.6 below shows this claim was premature — per-neuron stats only
+help at low capacity.**
+
+### 11.6 Improved Rotation Recentering Results
+
+| Config | Old rotation | Per-neuron stats | Δ |
+|---|---|---|---|
+| 4000n single | 160.3 | **219.8** | **+59.5** |
+| 8000n single | **209.2** | -37.9 | **−247.1** |
+| voting 3×4000 | **202.9** | 61.7 | **−141.2** |
+
+**4000n is a major improvement:** 219.8 exceeds DQN (214.0).  But 8000n
+and voting 3×4000 are catastrophic regressions.
+
+### 11.7 Why Per-Neuron Stats Help at 4000n but Hurt at 8000n
+
+All three runs recentered exactly `n × 0.05 × 10` neurons (deterministic
+5th-percentile rotation), so the count is the same.  The difference is
+**which** neurons get rotated and **what happens to the survivors' stats**:
+
+**Old code (global reset):**
+- After each recenter, ALL stats are zeroed
+- Next check uses a fresh 100-episode window
+- Bottom 5% of fresh window ≈ random selection
+- Result: broad rotation, many unique neurons explored over training
+
+**New code (per-neuron reset):**
+- After each recenter, only recentered neurons get stats = current mean
+- Non-recentered neurons keep cumulative stats
+- Next check: bottom 5% is determined by long-term cumulative weakness
+- Result: focused rotation, same weak neurons keep getting recycled
+
+**At 4000n** (focused = good): every neuron matters.  Identifying truly
+weak neurons and replacing them until they find good positions is
+efficient.  Broad rotation wastes cycles recycling neurons that are
+already in reasonable positions.
+
+**At 8000n** (focused = bad): many neurons are mediocre but not worst.
+Broad rotation explores more of the encoder space by giving mediocre
+neurons a chance to be refreshed.  Focused rotation over-fixates on a
+small set of "consistently worst" neurons while the large mediocre
+majority stagnates.  The old code's broad search was what made 8000n
+work — it acts as a slow, stochastic encoder search across the entire
+population.
+
+**Voting 3×4000** (focused = bad): surprising, since each member has
+4000n and should benefit individually.  Possible explanations:
+1. Voting averages out the lucky-seed effect — the 219.8 single run may
+   be a fortunate seed, while voting's 3 seeds give a more representative
+   picture.
+2. Voting reduces per-member exploration benefit because the ensemble
+   already provides diversity.
+
+### 11.8 Implications
+
+The recentering mechanism has **two distinct modes** with different
+optimal regimes:
+
+| Mode | Implementation | Best for |
+|---|---|---|
+| **Broad rotation** | Global stats reset (old code) | High capacity (8000n+), ensembles |
+| **Focused rotation** | Per-neuron cumulative stats | Low capacity (4000n) |
+
+This suggests a capacity-aware recentering strategy: use focused rotation
+when `n` is small (every neuron matters), switch to broad rotation when
+`n` is large (exploration of encoder space matters more).
+
+The 4000n + focused rotation result (**219.8, beating DQN**) is exciting
+but needs multi-seed confirmation.  A single seed is not sufficient for
+a headline claim.
+
+### 11.9 Updated Summary Table
+
+| Config | best_eval | DQN gap | Recentering mode | Comment |
+|---|---|---|---|---|
+| **n50_rls_recenter (4000n, focused)** | **219.8** | **+3%** | Per-neuron stats | **New best, single seed** |
+| n50_rls_recenter (8000n, broad) | 209.2 | −2% | Global reset (old) | Needs broad rotation |
+| voting+recenter (3×4000, broad) | 202.9 | −5% | Global reset (old) | Best ensemble |
+| thompson_n50 (3×4000, §4.7) | 186.3 | −13% | None | ε_end=0.05 |
+| n50_rls_recenter (4000n, broad) | 160.3 | −25% | Global reset (old) | Per-neuron stats better |
+| n50_rls_recenter (8000n, focused) | -37.9 | — | Per-neuron stats | Catastrophic |
+| DQN | 214.0 | — | — | Gradient-based baseline |
