@@ -1329,3 +1329,80 @@ a headline claim.
 | n50_rls_recenter (4000n, broad) | 160.3 | −25% | Global reset (old) | Per-neuron stats better |
 | n50_rls_recenter (8000n, focused) | -37.9 | — | Per-neuron stats | Catastrophic |
 | DQN | 214.0 | — | — | Gradient-based baseline |
+
+### 11.10 Continuous Broadness Sweeps (corrected fair-start)
+
+The later broadness implementation replaced the binary broad/focused modes
+with a continuous `broadness ∈ [0, 1]`, using the **alive-only mean** as the
+fair start for recentered neurons before global decay.  This supersedes the
+older broad/focused interpretation above.
+
+#### 4000-neuron sweep (complete, 3 seeds each)
+
+Source: `results/rl/broadness_lunarlander_corrected.json`.  All runs use
+4000 neurons, n-step(50), RLS β=0.999, recenter/100, 5th percentile, and
+cumulative-mean activity tracking.  Timings are high-load and not directly
+comparable to low-load timing runs.
+
+| broadness | mean best_eval | min-max | mean final_eval |
+|---|---|---|---|
+| 0.0 | 142.5 | 105.1–203.1 | 130.6 |
+| 0.1 | 101.2 | 45.9–140.0 | 99.3 |
+| 0.2 | 152.6 | 90.1–211.0 | **137.4** |
+| 0.3 | 96.8 | -7.3–151.6 | 76.7 |
+| 0.5 | 91.4 | 44.8–149.0 | 91.4 |
+| 0.7 | 102.0 | 24.4–159.8 | 88.6 |
+| **0.9** | **157.4** | **128.9–179.5** | 104.9 |
+| 1.0 | 78.1 | -29.0–165.1 | 63.7 |
+
+**Interpretation:** the corrected 4000n sweep does **not** collapse back to
+pure focused recentering.  Two regimes remain plausible:
+
+- **broadness=0.2** gives the best **final** performance and the best
+  mean speed/quality tradeoff among the strong settings.
+- **broadness=0.9** gives the best **peak** evaluation and the tightest
+  range among the top candidates, but weaker final retention.
+- **broadness=0.0** remains a strong simplicity baseline.
+
+#### 6000-neuron dense-edge sweep (partial, stopped after low-edge half)
+
+Source: `results/rl/broadness_lunarlander_6000_edges.json`.  The sweep was
+designed to probe the edges more finely: `0.00, 0.01, 0.02, 0.05, 0.10, 0.20`
+and `0.80, 0.90, 0.95, 0.98, 0.99, 1.00`, but the run was paused before the
+high-broadness half completed.  The plotting script and JSON format support
+resuming later from the same file.
+
+Low-broadness results completed so far (3 seeds each):
+
+| broadness | mean best_eval | min-max | mean final_eval |
+|---|---|---|---|
+| 0.00 | 124.9 | 71.4–162.9 | 112.9 |
+| **0.01** | **160.7** | **100.7–232.3** | **144.3** |
+| 0.02 | 73.2 | 16.5–127.7 | 49.6 |
+| 0.05 | 66.1 | -17.9–150.0 | 55.6 |
+| 0.10 | 47.5 | -16.8–121.3 | 28.8 |
+| 0.20 | 37.0 | 13.6–68.0 | 5.1 |
+
+**Interpretation so far:** at 6000 neurons the useful region appears to
+shift much closer to zero.  The narrow `0.01` setting currently dominates
+the completed low-edge grid, while `0.1+` degrades sharply.  This is
+consistent with 6000 neurons being a more fragile recentering regime than
+4000 or 8000.
+
+#### Current working hypothesis
+
+Broadness likely interacts with capacity in a non-monotonic way:
+
+1. **4000n:** moderate forgetting helps (`0.2`) and heavy forgetting can
+   create strong peaks (`0.9`), so the optimum is genuinely non-binary.
+2. **6000n:** the stable region may collapse toward extremely small
+   broadness (`≈0.01`), suggesting that this capacity is especially
+   sensitive to over-forgetting.
+3. **Next step:** resume the 6000n high-edge half and rerun low-load
+   confirmation seeds for `0.0`, `0.01`, `0.2`, and `0.9`.
+
+Current chart snapshots were generated with
+`benchmarks/plot_broadness_results.py` and saved as
+`results/rl/broadness_best_eval.png` and
+`results/rl/broadness_final_eval.png`.  The script is meant to be rerun
+after additional 6000n results land in the same JSON file.

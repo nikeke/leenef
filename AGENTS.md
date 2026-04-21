@@ -98,6 +98,12 @@ When running sweep scripts that save results to JSON, prefer
 `imap_unordered` over `map` so results are saved incrementally as
 each worker finishes, rather than waiting for all workers to complete.
 
+When sweep parameters can differ by small numeric amounts (for example
+`broadness=0.01` vs `0.02` vs `0.05`), do **not** round labels or JSON
+keys so aggressively that distinct settings collide.  Analysis/plotting
+scripts should also tolerate **partial** JSON files so interrupted or
+paused sweeps can still be summarized and resumed later.
+
 ## Colab benchmark suite rules
 
 - If you change a Colab benchmark suite or its launcher workflow, **commit and
