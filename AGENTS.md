@@ -104,6 +104,12 @@ keys so aggressively that distinct settings collide.  Analysis/plotting
 scripts should also tolerate **partial** JSON files so interrupted or
 paused sweeps can still be summarized and resumed later.
 
+For **unattended multi-phase sweeps**, prefer a detached driver script that
+resumes from the existing JSON outputs, logs clear phase boundaries and
+summary snapshots to a dedicated log file, and regenerates charts or other
+derived artifacts after each completed phase.  That makes it safe to stop
+and resume long pipelines without losing already finished runs.
+
 ## Colab benchmark suite rules
 
 - If you change a Colab benchmark suite or its launcher workflow, **commit and

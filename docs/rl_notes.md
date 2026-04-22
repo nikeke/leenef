@@ -1364,30 +1364,65 @@ pure focused recentering.  Two regimes remain plausible:
   range among the top candidates, but weaker final retention.
 - **broadness=0.0** remains a strong simplicity baseline.
 
-#### 6000-neuron dense-edge sweep (partial, stopped after low-edge half)
+#### 6000-neuron dense-edge sweep (original edge grid complete)
 
-Source: `results/rl/broadness_lunarlander_6000_edges.json`.  The sweep was
-designed to probe the edges more finely: `0.00, 0.01, 0.02, 0.05, 0.10, 0.20`
-and `0.80, 0.90, 0.95, 0.98, 0.99, 1.00`, but the run was paused before the
-high-broadness half completed.  The plotting script and JSON format support
-resuming later from the same file.
+Source: `results/rl/broadness_lunarlander_6000_edges.json`.  The original
+edge sweep over `0.00, 0.01, 0.02, 0.05, 0.10, 0.20` and
+`0.80, 0.90, 0.95, 0.98, 0.99, 1.00` completed overnight.  Contrary to the
+earlier low-edge-only picture, the 6000-neuron landscape is **bimodal**:
+one strong regime near `0.01` and another near `0.95–0.98`.
 
-Low-broadness results completed so far (3 seeds each):
+Original edge-grid results (3 seeds each):
 
 | broadness | mean best_eval | min-max | mean final_eval |
 |---|---|---|---|
 | 0.00 | 124.9 | 71.4–162.9 | 112.9 |
-| **0.01** | **160.7** | **100.7–232.3** | **144.3** |
+| **0.01** | **160.7** | **100.7–232.3** | 144.3 |
 | 0.02 | 73.2 | 16.5–127.7 | 49.6 |
 | 0.05 | 66.1 | -17.9–150.0 | 55.6 |
 | 0.10 | 47.5 | -16.8–121.3 | 28.8 |
 | 0.20 | 37.0 | 13.6–68.0 | 5.1 |
+| 0.80 | 67.8 | 2.7–104.1 | 50.9 |
+| 0.90 | 90.0 | 0.2–230.1 | 75.6 |
+| 0.95 | 141.4 | 115.8–179.9 | 141.4 |
+| **0.98** | 159.5 | 109.5–194.2 | **159.5** |
+| 0.99 | 62.4 | -23.0–135.4 | 38.8 |
+| 1.00 | 101.7 | -37.6–171.8 | 99.3 |
 
-**Interpretation so far:** at 6000 neurons the useful region appears to
-shift much closer to zero.  The narrow `0.01` setting currently dominates
-the completed low-edge grid, while `0.1+` degrades sharply.  This is
-consistent with 6000 neurons being a more fragile recentering regime than
-4000 or 8000.
+**Interpretation:** 6000n no longer looks like a simple "almost-zero only"
+regime.
+
+- **broadness=0.01** remains the best **mean peak** point in the low-edge
+  family and still one of the two strongest overall settings.
+- **broadness=0.98** nearly matches `0.01` on mean peak and is the best
+  **mean final** setting among all 6000n runs so far.
+- **broadness=0.95** is also strong and much more stable than the volatile
+  `0.90` setting.
+- **broadness=0.90** is high-upside but high-variance: one seed reached
+  230.1 / 200.2, but the other two were much weaker.
+- The middle of the interval (`0.02–0.20`, plus `0.80` and `0.99`) remains
+  substantially worse.
+
+#### 6000-neuron fine-edge follow-up (partial)
+
+An unattended follow-up sweep started to resolve the sharp low-edge pocket
+more finely with `0.003, 0.005, 0.008, 0.012, 0.015, 0.018`.  The run was
+stopped during the last two values, so only the first four settings are
+complete and saved.
+
+Completed fine-edge results (3 seeds each):
+
+| broadness | mean best_eval | min-max | mean final_eval |
+|---|---|---|---|
+| 0.003 | 100.6 | 75.1–128.7 | 88.2 |
+| 0.005 | 74.3 | -30.4–170.8 | 60.7 |
+| 0.008 | 17.9 | -9.0–58.1 | -15.4 |
+| 0.012 | 84.4 | -23.2–166.8 | 69.3 |
+
+**Interpretation:** the near-zero region is real, but it is also **very
+jagged**.  `0.01` remains the clear winner among the sampled tiny-broadness
+values; nearby settings can collapse badly (`0.008`) or become highly noisy
+(`0.005`, `0.012`).
 
 #### Current working hypothesis
 
@@ -1395,11 +1430,12 @@ Broadness likely interacts with capacity in a non-monotonic way:
 
 1. **4000n:** moderate forgetting helps (`0.2`) and heavy forgetting can
    create strong peaks (`0.9`), so the optimum is genuinely non-binary.
-2. **6000n:** the stable region may collapse toward extremely small
-   broadness (`≈0.01`), suggesting that this capacity is especially
-   sensitive to over-forgetting.
-3. **Next step:** resume the 6000n high-edge half and rerun low-load
-   confirmation seeds for `0.0`, `0.01`, `0.2`, and `0.9`.
+2. **6000n:** there appear to be **two** useful basins rather than one:
+   an ultranarrow low-edge basin around `0.01` and a strong high-edge basin
+   around `0.95–0.98`.
+3. **Next step:** resume the fine-edge sweep for `0.015` and `0.018`, then
+   add confirmation seeds for `0.01`, `0.95`, `0.98`, and a baseline such as
+   `0.0` (with `0.9` as the high-variance wildcard if budget allows).
 
 Current chart snapshots were generated with
 `benchmarks/plot_broadness_results.py` and saved as
