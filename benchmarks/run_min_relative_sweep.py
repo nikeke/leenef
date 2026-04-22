@@ -1,23 +1,41 @@
 #!/usr/bin/env python3
-"""Selective recentering sweep: vary ``recenter_min_relative``.
+"""Selective recentering sweep: vary ``recenter_percentile`` × ``recenter_min_relative``.
 
-Tests the hypothesis that recentering *genuinely underperforming*
-neurons (min_relative > 0) is more reliable than the current pure
-rotation default (min_relative = 0), which always recenters the bottom
-``recenter_percentile`` regardless of how low their activity actually
-is.  Per-run activity stats in ``recenter_log`` suggest that at low
-broadness the "bottom 5%" is at 55–65% of mean activity — healthy
-neurons being needlessly displaced.
+Tests two orthogonal questions about the dead-neuron heuristic:
+
+1. Is the bottom-5% *cap* (``percentile=5``) useful, or would we rather
+   recenter any neuron below an absolute activity floor regardless of
+   how many that turns out to be (``percentile=100`` + ``min_relative``)?
+2. Does an absolute floor at all matter, i.e. is pure rotation
+   (``min_relative=0``) actually suboptimal?
 
 Base config (frozen):
-    6000n, n-step(50), RLS(β=0.999), solve_every=10,
-    recenter_interval=100, recenter_percentile=5.0, broadness=0.0.
+    4000n, n-step(50), RLS(β=0.999), solve_every=10,
+    recenter_interval=100, broadness=0.0.
 
-Swept:
-    recenter_min_relative ∈ {0.0, 0.4, 0.6, 0.8} plus a "disabled"
-    baseline with recenter_interval=None.
+4000n is chosen over 6000n because 4000n wins at 4/5 matched broadness
+values in the prior sweep (b=0.0: 142.5 vs 124.9; b=0.2: 152.6 vs 37.0;
+b=0.9: 157.4 vs 90.0) and has a much higher worst-case floor.
 
-See ``docs/rl_review.md`` §5 for the design rationale.
+Broadness is held at 0 here, but it is *not* orthogonal to the
+selection rule: in the cumulative-stats branch (default),
+``apply_broadness`` scales both ``_act_sum`` and ``_act_count`` by
+``(1 - broadness)``, so broadness controls how quickly fresh
+activations dominate the stats that ``percentile``/``min_relative``
+read.  Revisit once we know which selection rule is best.
+
+Conditions (6 total, 8 seeds each → 48 runs):
+    - none            : recenter_interval=None (no recentering)
+    - p5_mr0          : current default (pure rotation — bottom 5%)
+    - p5_mr0.7        : cap at 5% AND require <70% of mean
+    - p100_mr0.4      : no cap, recenter everything below 40% of mean
+    - p100_mr0.6      : no cap, recenter everything below 60% of mean
+    - p100_mr0.8      : no cap, recenter everything below 80% of mean
+
+Results save incrementally; a 9 h wall-time cap will preserve all
+completed runs and resume cleanly on the next invocation.
+
+See ``docs/rl_review.md`` for the design rationale.
 """
 
 import argparse
@@ -31,12 +49,14 @@ import numpy as np
 
 from leenef.rl import NEFFQIAgent
 
-
-def _format_mr(mr) -> str:
-    if mr is None:
-        return "none"
-    s = f"{mr:.3f}".rstrip("0").rstrip(".")
-    return s or "0"
+CONDITIONS: list[tuple[str, dict]] = [
+    ("none", {"recenter_interval": None}),
+    ("p5_mr0", {"recenter_percentile": 5.0, "recenter_min_relative": 0.0}),
+    ("p5_mr0.7", {"recenter_percentile": 5.0, "recenter_min_relative": 0.7}),
+    ("p100_mr0.4", {"recenter_percentile": 100.0, "recenter_min_relative": 0.4}),
+    ("p100_mr0.6", {"recenter_percentile": 100.0, "recenter_min_relative": 0.6}),
+    ("p100_mr0.8", {"recenter_percentile": 100.0, "recenter_min_relative": 0.8}),
+]
 
 
 def evaluate_greedy(agent, env_name, n_episodes=20, seed=42):
@@ -64,7 +84,11 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
     n_actions = env.action_space.n
     env.close()
 
-    agent = NEFFQIAgent(d_obs=d_obs, n_actions=n_actions, seed=seed, **agent_kwargs)
+    # Strip internal metadata (e.g. _condition_name) before instantiating the agent.
+    condition_name = agent_kwargs.get("_condition_name")
+    agent_kwargs_clean = {k: v for k, v in agent_kwargs.items() if not k.startswith("_")}
+
+    agent = NEFFQIAgent(d_obs=d_obs, n_actions=n_actions, seed=seed, **agent_kwargs_clean)
 
     warmup_env = gym.make(env_name)
     agent.warmup(env=warmup_env, n_episodes=20)
@@ -117,15 +141,17 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
     return {
         "label": label,
         "seed": seed,
-        "min_relative": agent_kwargs.get("recenter_min_relative", 0.0),
-        "recenter_enabled": agent_kwargs.get("recenter_interval") is not None,
+        "condition": condition_name,
+        "min_relative": agent_kwargs_clean.get("recenter_min_relative", 0.0),
+        "percentile": agent_kwargs_clean.get("recenter_percentile", 5.0),
+        "recenter_enabled": agent_kwargs_clean.get("recenter_interval") is not None,
         "best_50": round(best_50, 1),
         "final_50": round(final_50, 1),
         "best_eval": best_eval,
         "final_eval": final_eval,
         "time_s": round(elapsed, 1),
         "recentered": agent._recentered_total,
-        "config": agent_kwargs,
+        "config": agent_kwargs_clean,
         "eval_history": eval_history,
         "rewards": [round(float(r), 1) for r in rewards],
         "recenter_log": agent._recenter_log,
@@ -142,23 +168,20 @@ def _worker(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="min_relative sweep for NEF-FQI recentering")
+    parser = argparse.ArgumentParser(
+        description="percentile × min_relative sweep for NEF-FQI recentering"
+    )
     parser.add_argument("--env", type=str, default="LunarLander-v3")
     parser.add_argument(
-        "--min-relative",
+        "--conditions",
         nargs="+",
-        type=float,
-        default=[0.0, 0.4, 0.6, 0.8],
-        help="recenter_min_relative values (plus a disabled baseline added automatically)",
-    )
-    parser.add_argument(
-        "--no-disabled-baseline",
-        action="store_true",
-        help="Skip the recenter-disabled baseline run",
+        default=None,
+        help="Subset of condition names to run (default: all). "
+        f"Available: {[c[0] for c in CONDITIONS]}",
     )
     parser.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2, 3, 4, 5, 6, 7])
     parser.add_argument("--episodes", type=int, default=1000)
-    parser.add_argument("--neurons", type=int, default=6000)
+    parser.add_argument("--neurons", type=int, default=4000)
     parser.add_argument("--broadness", type=float, default=0.0)
     parser.add_argument("--parallel", type=int, default=1)
     parser.add_argument("--output", type=str, default="results/rl/min_relative_lunarlander.json")
@@ -177,6 +200,7 @@ def main():
         "forget_factor": 0.999,
         "recenter_interval": 100,
         "recenter_percentile": 5.0,
+        "recenter_min_relative": 0.0,
         "broadness": args.broadness,
     }
 
@@ -187,20 +211,21 @@ def main():
             existing = json.load(f)
         print(f"Loaded {len(existing)} existing results from {out_path}")
 
-    tasks = []
-    conditions: list[tuple[str, dict]] = []
-    if not args.no_disabled_baseline:
-        kw = dict(base_kwargs)
-        kw["recenter_interval"] = None  # fully disables recentering
-        conditions.append(("none", kw))
-    for mr in args.min_relative:
-        kw = dict(base_kwargs)
-        kw["recenter_min_relative"] = mr
-        conditions.append((_format_mr(mr), kw))
+    # Build condition list
+    wanted = args.conditions
+    selected = [(n, o) for (n, o) in CONDITIONS if (wanted is None or n in wanted)]
+    if wanted:
+        unknown = set(wanted) - {n for n, _ in CONDITIONS}
+        if unknown:
+            parser.error(f"Unknown condition(s): {unknown}")
 
-    for name, kw in conditions:
+    tasks = []
+    for name, overrides in selected:
+        kw = dict(base_kwargs)
+        kw.update(overrides)
+        kw["_condition_name"] = name
         for s in args.seeds:
-            label = f"mr{name}_s{s}"
+            label = f"{name}_s{s}"
             if label in existing and "error" not in existing[label]:
                 print(f"  Skipping {label} (already completed)")
                 continue
@@ -210,8 +235,8 @@ def main():
         print("All configs already completed!")
     else:
         print(f"\n{'=' * 70}")
-        print(f"  min_relative Sweep: {args.env}")
-        print(f"  {len(tasks)} runs ({len(conditions)} conditions × {len(args.seeds)} seeds)")
+        print(f"  Recentering Sweep: {args.env}")
+        print(f"  {len(tasks)} runs ({len(selected)} conditions × {len(args.seeds)} seeds)")
         print(f"  neurons={args.neurons}  broadness={args.broadness}")
         print(f"  {args.parallel} worker(s)")
         if args.parallel > 1:
@@ -240,28 +265,41 @@ def main():
 
     # Summary grouped by condition
     print(f"\n{'=' * 90}")
-    print(f"  SUMMARY: {args.env} — min_relative Sweep")
+    print(f"  SUMMARY: {args.env} — Recentering Sweep")
     print(f"{'=' * 90}")
-    by_cond = {}
+    by_cond: dict[str, list] = {}
     for r in existing.values():
         if "error" in r or "best_eval" not in r:
             continue
-        cfg = r.get("config", {})
-        if cfg.get("recenter_interval") is None:
-            name = "none"
-        else:
-            name = _format_mr(cfg.get("recenter_min_relative", 0.0))
+        name = r.get("condition") or "?"
         by_cond.setdefault(name, []).append(r)
 
-    for name in sorted(by_cond):
+    # Preserve the canonical order from CONDITIONS.
+    canonical = [n for n, _ in CONDITIONS]
+    ordered = [n for n in canonical if n in by_cond] + [
+        n for n in sorted(by_cond) if n not in canonical
+    ]
+    for name in ordered:
         runs = by_cond[name]
         be = [r["best_eval"] for r in runs if r.get("best_eval") is not None]
         fe = [r["final_eval"] for r in runs if r.get("final_eval") is not None]
+        nd_last = [
+            r["recenter_log"][-1].get("n_dead")
+            for r in runs
+            if r.get("recenter_log") and isinstance(r["recenter_log"], list) and r["recenter_log"]
+        ]
+        nd_last = [n for n in nd_last if n is not None]
+        n_dead_str = (
+            f"  n_dead(last)={np.mean(nd_last):6.0f} [{min(nd_last)}, {max(nd_last)}]"
+            if nd_last
+            else ""
+        )
         if be:
             print(
-                f"  min_rel={name:>6}  n={len(be)}  "
+                f"  {name:>12}  n={len(be)}  "
                 f"best={np.mean(be):7.1f} [{min(be):7.1f}, {max(be):7.1f}]  "
                 f"final={np.mean(fe):7.1f} [{min(fe):7.1f}, {max(fe):7.1f}]"
+                f"{n_dead_str}"
             )
 
 

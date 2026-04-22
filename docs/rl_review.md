@@ -15,11 +15,14 @@ on LunarLander" claim, the "bimodal broadness landscape" claim, and the
 "voting ensemble beats single agent" claim are all backed by 1–3 seeds
 each, with seed-to-seed ranges that routinely exceed 100 reward points.
 
-When we actually ran **5 seeds of the same config** (4000n, n50, RLS,
-focused recentering, `multiseed_focused4k_*.json`, 20 Apr), the mean
-`best_eval` was **48.7** with range **−29 to +147**.  No other point in
-the sweep landscape has been shown to reliably exceed that by more than
-the seed noise.
+When we ran **5 seeds of the same config** (4000n, n50, RLS,
+focused recentering, `multiseed_focused4k_*.json`, 20 Apr against
+pre-fix code — see §2.1a), the mean `best_eval` was **48.7** with
+range **−29 to +147**.  That specific number reflects an older
+implementation; the post-fix 4000n baseline is higher (≈ 142.5 mean,
+3 seeds, same config after commit `33b04a5`).  Either way, seed
+variance at a single config is large enough to swallow most of the
+apparent effects in the rest of the data.
 
 What is **real and defensible** from the data:
 
@@ -37,11 +40,16 @@ What is **real and defensible** from the data:
 **Recommendation:**
 1. Stop expanding the broadness landscape.  The signal is noise-bound
    at our current seed count.
-2. Run a single 8-seed clean baseline at one chosen config so we know
-   what "doing nothing fancy" looks like.
-3. On top of that baseline, run a focused `recenter_min_relative` sweep
-   — this is the one mechanism we have actually *never* tested properly,
-   and the recenter-log data predicts it should matter a lot.
+2. Run a single 8-seed clean baseline **at 4000n** (not 6000n — see
+   §5) so we know what "doing nothing fancy" looks like.
+3. On top of that baseline, run a focused
+   `(percentile, min_relative)` sweep — this is the one mechanism we
+   have actually *never* tested properly, and the recenter-log data
+   predicts it should matter.  Note that `broadness` is **not
+   orthogonal** to this selection rule in the non-EMA branch we use
+   by default: it controls how fast the activity stats the rule reads
+   adapt.  Broadness will re-enter once we know the right selection
+   rule.
 4. Do **not** chase Acrobot/MountainCar with the current design.
 5. The combined analytical-solver-for-non-stationary-learning paper
    (CL + RL) is still viable, but the RL half must be reframed
@@ -85,6 +93,18 @@ Three runs of "8000n n50 RLS recenter", each against *essentially* the
 same code, produced **209.2, 66.2, and −37.9**.  That is the true
 distribution.  The "98% of DQN" claim in the notes is the max of three
 samples from a distribution with empirical range over 240.
+
+### 2.1a Caveat: `multiseed_focused4k` is not directly comparable
+
+`multiseed_focused4k_s{0..4}` (mean 48.7) was run on 20 Apr against the
+binary `recenter_mode="focused"` code (commit `765d35a`), *before* the
+`33b04a5` fix that made recentered neurons enter at the alive-only
+mean instead of the whole-population mean (the latter includes their
+own zeros, so they started ≈ zero-biased).  The
+`broadness_lunarlander_corrected.json` 4000n b=0 run (mean 142.5,
+3 seeds) ran after that fix.  **These are different implementations.**
+The ≈90-point gap is not seed noise — it is the effect of the bug
+fix.  The current, post-fix 4000n baseline is the 142.5 figure.
 
 ### 2.2 The broadness landscape is almost certainly noise
 
@@ -227,50 +247,89 @@ section, not the centerpiece.
 
 ## 5. Recommended next experiment (one, not many)
 
-**Goal:** determine whether `recenter_min_relative > 0` (selective
-recentering of truly underperforming neurons) gives a more reliable and
-stronger LunarLander score than the current "pure rotation" default
-(`min_relative=0`).  Lock everything else.
+**Goal:** determine whether changing *which* neurons we recenter — not
+*how many* — gives a more reliable and stronger LunarLander score than
+the current "pure rotation" default.  This requires understanding that
+three knobs interact:
 
-**Design:**
+- `percentile` (default 5): **upper cap** on the fraction of neurons
+  that can be recentered at one event.  Turned to 100 it becomes
+  inert.
+- `min_relative` (default 0): **absolute floor**.  Combined with
+  `percentile` as `threshold = min(quantile(percentile), mean·min_relative)`,
+  so the *stricter* one binds.  With `percentile=5` and
+  `min_relative ≤ 0.6`, the floor is almost never the binding
+  constraint on our data (p5 ≈ 0.55·mean at low broadness), which is
+  why the intuitive sweep `{0.4, 0.6, 0.8}` at `percentile=5` would
+  show no effect for the first two.
+- `broadness` (0 … 1): in the non-EMA branch we use by default,
+  `apply_broadness` scales both `_act_sum *= (1 - broadness)` and
+  `_act_count *= (1 - broadness)` after each event.  The *ratio*
+  (what the selection rule reads) is preserved, but the effective
+  sample size shrinks, so fresh activations weigh more in the next
+  selection.  Broadness is therefore **not orthogonal** to selection —
+  it controls how fast the stats adapt and thus what "below 60% of
+  mean" means in practice.
 
-- **Base config (frozen):** 6000n, n-step(50), RLS(β=0.999),
-  `solve_every=10`, `recenter_interval=100`, `recenter_percentile=5.0`,
-  `broadness=0.0` (simplest; strong in the 6000n sweep),
-  hypersphere encoders, gain U(0.5, 2), random biases (no
-  data-driven; LunarLander observations don't cluster usefully).
+The right first sweep is therefore two-dimensional in
+(`percentile`, `min_relative`), with `broadness` held at 0 for now.
+Broadness will re-enter once the right selection rule is known.
 
-- **Swept axis (one):**
-  `recenter_min_relative ∈ {disabled, 0.0, 0.4, 0.6, 0.8}`
-  where "disabled" means `recenter_interval=None` (no recentering at
-  all, true baseline).  Based on §2.3, we expect:
-  - 0.0 → always recenters bottom 5% (current default; kicks healthy neurons)
-  - 0.4 → rarely recenters when distribution is tight, engages
-    when min/mean < 0.4 (i.e. only on genuinely underperforming neurons)
-  - 0.6 → engages more often
-  - 0.8 → almost always engages (bottom 5% is usually below 0.8×mean)
+**Base config (frozen):** **4000n**, n-step(50), RLS(β=0.999),
+`solve_every=10`, `recenter_interval=100`, `broadness=0.0`,
+hypersphere encoders, gain U(0.5, 2), random biases.
 
-- **Seeds:** 0 … 7  (eight seeds per condition = 40 runs total).
+We anchor on 4000n rather than 6000n because the corrected 4000n/6000n
+comparison wins 4000n clearly:
 
-- **Budget:** at ~2 h/run on CPU, 40 runs over 6 workers ≈ 14 hours.
-  Overnight + morning.  Safe to interrupt and resume thanks to
-  `imap_unordered` incremental save.
+| broadness | 4000n mean | 6000n mean |
+|-----------|-----------:|-----------:|
+| 0.00 | **142.5** | 124.9 |
+| 0.10 | **101.2** | 47.5  |
+| 0.20 | **152.6** | 37.0  |
+| 0.90 | **157.4** | 90.0  |
+| 1.00 | 78.1 | **101.7** |
+
+4000n wins 4/5 matched points and has a much higher worst-case floor
+(78 vs −24).  It also runs ≈ 3.5× faster wall-clock (35 min vs 120 min
+per run in parallel mode), giving us more seeds per unit compute.
+
+**Conditions (6 total, 8 seeds each → 48 runs):**
+
+| name          | percentile | min_relative | rationale                        |
+|---------------|-----------:|-------------:|----------------------------------|
+| `none`        |     —      |      —       | `recenter_interval=None` — true baseline |
+| `p5_mr0`      |  5         |  0.0         | current default (pure rotation)  |
+| `p5_mr0.7`    |  5         |  0.7         | cap at 5% **and** floor at 0.7·mean (first value where floor actually binds at low broadness) |
+| `p100_mr0.4`  | 100        |  0.4         | "no cap", loose floor            |
+| `p100_mr0.6`  | 100        |  0.6         | "no cap", medium floor           |
+| `p100_mr0.8`  | 100        |  0.8         | "no cap", strict floor (may recenter most of the layer when broadness=0) |
+
+Per-event `n_dead` is logged for every condition — this tells us
+whether (3)–(6) are actually firing and when.  We may well see that
+`p5_mr0.7` almost never fires (floor doesn't bind), and that
+`p100_mr0.8` fires way too often; that is itself useful signal.
+
+**Budget:** 48 runs at ≈ 35 min/run, 6 workers → ≈ **4.7 h**.  Fits
+within the 9 h hard limit with margin.  If interrupted, the
+`imap_unordered` incremental save means resuming just skips completed
+labels.
 
 **Expected outcomes and what they mean:**
 
-- *If `min_relative ∈ {0.4, 0.6}` clearly beats `0.0`:* we have
-  evidence that targeted recentering works, supporting a real
-  mechanistic claim in the paper.
-- *If all `min_relative` values are indistinguishable from "disabled":*
-  recentering is just noise and should be removed from the paper's
-  recommended config.
-- *If seed variance at every condition is still ±60 points of mean:*
-  the method fundamentally has that variance on LunarLander, we accept
-  it, and we report mean ± SE with 8 seeds in the paper.  That's an
-  honest and still-publishable result.
+- *Some `min_relative` condition clearly beats both `none` and
+  `p5_mr0`:* targeted recentering works, we have a real mechanism to
+  claim in the paper.
+- *`none` beats or matches all recentering conditions:* recentering at
+  `broadness=0` is just noise; we drop it from the recommended config
+  and replace with something smarter (possibly reintroducing broadness
+  > 0) in a follow-up.
+- *Seed variance still ±60 pts at every condition:* the method has
+  that floor of variance on LunarLander, we report mean ± SE with
+  8 seeds, and that is still an honest publishable result.
 
 Only after this returns a clean answer should we touch ensembles,
-Acrobot, or anything else.
+broadness, Acrobot, or anything else.
 
 
 ## 6. Do not do these things next
