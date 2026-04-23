@@ -37,21 +37,13 @@ What is **real and defensible** from the data:
   detection.  It is **pure rotation** — it always recenters exactly the
   bottom 5% regardless of whether those neurons are actually dead.
 
-**Recommendation:**
-1. Stop expanding the broadness landscape.  The signal is noise-bound
-   at our current seed count.
-2. Run a single 8-seed clean baseline **at 4000n** (not 6000n — see
-   §5) so we know what "doing nothing fancy" looks like.
-3. On top of that baseline, run a focused
-   `(percentile, min_relative)` sweep — this is the one mechanism we
-   have actually *never* tested properly, and the recenter-log data
-   predicts it should matter.  Note that `broadness` is **not
-   orthogonal** to this selection rule in the non-EMA branch we use
-   by default: it controls how fast the activity stats the rule reads
-   adapt.  Broadness will re-enter once we know the right selection
-   rule.
-4. Do **not** chase Acrobot/MountainCar with the current design.
-5. The combined analytical-solver-for-non-stationary-learning paper
+**Recommendation (post-§8 sweep):**
+1. **Drop recentering from the recommended NEF-FQI config.**  The
+   `(percentile, min_relative)` sweep (§8) shows `none` is
+   statistically tied with every non-destructive recentering setting at
+   4000n base.  Recommended baseline: 4000n, broadness=0, no recentering.
+2. Do **not** chase Acrobot/MountainCar with the current design.
+3. The combined analytical-solver-for-non-stationary-learning paper
    (CL + RL) is still viable, but the RL half must be reframed
    honestly: "works on dense-reward tasks, fails on sparse-reward
    tasks, with variance comparable to DQN on the dense-reward ones"
@@ -370,3 +362,75 @@ The biggest single trap we have fallen into in this work is
 treating lucky seeds as signal**.  The cure is deliberate: one
 experiment at a time, enough seeds to measure the noise, accept what
 the data says.
+
+
+## 8. Sweep results (4000n × 6 conditions × 8 seeds, completed)
+
+Run on 2026-04-22/23 via `benchmarks/run_min_relative_sweep.py`, results
+in `results/rl/min_relative_lunarlander.json`.  Wall time ≈ 7 h on a
+6-worker CPU pool.
+
+| condition     | n | best_eval mean ± SD | final_eval mean ± SD | n_dead(last)  |
+|---------------|---|--------------------:|---------------------:|--------------:|
+| `none`        | 8 | **126.2 ± 65.4**    | 109.4 ± 87.5         | —             |
+| `p5_mr0`      | 8 | 121.2 ± 74.1        | 109.3 ± 64.4         | 200 [200,200] |
+| `p5_mr0.7`    | 8 | **127.9 ± 71.4**    | **111.9 ± 83.3**     | 200 [200,200] |
+| `p100_mr0.4`  | 8 | 113.4 ± 75.8        | 105.1 ± 82.9         |  29 [6, 71]   |
+| `p100_mr0.6`  | 8 | 118.3 ± 65.8        | 110.5 ± 75.3         | 164 [74, 247] |
+| `p100_mr0.8`  | 8 |  72.0 ± 51.9        |  52.1 ± 35.4         | 640 [365,788] |
+
+### What the data says
+
+1. **Recentering does not help at 4000n base.**  The five non-destructive
+   conditions cluster in `best_eval` ∈ [113, 128] with SD ≈ 65–76, i.e.
+   SE ≈ 23–27.  Differences between them are ≪ SE.  `none` is
+   statistically indistinguishable from `p5_mr0`, `p5_mr0.7`,
+   `p100_mr0.4`, and `p100_mr0.6`.
+
+2. **Aggressive recentering hurts.**  `p100_mr0.8` recenters ~16 % of
+   the layer per interval (mean 640/4000) and pays ~55 points in
+   `best_eval`.  The selection rule with a strict absolute floor and no
+   percentile cap genuinely destabilizes training.
+
+3. **Selection-rule shape is irrelevant in the regime we tested.**
+   `p5_mr0` (rotation, fixed 200 dead) and `p100_mr0.6` (data-driven,
+   median 164 dead) land within 8 points despite being qualitatively
+   different rules.  What matters is *how many* neurons get touched per
+   interval, not *which* ones.
+
+4. **Recentering at all is a coin flip.**  Best mean is `p5_mr0.7`
+   (127.9), worst non-destructive is `p100_mr0.4` (113.4) — a 14-point
+   gap inside a per-condition SE of ~25.  We cannot defend any
+   non-trivial recentering recommendation from this data.
+
+### Branching decision (per §5 "Expected outcomes")
+
+We are in the **"none wins/ties"** branch.
+
+- ✅ **Drop recentering from the recommended NEF-FQI config.**  The
+  paper's "minimum viable agent" should be 4000n, broadness=0, no
+  recentering.  Mean LunarLander score ≈ 126, range −17 to 192.
+- ✅ **Do not run a voting-ensemble follow-up at any min_relative
+  setting.**  There is no "winner" to confirm.  If we want ensembles,
+  base them on `none` and on one `p5_mr0.7` arm, since those are tied
+  for the top mean.
+- ✅ **DQN head-to-head can use plain `none`.**  Simpler config, equal
+  performance.
+- ❌ **Do not run more recentering sweeps unless we change the regime**
+  (e.g. enable EMA via `activity_decay`, or add a budget on neurons
+  recentered per interval, or revisit broadness > 0).
+
+### Implications for the paper
+
+The RL story tightens, not weakens:
+
+> "A purely analytic NEF-FQI agent with 4000 neurons and no
+> recentering attains mean best-eval 126 ± 23 SE on LunarLander-v3
+> across 8 seeds, occasionally matching DQN (≈ 200) on lucky seeds.
+> Per-step solve time is dominated by environment simulation, not
+> matrix math.  The agent has zero gradient updates."
+
+That is honest, defensible, and the methods description is one
+paragraph instead of three.  It also clears the deck for broadness > 0
+and EMA-based recentering to be revisited later as **separate**
+experiments, with no entanglement to a config baseline that needs them.
