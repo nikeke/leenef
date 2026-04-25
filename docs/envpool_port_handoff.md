@@ -319,3 +319,105 @@ once those produce the expected speedup in production.
 
 Good luck. When done, ping the main session by writing a brief status
 into the addendum and pushing the branch.
+
+---
+
+## Addendum — port status
+
+### Implementation
+
+- `benchmarks/run_hp_sweep_envpool.py` — main runner.  CLI mirrors
+  `benchmarks/run_hp_sweep.py` (`--knob`, `--values`, `--seeds`,
+  `--episodes`, `--base-config`, `--output`, plus `--batch` and
+  `--max-episode-steps`).  Hosts N `NEFFQIAgent`s in one process,
+  steps them via a single envpool batch.
+- `benchmarks/_envpool_smoke.py` — single-agent gym↔envpool comparison
+  helper (Step 2-style spot check, optional).
+- `tests/test_envpool_parity.py` — schema-parity unit tests plus a
+  `slow`-marked end-to-end batch test.
+
+### Implementation choices
+
+- **Synchronous-batch with explicit per-env reset.**  envpool's
+  default auto-reset semantics return the post-reset *first-action*
+  observation rather than the true reset state.  After any env reports
+  `term or trunc`, the runner calls `pool.reset(env_id=[i])` before
+  the next step so each agent's `select_action` sees a clean
+  start-of-episode observation, matching gym's `env.reset(seed=…)`
+  semantics.
+- **Truncation at 1000 steps** (`max_episode_steps=DEFAULT_MAX_EPISODE_STEPS`)
+  to match gym's `LunarLander-v3` default; envpool defaults to
+  `INT_MAX`.
+- **Per-agent warmup against private gym envs.**  `NEFFQIAgent.warmup`
+  expects a gym-style `env`; warmup is sequential per agent and runs
+  before the batched training loop.
+- **`time_s` is per-agent wall clock from start of batched training to
+  that agent's last-episode completion.**  Agents that finish their
+  1000 episodes earlier than batchmates record a shorter `time_s`;
+  remaining envs continue stepping (we only skip `select_action` /
+  `update` for finished agents).  Warmup time is excluded, matching
+  the gym path.
+- **envpool seed = first agent's seed in the batch.**  Sub-envs are
+  seeded deterministically by envpool from this master.  Per-agent
+  numpy / torch randomness is independent and uses each agent's own
+  `seed` via `NEFFQIAgent`.
+- **Worktree-shared editable install workaround.**  Both new scripts
+  prepend the worktree root to `sys.path` before importing
+  `benchmarks.*`, so a sibling worktree's `pip install -e` doesn't
+  shadow the local `benchmarks/` package.
+
+### LunarLander-v3 in envpool
+
+`envpool 1.2.0` exposes `LunarLander-v3` via the gymnasium API and
+returns the standard `(obs, reward, term, trunc, info)` tuple.
+Spot-checks (noop policy, fixed seed) show physics close to but not
+bit-identical with gym v3 — episode lengths and reward sums are within
+seed-noise of one another.  Gym is `LunarLander-v3` (Box2D in Python);
+envpool is its own C++ port.
+
+### Lint
+
+`ruff check` and `ruff format --check` both pass on
+`benchmarks/run_hp_sweep_envpool.py`,
+`benchmarks/_envpool_smoke.py`, and `tests/test_envpool_parity.py`.
+`pytest tests/test_envpool_parity.py` is green (3 passed).
+
+### Parity sweep — IN PROGRESS
+
+A 32-run n_step parity sweep is running on this branch in
+`results/rl/n_step_lunarlander_envpool.json` (4 values × 8 seeds, 1000
+episodes each, batch=8).  The first ~hour of batch 1 was slowed by
+contention with a concurrent gym sweep on the main worktree; that
+sweep was stopped midway and throughput has recovered.
+
+When this sweep completes, fill in the table below using the
+`SUMMARY` block printed at the end of the run:
+
+| value | gym best_eval (mean ± SE) | envpool best_eval (mean ± SE) | within `√(SE_g²+SE_e²)`? |
+|------:|---------------------------|-------------------------------|--------------------------|
+| 10    | 38.9 ± 15.1               | _TBD_                         | _TBD_                    |
+| 20    | 79.0 ± 6.9                | _TBD_                         | _TBD_                    |
+| 50    | 147.3 ± 18.2              | _TBD_                         | _TBD_                    |
+| 100   | 127.0 ± 26.7              | _TBD_                         | _TBD_                    |
+
+Fail criterion (per the handoff): >1 value outside the combined-SE
+window blocks merge.
+
+### Timing — IN PROGRESS
+
+To be filled in after the parity sweep completes:
+
+- envpool n_step phase total wall time: _TBD_
+- gym n_step phase reference (sum of per-run `time_s` ÷ 6 for the
+  6-way `mp.Pool`): _TBD_
+- speedup: _TBD_
+- chosen N: 8 (one envpool batch per knob value).
+- estimated time for a 96-run 2-D sweep at this throughput: _TBD_
+
+### Caveats / known issues
+
+- The first ~50 minutes of the parity sweep ran under heavy CPU
+  contention with the gym `solve_every` sweep on the main worktree,
+  so per-agent `time_s` for the first batch is inflated.  Speedup
+  numbers should be computed from the post-contention batches or
+  re-run cleanly if exact timings matter.
