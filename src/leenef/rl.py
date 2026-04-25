@@ -481,6 +481,7 @@ class NEFFQIAgent:
             self._ata = torch.zeros(n_actions, n_neurons, n_neurons, dtype=torch.float64)
             self._aty = torch.zeros(n_actions, n_neurons, dtype=torch.float64)
             self._n_accumulated = torch.zeros(n_actions, dtype=torch.long)
+            self._pending_stats: list[tuple[Tensor, Tensor, Tensor]] = []
 
         # Recent observations for recentering
         if recenter_interval is not None:
@@ -696,15 +697,15 @@ class NEFFQIAgent:
 
         for a in range(self.n_actions):
             mask = actions_arr == a
-            self._ata[a] *= beta
+            self._ata[a].mul_(beta)
             if mask.sum() > 0:
                 phi_a = phi_all[mask]
-                self._ata[a] += phi_a.T @ phi_a
+                self._ata[a].addmm_(phi_a.T, phi_a)
             self._n_accumulated[a] += int(mask.sum())
 
         # Merge per-episode AᵀY into global with decay
         for a in range(self.n_actions):
-            self._aty[a] = beta * self._aty[a] + self._aty_ep[a]
+            self._aty[a].mul_(beta).add_(self._aty_ep[a])
             self._aty_ep[a].zero_()
 
         # Reset eligibility traces
@@ -749,32 +750,63 @@ class NEFFQIAgent:
         return episode_data
 
     def _accumulate_episode(self, episode_data: list[tuple[np.ndarray, int, float]]) -> None:
-        """Accumulate episode into per-action sufficient statistics with decay."""
+        """Encode and queue an episode for deferred sufficient-stat accumulation."""
         states = torch.tensor(np.array([t[0] for t in episode_data]), dtype=torch.float32)
-        actions = np.array([t[1] for t in episode_data])
+        actions = torch.tensor([t[1] for t in episode_data], dtype=torch.long)
         targets = torch.tensor(np.array([t[2] for t in episode_data]), dtype=torch.float32)
 
         with torch.no_grad():
             phi = self.features.encode(states)
 
-        phi_f64 = phi.double()
-        targets_f64 = targets.double()
-        beta = self.forget_factor
+        self._pending_stats.append((phi.double(), actions, targets.double()))
+
+    def _flush_pending_stats(self) -> None:
+        """Merge queued RLS episodes using the same decay as per-episode updates."""
+        if not self._pending_stats:
+            return
+
+        pending = self._pending_stats
+        self._pending_stats = []
+        beta = float(self.forget_factor)
+        n_pending = len(pending)
+        total_decay = beta**n_pending
 
         for a in range(self.n_actions):
-            mask = actions == a
-            if mask.sum() == 0:
-                # Still decay even when no samples for this action
-                self._ata[a] *= beta
-                self._aty[a] *= beta
+            self._ata[a].mul_(total_decay)
+            self._aty[a].mul_(total_decay)
+
+            phi_chunks = []
+            target_chunks = []
+            n_action = 0
+
+            for i, (phi, actions, targets) in enumerate(pending):
+                mask = actions == a
+                count = int(mask.sum().item())
+                if count == 0:
+                    continue
+
+                weight = beta ** (n_pending - 1 - i)
+                sqrt_weight = weight**0.5
+                phi_chunks.append(phi[mask] * sqrt_weight)
+                target_chunks.append(targets[mask] * sqrt_weight)
+                n_action += count
+
+            if n_action == 0:
                 continue
 
-            phi_a = phi_f64[mask]
-            y_a = targets_f64[mask]
+            phi_a = torch.cat(phi_chunks)
+            y_a = torch.cat(target_chunks)
+            self._ata[a].addmm_(phi_a.T, phi_a)
+            self._aty[a].addmv_(phi_a.T, y_a)
+            self._n_accumulated[a] += n_action
 
-            self._ata[a] = beta * self._ata[a] + phi_a.T @ phi_a
-            self._aty[a] = beta * self._aty[a] + phi_a.T @ y_a
-            self._n_accumulated[a] += mask.sum()
+    @staticmethod
+    def _solve_spd_vector(matrix: Tensor, rhs: Tensor) -> Tensor:
+        """Solve a regularized SPD system, falling back to a generic solve."""
+        chol, info = torch.linalg.cholesky_ex(matrix)
+        if int(info.item()) == 0:
+            return torch.cholesky_solve(rhs.unsqueeze(1), chol).squeeze(1)
+        return torch.linalg.solve(matrix, rhs)
 
     def _solve_per_action(self, phi: Tensor, actions: np.ndarray, targets: Tensor) -> Tensor:
         """Per-action analytical solve: w_a = (Φ_aᵀ Φ_a + αI)⁻¹ Φ_aᵀ y."""
@@ -797,7 +829,7 @@ class NEFFQIAgent:
             ATA.diagonal().add_(reg.clamp(min=self.alpha))
 
             try:
-                w = torch.linalg.solve(ATA, ATy)
+                w = self._solve_spd_vector(ATA, ATy)
             except torch.linalg.LinAlgError:
                 w = torch.linalg.lstsq(phi_a, y_a.unsqueeze(1)).solution.squeeze(1)
 
@@ -822,6 +854,7 @@ class NEFFQIAgent:
 
     def _solve_from_stats(self) -> None:
         """Solve from exponentially-weighted sufficient statistics."""
+        self._flush_pending_stats()
         W_new = torch.zeros_like(self.W)
 
         for a in range(self.n_actions):
@@ -836,7 +869,7 @@ class NEFFQIAgent:
             ATA.diagonal().add_(reg.clamp(min=self.alpha))
 
             try:
-                w = torch.linalg.solve(ATA, ATY)
+                w = self._solve_spd_vector(ATA, ATY)
             except torch.linalg.LinAlgError:
                 w = torch.linalg.lstsq(ATA, ATY.unsqueeze(1)).solution.squeeze(1)
 
@@ -886,6 +919,8 @@ class NEFFQIAgent:
 
         # Dead neuron recentering (before solve so new neurons get fresh data)
         if self.recenter_interval is not None and self._episode % self.recenter_interval == 0:
+            if self.forget_factor is not None:
+                self._flush_pending_stats()
             self._recenter_dead()
 
         if self._episode % self.solve_every == 0:

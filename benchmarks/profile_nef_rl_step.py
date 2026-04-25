@@ -9,6 +9,7 @@ attributes wall time to:
 Prints a per-component breakdown so we can decide whether envpool's faster
 env stepping could ever pay off for this workload.
 """
+
 from __future__ import annotations
 
 import json
@@ -16,7 +17,6 @@ import time
 from pathlib import Path
 
 import gymnasium as gym
-import numpy as np
 
 from leenef.rl import NEFFQIAgent
 
@@ -104,7 +104,7 @@ def main() -> None:
     print(f"\nProfile over {N_EPISODES} episodes / {n_steps} steps")
     print(f"Wall clock total:   {t_total:8.2f} s")
     print(f"Accounted:          {accounted:8.2f} s ({100 * accounted / t_total:5.1f}%)")
-    print(f"\nBreakdown (per-step / total / share-of-accounted):")
+    print("\nBreakdown (per-step / total / share-of-accounted):")
     for name, t in [
         ("env.step       ", t_step),
         ("agent.select   ", t_select),
@@ -120,8 +120,10 @@ def main() -> None:
     agent_share = (t_select + t_update + t_endep) / accounted
     print(f"\nEnv stepping share:    {100 * env_share:5.1f}%")
     print(f"Agent compute share:   {100 * agent_share:5.1f}%")
-    print(f"\nUpper bound on envpool benefit (if env.step → 0): "
-          f"{1 / (1 - env_share):.2f}× speedup per process")
+    print(
+        f"\nUpper bound on envpool benefit (if env.step → 0): "
+        f"{1 / (1 - env_share):.2f}× speedup per process"
+    )
 
 
 if __name__ == "__main__":
