@@ -483,7 +483,7 @@ def test_envpool_runner_survives_shuffled_env_id(monkeypatch):
     assert spy.get("subset reset", 0) >= 1, f"subset reset reorder never invoked: {spy}"
 
 
-def test_cache_guard_rejects_master_seed_mismatch(tmp_path, monkeypatch):
+def test_cache_guard_rejects_master_seed_mismatch(tmp_path, monkeypatch, capsys):
     """``main()`` must refuse to resume an output file whose stamped
     cached runs were produced with a different ``--envpool-master-seed``.
     """
@@ -513,6 +513,13 @@ def test_cache_guard_rejects_master_seed_mismatch(tmp_path, monkeypatch):
             }
         )
     )
+
+    # If main() ever reaches launch despite the mismatch, fail loudly
+    # rather than silently passing because of an unrelated SystemExit.
+    def _should_not_run(*args, **kwargs):
+        raise AssertionError("run_envpool_batch should not be called when cache guard rejects")
+
+    monkeypatch.setattr(mod, "run_envpool_batch", _should_not_run)
     monkeypatch.setattr(
         sys,
         "argv",
@@ -537,18 +544,26 @@ def test_cache_guard_rejects_master_seed_mismatch(tmp_path, monkeypatch):
     )
     with pytest.raises(SystemExit):
         mod.main()
+    captured = capsys.readouterr()
+    combined = captured.out + captured.err
+    assert "master_seed" in combined or "_envpool_master_seed" in combined, (
+        f"expected cache-guard message mentioning master_seed, got: {combined!r}"
+    )
 
 
 def test_cache_guard_accepts_unstamped_legacy_runs(tmp_path, monkeypatch):
     """Pre-1b85a27 successful runs (no ``_envpool_*`` metadata) must
-    remain resumable.  This protects the live c2a110c sweep output.
+    remain resumable.  This protects the live c2a110c sweep output by
+    proving:
+      (a) main() does not raise on legacy unstamped completed entries, and
+      (b) main() still launches new batches for missing labels.
     """
     import benchmarks.run_hp_sweep_envpool as mod
 
     out_path = tmp_path / "legacy.json"
     base_path = tmp_path / "base.json"
     base_path.write_text(json.dumps({"n_neurons": 200}))
-    # Legacy run with no envpool metadata in config.
+    # Legacy run with no envpool metadata in config.  Only seed 0 is cached.
     out_path.write_text(
         json.dumps(
             {
@@ -565,8 +580,11 @@ def test_cache_guard_accepts_unstamped_legacy_runs(tmp_path, monkeypatch):
         )
     )
 
-    # Stub run_envpool_batch so main() doesn't actually train.
+    # Stub run_envpool_batch and capture the seeds it was invoked with.
+    invocations: list[list[int]] = []
+
     def stub(*args, **kwargs):
+        invocations.append(list(kwargs.get("seeds", [])))
         return iter([])
 
     monkeypatch.setattr(mod, "run_envpool_batch", stub)
@@ -581,6 +599,7 @@ def test_cache_guard_accepts_unstamped_legacy_runs(tmp_path, monkeypatch):
             "10",
             "--seeds",
             "0",
+            "1",  # 0 already cached unstamped, 1 must be queued
             "--episodes",
             "1",
             "--base-config",
@@ -589,8 +608,16 @@ def test_cache_guard_accepts_unstamped_legacy_runs(tmp_path, monkeypatch):
             str(out_path),
         ],
     )
-    # Should NOT raise SystemExit — legacy run is tolerated.
+    # Should NOT raise SystemExit — legacy unstamped run is tolerated.
     mod.main()
+    # And seed=1 must have been queued (resume actually works).
+    queued_seeds = [s for batch in invocations for s in batch]
+    assert 1 in queued_seeds, (
+        f"expected seed=1 to be queued for resume, got invocations={invocations!r}"
+    )
+    assert 0 not in queued_seeds, (
+        f"seed=0 was already cached; should not be re-run, got {invocations!r}"
+    )
 
 
 def test_run_envpool_batch_rejects_extreme_sparse_seeds():
