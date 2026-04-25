@@ -71,6 +71,48 @@ DEFAULT_MAX_EPISODE_STEPS = 1000
 DEFAULT_ENVPOOL_MASTER_SEED = 0
 
 
+def _reorder_by_env_id(
+    info: dict | None,
+    arrays: tuple,
+    expected_ids: np.ndarray,
+    *,
+    where: str,
+) -> tuple:
+    """Reorder ``arrays`` so that row ``k`` corresponds to env_id ``expected_ids[k]``.
+
+    Raises
+    ------
+    RuntimeError
+        If ``info`` does not contain ``env_id``, or if the returned
+        ``env_id`` is not exactly the set ``expected_ids``.
+
+    Notes
+    -----
+    envpool's synchronous batch step is *expected* to return rows in
+    ``[0, 1, ..., num_envs-1]`` order.  We do not rely on that: we
+    explicitly reorder so the runner is correct under any permutation
+    (e.g. async mode, future API changes, partial-batch returns).
+    """
+    if not isinstance(info, dict) or "env_id" not in info:
+        raise RuntimeError(
+            f"envpool {where} did not return info['env_id']; cannot align rows safely"
+        )
+    eid = np.asarray(info["env_id"])
+    expected_sorted = np.sort(np.asarray(expected_ids))
+    if not np.array_equal(np.sort(eid), expected_sorted):
+        raise RuntimeError(
+            f"envpool {where} returned env_id {eid.tolist()}, "
+            f"expected the set {expected_sorted.tolist()}"
+        )
+    if np.array_equal(eid, expected_ids):
+        return arrays  # already aligned (the common synchronous case)
+    # Permutation: build a row-permutation ``perm`` such that
+    # ``arr[perm][k]`` is the row for ``expected_ids[k]``.
+    pos = {int(e): k for k, e in enumerate(eid)}
+    perm = np.array([pos[int(e)] for e in expected_ids], dtype=np.int64)
+    return tuple(a[perm] for a in arrays)
+
+
 def _build_run_dict(
     *,
     label: str,
@@ -158,8 +200,13 @@ def run_envpool_batch(
         order of ``labels``).
     """
     n = len(labels)
-    assert len(seeds) == n and len(agent_kwargs_list) == n
-    assert n > 0, "empty batch"
+    if not (len(seeds) == n and len(agent_kwargs_list) == n):
+        raise ValueError(
+            f"length mismatch: labels={n}, seeds={len(seeds)}, "
+            f"agent_kwargs_list={len(agent_kwargs_list)}"
+        )
+    if n == 0:
+        raise ValueError("empty batch")
     if any(s < 0 for s in seeds):
         raise ValueError(f"envpool path requires non-negative seeds; got {seeds}")
     if len(set(seeds)) != n:
@@ -169,6 +216,15 @@ def run_envpool_batch(
         pool_size = max(seeds) + 1
     if pool_size <= max(seeds):
         raise ValueError(f"pool_size={pool_size} must exceed max seed {max(seeds)}")
+    # Sparse-seed footgun: e.g. ``--seeds 0 100`` would create a 101-env
+    # pool to run 2 labels.  Warn loudly so this is intentional, not
+    # accidental.
+    if pool_size > 4 * n:
+        print(
+            f"  WARNING: sparse seeds inflate envpool size: pool_size={pool_size}"
+            f" for only {n} labels (max seed={max(seeds)}). Consider remapping seeds.",
+            flush=True,
+        )
 
     # --- Slot mapping: agent i -> sub-env index slot_of_agent[i] = seeds[i] ---
     slot_of_agent: list[int] = list(seeds)
@@ -227,11 +283,10 @@ def run_envpool_batch(
     # decision time, so explicit resets inside the step loop don't
     # corrupt next-step inputs.
     batch_obs_full, info_r = pool.reset()
-    if isinstance(info_r, dict) and "env_id" in info_r:
-        eid = np.asarray(info_r["env_id"])
-        assert np.array_equal(np.sort(eid), np.arange(pool_size)), (
-            f"envpool reset returned env_id {eid}, expected permutation of 0..{pool_size - 1}"
-        )
+    all_ids = np.arange(pool_size, dtype=np.int64)
+    (batch_obs_full,) = _reorder_by_env_id(
+        info_r, (batch_obs_full,), all_ids, where="initial reset"
+    )
     last_obs_per: list[np.ndarray] = [batch_obs_full[slot_of_agent[i]].copy() for i in range(n)]
 
     t_start = time.time()
@@ -245,12 +300,12 @@ def run_envpool_batch(
                     actions[slot_of_agent[i]] = agents[i].select_action(last_obs_per[i])
 
             next_obs_full, rewards, term, trunc, info_s = pool.step(actions)
-            if isinstance(info_s, dict) and "env_id" in info_s:
-                eid = np.asarray(info_s["env_id"])
-                assert np.array_equal(np.sort(eid), np.arange(pool_size)), (
-                    f"envpool step returned env_id {eid}, "
-                    f"expected permutation of 0..{pool_size - 1}"
-                )
+            next_obs_full, rewards, term, trunc = _reorder_by_env_id(
+                info_s,
+                (next_obs_full, rewards, term, trunc),
+                all_ids,
+                where="step",
+            )
 
             to_reset_slots: list[int] = []
             just_finished: list[int] = []
@@ -302,8 +357,13 @@ def run_envpool_batch(
                 # so the next ``select_action`` sees a true first-of-episode
                 # obs (matches gym's env.reset() semantics for the agent's
                 # decision input, even if the per-episode RNG seed differs).
-                reset_obs, _ = pool.reset(env_id=np.array(to_reset_slots, dtype=np.int32))
-                # Map agents whose slot was reset to the reset obs.
+                reset_ids = np.array(to_reset_slots, dtype=np.int32)
+                reset_obs, reset_info = pool.reset(env_id=reset_ids)
+                # Defensive: realign returned obs by env_id so row k
+                # corresponds to ``to_reset_slots[k]``, not request order.
+                (reset_obs,) = _reorder_by_env_id(
+                    reset_info, (reset_obs,), reset_ids.astype(np.int64), where="subset reset"
+                )
                 slot_to_reset_idx = {slot: k for k, slot in enumerate(to_reset_slots)}
                 for i in range(n):
                     if finished[i]:

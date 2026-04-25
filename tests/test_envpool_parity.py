@@ -238,3 +238,123 @@ def test_envpool_partial_completion_yields_eagerly():
 
     assert n_yielded == 2
     assert set(saved) == {"partial_s0", "partial_s1"}
+
+
+# --- Unit tests for the env_id realignment helper (no envpool needed) ---
+
+
+def test_reorder_by_env_id_identity_passthrough():
+    from benchmarks.run_hp_sweep_envpool import _reorder_by_env_id
+
+    arr = np.arange(12).reshape(4, 3)
+    rew = np.array([10.0, 20.0, 30.0, 40.0])
+    info = {"env_id": np.array([0, 1, 2, 3])}
+    out_arr, out_rew = _reorder_by_env_id(
+        info, (arr, rew), np.arange(4, dtype=np.int64), where="test"
+    )
+    assert np.array_equal(out_arr, arr)
+    assert np.array_equal(out_rew, rew)
+
+
+def test_reorder_by_env_id_permutation_realigns():
+    from benchmarks.run_hp_sweep_envpool import _reorder_by_env_id
+
+    # Pretend envpool returned rows in shuffled order: returned env_id [2,0,3,1]
+    # means row 0 of the array is for slot 2, row 1 is for slot 0, etc.
+    arr = np.array([[2, 2], [0, 0], [3, 3], [1, 1]], dtype=float)
+    rew = np.array([22.0, 0.0, 33.0, 11.0])
+    info = {"env_id": np.array([2, 0, 3, 1])}
+    out_arr, out_rew = _reorder_by_env_id(
+        info, (arr, rew), np.arange(4, dtype=np.int64), where="test"
+    )
+    # After reordering, row k must be for slot k.
+    assert np.array_equal(out_arr, np.array([[0, 0], [1, 1], [2, 2], [3, 3]], dtype=float))
+    assert np.array_equal(out_rew, np.array([0.0, 11.0, 22.0, 33.0]))
+
+
+def test_reorder_by_env_id_subset_permutation():
+    """Subset reset: expected_ids is a subset of all slots, possibly out of order."""
+    from benchmarks.run_hp_sweep_envpool import _reorder_by_env_id
+
+    # We requested slots [5, 2, 7]; envpool returned them as [2, 7, 5].
+    arr = np.array([[2.0], [7.0], [5.0]])
+    info = {"env_id": np.array([2, 7, 5])}
+    expected = np.array([5, 2, 7], dtype=np.int64)
+    (out,) = _reorder_by_env_id(info, (arr,), expected, where="subset")
+    # Row k must now correspond to expected[k].
+    assert np.array_equal(out, np.array([[5.0], [2.0], [7.0]]))
+
+
+def test_reorder_by_env_id_raises_on_missing_info():
+    from benchmarks.run_hp_sweep_envpool import _reorder_by_env_id
+
+    arr = np.zeros((3, 2))
+    with pytest.raises(RuntimeError, match="env_id"):
+        _reorder_by_env_id(None, (arr,), np.arange(3, dtype=np.int64), where="x")
+    with pytest.raises(RuntimeError, match="env_id"):
+        _reorder_by_env_id({}, (arr,), np.arange(3, dtype=np.int64), where="x")
+
+
+def test_reorder_by_env_id_raises_on_wrong_set():
+    from benchmarks.run_hp_sweep_envpool import _reorder_by_env_id
+
+    arr = np.zeros((3, 2))
+    info = {"env_id": np.array([0, 1, 9])}  # 9 is not in expected
+    with pytest.raises(RuntimeError, match="expected the set"):
+        _reorder_by_env_id(info, (arr,), np.arange(3, dtype=np.int64), where="x")
+
+
+@pytest.mark.slow
+def test_envpool_main_preserves_completed_runs_on_failure(tmp_path, monkeypatch):
+    """If ``run_envpool_batch`` raises mid-run, ``main()`` must persist
+    every label that already finished (via ``on_complete``) and only
+    record ``error`` for the rest.
+    """
+    import benchmarks.run_hp_sweep_envpool as mod
+
+    out_path = tmp_path / "fail.json"
+    base_path = tmp_path / "base.json"
+    base_path.write_text(json.dumps({"n_neurons": 200}))
+
+    real = mod.run_envpool_batch
+
+    def flaky(*args, **kwargs):
+        # Yield the first agent normally, then blow up before the second.
+        gen = real(*args, **kwargs)
+        try:
+            first = next(gen)
+        except StopIteration:
+            return
+        # Persist via the caller's on_complete (already invoked inside ``real``).
+        yield first
+        gen.close()
+        raise RuntimeError("synthetic mid-batch failure")
+
+    monkeypatch.setattr(mod, "run_envpool_batch", flaky)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_hp_sweep_envpool.py",
+            "--knob",
+            "n_step",
+            "--values",
+            "10",
+            "--seeds",
+            "0",
+            "1",
+            "--episodes",
+            "1",
+            "--base-config",
+            str(base_path),
+            "--output",
+            str(out_path),
+        ],
+    )
+    mod.main()
+    saved = json.loads(out_path.read_text())
+    # One label finished cleanly, the other got an error stub.
+    n_ok = sum(1 for v in saved.values() if "error" not in v)
+    n_err = sum(1 for v in saved.values() if "error" in v)
+    assert n_ok == 1, f"expected 1 completed run preserved, got {n_ok}: {saved}"
+    assert n_err == 1, f"expected 1 error stub, got {n_err}: {saved}"

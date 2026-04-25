@@ -386,11 +386,16 @@ into the addendum and pushing the branch.
   `results/rl/<knob>_lunarlander_envpool.json` (note the `_envpool`
   suffix) so accidentally omitting `--output` cannot clobber the gym
   path's canonical results file.
-- **`info["env_id"]` alignment guard.**  After each `pool.reset` /
-  `pool.step`, if envpool returns `env_id` in `info` we assert it is
-  a permutation of `0..pool_size-1` so any future async/partial
-  envpool mode that returns rows out of order trips loudly rather
-  than silently mis-routing observations.
+- **`info["env_id"]` alignment guard.**  After every `pool.reset` /
+  `pool.step` / subset reset, the helper `_reorder_by_env_id` requires
+  envpool to return `env_id` in `info` and reorders rows so that
+  output row `k` corresponds to the slot the runner *expects* at
+  position `k`.  An identity permutation is the fast path; any other
+  permutation is reordered transparently; missing `env_id` or a
+  mismatched id-set raises `RuntimeError` (not `assert`, so it cannot
+  be silenced with `python -O`).  This makes the runner correct under
+  any synchronous or async envpool configuration that returns the
+  full requested set, in any order.
 - **Worktree-shared editable install workaround.**  Both new scripts
   prepend the worktree root to `sys.path` before importing
   `benchmarks.*`, so a sibling worktree's `pip install -e` doesn't
@@ -410,9 +415,12 @@ path is therefore impossible; statistical parity over seeds is the bar.
 
 `ruff check` and `ruff format --check` both pass on the benchmarks
 and tests trees.  `pytest tests/test_envpool_parity.py` is green
-(7 passed): schema, seed-stream-independent-of-num_envs, end-to-end
+(13 passed): schema, seed-stream-independent-of-num_envs, end-to-end
 batch, **label-invariance across batch composition**, eval-cadence,
-and eager-yield partial-completion.
+eager-yield partial-completion, five `_reorder_by_env_id` unit tests
+(identity, permutation, subset-permutation, missing-info, wrong-id-set),
+and a `main()`-level test that simulates a mid-batch failure and
+asserts every already-completed run is preserved on disk.
 
 ### Brutal-review fixes
 
@@ -425,9 +433,11 @@ them:
 | CRITICAL | Per-label trajectory depended on the agent's position in the envpool batch (envpool seeds sub-envs as `master+i`).  Resume / `--batch` / non-contiguous seeds would silently change a label's training trajectory. | Pin label `s` to sub-env index `s` with a fixed master seed; verified empirically that the per-sub-env stream is invariant under `num_envs`. |
 | CRITICAL | `agent.warmup` reseeds the env from system entropy, so warmup trajectories drifted across batch compositions. | Pre-seed each warmup env with the agent's `seed` before calling `agent.warmup`. |
 | HIGH     | Default `--output` collided with the gym path's canonical file (`results/rl/<knob>_lunarlander.json`). | Default to `…_envpool.json`. |
-| MEDIUM   | `info["env_id"]` discarded; assumed envpool returned rows in order. | Assert `env_id` is a permutation of `0..pool_size-1` whenever envpool surfaces it. |
-| MEDIUM   | Batch failure tagged every label `error`, even ones that had already finished. | Generator-based `run_envpool_batch` with `on_complete` callback persists each agent's results immediately; failure branch only errors out unfinished labels. |
-| MEDIUM   | Tests were schema-only and would have passed even with the bugs above. | Added explicit tests for seed-stream-vs-num_envs, label-invariance across batch composition, eval cadence, and eager-yield. |
+| MEDIUM   | `info["env_id"]` discarded; assumed envpool returned rows in order.  The first patch added a permutation-membership assert, but still indexed by row number — a non-identity permutation would have passed the assert and silently misrouted data. | `_reorder_by_env_id` actively realigns every reset/step/subset-reset return by `env_id`, with a `raise RuntimeError` (not `assert`) on missing `env_id` or a mismatched id-set. |
+| MEDIUM   | Batch failure tagged every label `error`, even ones that had already finished. | Generator-based `run_envpool_batch` with `on_complete` callback persists each agent's results immediately; failure branch only errors out unfinished labels.  Locked in by a `main()`-level test using a synthetic mid-batch failure. |
+| MEDIUM   | Tests were schema-only and would have passed even with the bugs above. | Added explicit tests for seed-stream-vs-num_envs, label-invariance across batch composition, eval cadence, eager-yield, env_id realignment under arbitrary permutations and subsets, and main()-level partial-failure preservation. |
+| LOW      | Sparse high seeds (e.g. `--seeds 100`) would silently inflate `pool_size`. | Warn loudly when `pool_size > 4·n` so this is intentional rather than accidental. |
+| LOW      | Runtime guards used `assert`, which `python -O` strips. | All runtime guards (env_id alignment, batch-shape checks) raise explicit `ValueError` / `RuntimeError`. |
 
 ### Parity sweep — TO DO
 
