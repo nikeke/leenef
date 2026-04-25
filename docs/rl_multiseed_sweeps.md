@@ -144,6 +144,36 @@ new value supersedes 0.1; otherwise 0.1 is locked in and we proceed.
 
 ## Scratch observations / hypotheses
 
+### envpool postmortem (do not retry without a different approach)
+
+We spent a session porting `run_hp_sweep.py` to envpool, hoping for ~3-5×
+wall-clock speedup from C++ batched env stepping. Result: **envpool is
+slower than gym `mp.Pool`** at any tested parallelism. Profile of a single
+agent at the production base config (4000n, n_step=50, solve_every=10):
+
+| component       | per-step  | share |
+|-----------------|----------:|------:|
+| env.step (gym)  | 0.04 ms   | 0.7%  |
+| agent.update    | 4.58 ms   | 77.2% |
+| agent.end_ep    | 1.29 ms   | 21.7% |
+| agent.select    | 0.02 ms   | 0.3%  |
+| env.reset       | 0.01 ms   | 0.1%  |
+
+Upper bound on per-process envpool benefit (env.step → 0): **1.01×**.
+Box2D physics is a rounding error next to NEF agent compute (encoding +
+AᵀA accumulation + periodic 4000³ RLS solves). envpool optimizes the
+wrong layer.
+
+The conventional wisdom "env stepping dominates RL wall time" applies to
+SGD-trained MLPs on Box2D/MuJoCo. It does **not** apply to
+analytically-solved NEF-FQI at our scale. Verify before reaching for
+envpool/GPU on any future RL extension.
+
+Profile script: `benchmarks/profile_nef_rl_step.py`. Branch:
+`envpool-port` (preserved, not merged).
+
+### Other observations
+
 - **H1: optimal `n_step` scales with `n_neurons`.** Motivation: longer
   horizons reduce bootstrap bias but raise target variance; a richer
   function approximator absorbs that variance. Current evidence: 1
