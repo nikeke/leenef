@@ -157,6 +157,33 @@ collapsed. Alpha values 1.0 and 3.0 are clearly over-regularized.
 existing A3 alpha=0.1 old-code seeds as the paired baseline and runs the
 optimized branch on the same seeds.
 
+#### CPU optimization parity gate
+
+Optimized branch: `37daab2` / main `7703a10`.
+Result file: `results/rl/parity_rl_opt_alpha01.json`.
+
+| implementation | n | best_eval (mean ± SE) | final_eval (mean ± SE) | mean time/run |
+|---|---:|---:|---:|---:|
+| old code, alpha=0.1 | 8 | 169.6 ± 31.6 | 128.2 ± 35.1 | 2908 s |
+| optimized RLS batching | 8 | 129.4 ± 40.4 | 87.9 ± 47.8 | 827 s |
+
+Combined-SE parity check:
+
+| metric | Δ optimized-old | combined SE | Verdict |
+|---|---:|---:|---|
+| best_eval | -40.2 | 51.3 | within SE |
+| final_eval | -40.3 | 59.3 | within SE |
+
+**Decision**: adopt the optimization for B1+ because both primary metrics
+remain inside the original statistical-parity bar while runtime improves by
+about 3.5× under these loaded runs.
+
+**Caveat**: paired seed deltas are not clean (`best_eval` paired delta
+-40.2 ± 33.5), driven mostly by seeds 6 and 7. Treat B1's early results
+as a smoke test for possible semantic drift: if all solve_every values look
+uniformly worse than the old alpha=0.1 baseline, stop and reassess rather
+than blindly continuing.
+
 ### B1 — `solve_every` (in progress)
 
 ### ~~B2 — `tau`~~ (SKIPPED — provably no-op)
