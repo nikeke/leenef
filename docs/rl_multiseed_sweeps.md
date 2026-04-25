@@ -142,6 +142,17 @@ new value supersedes 0.1; otherwise 0.1 is locked in and we proceed.
 
 ### B1 — `solve_every` (in progress)
 
+### ~~B2 — `tau`~~ (SKIPPED — provably no-op)
+
+In `target_mode='nstep'` (our base), `solve()` dispatches to
+`_solve_from_stats` which never reads `W_target`. `select_action`
+reads only `W`. The Polyak update at line 893 maintains a write-only
+copy. All 4 tau values would produce bit-identical training. Removed
+from the driver, saves ~3-4 h.
+
+If we ever swap to `target_mode='td'`, B2 must be re-introduced (then
+`W_target` is read by `_solve_from_buffer` for bootstrapping).
+
 ## Scratch observations / hypotheses
 
 ### envpool postmortem (do not retry without a different approach)
