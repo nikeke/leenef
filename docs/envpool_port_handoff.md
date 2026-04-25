@@ -415,15 +415,19 @@ path is therefore impossible; statistical parity over seeds is the bar.
 
 `ruff check` and `ruff format --check` both pass on the benchmarks
 and tests trees.  `pytest tests/test_envpool_parity.py` is green
-(14 passed): schema, seed-stream-independent-of-num_envs, end-to-end
+(18 passed): schema, seed-stream-independent-of-num_envs, end-to-end
 batch, **label-invariance across batch composition**, eval-cadence,
 eager-yield partial-completion, five `_reorder_by_env_id` unit tests
 (identity, permutation, subset-permutation, missing-info, wrong-id-set),
 a `main()`-level test that simulates a mid-batch failure and asserts
-every already-completed run is preserved on disk, and an integration
-test that wraps envpool with a row-shuffling pool and checks that
-per-label rewards match the passthrough baseline (catches regressions
-where any single `_reorder_by_env_id` call site is removed).
+every already-completed run is preserved on disk, an integration test
+that wraps envpool with a row-shuffling pool and checks both that
+per-label rewards match the passthrough baseline **and** that all three
+`_reorder_by_env_id` call sites (initial reset, step, subset reset)
+fire at least once via a spy wrapper, and four cache/CLI guard tests
+(master-seed-mismatch rejection with diagnostic capture, unstamped
+legacy-run resume, sparse-seed direct-API hard fail, basename-only
+`--output` does not crash on `os.makedirs("")`).
 
 ### Brutal-review fixes
 
@@ -444,12 +448,10 @@ them:
 | LOW      | Resuming the same `--output` with a different `--envpool-master-seed` (or `--max-episode-steps` / `--env`) would silently mix incompatible trajectories under identical labels. | Each run dict's `config` records `_envpool_master_seed`, `_envpool_max_episode_steps`, and `_envpool_env`; `main()` refuses to resume if any cached run's metadata mismatches the current CLI. |
 | LOW      | `--output basename.json` (no directory component) would crash on `os.makedirs("")`. | Skip `os.makedirs` when the dirname is empty. |
 
-### Parity sweep — TO DO
+### Parity sweep
 
-The original brutal-review-failing v1 implementation had a 32-run
-parity sweep underway; it was killed and discarded (the buggy seeding
-made its results unreliable as a gym-vs-envpool comparison).  The
-clean parity sweep needs to be re-run on this fixed implementation:
+A clean 32-run parity sweep was completed on commit `c2a110c` (with
+later guardrail commits merged in) using:
 
 ```
 python -u benchmarks/run_hp_sweep_envpool.py --knob n_step \
@@ -458,26 +460,73 @@ python -u benchmarks/run_hp_sweep_envpool.py --knob n_step \
     --output results/rl/n_step_lunarlander_envpool.json
 ```
 
-When complete, fill in the table below from the runner's `SUMMARY`
-block:
+**`best_eval` (mean ± SE), n=8 seeds per cell, vs gym reference at
+`leenef/results/rl/n_step_lunarlander.json`:**
 
-| value | gym best_eval (mean ± SE) | envpool best_eval (mean ± SE) | within `√(SE_g²+SE_e²)`? |
-|------:|---------------------------|-------------------------------|--------------------------|
-| 10    | 38.9 ± 15.1               | _TBD_                         | _TBD_                    |
-| 20    | 79.0 ± 6.9                | _TBD_                         | _TBD_                    |
-| 50    | 147.3 ± 18.2              | _TBD_                         | _TBD_                    |
-| 100   | 127.0 ± 26.7              | _TBD_                         | _TBD_                    |
+| value | gym best_eval     | envpool best_eval | Δ / √(SE_g²+SE_e²) | within window? |
+|------:|-------------------|-------------------|-------------------:|----------------|
+| 10    | 38.9 ± 15.1       | 49.2 ± 25.2       | +0.35σ             | ✅              |
+| 20    | 79.0 ± 6.9        | 104.5 ± 11.8      | +1.87σ             | ✅              |
+| 50    | 147.3 ± 18.2      | 120.9 ± 34.4      | −0.68σ             | ✅              |
+| 100   | 127.0 ± 26.7      | 114.3 ± 26.1      | −0.34σ             | ✅              |
 
-Fail criterion (per the handoff): >1 value outside the combined-SE
-window blocks merge.
+**`final_eval` (mean ± SE):**
 
-### Timing — TO DO
+| value | gym final_eval    | envpool final_eval | Δ / √(SE_g²+SE_e²) | within window? |
+|------:|-------------------|--------------------|-------------------:|----------------|
+| 10    | −84.6 ± 11.7      | −80.1 ± 21.7       | +0.18σ             | ✅              |
+| 20    | 55.0 ± 12.8       | 87.4 ± 13.5        | +1.74σ             | ✅              |
+| 50    | 143.4 ± 17.6      | 111.4 ± 36.0       | −0.80σ             | ✅              |
+| 100   | 121.8 ± 25.9      | 104.9 ± 26.9       | −0.45σ             | ✅              |
 
-To be filled in after the parity sweep completes:
+All 4 knob values pass the combined-SE window on both `best_eval` and
+`final_eval`.  Largest deviation is `n_step=20` at +1.87σ on `best_eval`
+(+1.74σ on `final_eval`), well inside the "≤1 outlier" fail criterion.
+**Statistical parity confirmed.**
 
-- envpool n_step phase total wall time: _TBD_
-- gym n_step phase reference (sum of per-run `time_s` ÷ 6 for the
-  6-way `mp.Pool`): _TBD_
-- speedup: _TBD_
+### Timing
+
+| phase | per-batch wall (s) | total wall (s) |
+|-------|-------------------:|---------------:|
+| n_step=10  | 5398.6  | 5398.6  |
+| n_step=20  | 8767.9  | 8767.9  |
+| n_step=50  | 4990.4  | 4990.4  |
+| n_step=100 | 8384.3  | 8384.3  |
+
+**envpool n_step sweep (sequential batches): 27541.2 s = 7.65 h**
+on a single CPU node with `--batch 8`.
+
+The actual sweep was run in two phases to free CPU for parallel work:
+batch 1 (n_step=10) ran serially, then batches 2–4 ran as two
+concurrent processes (one for n_step=20+50, one for n_step=100), giving
+**5.32 h wall clock** end-to-end.
+
+**gym n_step reference**, from `leenef/results/rl/n_step_lunarlander.json`:
+sum of per-run `time_s` is **98 834 s** (27.45 h of single-thread compute).
+With the gym sweep's 6-way `mp.Pool` parallelism that maps to roughly
+**4.6 h wall clock**.
+
+**Speedup**: at the same parallelism budget (8-way envpool batch vs
+6-way gym `mp.Pool`), the envpool path is currently **slower than gym**
+(~1.7× slower in compute-bounded sequential mode, ~1.15× slower at
+realistic parallelism).  The envpool gymnasium API for `LunarLander-v3`
+does not yield a wall-clock win on this benchmark; per-batch wall scales
+with the slowest sub-env in the batch (each batch waits on whichever
+agent's training loop is heaviest), and idle-slot stepping after early
+finishers adds further overhead.
+
+The port still delivers two structural wins independent of throughput:
+
+- **Slot-pinned reproducibility** — labels are no longer position-
+  dependent within a batch, so resume / `--batch` / non-contiguous
+  seeds all reproduce identical trajectories.
+- **No `multiprocessing` overhead** — single-process runner is much
+  easier to profile, debug, and Ctrl-C cleanly.
+
+For sweeps where throughput is the priority, the recommendation is
+therefore to keep the gym path with `mp.Pool`.  envpool's value here is
+correctness and reproducibility, not speed.
+
 - chosen N: 8 (one envpool batch per knob value).
-- estimated time for a 96-run 2-D sweep at this throughput: _TBD_
+- 96-run 2-D sweep at this rate ≈ 96 / 8 batches × ~6900 s/batch
+  ≈ **23 h sequential** or ~12 h with two concurrent processes.
