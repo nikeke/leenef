@@ -65,6 +65,7 @@ when `forget_factor` is set (the agent dispatches to the RLS
 | start | 4000 | 50 | 0.999 | 0.01 | 10 | 0.3 | 0.99 | 500 | derived from §8 of `rl_review.md` |
 | A1 (n_step) | 4000 | **50** | 0.999 | 0.01 | 10 | 0.3 | 0.99 | 500 | kept (best winner, within SE of 100) |
 | A2 (forget_factor) | 4000 | 50 | **0.999** | 0.01 | 10 | 0.3 | 0.99 | 500 | kept (best mean, well above 0.9995) |
+| A3 (alpha) | 4000 | 50 | 0.999 | **0.1** | 10 | 0.3 | 0.99 | 500 | **adopted** — Δ=73.3 on best ≫ SE_comb=39.7; on final Δ=46.3 just above SE_comb=41.8 |
 
 ## Phase results
 
@@ -106,11 +107,58 @@ Plot: `results/rl/figures/sweep_forget_factor.png`
 gap is real. Kept 0.999. Effective memory ≈ 1000 transitions, which
 neatly matches n_step=50 × solve_every=10 cadence.
 
-### A3 — `alpha` (in progress)
+### A3 — `alpha`
 
-(updated by analyzer when phase finishes)
+| value | n | best_eval (mean ± SE) | final_eval (mean ± SE) |
+|---|---|---|---|
+| 0.0001 | 8 | -56.0 ±  5.8 | -64.8 ±  5.3 |
+| 0.001  | 8 | -16.7 ±  9.6 | -35.7 ± 12.6 |
+| 0.01   | 8 |  96.3 ± 24.1 |  81.9 ± 22.7 |
+| **0.1**    | 8 | **169.6 ± 31.6** | **128.2 ± 35.1** |
+
+Plot: `results/rl/figures/sweep_alpha.png`
+
+**Verdict**: 0.1 wins decisively on `best_eval` (Δ=73.3 vs SE_comb=39.7).
+On `final_eval` the win is narrower (Δ=46.3 vs SE_comb=41.8) but still
+above the adoption threshold. **Adopted: alpha 0.01 → 0.1.** All
+downstream phases now run with alpha=0.1.
+
+**Caveat**: 0.1 is the upper edge of our sweep; the argmax could be
+higher still. The accuracy/regularization trade-off may favor even
+larger alpha at this neuron count. Worth a follow-up sweep over
+{0.1, 0.3, 1.0, 3.0} once the linear sweep finishes — but only if the
+later phases (especially C1 n_neurons) don't change conclusions about
+which regime we're in.
+
+**Caveat 2**: B1, B2, C1, D1, D2 will all run at the new alpha=0.1.
+Earlier intuitions formed around alpha=0.01 do not transfer — re-read
+results below in context of the new base.
+
+### B1 — `solve_every` (in progress)
 
 ## Scratch observations / hypotheses
+
+- **H1: optimal `n_step` scales with `n_neurons`.** Motivation: longer
+  horizons reduce bootstrap bias but raise target variance; a richer
+  function approximator absorbs that variance. Current evidence: 1
+  point (at 4000n, 50 ≫ 100 on final, ~tied on best). To confirm and
+  derive a default `n_step = f(n_neurons)`, we need a 2-D sweep:
+  {2000, 4000, 8000} × {25, 50, 100, 200} n_step, 8 seeds → 96 runs.
+  Argmax shift confirms; flat surface refutes.
+
+- **H2: optimal `forget_factor` ≈ 1 - 1/(k·n_step·solve_every).**
+  Motivation: RLS effective memory should match the data-freshness
+  window. At (n_step=50, solve_every=10), optimum 0.999 corresponds to
+  window ≈ 1000 ≈ 2·n_step·solve_every. To confirm and derive a default
+  `forget_factor = g(n_step, solve_every)`, sweep forget_factor across
+  ≥3 pairs spanning a decade of `n_step·solve_every`, e.g. (20,5),
+  (50,10), (100,20), 8 seeds → 120 runs. A clean log-log line in
+  `log(1-f*) vs log(n_step·solve_every)` with slope ≈ -1 confirms.
+
+If both hold we ship two derived defaults and remove three coupled
+knobs from the user-facing surface. **Both hypotheses require new 2-D
+sweeps** — the current 1-D phases cannot answer them, since each varies
+one knob with the others fixed at the post-A2 base.
 
 - The recentering branch is fully retired (see `rl_review.md` §8). All
   multi-seed sweeps below assume `recenter_interval=None`,
