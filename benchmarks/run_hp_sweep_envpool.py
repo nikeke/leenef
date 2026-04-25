@@ -5,25 +5,30 @@ Mirrors the CLI and JSON output of ``benchmarks/run_hp_sweep.py`` but
 hosts ``N`` independent ``NEFFQIAgent`` instances in a single Python
 process and steps their environments via one batched envpool call.
 
-Each agent in a batch:
-  * has its own seed (numpy + torch via ``NEFFQIAgent(seed=...)``)
-  * runs ``warmup`` on a private gym env (sequentially, before the loop)
-  * trains for ``n_episodes`` against its own envpool sub-env
-  * is evaluated greedy against gym every ``eval_every`` episodes (same
-    semantics as the gym path)
+Reproducibility model
+---------------------
+
+Each label ``s`` is **pinned to envpool sub-env index ``s``** of an
+envpool created with a fixed master seed (``--envpool-master-seed``,
+default ``0``).  envpool's per-sub-env RNG stream depends only on the
+pair ``(master_seed, sub_env_index)`` — not on ``num_envs``, batch
+position, or sibling labels — so label ``s``'s training trajectory is
+invariant across:
+
+  * different ``--batch`` settings,
+  * resuming with different cached labels,
+  * different ``--seeds`` lists (as long as ``s`` is in them).
+
+This is *not* trajectory-identical to the gym path (envpool's C++
+LunarLander is a different Box2D implementation than gym's, and we
+cannot replicate gym's per-episode ``env.reset(seed=seed+ep)``);
+parity is checked statistically against ``results/rl/n_step_lunarlander.json``.
 
 JSON schema is identical to the gym path's output so
 ``benchmarks/analyze_rl_sweep.py`` and ``benchmarks/plot_rl_sweeps.py``
 work without modification.
 
-Usage::
-
-    python benchmarks/run_hp_sweep_envpool.py \\
-        --knob n_step --values 10 20 50 100 \\
-        --seeds 0 1 2 3 4 5 6 7 \\
-        --batch 8
-
-See ``docs/envpool_port_handoff.md`` for the design and parity
+See ``docs/envpool_port_handoff.md`` for the full design and parity
 requirements.
 """
 
@@ -34,6 +39,7 @@ import json
 import os
 import sys
 import time
+from typing import Callable, Iterator
 
 # Ensure this worktree's repo root takes precedence over any shared editable
 # install of ``leenef`` whose finder may otherwise resolve ``benchmarks`` to
@@ -58,6 +64,11 @@ from leenef.rl import NEFFQIAgent  # noqa: E402
 # Default per-episode truncation in gymnasium for LunarLander-v3.  envpool's
 # default is ``INT_MAX``; we clamp to match the gym path.
 DEFAULT_MAX_EPISODE_STEPS = 1000
+
+# Default master seed for envpool.  Combined with each label's seed
+# ``s`` -> sub-env index ``s``, this gives label-stable trajectories
+# across batches and resumes.
+DEFAULT_ENVPOOL_MASTER_SEED = 0
 
 
 def _build_run_dict(
@@ -119,14 +130,48 @@ def run_envpool_batch(
     agent_kwargs_list: list[dict],
     eval_every: int = 50,
     max_episode_steps: int = DEFAULT_MAX_EPISODE_STEPS,
-    pool_seed: int | None = None,
-) -> list[dict]:
-    """Run one batch of N agents against an envpool of N envs.
+    master_seed: int = DEFAULT_ENVPOOL_MASTER_SEED,
+    pool_size: int | None = None,
+    on_complete: Callable[[dict], None] | None = None,
+) -> Iterator[dict]:
+    """Run one batch of N agents against an envpool batch.
 
-    Returns one run_dict per agent, in the order of ``labels``.
+    Each label ``s`` is bound to envpool sub-env index ``s``; ``pool_size``
+    must be ``> max(seeds)``.  Yields the run dict for each agent as soon
+    as it finishes ``n_episodes`` (so a mid-batch crash preserves
+    completed work via ``on_complete``).
+
+    Parameters
+    ----------
+    pool_size:
+        Number of sub-envs in the envpool.  Defaults to ``max(seeds)+1``.
+        Sub-envs at indices not in ``seeds`` are stepped with action 0
+        and their results discarded.
+    on_complete:
+        Optional callback invoked with each run dict the moment its
+        agent finishes.  Use this to persist results incrementally.
+
+    Yields
+    ------
+    dict
+        One run dict per agent, in completion order (not necessarily the
+        order of ``labels``).
     """
     n = len(labels)
     assert len(seeds) == n and len(agent_kwargs_list) == n
+    assert n > 0, "empty batch"
+    if any(s < 0 for s in seeds):
+        raise ValueError(f"envpool path requires non-negative seeds; got {seeds}")
+    if len(set(seeds)) != n:
+        raise ValueError(f"duplicate seeds in batch: {seeds}")
+
+    if pool_size is None:
+        pool_size = max(seeds) + 1
+    if pool_size <= max(seeds):
+        raise ValueError(f"pool_size={pool_size} must exceed max seed {max(seeds)}")
+
+    # --- Slot mapping: agent i -> sub-env index slot_of_agent[i] = seeds[i] ---
+    slot_of_agent: list[int] = list(seeds)
 
     # --- One-time gym probe for spaces ---
     probe = gym.make(env_name)
@@ -146,20 +191,27 @@ def run_envpool_batch(
         clean_kwargs.append(kw)
         agents.append(NEFFQIAgent(d_obs=d_obs, n_actions=n_actions, seed=seeds[i], **kw))
 
-    # --- Sequential per-agent warmup against private gym envs (matches gym path) ---
+    # --- Sequential per-agent warmup against private gym envs ---
+    # NEFFQIAgent.warmup calls env.reset() without a seed argument, so
+    # the env's RNG would otherwise seed itself from system entropy.
+    # To preserve label-invariance across batches we pre-seed the env
+    # with the agent's seed; subsequent reset() calls inside warmup
+    # continue deterministically from that RNG state.  This is a
+    # *different* deterministic warmup than the gym path's (which is
+    # non-deterministic in its own subprocess); statistical parity is
+    # what we check, not byte-identical trajectories.
     for i in range(n):
         warmup_env = gym.make(env_name)
+        warmup_env.reset(seed=int(seeds[i]))
         agents[i].warmup(env=warmup_env, n_episodes=20)
         warmup_env.close()
 
     # --- Build envpool batch ---
-    if pool_seed is None:
-        pool_seed = int(seeds[0])
     pool = envpool.make(
         env_name,
         env_type="gymnasium",
-        num_envs=n,
-        seed=int(pool_seed),
+        num_envs=pool_size,
+        seed=int(master_seed),
         max_episode_steps=max_episode_steps,
     )
 
@@ -168,83 +220,119 @@ def run_envpool_batch(
     ep_counts = [0] * n
     cur_ep_reward = [0.0] * n
     finished = [False] * n
+    yielded = [False] * n
     elapsed_per: list[float | None] = [None] * n
 
-    batch_obs, _ = pool.reset()
+    # Per-agent "last obs the agent acted on" — never indexed by slot at
+    # decision time, so explicit resets inside the step loop don't
+    # corrupt next-step inputs.
+    batch_obs_full, info_r = pool.reset()
+    if isinstance(info_r, dict) and "env_id" in info_r:
+        eid = np.asarray(info_r["env_id"])
+        assert np.array_equal(np.sort(eid), np.arange(pool_size)), (
+            f"envpool reset returned env_id {eid}, expected permutation of 0..{pool_size - 1}"
+        )
+    last_obs_per: list[np.ndarray] = [batch_obs_full[slot_of_agent[i]].copy() for i in range(n)]
+
     t_start = time.time()
 
-    while not all(finished):
-        # Build action vector; inactive agents emit a placeholder action 0.
-        actions = np.zeros(n, dtype=np.int32)
-        for i in range(n):
-            if not finished[i]:
-                actions[i] = agents[i].select_action(batch_obs[i])
+    try:
+        while not all(finished):
+            # Build action vector over ALL slots; idle/finished slots get 0.
+            actions = np.zeros(pool_size, dtype=np.int32)
+            for i in range(n):
+                if not finished[i]:
+                    actions[slot_of_agent[i]] = agents[i].select_action(last_obs_per[i])
 
-        next_obs, rewards, term, trunc, _ = pool.step(actions)
+            next_obs_full, rewards, term, trunc, info_s = pool.step(actions)
+            if isinstance(info_s, dict) and "env_id" in info_s:
+                eid = np.asarray(info_s["env_id"])
+                assert np.array_equal(np.sort(eid), np.arange(pool_size)), (
+                    f"envpool step returned env_id {eid}, "
+                    f"expected permutation of 0..{pool_size - 1}"
+                )
 
-        to_reset: list[int] = []
-        for i in range(n):
-            if finished[i]:
-                continue
-            done = bool(term[i] or trunc[i])
-            agents[i].update(
-                batch_obs[i],
-                int(actions[i]),
-                float(rewards[i]),
-                next_obs[i],
-                done,
-            )
-            cur_ep_reward[i] += float(rewards[i])
-            if done:
-                agents[i].end_episode()
-                rewards_per[i].append(cur_ep_reward[i])
-                cur_ep_reward[i] = 0.0
-                ep_counts[i] += 1
+            to_reset_slots: list[int] = []
+            just_finished: list[int] = []
+            for i in range(n):
+                if finished[i]:
+                    continue
+                slot = slot_of_agent[i]
+                done = bool(term[slot] or trunc[slot])
+                agents[i].update(
+                    last_obs_per[i],
+                    int(actions[slot]),
+                    float(rewards[slot]),
+                    next_obs_full[slot],
+                    done,
+                )
+                cur_ep_reward[i] += float(rewards[slot])
+                if done:
+                    agents[i].end_episode()
+                    rewards_per[i].append(cur_ep_reward[i])
+                    cur_ep_reward[i] = 0.0
+                    ep_counts[i] += 1
 
-                if ep_counts[i] % eval_every == 0:
-                    eval_ret = evaluate_greedy(agents[i], env_name, 20, seed=10000)
-                    eval_history_per[i].append({"episode": ep_counts[i], "eval": eval_ret})
-                    r50 = (
-                        float(np.mean(rewards_per[i][-50:]))
-                        if len(rewards_per[i]) >= 50
-                        else float(np.mean(rewards_per[i]))
-                    )
-                    print(
-                        f"  [{labels[i]}] ep {ep_counts[i]:4d}  "
-                        f"train_50={r50:7.1f}  eval={eval_ret:7.1f}",
-                        flush=True,
-                    )
+                    if ep_counts[i] % eval_every == 0:
+                        eval_ret = evaluate_greedy(agents[i], env_name, 20, seed=10000)
+                        eval_history_per[i].append({"episode": ep_counts[i], "eval": eval_ret})
+                        r50 = (
+                            float(np.mean(rewards_per[i][-50:]))
+                            if len(rewards_per[i]) >= 50
+                            else float(np.mean(rewards_per[i]))
+                        )
+                        print(
+                            f"  [{labels[i]}] ep {ep_counts[i]:4d}  "
+                            f"train_50={r50:7.1f}  eval={eval_ret:7.1f}",
+                            flush=True,
+                        )
 
-                if ep_counts[i] >= n_episodes:
-                    finished[i] = True
-                    elapsed_per[i] = time.time() - t_start
-                else:
-                    to_reset.append(i)
+                    if ep_counts[i] >= n_episodes:
+                        finished[i] = True
+                        elapsed_per[i] = time.time() - t_start
+                        just_finished.append(i)
+                    else:
+                        to_reset_slots.append(slot)
 
-        if to_reset:
-            # Override envpool's auto-reset state with an explicit reset so
-            # the next ``select_action`` sees a true first-of-episode obs.
-            reset_obs, _ = pool.reset(env_id=np.array(to_reset, dtype=np.int32))
-            for k, i in enumerate(to_reset):
-                next_obs[i] = reset_obs[k]
+                # Update last_obs_per BEFORE explicit-reset overwrite below.
+                last_obs_per[i] = next_obs_full[slot].copy()
 
-        batch_obs = next_obs
+            if to_reset_slots:
+                # Override envpool's auto-reset state with an explicit reset
+                # so the next ``select_action`` sees a true first-of-episode
+                # obs (matches gym's env.reset() semantics for the agent's
+                # decision input, even if the per-episode RNG seed differs).
+                reset_obs, _ = pool.reset(env_id=np.array(to_reset_slots, dtype=np.int32))
+                # Map agents whose slot was reset to the reset obs.
+                slot_to_reset_idx = {slot: k for k, slot in enumerate(to_reset_slots)}
+                for i in range(n):
+                    if finished[i]:
+                        continue
+                    slot = slot_of_agent[i]
+                    if slot in slot_to_reset_idx:
+                        last_obs_per[i] = reset_obs[slot_to_reset_idx[slot]].copy()
 
-    pool.close()
-
-    return [
-        _build_run_dict(
-            label=labels[i],
-            seed=seeds[i],
-            knob=knobs[i],
-            value=values[i],
-            rewards=rewards_per[i],
-            eval_history=eval_history_per[i],
-            elapsed=float(elapsed_per[i] or 0.0),
-            config=clean_kwargs[i],
-        )
-        for i in range(n)
-    ]
+            # Yield completed agents eagerly so callers can persist them
+            # before any later batch-level failure.
+            for i in just_finished:
+                if yielded[i]:
+                    continue
+                run_dict = _build_run_dict(
+                    label=labels[i],
+                    seed=seeds[i],
+                    knob=knobs[i],
+                    value=values[i],
+                    rewards=rewards_per[i],
+                    eval_history=eval_history_per[i],
+                    elapsed=float(elapsed_per[i] or 0.0),
+                    config=clean_kwargs[i],
+                )
+                yielded[i] = True
+                if on_complete is not None:
+                    on_complete(run_dict)
+                yield run_dict
+    finally:
+        pool.close()
 
 
 def main():
@@ -269,7 +357,10 @@ def main():
         "--output",
         type=str,
         default=None,
-        help="Defaults to results/rl/<knob>_lunarlander.json",
+        help=(
+            "Output JSON. Defaults to results/rl/<knob>_lunarlander_envpool.json "
+            "to avoid clobbering the gym path's results."
+        ),
     )
     parser.add_argument(
         "--max-episode-steps",
@@ -277,11 +368,27 @@ def main():
         default=DEFAULT_MAX_EPISODE_STEPS,
         help="Per-episode truncation (matches gym v3 default of 1000)",
     )
+    parser.add_argument(
+        "--envpool-master-seed",
+        type=int,
+        default=DEFAULT_ENVPOOL_MASTER_SEED,
+        help=(
+            "Master seed for envpool.make().  Combined with each label's "
+            "seed s -> sub-env index s, this fully determines the per-label "
+            "training trajectory.  Change at your own risk: results in the "
+            "output JSON were produced with the master seed implied by "
+            "previous runs."
+        ),
+    )
     args = parser.parse_args()
 
     base = load_base_config(args.base_config)
     parsed_values = [parse_value(args.knob, v) for v in args.values]
-    out_path = args.output or f"results/rl/{args.knob}_lunarlander.json"
+    out_path = args.output or f"results/rl/{args.knob}_lunarlander_envpool.json"
+
+    if any(s < 0 for s in args.seeds):
+        parser.error(f"envpool path requires non-negative integer seeds; got {args.seeds}")
+    pool_size = max(args.seeds) + 1
 
     existing = {}
     if os.path.exists(out_path):
@@ -327,32 +434,50 @@ def main():
             f"  {n_total} runs across {len(batches)} batch(es) "
             f"(batch_size={batch_size}, values={parsed_values})"
         )
+        print(
+            f"  pool_size={pool_size}  master_seed={args.envpool_master_seed}  "
+            f"(label s pinned to sub-env index s)"
+        )
         print(f"  base_config from: {args.base_config}")
+        print(f"  output: {out_path}")
         print(f"{'=' * 70}\n")
 
         os.makedirs(os.path.dirname(out_path), exist_ok=True)
+
         for bi, (labels, seeds, kwargs_list) in enumerate(batches):
             print(f"  [batch {bi + 1}/{len(batches)}] running {len(labels)} agents: {labels}")
             t_batch = time.time()
+            saved_in_batch: set[str] = set()
+
+            def _save(r: dict, _saved=saved_in_batch, _out=out_path) -> None:
+                existing[r["label"]] = r
+                _atomic_write_json(_out, existing)
+                _saved.add(r["label"])
+                print(f"  → saved {r['label']} to {_out}", flush=True)
+
             try:
-                results = run_envpool_batch(
+                for _ in run_envpool_batch(
                     env_name=args.env,
                     n_episodes=args.episodes,
                     labels=labels,
                     seeds=seeds,
                     agent_kwargs_list=kwargs_list,
                     max_episode_steps=args.max_episode_steps,
-                )
+                    master_seed=args.envpool_master_seed,
+                    pool_size=pool_size,
+                    on_complete=_save,
+                ):
+                    pass  # _save already persisted; iterator just drains.
             except Exception as e:
                 print(f"  [batch {bi + 1}] FAILED: {e}", flush=True)
+                # Record errors only for labels that didn't already finish.
                 for label, seed in zip(labels, seeds):
+                    if label in saved_in_batch:
+                        continue
                     existing[label] = {"label": label, "error": str(e), "seed": seed}
                 _atomic_write_json(out_path, existing)
                 continue
-            for r in results:
-                existing[r["label"]] = r
-                _atomic_write_json(out_path, existing)
-                print(f"  → saved {r['label']} to {out_path}", flush=True)
+
             print(
                 f"  [batch {bi + 1}] done in {time.time() - t_batch:.1f}s ({len(labels)} agents)",
                 flush=True,

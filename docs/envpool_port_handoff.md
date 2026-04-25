@@ -328,39 +328,69 @@ into the addendum and pushing the branch.
 
 - `benchmarks/run_hp_sweep_envpool.py` — main runner.  CLI mirrors
   `benchmarks/run_hp_sweep.py` (`--knob`, `--values`, `--seeds`,
-  `--episodes`, `--base-config`, `--output`, plus `--batch` and
-  `--max-episode-steps`).  Hosts N `NEFFQIAgent`s in one process,
-  steps them via a single envpool batch.
+  `--episodes`, `--base-config`, `--output`, plus `--batch`,
+  `--max-episode-steps`, and `--envpool-master-seed`).  Hosts N
+  `NEFFQIAgent`s in one process and steps them via a single envpool
+  batch.
 - `benchmarks/_envpool_smoke.py` — single-agent gym↔envpool comparison
   helper (Step 2-style spot check, optional).
-- `tests/test_envpool_parity.py` — schema-parity unit tests plus a
-  `slow`-marked end-to-end batch test.
+- `tests/test_envpool_parity.py` — schema, seed-stream, label-invariance,
+  eval-cadence, and partial-completion tests; one `slow`-marked
+  end-to-end batch test.
 
 ### Implementation choices
 
+- **Label `s` is pinned to envpool sub-env index `s`.**  Empirically
+  verified that envpool's per-sub-env RNG stream depends only on
+  `(master_seed, sub_env_index)` and is **independent of `num_envs`**
+  (see `test_envpool_seed_stream_independent_of_pool_size`).  Combined
+  with a fixed `--envpool-master-seed` (default 0), this gives
+  label-stable trajectories regardless of `--batch`, resume state, or
+  which other labels share a batch.  `pool_size = max(args.seeds)+1`
+  for every batch in a sweep.  Sub-envs at indices not in the current
+  batch are stepped with placeholder action 0; their results are
+  discarded.
 - **Synchronous-batch with explicit per-env reset.**  envpool's
   default auto-reset semantics return the post-reset *first-action*
   observation rather than the true reset state.  After any env reports
-  `term or trunc`, the runner calls `pool.reset(env_id=[i])` before
-  the next step so each agent's `select_action` sees a clean
-  start-of-episode observation, matching gym's `env.reset(seed=…)`
-  semantics.
+  `term or trunc`, the runner calls `pool.reset(env_id=[slot])` and
+  uses the returned obs as the agent's next `select_action` input —
+  matching gym's "agent decides on the true reset state" semantics
+  even though the per-episode RNG seed is *not* reset to `seed+ep`
+  (envpool has no per-reset seed API; the gym path's
+  `env.reset(seed=seed+ep)` cannot be replicated).
 - **Truncation at 1000 steps** (`max_episode_steps=DEFAULT_MAX_EPISODE_STEPS`)
   to match gym's `LunarLander-v3` default; envpool defaults to
   `INT_MAX`.
-- **Per-agent warmup against private gym envs.**  `NEFFQIAgent.warmup`
-  expects a gym-style `env`; warmup is sequential per agent and runs
-  before the batched training loop.
+- **Pre-seeded warmup.**  `NEFFQIAgent.warmup` calls
+  `env.reset()` without a seed, which would default to system entropy.
+  The runner pre-seeds each warmup env with the agent's `seed` so the
+  warmup trajectory is deterministic per label, preserving label-
+  invariance across batches.  This is a *different* deterministic
+  warmup than the gym path's (which is non-deterministic in its own
+  subprocess); statistical parity is what gets checked, not byte-
+  identical trajectories.
 - **`time_s` is per-agent wall clock from start of batched training to
   that agent's last-episode completion.**  Agents that finish their
-  1000 episodes earlier than batchmates record a shorter `time_s`;
+  episodes earlier than batchmates record a shorter `time_s`;
   remaining envs continue stepping (we only skip `select_action` /
   `update` for finished agents).  Warmup time is excluded, matching
   the gym path.
-- **envpool seed = first agent's seed in the batch.**  Sub-envs are
-  seeded deterministically by envpool from this master.  Per-agent
-  numpy / torch randomness is independent and uses each agent's own
-  `seed` via `NEFFQIAgent`.
+- **Eager incremental persistence.**  `run_envpool_batch` is a
+  generator that yields each agent's run dict the moment that agent
+  finishes its `n_episodes`; `main()` writes it via `_atomic_write_json`
+  before draining the next agent.  A mid-batch crash therefore cannot
+  lose results from agents that already finished, and the failure
+  branch only marks *unfinished* labels as errors.
+- **Default output path.**  Defaults to
+  `results/rl/<knob>_lunarlander_envpool.json` (note the `_envpool`
+  suffix) so accidentally omitting `--output` cannot clobber the gym
+  path's canonical results file.
+- **`info["env_id"]` alignment guard.**  After each `pool.reset` /
+  `pool.step`, if envpool returns `env_id` in `info` we assert it is
+  a permutation of `0..pool_size-1` so any future async/partial
+  envpool mode that returns rows out of order trips loudly rather
+  than silently mis-routing observations.
 - **Worktree-shared editable install workaround.**  Both new scripts
   prepend the worktree root to `sys.path` before importing
   `benchmarks.*`, so a sibling worktree's `pip install -e` doesn't
@@ -373,25 +403,48 @@ returns the standard `(obs, reward, term, trunc, info)` tuple.
 Spot-checks (noop policy, fixed seed) show physics close to but not
 bit-identical with gym v3 — episode lengths and reward sums are within
 seed-noise of one another.  Gym is `LunarLander-v3` (Box2D in Python);
-envpool is its own C++ port.
+envpool is its own C++ port.  Trajectory-level identity with the gym
+path is therefore impossible; statistical parity over seeds is the bar.
 
-### Lint
+### Lint and tests
 
-`ruff check` and `ruff format --check` both pass on
-`benchmarks/run_hp_sweep_envpool.py`,
-`benchmarks/_envpool_smoke.py`, and `tests/test_envpool_parity.py`.
-`pytest tests/test_envpool_parity.py` is green (3 passed).
+`ruff check` and `ruff format --check` both pass on the benchmarks
+and tests trees.  `pytest tests/test_envpool_parity.py` is green
+(7 passed): schema, seed-stream-independent-of-num_envs, end-to-end
+batch, **label-invariance across batch composition**, eval-cadence,
+and eager-yield partial-completion.
 
-### Parity sweep — IN PROGRESS
+### Brutal-review fixes
 
-A 32-run n_step parity sweep is running on this branch in
-`results/rl/n_step_lunarlander_envpool.json` (4 values × 8 seeds, 1000
-episodes each, batch=8).  The first ~hour of batch 1 was slowed by
-contention with a concurrent gym sweep on the main worktree; that
-sweep was stopped midway and throughput has recovered.
+The first revision of this port had several silent-correctness bugs
+flagged by an internal review.  The current commit addresses all of
+them:
 
-When this sweep completes, fill in the table below using the
-`SUMMARY` block printed at the end of the run:
+| Severity | Issue | Fix |
+|----------|-------|-----|
+| CRITICAL | Per-label trajectory depended on the agent's position in the envpool batch (envpool seeds sub-envs as `master+i`).  Resume / `--batch` / non-contiguous seeds would silently change a label's training trajectory. | Pin label `s` to sub-env index `s` with a fixed master seed; verified empirically that the per-sub-env stream is invariant under `num_envs`. |
+| CRITICAL | `agent.warmup` reseeds the env from system entropy, so warmup trajectories drifted across batch compositions. | Pre-seed each warmup env with the agent's `seed` before calling `agent.warmup`. |
+| HIGH     | Default `--output` collided with the gym path's canonical file (`results/rl/<knob>_lunarlander.json`). | Default to `…_envpool.json`. |
+| MEDIUM   | `info["env_id"]` discarded; assumed envpool returned rows in order. | Assert `env_id` is a permutation of `0..pool_size-1` whenever envpool surfaces it. |
+| MEDIUM   | Batch failure tagged every label `error`, even ones that had already finished. | Generator-based `run_envpool_batch` with `on_complete` callback persists each agent's results immediately; failure branch only errors out unfinished labels. |
+| MEDIUM   | Tests were schema-only and would have passed even with the bugs above. | Added explicit tests for seed-stream-vs-num_envs, label-invariance across batch composition, eval cadence, and eager-yield. |
+
+### Parity sweep — TO DO
+
+The original brutal-review-failing v1 implementation had a 32-run
+parity sweep underway; it was killed and discarded (the buggy seeding
+made its results unreliable as a gym-vs-envpool comparison).  The
+clean parity sweep needs to be re-run on this fixed implementation:
+
+```
+python -u benchmarks/run_hp_sweep_envpool.py --knob n_step \
+    --values 10 20 50 100 --seeds 0 1 2 3 4 5 6 7 \
+    --episodes 1000 --batch 8 \
+    --output results/rl/n_step_lunarlander_envpool.json
+```
+
+When complete, fill in the table below from the runner's `SUMMARY`
+block:
 
 | value | gym best_eval (mean ± SE) | envpool best_eval (mean ± SE) | within `√(SE_g²+SE_e²)`? |
 |------:|---------------------------|-------------------------------|--------------------------|
@@ -403,7 +456,7 @@ When this sweep completes, fill in the table below using the
 Fail criterion (per the handoff): >1 value outside the combined-SE
 window blocks merge.
 
-### Timing — IN PROGRESS
+### Timing — TO DO
 
 To be filled in after the parity sweep completes:
 
@@ -413,11 +466,3 @@ To be filled in after the parity sweep completes:
 - speedup: _TBD_
 - chosen N: 8 (one envpool batch per knob value).
 - estimated time for a 96-run 2-D sweep at this throughput: _TBD_
-
-### Caveats / known issues
-
-- The first ~50 minutes of the parity sweep ran under heavy CPU
-  contention with the gym `solve_every` sweep on the main worktree,
-  so per-agent `time_s` for the first batch is inflated.  Speedup
-  numbers should be computed from the post-contention batches or
-  re-run cleanly if exact timings matter.
