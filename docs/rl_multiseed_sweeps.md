@@ -124,15 +124,21 @@ above the adoption threshold. **Adopted: alpha 0.01 → 0.1.** All
 downstream phases now run with alpha=0.1.
 
 **Caveat**: 0.1 is the upper edge of our sweep; the argmax could be
-higher still. The accuracy/regularization trade-off may favor even
-larger alpha at this neuron count. Worth a follow-up sweep over
-{0.1, 0.3, 1.0, 3.0} once the linear sweep finishes — but only if the
-later phases (especially C1 n_neurons) don't change conclusions about
-which regime we're in.
+higher still. **Resolution**: scheduled as **A3b** (extension over
+{0.3, 1.0, 3.0}) to run **before B1** rather than after the linear
+sweep. Reason: if a higher alpha wins, all downstream phases done at
+0.1 would have to be redone. Better to spend one extra phase now than
+risk reissuing five.
 
 **Caveat 2**: B1, B2, C1, D1, D2 will all run at the new alpha=0.1.
 Earlier intuitions formed around alpha=0.01 do not transfer — re-read
 results below in context of the new base.
+
+### A3b — `alpha` extension (planned, before B1)
+
+`{0.3, 1.0, 3.0}`, 8 seeds. Appended to `alpha_lunarlander.json` via
+the same `--knob alpha` sweeper. If the adopted argmax shifts, the
+new value supersedes 0.1; otherwise 0.1 is locked in and we proceed.
 
 ### B1 — `solve_every` (in progress)
 
