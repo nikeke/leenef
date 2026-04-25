@@ -1,0 +1,146 @@
+# NEF-FQI multi-seed hyperparameter sweeps
+
+Living log of the rigorous, multi-seed isolation sweeps we run on
+LunarLander-v3 to understand each NEF-FQI knob in isolation. Earlier,
+exploratory single-seed sweeps live in `docs/rl_review.md`; this document
+covers the post-`rl_review.md` §8 sweeps where every value is re-run with
+8 fresh seeds and a strict statistical adoption rule.
+
+## Methodology
+
+- **Environment**: LunarLander-v3, 1000 episodes per run, eval every
+  50 episodes (50-episode greedy rollouts).
+- **Seeds**: 8 per value (seeds 0..7), unless noted.
+- **Parallelism**: 6 workers via `multiprocessing.Pool` (CPU-only).
+- **Driver**: `session/files/rl_hp_driver.sh` chains all phases
+  unattended; logs progress and regenerates plots after each phase.
+- **Sweeper**: `benchmarks/run_hp_sweep.py` — single-knob
+  `--knob NAME --values v1 v2 …`, varies one parameter at a time
+  while reading the rest from `results/rl/base_config.json`.
+- **Analyzer**: `benchmarks/analyze_rl_sweep.py` — picks the value with
+  the highest mean `best_eval`, **adopts it as the new base only iff**
+  `Δmean > sqrt(SE_winner² + SE_current²)`. Atomic write
+  (`.tmp` + `os.replace`).
+- **Plotter**: `benchmarks/plot_rl_sweeps.py` — per-knob PNG (mean line
+  with min–max bars, jittered seed dots) plus a summary panel. Outputs
+  to `results/rl/figures/sweep_<knob>.png` and `sweep_summary.png`.
+- **Base config**: `results/rl/base_config.json` is the single source of
+  truth, mutated atomically between phases. Snapshots for each completed
+  phase are appended to the table below.
+- **Adoption rule rationale**: 1·SE_combined ≈ 68% confidence on the
+  difference (assuming independence). Tighter than naive "pick best
+  mean", looser than 1.96 SE so we don't get permanently stuck on a
+  noisy local optimum. Ties default to the incumbent (no churn).
+
+### What we record per run
+
+`results/rl/<knob>_lunarlander.json` keyed by `<knob>=<value>_s<seed>`,
+each entry has: `value`, `seed`, `best_50`, `final_50`, `best_eval`,
+`final_eval`, `time_s`, full `eval_history` (per 50 ep), full per-episode
+`rewards`, and the snapshotted `config` used for that run. Resumable —
+the sweeper skips labels already present.
+
+## Phase ordering
+
+The driver runs the eight phases in this fixed order; each subsequent
+phase reads the (possibly updated) base config:
+
+1. **A1** `n_step` ∈ {10, 20, 50, 100}
+2. **A2** `forget_factor` ∈ {0.99, 0.995, 0.999, 0.9995}
+3. **A3** `alpha` ∈ {1e-4, 1e-3, 1e-2, 1e-1}
+4. **B1** `solve_every` ∈ {1, 5, 10, 20}
+5. **B2** `tau` ∈ {0.1, 0.3, 0.5, 1.0}
+6. **C1** `n_neurons` ∈ {2000, 3000, 4000, 6000, 8000}
+7. **D1** `gamma` ∈ {0.97, 0.99, 0.995}
+8. **D2** `epsilon_decay` ∈ {200, 500, 1000, 2000}
+
+Note: `fqi_iters` was originally Phase B2 but dropped — it is a no-op
+when `forget_factor` is set (the agent dispatches to the RLS
+`_solve_from_stats` path which performs a single solve regardless).
+
+## Base config evolution
+
+| After phase | n_neurons | n_step | forget_factor | alpha | solve_every | tau | gamma | eps_decay | Notes |
+|---|---|---|---|---|---|---|---|---|---|
+| start | 4000 | 50 | 0.999 | 0.01 | 10 | 0.3 | 0.99 | 500 | derived from §8 of `rl_review.md` |
+| A1 (n_step) | 4000 | **50** | 0.999 | 0.01 | 10 | 0.3 | 0.99 | 500 | kept (best winner, within SE of 100) |
+| A2 (forget_factor) | 4000 | 50 | **0.999** | 0.01 | 10 | 0.3 | 0.99 | 500 | kept (best mean, well above 0.9995) |
+
+## Phase results
+
+### A1 — `n_step`
+
+| value | n | best_eval (mean ± SE) | final_eval (mean ± SE) |
+|---|---|---|---|
+| 10  | 8 |  38.9 ± 15.1 | -84.5 ± 11.7 |
+| 20  | 8 |  79.0 ±  6.9 |  55.0 ± 12.8 |
+| **50**  | 8 | **147.3 ± 18.2** | **143.4 ± 17.6** |
+| 100 | 8 | 127.0 ± 26.7 | 121.8 ± 25.9 |
+
+Plot: `results/rl/figures/sweep_n_step.png`
+
+**Verdict**: 50 wins on both metrics. 100 is within SE on `best_eval`
+(Δ = 20.3, SE_combined = √(18.2² + 26.7²) ≈ 32.3, so well within) — kept
+50 as the incumbent. Short horizons (10, 20) are clearly worse;
+bootstrapping bias dominates the variance benefit at this neuron count.
+
+**Open question raised by user**: at 4000 neurons, n_step=50 already
+beats 100 — possibly the function approximator is the bottleneck for
+longer horizons. C1 (n_neurons sweep with n_step fixed at 50) won't
+answer this directly; a follow-up 2-D sweep `(n_neurons × n_step)` at
+{4000, 8000} × {50, 100, 200} would isolate the entanglement.
+
+### A2 — `forget_factor`
+
+| value | n | best_eval (mean ± SE) | final_eval (mean ± SE) |
+|---|---|---|---|
+| 0.99    | 8 |  74.2 ± 16.1 |  56.0 ± 23.2 |
+| 0.995   | 8 | 130.7 ± 20.5 | 116.0 ± 20.2 |
+| **0.999**   | 8 | **163.4 ± 26.1** | **141.4 ± 32.6** |
+| 0.9995  | 8 | 138.7 ± 10.2 | 130.5 ± 11.4 |
+
+Plot: `results/rl/figures/sweep_forget_factor.png`
+
+**Verdict**: 0.999 wins on both metrics. 0.9995 has notably tighter SE
+(more stable) but lower mean; we'd need more seeds to know whether the
+gap is real. Kept 0.999. Effective memory ≈ 1000 transitions, which
+neatly matches n_step=50 × solve_every=10 cadence.
+
+### A3 — `alpha` (in progress)
+
+(updated by analyzer when phase finishes)
+
+## Scratch observations / hypotheses
+
+- The recentering branch is fully retired (see `rl_review.md` §8). All
+  multi-seed sweeps below assume `recenter_interval=None`,
+  `broadness=0`. Broadness may resurface later as part of a "scale-down
+  underperforming neurons" mechanism, but not in this sweep series.
+- `fqi_iters` is inert under RLS — confirmed in `src/leenef/rl.py`:
+  `solve()` dispatches to `_solve_from_stats` when `forget_factor is not
+  None`, which performs exactly one solve regardless of `fqi_iters`.
+  Only the buffer-replay path honors it. Document this in code if a
+  reader is likely to be confused.
+- `n_neurons=8000` at `forget_factor=0.999` allocates a per-action
+  float64 RLS stats tensor of ~512 MB; with 4 actions × 6 workers ≈
+  12 GB. Watch for OOM in C1; may need to drop `--parallel` for that
+  phase.
+
+## Maintenance
+
+- After each phase: append a row to "Base config evolution"; add the
+  per-phase results table; embed/reference the new PNG; record any
+  surprises or follow-up ideas in "Scratch observations".
+- Cross-check: the analyzer might keep the incumbent even when a
+  competitor's mean is higher (within SE_combined). Always note
+  *why* (Δ, SE_combined) so future readers can re-evaluate with more
+  data.
+- When a phase changes the base, re-state which downstream phases'
+  earlier intuitions might no longer hold, so the next reader knows
+  whether to re-investigate.
+- Old single-seed sweeps in `docs/rl_review.md` may have been at a
+  different base than these multi-seed runs — never compare the two
+  directly without checking the configs.
+- If we ever rerun an earlier phase with the latest base (e.g. after C1
+  changes `n_neurons`), add a new row labeled `A1@8000` etc. — don't
+  overwrite the original.

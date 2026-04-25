@@ -119,6 +119,32 @@ and resume long pipelines without losing already finished runs.
   JSON/CSV outputs should be updated incrementally during the run, not only at
   the end, so interrupted sweeps still preserve completed results.
 
+## RL multi-seed sweep notes
+
+Long-running, multi-seed isolation sweeps for NEF-FQI are tracked in
+`docs/rl_multiseed_sweeps.md`. After each phase of `rl_hp_driver.sh`
+finishes (or when designing a new sweep), update that document:
+
+- append a row to "Base config evolution" recording the new
+  `base_config.json` snapshot
+- add the per-phase results table with `n`, mean ± SE for both
+  `best_eval` and `final_eval`
+- reference the regenerated `results/rl/figures/sweep_<knob>.png`
+- record the adoption decision (Δ vs `sqrt(SE_winner² + SE_current²)`)
+  and *why* the analyzer kept or replaced the incumbent
+- log open questions or hypotheses raised by the data (e.g. knob
+  entanglements that need a 2-D follow-up)
+
+Plots from these sweeps live in `results/rl/figures/`, **not** in the
+top-level `results/rl/` directory. When checking for new charts, look
+in the `figures/` subfolder.
+
+Never compare these multi-seed numbers directly to older single-seed
+results in `docs/rl_review.md` without checking that the base config
+matches — the multi-seed series uses `recenter_interval=None`,
+`broadness=0`, and a strict statistical adoption rule that earlier
+sweeps did not.
+
 ## Technical report maintenance
 
 The technical report (TR) is `docs/technical_report.md`. Treat it as a
