@@ -91,7 +91,10 @@ def _reorder_by_env_id(
     envpool's synchronous batch step is *expected* to return rows in
     ``[0, 1, ..., num_envs-1]`` order.  We do not rely on that: we
     explicitly reorder so the runner is correct under any permutation
-    (e.g. async mode, future API changes, partial-batch returns).
+    of the **full** requested set (e.g. async mode that still returns
+    every requested env, future API changes that shuffle row order).
+    True partial returns (a strict subset of ``expected_ids``) are
+    *not* supported and will raise.
     """
     if not isinstance(info, dict) or "env_id" not in info:
         raise RuntimeError(
@@ -175,6 +178,7 @@ def run_envpool_batch(
     master_seed: int = DEFAULT_ENVPOOL_MASTER_SEED,
     pool_size: int | None = None,
     on_complete: Callable[[dict], None] | None = None,
+    allow_sparse: bool = False,
 ) -> Iterator[dict]:
     """Run one batch of N agents against an envpool batch.
 
@@ -217,9 +221,15 @@ def run_envpool_batch(
     if pool_size <= max(seeds):
         raise ValueError(f"pool_size={pool_size} must exceed max seed {max(seeds)}")
     # Sparse-seed footgun: e.g. ``--seeds 0 100`` would create a 101-env
-    # pool to run 2 labels.  Warn loudly so this is intentional, not
-    # accidental.
+    # pool to run 2 labels.  Warn at moderate inflation; hard-fail at
+    # absolute thresholds that almost certainly indicate a typo.
     if pool_size > 4 * n:
+        if pool_size > 1024 and not allow_sparse:
+            raise ValueError(
+                f"pool_size={pool_size} for only {n} labels "
+                f"(max seed={max(seeds)}). Pass allow_sparse=True / "
+                f"--allow-sparse-seeds to override."
+            )
         print(
             f"  WARNING: sparse seeds inflate envpool size: pool_size={pool_size}"
             f" for only {n} labels (max seed={max(seeds)}). Consider remapping seeds.",
@@ -385,7 +395,12 @@ def run_envpool_batch(
                     rewards=rewards_per[i],
                     eval_history=eval_history_per[i],
                     elapsed=float(elapsed_per[i] or 0.0),
-                    config=clean_kwargs[i],
+                    config={
+                        **clean_kwargs[i],
+                        "_envpool_master_seed": int(master_seed),
+                        "_envpool_max_episode_steps": int(max_episode_steps),
+                        "_envpool_env": env_name,
+                    },
                 )
                 yielded[i] = True
                 if on_complete is not None:
@@ -440,6 +455,15 @@ def main():
             "previous runs."
         ),
     )
+    parser.add_argument(
+        "--allow-sparse-seeds",
+        action="store_true",
+        help=(
+            "Permit pool_size > 1024 caused by sparse high seeds.  Off by "
+            "default to prevent typos like ``--seeds 100000`` from silently "
+            "allocating a giant envpool."
+        ),
+    )
     args = parser.parse_args()
 
     base = load_base_config(args.base_config)
@@ -455,6 +479,32 @@ def main():
         with open(out_path) as f:
             existing = json.load(f)
         print(f"Loaded {len(existing)} existing results from {out_path}")
+        # Cache-compatibility guard: every cached run must have been
+        # produced with the same envpool master seed / max-episode-steps
+        # / env_name, otherwise resuming would silently mix incompatible
+        # trajectories under identical labels.
+        for label, r in existing.items():
+            if "error" in r:
+                continue
+            cfg = r.get("config") or {}
+            cached_ms = cfg.get("_envpool_master_seed")
+            cached_mes = cfg.get("_envpool_max_episode_steps")
+            cached_env = cfg.get("_envpool_env")
+            mismatches = []
+            if cached_ms is not None and cached_ms != args.envpool_master_seed:
+                mismatches.append(f"master_seed cache={cached_ms} cli={args.envpool_master_seed}")
+            if cached_mes is not None and cached_mes != args.max_episode_steps:
+                mismatches.append(
+                    f"max_episode_steps cache={cached_mes} cli={args.max_episode_steps}"
+                )
+            if cached_env is not None and cached_env != args.env:
+                mismatches.append(f"env cache={cached_env} cli={args.env}")
+            if mismatches:
+                parser.error(
+                    f"cached run '{label}' in {out_path} is incompatible with "
+                    f"current CLI: {', '.join(mismatches)}.  Use a different "
+                    f"--output or delete the file to start fresh."
+                )
 
     batch_size = args.batch or len(args.seeds)
 
@@ -502,7 +552,9 @@ def main():
         print(f"  output: {out_path}")
         print(f"{'=' * 70}\n")
 
-        os.makedirs(os.path.dirname(out_path), exist_ok=True)
+        out_dir = os.path.dirname(out_path)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
 
         for bi, (labels, seeds, kwargs_list) in enumerate(batches):
             print(f"  [batch {bi + 1}/{len(batches)}] running {len(labels)} agents: {labels}")
@@ -526,6 +578,7 @@ def main():
                     master_seed=args.envpool_master_seed,
                     pool_size=pool_size,
                     on_complete=_save,
+                    allow_sparse=args.allow_sparse_seeds,
                 ):
                     pass  # _save already persisted; iterator just drains.
             except Exception as e:

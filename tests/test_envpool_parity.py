@@ -358,3 +358,104 @@ def test_envpool_main_preserves_completed_runs_on_failure(tmp_path, monkeypatch)
     n_err = sum(1 for v in saved.values() if "error" in v)
     assert n_ok == 1, f"expected 1 completed run preserved, got {n_ok}: {saved}"
     assert n_err == 1, f"expected 1 error stub, got {n_err}: {saved}"
+
+
+@pytest.mark.slow
+def test_envpool_runner_survives_shuffled_env_id(monkeypatch):
+    """Integration-level guard: drive ``run_envpool_batch`` with an
+    envpool wrapper that **shuffles row order** on every reset/step.
+    The runner must produce the same per-label reward sequence as
+    against a passthrough wrapper, because ``_reorder_by_env_id``
+    realigns rows by ``env_id`` before any slot-indexed read.
+
+    This is the missing call-site test from review #3: helper-level
+    unit tests can't catch a regression where someone removes one of
+    the helper invocations.
+    """
+    import envpool as ep_real
+
+    from benchmarks.run_hp_sweep import DEFAULT_BASE
+    from benchmarks.run_hp_sweep_envpool import run_envpool_batch
+
+    class ShufflingPool:
+        """Wraps a real envpool and permutes row order on every return.
+
+        Permutation is deterministic (seeded RNG), so different calls
+        produce different permutations but the same trace per fixed seed.
+        ``info['env_id']`` is permuted to match the row permutation,
+        which is exactly the contract ``_reorder_by_env_id`` expects.
+        """
+
+        def __init__(self, real, rng_seed):
+            self._real = real
+            self._rng = np.random.default_rng(rng_seed)
+
+        def _shuffle(self, ret_tuple):
+            *arrays, info = ret_tuple
+            n = len(arrays[0])
+            perm = self._rng.permutation(n)
+            shuffled = [a[perm] for a in arrays]
+            base_ids = np.asarray(info.get("env_id", np.arange(n)))
+            new_info = dict(info)
+            new_info["env_id"] = base_ids[perm]
+            return (*shuffled, new_info)
+
+        def reset(self, env_id=None):
+            if env_id is None:
+                obs, info = self._real.reset()
+                ret = self._shuffle((obs, info))
+                return ret[0], ret[-1]
+            obs, info = self._real.reset(env_id=env_id)
+            # Subset reset: also shuffle, with env_id mirroring.
+            n = len(obs)
+            perm = self._rng.permutation(n)
+            base_ids = np.asarray(info.get("env_id", np.asarray(env_id)))
+            new_info = dict(info)
+            new_info["env_id"] = base_ids[perm]
+            return obs[perm], new_info
+
+        def step(self, actions):
+            obs, rew, term, trunc, info = self._real.step(actions)
+            obs, rew, term, trunc, info = self._shuffle((obs, rew, term, trunc, info))
+            return obs, rew, term, trunc, info
+
+        def close(self):
+            self._real.close()
+
+    base = dict(DEFAULT_BASE)
+    base["n_neurons"] = 300
+    base["_knob"] = "shuf"
+    base["_value"] = None
+
+    def _run(make_pool):
+        # Capture the original ``envpool.make`` BEFORE patching, since
+        # the test imports envpool, the runner imports envpool, and they
+        # all alias the same module object — patching ``runner.envpool.make``
+        # would otherwise rebind the global and turn ``ep_real.make`` into
+        # the patched lambda (infinite recursion).
+        real_make = ep_real.make
+        with monkeypatch.context() as mp:
+            mp.setattr(
+                "benchmarks.run_hp_sweep_envpool.envpool.make",
+                lambda *a, **kw: make_pool(real_make(*a, **kw)),
+            )
+            results = list(
+                run_envpool_batch(
+                    env_name="LunarLander-v3",
+                    n_episodes=2,
+                    labels=["shuf_s0", "shuf_s1", "shuf_s2"],
+                    seeds=[0, 1, 2],
+                    agent_kwargs_list=[dict(base), dict(base), dict(base)],
+                    eval_every=1000,
+                )
+            )
+        return {r["label"]: r["rewards"] for r in results}
+
+    ref = _run(lambda real: real)  # passthrough: real envpool
+    shuffled = _run(lambda real: ShufflingPool(real, rng_seed=42))
+
+    # Per-label rewards must be identical despite row shuffling.
+    assert ref == shuffled, (
+        "rewards differ between passthrough and row-shuffled envpool — "
+        "_reorder_by_env_id is not realigning correctly at all call sites"
+    )

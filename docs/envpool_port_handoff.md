@@ -415,12 +415,15 @@ path is therefore impossible; statistical parity over seeds is the bar.
 
 `ruff check` and `ruff format --check` both pass on the benchmarks
 and tests trees.  `pytest tests/test_envpool_parity.py` is green
-(13 passed): schema, seed-stream-independent-of-num_envs, end-to-end
+(14 passed): schema, seed-stream-independent-of-num_envs, end-to-end
 batch, **label-invariance across batch composition**, eval-cadence,
 eager-yield partial-completion, five `_reorder_by_env_id` unit tests
 (identity, permutation, subset-permutation, missing-info, wrong-id-set),
-and a `main()`-level test that simulates a mid-batch failure and
-asserts every already-completed run is preserved on disk.
+a `main()`-level test that simulates a mid-batch failure and asserts
+every already-completed run is preserved on disk, and an integration
+test that wraps envpool with a row-shuffling pool and checks that
+per-label rewards match the passthrough baseline (catches regressions
+where any single `_reorder_by_env_id` call site is removed).
 
 ### Brutal-review fixes
 
@@ -436,8 +439,10 @@ them:
 | MEDIUM   | `info["env_id"]` discarded; assumed envpool returned rows in order.  The first patch added a permutation-membership assert, but still indexed by row number — a non-identity permutation would have passed the assert and silently misrouted data. | `_reorder_by_env_id` actively realigns every reset/step/subset-reset return by `env_id`, with a `raise RuntimeError` (not `assert`) on missing `env_id` or a mismatched id-set. |
 | MEDIUM   | Batch failure tagged every label `error`, even ones that had already finished. | Generator-based `run_envpool_batch` with `on_complete` callback persists each agent's results immediately; failure branch only errors out unfinished labels.  Locked in by a `main()`-level test using a synthetic mid-batch failure. |
 | MEDIUM   | Tests were schema-only and would have passed even with the bugs above. | Added explicit tests for seed-stream-vs-num_envs, label-invariance across batch composition, eval cadence, eager-yield, env_id realignment under arbitrary permutations and subsets, and main()-level partial-failure preservation. |
-| LOW      | Sparse high seeds (e.g. `--seeds 100`) would silently inflate `pool_size`. | Warn loudly when `pool_size > 4·n` so this is intentional rather than accidental. |
+| LOW      | Sparse high seeds (e.g. `--seeds 100`) would silently inflate `pool_size`. | Warn loudly when `pool_size > 4·n`; hard-fail at `pool_size > 1024` unless `--allow-sparse-seeds` is set. |
 | LOW      | Runtime guards used `assert`, which `python -O` strips. | All runtime guards (env_id alignment, batch-shape checks) raise explicit `ValueError` / `RuntimeError`. |
+| LOW      | Resuming the same `--output` with a different `--envpool-master-seed` (or `--max-episode-steps` / `--env`) would silently mix incompatible trajectories under identical labels. | Each run dict's `config` records `_envpool_master_seed`, `_envpool_max_episode_steps`, and `_envpool_env`; `main()` refuses to resume if any cached run's metadata mismatches the current CLI. |
+| LOW      | `--output basename.json` (no directory component) would crash on `os.makedirs("")`. | Skip `os.makedirs` when the dirname is empty. |
 
 ### Parity sweep — TO DO
 
