@@ -427,7 +427,7 @@ def test_envpool_runner_survives_shuffled_env_id(monkeypatch):
     base["_knob"] = "shuf"
     base["_value"] = None
 
-    def _run(make_pool):
+    def _run(make_pool, spy_calls=None):
         # Capture the original ``envpool.make`` BEFORE patching, since
         # the test imports envpool, the runner imports envpool, and they
         # all alias the same module object — patching ``runner.envpool.make``
@@ -439,6 +439,17 @@ def test_envpool_runner_survives_shuffled_env_id(monkeypatch):
                 "benchmarks.run_hp_sweep_envpool.envpool.make",
                 lambda *a, **kw: make_pool(real_make(*a, **kw)),
             )
+            if spy_calls is not None:
+                import benchmarks.run_hp_sweep_envpool as runner_mod
+
+                real_reorder = runner_mod._reorder_by_env_id
+
+                def spy_reorder(info, arrays, expected_ids, *, where):
+                    spy_calls.setdefault(where, 0)
+                    spy_calls[where] += 1
+                    return real_reorder(info, arrays, expected_ids, where=where)
+
+                mp.setattr(runner_mod, "_reorder_by_env_id", spy_reorder)
             results = list(
                 run_envpool_batch(
                     env_name="LunarLander-v3",
@@ -452,10 +463,184 @@ def test_envpool_runner_survives_shuffled_env_id(monkeypatch):
         return {r["label"]: r["rewards"] for r in results}
 
     ref = _run(lambda real: real)  # passthrough: real envpool
-    shuffled = _run(lambda real: ShufflingPool(real, rng_seed=42))
+    spy: dict[str, int] = {}
+    shuffled = _run(lambda real: ShufflingPool(real, rng_seed=42), spy_calls=spy)
 
-    # Per-label rewards must be identical despite row shuffling.
+    # (1) Step-path correctness: rewards under shuffled rows match passthrough.
     assert ref == shuffled, (
         "rewards differ between passthrough and row-shuffled envpool — "
-        "_reorder_by_env_id is not realigning correctly at all call sites"
+        "_reorder_by_env_id is not realigning correctly at the step call site"
     )
+
+    # (2) Call-site coverage: every reorder site must have been invoked at
+    # least once.  The reward-equality check above does not catch removal of
+    # the initial-reset or subset-reset reorder calls (with the default
+    # epsilon-greedy schedule and short n_episodes, misrouted reset obs
+    # rarely change rounded reward sequences), so this spy guards against
+    # silent regressions where someone deletes one of the three calls.
+    assert spy.get("initial reset", 0) >= 1, f"initial reset reorder never invoked: {spy}"
+    assert spy.get("step", 0) >= 1, f"step reorder never invoked: {spy}"
+    assert spy.get("subset reset", 0) >= 1, f"subset reset reorder never invoked: {spy}"
+
+
+def test_cache_guard_rejects_master_seed_mismatch(tmp_path, monkeypatch):
+    """``main()`` must refuse to resume an output file whose stamped
+    cached runs were produced with a different ``--envpool-master-seed``.
+    """
+    import benchmarks.run_hp_sweep_envpool as mod
+
+    out_path = tmp_path / "guard.json"
+    base_path = tmp_path / "base.json"
+    base_path.write_text(json.dumps({"n_neurons": 200}))
+    # Plant a stamped successful run from "master_seed=0".
+    out_path.write_text(
+        json.dumps(
+            {
+                "n_step=10_s0": {
+                    "label": "n_step=10_s0",
+                    "seed": 0,
+                    "knob": "n_step",
+                    "value": 10,
+                    "best_eval": 0.0,
+                    "final_eval": 0.0,
+                    "config": {
+                        "n_neurons": 200,
+                        "_envpool_master_seed": 0,
+                        "_envpool_max_episode_steps": 1000,
+                        "_envpool_env": "LunarLander-v3",
+                    },
+                }
+            }
+        )
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_hp_sweep_envpool.py",
+            "--knob",
+            "n_step",
+            "--values",
+            "10",
+            "--seeds",
+            "0",
+            "1",
+            "--episodes",
+            "1",
+            "--base-config",
+            str(base_path),
+            "--output",
+            str(out_path),
+            "--envpool-master-seed",
+            "1",  # mismatch vs cached 0
+        ],
+    )
+    with pytest.raises(SystemExit):
+        mod.main()
+
+
+def test_cache_guard_accepts_unstamped_legacy_runs(tmp_path, monkeypatch):
+    """Pre-1b85a27 successful runs (no ``_envpool_*`` metadata) must
+    remain resumable.  This protects the live c2a110c sweep output.
+    """
+    import benchmarks.run_hp_sweep_envpool as mod
+
+    out_path = tmp_path / "legacy.json"
+    base_path = tmp_path / "base.json"
+    base_path.write_text(json.dumps({"n_neurons": 200}))
+    # Legacy run with no envpool metadata in config.
+    out_path.write_text(
+        json.dumps(
+            {
+                "n_step=10_s0": {
+                    "label": "n_step=10_s0",
+                    "seed": 0,
+                    "knob": "n_step",
+                    "value": 10,
+                    "best_eval": 0.0,
+                    "final_eval": 0.0,
+                    "config": {"n_neurons": 200},  # no _envpool_* keys
+                }
+            }
+        )
+    )
+
+    # Stub run_envpool_batch so main() doesn't actually train.
+    def stub(*args, **kwargs):
+        return iter([])
+
+    monkeypatch.setattr(mod, "run_envpool_batch", stub)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_hp_sweep_envpool.py",
+            "--knob",
+            "n_step",
+            "--values",
+            "10",
+            "--seeds",
+            "0",
+            "--episodes",
+            "1",
+            "--base-config",
+            str(base_path),
+            "--output",
+            str(out_path),
+        ],
+    )
+    # Should NOT raise SystemExit — legacy run is tolerated.
+    mod.main()
+
+
+def test_run_envpool_batch_rejects_extreme_sparse_seeds():
+    """Direct API: pool_size > 1024 must raise unless ``allow_sparse=True``."""
+    from benchmarks.run_hp_sweep_envpool import run_envpool_batch
+
+    base = {"n_neurons": 200, "_knob": "x", "_value": None}
+    with pytest.raises(ValueError, match="allow_sparse"):
+        list(
+            run_envpool_batch(
+                env_name="LunarLander-v3",
+                n_episodes=1,
+                labels=["x_s0"],
+                seeds=[100000],
+                agent_kwargs_list=[dict(base)],
+                pool_size=100001,
+            )
+        )
+
+
+def test_run_envpool_batch_basename_only_output_works(tmp_path, monkeypatch):
+    """Basename-only ``--output`` must not crash on ``os.makedirs('')``."""
+    import benchmarks.run_hp_sweep_envpool as mod
+
+    base_path = tmp_path / "base.json"
+    base_path.write_text(json.dumps({"n_neurons": 200}))
+
+    monkeypatch.chdir(tmp_path)
+
+    def stub(*args, **kwargs):
+        return iter([])
+
+    monkeypatch.setattr(mod, "run_envpool_batch", stub)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_hp_sweep_envpool.py",
+            "--knob",
+            "n_step",
+            "--values",
+            "10",
+            "--seeds",
+            "0",
+            "--episodes",
+            "1",
+            "--base-config",
+            str(base_path),
+            "--output",
+            "result.json",  # basename only — dirname("") would crash makedirs
+        ],
+    )
+    mod.main()  # must not raise FileNotFoundError
