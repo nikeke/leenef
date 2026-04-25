@@ -66,6 +66,7 @@ when `forget_factor` is set (the agent dispatches to the RLS
 | A1 (n_step) | 4000 | **50** | 0.999 | 0.01 | 10 | 0.3 | 0.99 | 500 | kept (best winner, within SE of 100) |
 | A2 (forget_factor) | 4000 | 50 | **0.999** | 0.01 | 10 | 0.3 | 0.99 | 500 | kept (best mean, well above 0.9995) |
 | A3 (alpha) | 4000 | 50 | 0.999 | **0.1** | 10 | 0.3 | 0.99 | 500 | **adopted** — Δ=73.3 on best ≫ SE_comb=39.7; on final Δ=46.3 just above SE_comb=41.8 |
+| A3b (alpha extension) | 4000 | 50 | 0.999 | **0.1** | 10 | 0.3 | 0.99 | 500 | kept — extension values 0.3, 1.0, and 3.0 were all worse |
 
 ## Phase results
 
@@ -134,11 +135,27 @@ risk reissuing five.
 Earlier intuitions formed around alpha=0.01 do not transfer — re-read
 results below in context of the new base.
 
-### A3b — `alpha` extension (planned, before B1)
+### A3b — `alpha` extension
 
-`{0.3, 1.0, 3.0}`, 8 seeds. Appended to `alpha_lunarlander.json` via
-the same `--knob alpha` sweeper. If the adopted argmax shifts, the
-new value supersedes 0.1; otherwise 0.1 is locked in and we proceed.
+| value | n | best_eval (mean ± SE) | final_eval (mean ± SE) |
+|---|---|---|---|
+| **0.1** | 8 | **169.6 ± 31.6** | **128.2 ± 35.1** |
+| 0.3 | 8 | 77.7 ± 31.5 | -1.6 ± 37.2 |
+| 1.0 | 8 | -76.9 ± 10.4 | -114.9 ± 5.0 |
+| 3.0 | 8 | -118.0 ± 8.0 | -161.0 ± 6.4 |
+
+Plot: `results/rl/figures/sweep_alpha.png`
+
+**Verdict**: 0.1 remains the winner after extending the regularization
+sweep upward. The apparent promise of 0.3 was seed-fragile: seeds 0 and 5
+learned, but the 8-seed mean fell far below 0.1 and final performance
+collapsed. Alpha values 1.0 and 3.0 are clearly over-regularized.
+**Locked: alpha=0.1** for B1+.
+
+**Operational note**: before B1 we paused the driver to validate the
+`rl-cpu-optimizations` branch (`37daab2`). The parity gate reuses the
+existing A3 alpha=0.1 old-code seeds as the paired baseline and runs the
+optimized branch on the same seeds.
 
 ### B1 — `solve_every` (in progress)
 
