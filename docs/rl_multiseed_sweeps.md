@@ -42,17 +42,18 @@ the sweeper skips labels already present.
 
 ## Phase ordering
 
-The driver runs the eight phases in this fixed order; each subsequent
+The driver runs the active phases in this fixed order; each subsequent
 phase reads the (possibly updated) base config:
 
 1. **A1** `n_step` ∈ {10, 20, 50, 100}
 2. **A2** `forget_factor` ∈ {0.99, 0.995, 0.999, 0.9995}
 3. **A3** `alpha` ∈ {1e-4, 1e-3, 1e-2, 1e-1}
-4. **B1** `solve_every` ∈ {1, 5, 10, 20}
-5. **B2** `tau` ∈ {0.1, 0.3, 0.5, 1.0}
-6. **C1** `n_neurons` ∈ {2000, 3000, 4000, 6000, 8000}
-7. **D1** `gamma` ∈ {0.97, 0.99, 0.995}
-8. **D2** `epsilon_decay` ∈ {200, 500, 1000, 2000}
+4. **A3b** `alpha` extension ∈ {0.3, 1.0, 3.0}
+5. **B1** `solve_every` ∈ {5, 10, 25, 50}
+6. **B2** `tau` — skipped while `target_mode='nstep'`
+7. **C1** `n_neurons` ∈ {2000, 3000, 4000, 6000, 8000}
+8. **D1** `gamma` ∈ {0.97, 0.99, 0.995}
+9. **D2** `epsilon_decay` ∈ {200, 500, 1000, 2000}
 
 Note: `fqi_iters` was originally Phase B2 but dropped — it is a no-op
 when `forget_factor` is set (the agent dispatches to the RLS
@@ -67,6 +68,9 @@ when `forget_factor` is set (the agent dispatches to the RLS
 | A2 (forget_factor) | 4000 | 50 | **0.999** | 0.01 | 10 | 0.3 | 0.99 | 500 | kept (best mean, well above 0.9995) |
 | A3 (alpha) | 4000 | 50 | 0.999 | **0.1** | 10 | 0.3 | 0.99 | 500 | **adopted** — Δ=73.3 on best ≫ SE_comb=39.7; on final Δ=46.3 just above SE_comb=41.8 |
 | A3b (alpha extension) | 4000 | 50 | 0.999 | **0.1** | 10 | 0.3 | 0.99 | 500 | kept — extension values 0.3, 1.0, and 3.0 were all worse |
+| B1 (solve_every) | 4000 | 50 | 0.999 | 0.1 | **10** | 0.3 | 0.99 | 500 | kept — incumbent was the winner; no optimization smoke-test regression |
+| C1 (n_neurons) | **6000** | 50 | 0.999 | 0.1 | 10 | 0.3 | 0.99 | 500 | **adopted** — Δ=121.4 on best > SE_comb=41.4 |
+| D1 (gamma) | 6000 | 50 | 0.999 | 0.1 | 10 | 0.3 | **0.99** | 500 | kept — 0.97 led on mean but Δ=28.7 < SE_comb=38.9 |
 
 ## Phase results
 
@@ -131,9 +135,10 @@ sweep. Reason: if a higher alpha wins, all downstream phases done at
 0.1 would have to be redone. Better to spend one extra phase now than
 risk reissuing five.
 
-**Caveat 2**: B1, B2, C1, D1, D2 will all run at the new alpha=0.1.
-Earlier intuitions formed around alpha=0.01 do not transfer — re-read
-results below in context of the new base.
+**Caveat 2**: B1, C1, D1, and D2 all run at the new alpha=0.1;
+B2 tau is skipped while `target_mode='nstep'`. Earlier intuitions formed
+around alpha=0.01 do not transfer — re-read results below in context of
+the new base.
 
 ### A3b — `alpha` extension
 
@@ -184,7 +189,24 @@ as a smoke test for possible semantic drift: if all solve_every values look
 uniformly worse than the old alpha=0.1 baseline, stop and reassess rather
 than blindly continuing.
 
-### B1 — `solve_every` (in progress)
+### B1 — `solve_every`
+
+| value | n | best_eval (mean ± SE) | final_eval (mean ± SE) |
+|---|---|---|---|
+| 5  | 8 | 125.7 ± 35.5 |  90.4 ± 38.4 |
+| **10** | 8 | **198.7 ± 12.7** | **160.0 ± 26.1** |
+| 25 | 8 | 151.8 ± 28.1 | 122.2 ± 35.1 |
+| 50 | 8 | 118.4 ± 30.9 |  65.7 ± 44.5 |
+
+Plot: `results/rl/figures/sweep_solve_every.png`
+
+**Verdict**: 10 remains the winner, so the base stayed unchanged. This also
+passes the CPU-optimization smoke test: the optimized run at the incumbent
+`solve_every=10` is not uniformly worse than the old alpha=0.1 baseline
+(198.7 ± 12.7 best and 160.0 ± 26.1 final versus 169.6 ± 31.6 and
+128.2 ± 35.1 before optimization). Larger solve intervals underperform,
+which suggests the RLS statistics need decoder refreshes at roughly the
+existing cadence for this 4000-neuron base.
 
 ### ~~B2 — `tau`~~ (SKIPPED — provably no-op)
 
@@ -196,6 +218,45 @@ from the driver, saves ~3-4 h.
 
 If we ever swap to `target_mode='td'`, B2 must be re-introduced (then
 `W_target` is read by `_solve_from_buffer` for bootstrapping).
+
+### C1 — `n_neurons`
+
+| value | n | best_eval (mean ± SE) | final_eval (mean ± SE) |
+|---|---|---|---|
+| 2000 | 8 |   7.8 ± 36.7 | -24.5 ± 37.2 |
+| 3000 | 8 | 109.3 ± 42.9 |  73.7 ± 44.0 |
+| 4000 | 8 |  86.2 ± 39.5 |  24.9 ± 41.2 |
+| **6000** | 8 | **207.5 ± 12.4** | **180.4 ± 15.6** |
+| 8000 | 8 | 168.2 ± 29.9 | 159.4 ± 31.4 |
+
+Plot: `results/rl/figures/sweep_n_neurons.png`
+
+**Verdict**: 6000 wins decisively and was adopted over the 4000-neuron
+incumbent (Δ=121.4 on `best_eval`, SE_combined=41.4, ratio=2.93). It also
+wins on final performance by an even larger margin. The 8000-neuron value is
+competitive but lower and noisier, so the current sweet spot is not simply
+"more neurons" under this CPU/RLS regime. D1 and D2 therefore run at
+`n_neurons=6000`.
+
+### D1 — `gamma`
+
+| value | n | best_eval (mean ± SE) | final_eval (mean ± SE) |
+|---|---|---|---|
+| 0.97 | 8 | **185.4 ±  8.0** | **175.7 ±  8.5** |
+| **0.99** | 8 | 156.7 ± 38.1 | 130.7 ± 45.4 |
+| 0.995 | 8 | 154.8 ± 37.7 | 132.8 ± 35.4 |
+
+Plot: `results/rl/figures/sweep_gamma.png`
+
+**Verdict**: 0.97 has the highest mean and much tighter SE, but the analyzer
+kept the 0.99 incumbent because the `best_eval` gap is still within the
+pre-registered adoption threshold (Δ=28.7, SE_combined=38.9, ratio=0.74).
+Final performance tells the same story: 0.97 is higher by 45.0, just inside
+its combined SE of about 46.2. If later phases stay noisy, 0.97 is a strong
+candidate for a targeted rerun with more seeds, but the live base remains
+`gamma=0.99` to avoid churn.
+
+### D2 — `epsilon_decay` (in progress)
 
 ## Scratch observations / hypotheses
 
@@ -262,8 +323,8 @@ one knob with the others fixed at the post-A2 base.
   reader is likely to be confused.
 - `n_neurons=8000` at `forget_factor=0.999` allocates a per-action
   float64 RLS stats tensor of ~512 MB; with 4 actions × 6 workers ≈
-  12 GB. Watch for OOM in C1; may need to drop `--parallel` for that
-  phase.
+  12 GB. C1 completed at `--parallel 6` without OOM, but watch this
+  memory path before increasing neuron counts further.
 
 ## Maintenance
 
