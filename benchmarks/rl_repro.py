@@ -18,9 +18,17 @@ FIGURES_DIR = Path("docs") / "figures"
 BASE_CONFIG_PATH = RESULTS_DIR / "base_config.json"
 DOC_PATH = Path("docs") / "rl_clean_sweeps.md"
 
-RUNNER_VERSION = "rl-clean-v1"
+RUNNER_VERSION = "rl-clean-v2"
 WARMUP_SEED_OFFSET = 100_000
 EVAL_SEED_BASE = 10_000
+
+CODE_VERSION_PATHS = (
+    "src",
+    "benchmarks",
+    "tests",
+    "docs/generate_rl_clean_figures.py",
+    "pyproject.toml",
+)
 
 
 def set_rl_seed(seed: int | None) -> None:
@@ -70,6 +78,7 @@ def seed_policy() -> dict[str, object]:
 
 @lru_cache(maxsize=1)
 def code_version() -> str | None:
+    """Return code identity while ignoring generated clean sweep artifacts."""
     repo_root = Path(__file__).resolve().parents[1]
     try:
         head = subprocess.run(
@@ -85,14 +94,14 @@ def code_version() -> str | None:
         return None
     try:
         diff = subprocess.run(
-            ["git", "diff", "--no-ext-diff", "HEAD"],
+            ["git", "diff", "--no-ext-diff", "HEAD", "--", *CODE_VERSION_PATHS],
             cwd=repo_root,
             capture_output=True,
             text=True,
             check=True,
         ).stdout
         untracked = subprocess.run(
-            ["git", "ls-files", "--others", "--exclude-standard"],
+            ["git", "ls-files", "--others", "--exclude-standard", "--", *CODE_VERSION_PATHS],
             cwd=repo_root,
             capture_output=True,
             text=True,

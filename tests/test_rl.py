@@ -1,6 +1,7 @@
 """Tests for RL utilities."""
 
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -9,7 +10,7 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from benchmarks import analyze_rl_sweep, plot_rl_sweeps, run_hp_sweep
+from benchmarks import analyze_rl_sweep, plot_rl_sweeps, rl_repro, run_hp_sweep
 from benchmarks.rl_repro import can_reuse_result, env_tag, hp_run_context
 from leenef.rl import NEFFeatures, NEFFQIAgent, NEFFQIEnsemble
 
@@ -528,6 +529,32 @@ def test_can_reuse_result_requires_matching_code_version():
         expected_seed=0,
         expected_run_context=result["run_context"],
     )
+
+
+def test_code_version_ignores_generated_rl_clean_outputs(monkeypatch):
+    calls: list[list[str]] = []
+
+    def fake_run(cmd, **kwargs):
+        del kwargs
+        calls.append(cmd)
+        if cmd[:3] == ["git", "rev-parse", "HEAD"]:
+            return subprocess.CompletedProcess(cmd, 0, stdout="abc123\n", stderr="")
+        if cmd[:3] == ["git", "diff", "--no-ext-diff"]:
+            assert "results/rl_clean" not in cmd
+            assert "docs/figures" not in cmd
+            return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+        if cmd[:3] == ["git", "ls-files", "--others"]:
+            assert "results/rl_clean" not in cmd
+            assert "docs/figures" not in cmd
+            return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+        raise AssertionError(cmd)
+
+    rl_repro.code_version.cache_clear()
+    monkeypatch.setattr(rl_repro.subprocess, "run", fake_run)
+
+    assert rl_repro.code_version() == "abc123"
+    assert any(cmd[:3] == ["git", "diff", "--no-ext-diff"] for cmd in calls)
+    rl_repro.code_version.cache_clear()
 
 
 def test_env_tag_preserves_environment_version():

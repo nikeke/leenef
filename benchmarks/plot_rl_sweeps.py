@@ -311,7 +311,7 @@ def main():
 
     if len(summary) >= 1:
         plot_summary(summary, env_name=args.env, out_dir=args.out_dir)
-        print(f"[plot] summary saved to {args.out_dir}/sweep_summary.png")
+        print(f"[plot] summary saved to {args.out_dir}/rl_clean_sweep_summary.png")
 
 
 if __name__ == "__main__":

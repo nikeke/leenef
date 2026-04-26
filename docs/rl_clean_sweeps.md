@@ -19,6 +19,10 @@ The clean runner policy is:
    `result_namespace`, `runner_version`, `config`, `seed`, and `seed_policy`.
 7. Clean adoption uses `robust_eval = mean(eval_history[-3:])`; `best_eval` is
    diagnostic only.
+8. Code identity is dirty-tree aware for source, benchmark, test, and clean
+   figure-generation code, but it ignores generated clean result JSON and PNG
+   artifacts so a resumable phase does not invalidate itself while writing
+   outputs.
 
 ## Clean restart base config
 
