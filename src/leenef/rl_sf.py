@@ -22,11 +22,14 @@ accumulator (right-hand side for ``Ψ_a``) and a per-action ``Aᵀr``
 accumulator (right-hand side for ``w_a``).  No bootstrapping; targets
 are completed-trajectory truncated-MC sums.
 
-This module currently exposes :class:`NEFSuccessor`, the encoder +
-solver core.  Higher-level training-loop wrappers (a full
-``NEFSFAgent`` analogous to :class:`NEFFQIAgent`) will be added once
-the unit-tests on the toy chain (see :mod:`leenef.rl_diag`) confirm
-the math.
+This module exposes :class:`NEFSuccessor`, the encoder + solver core,
+and :class:`NEFSFAgent`, a thin training-loop wrapper around it that
+mirrors :class:`NEFFQIAgent`'s public surface (``select_action`` /
+``update`` / ``q_values``).  The agent also implements the D2 leverage
+novelty bonus: an intrinsic reward
+``r_int(s) = β · sqrt(φ(s)ᵀ (AᵀA + αI)⁻¹ φ(s))`` derived from the
+cached sufficient-statistic inverse — zero new state, one scalar
+hyperparameter, and the exact analytical-solve analog of RND.
 """
 
 from __future__ import annotations
@@ -286,3 +289,212 @@ class NEFSuccessor:
         if action is not None:
             return self._ata[action].clone()
         return self._ata.sum(dim=0)
+
+
+class NEFSFAgent:
+    """Thin training-loop wrapper around :class:`NEFSuccessor`.
+
+    Mirrors :class:`NEFFQIAgent`'s public surface (``select_action`` /
+    ``update`` / ``q_values``) so it slots into the existing
+    :mod:`benchmarks.run_rl` / :mod:`benchmarks.rl_repro` harnesses,
+    but the value backbone is the per-action successor solve described
+    in :class:`NEFSuccessor` rather than per-action FQI.
+
+    Optional D2 leverage novelty bonus: when ``novelty_beta > 0``, an
+    intrinsic reward
+    ``r_int(s) = β · sqrt(φ(s)ᵀ (AᵀA + αI)⁻¹ φ(s))`` is added to the
+    extrinsic reward before episode targets are computed.  This is
+    free — the inverse is cached after each solve from the same
+    sufficient statistics already maintained by the successor core.
+    Tracked separately for diagnostics so the reported reward stays
+    pure-extrinsic.
+
+    The agent solves once per ``solve_every`` *episodes* (not steps):
+    successor targets are completed-trajectory MC sums, so per-step
+    solving does not add information.
+
+    Args:
+        d_obs: observation dimensionality.
+        n_actions: discrete action count.
+        n_neurons: encoder size.
+        gamma: discount factor.
+        alpha: trace-scaled Tikhonov regularization.
+        n_step: truncated successor horizon.
+        forget_factor: optional RLS β.
+        epsilon_start / epsilon_end / epsilon_decay: ε-greedy schedule
+            (same form as :class:`NEFFQIAgent`).
+        solve_every: episodes between successor solves.  ``solve()``
+            also refreshes the leverage-novelty inverse.
+        novelty_beta: D2 intrinsic-reward coefficient (``0`` disables).
+        novelty_eps: numerical floor for the leverage square root.
+        warmup_episodes: episodes during which actions are drawn from
+            ``epsilon_start`` (no greedy action) regardless of decay.
+        features_kwargs: forwarded to :class:`NEFFeatures`.
+        seed: random seed.
+    """
+
+    def __init__(
+        self,
+        d_obs: int,
+        n_actions: int,
+        n_neurons: int = 2000,
+        gamma: float = 0.99,
+        alpha: float = 1e-2,
+        n_step: int | None = 50,
+        forget_factor: float | None = None,
+        epsilon_start: float = 1.0,
+        epsilon_end: float = 0.05,
+        epsilon_decay: int = 500,
+        solve_every: int = 10,
+        novelty_beta: float = 0.0,
+        novelty_eps: float = 1e-8,
+        warmup_episodes: int = 0,
+        features_kwargs: dict | None = None,
+        seed: int = 0,
+    ):
+        if novelty_beta < 0:
+            raise ValueError(f"novelty_beta must be >= 0, got {novelty_beta!r}")
+        if warmup_episodes < 0:
+            raise ValueError(f"warmup_episodes must be >= 0, got {warmup_episodes!r}")
+
+        self.successor = NEFSuccessor(
+            d_obs=d_obs,
+            n_actions=n_actions,
+            n_neurons=n_neurons,
+            gamma=gamma,
+            alpha=alpha,
+            n_step=n_step,
+            forget_factor=forget_factor,
+            features_kwargs=features_kwargs,
+            seed=seed,
+        )
+        self.n_actions = int(n_actions)
+        self.n_neurons = int(n_neurons)
+        self.gamma = float(gamma)
+        self.alpha = float(alpha)
+        self.epsilon_start = float(epsilon_start)
+        self.epsilon_end = float(epsilon_end)
+        self.epsilon_decay = int(epsilon_decay)
+        self.solve_every = int(solve_every)
+        self.novelty_beta = float(novelty_beta)
+        self.novelty_eps = float(novelty_eps)
+        self.warmup_episodes = int(warmup_episodes)
+
+        self.rng = np.random.default_rng(seed)
+
+        # Cached (AᵀA + αI)⁻¹ summed across actions for novelty leverage.
+        self._novelty_inv: Tensor | None = None
+        # Per-episode intrinsic-reward bookkeeping (diagnostics only).
+        self._intrinsic_episode = 0.0
+        self._extrinsic_episode = 0.0
+        self.last_extrinsic_reward = 0.0
+        self.last_intrinsic_reward = 0.0
+
+        self._episode = 0
+        self._total_steps = 0
+        self._solve_count = 0
+
+    # -- exposed convenience --------------------------------------------------
+
+    @property
+    def features(self) -> NEFFeatures:
+        return self.successor.features
+
+    @property
+    def Psi(self) -> Tensor:  # noqa: N802 (mirrors NEFSuccessor)
+        return self.successor.Psi
+
+    @property
+    def W_r(self) -> Tensor:  # noqa: N802
+        return self.successor.W_r
+
+    # -- exploration schedule -------------------------------------------------
+
+    def _epsilon(self) -> float:
+        if self._episode < self.warmup_episodes:
+            return self.epsilon_start
+        decayed = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * np.exp(
+            -(self._episode - self.warmup_episodes) / max(1, self.epsilon_decay)
+        )
+        return float(decayed)
+
+    def select_action(self, obs: np.ndarray) -> int:
+        """ε-greedy with respect to the current Q estimate."""
+        if self.rng.random() < self._epsilon() or self._solve_count == 0:
+            return int(self.rng.integers(self.n_actions))
+        with torch.no_grad():
+            q = self.successor.q_values(obs)
+            return int(q.argmax().item())
+
+    def q_values(self, obs: np.ndarray) -> Tensor:
+        return self.successor.q_values(obs)
+
+    # -- novelty --------------------------------------------------------------
+
+    def _refresh_novelty_inverse(self) -> None:
+        if self.novelty_beta == 0.0:
+            self._novelty_inv = None
+            return
+        ata = self.successor.gram_matrix(action=None).clone()
+        reg = self.alpha * torch.trace(ata) / self.n_neurons
+        ata.diagonal().add_(reg.clamp(min=self.alpha))
+        try:
+            chol, info = torch.linalg.cholesky_ex(ata)
+            if int(info.item()) == 0:
+                inv = torch.cholesky_inverse(chol)
+            else:
+                inv = torch.linalg.pinv(ata)
+        except torch.linalg.LinAlgError:
+            inv = torch.linalg.pinv(ata)
+        self._novelty_inv = inv  # float64
+
+    def novelty(self, obs: np.ndarray) -> float:
+        """``β · sqrt(φ(s)ᵀ (AᵀA + αI)⁻¹ φ(s))`` (0 before any solve)."""
+        if self.novelty_beta == 0.0 or self._novelty_inv is None:
+            return 0.0
+        with torch.no_grad():
+            s = torch.from_numpy(obs).float()
+            phi = self.successor.features.encode(s).double()
+            quad = float((phi @ self._novelty_inv @ phi).item())
+        return self.novelty_beta * float(np.sqrt(max(quad, 0.0) + self.novelty_eps))
+
+    # -- ingestion ------------------------------------------------------------
+
+    def update(
+        self,
+        obs: np.ndarray,
+        action: int,
+        reward: float,
+        next_obs: np.ndarray,
+        done: bool,
+    ) -> None:
+        """Buffer one transition; flush + maybe solve at episode end.
+
+        The reward stored for the successor solve is ``reward + r_int``
+        where ``r_int`` is the leverage novelty bonus.  The bonus is
+        also tracked separately on ``last_intrinsic_reward`` and the
+        per-episode accumulators so harnesses can report extrinsic-
+        only return.
+        """
+        intrinsic = self.novelty(obs) if self.novelty_beta > 0.0 else 0.0
+        self.last_extrinsic_reward = float(reward)
+        self.last_intrinsic_reward = float(intrinsic)
+        self._extrinsic_episode += float(reward)
+        self._intrinsic_episode += float(intrinsic)
+
+        augmented = float(reward) + intrinsic
+        self.successor.add_transition(obs, int(action), augmented, next_obs, bool(done))
+        self._total_steps += 1
+
+        if done:
+            self._episode += 1
+            if self.solve_every > 0 and self._episode % self.solve_every == 0:
+                self.solve()
+            self._intrinsic_episode = 0.0
+            self._extrinsic_episode = 0.0
+
+    def solve(self) -> None:
+        """Run the per-action successor solve and refresh the novelty inverse."""
+        self.successor.solve()
+        self._solve_count += 1
+        self._refresh_novelty_inverse()
