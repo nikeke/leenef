@@ -134,3 +134,35 @@ def test_solve_from_stats_flushes_deferred_rls_episodes():
 
     assert agent._pending_stats == []
     assert int(agent._n_accumulated.sum().item()) == len(episode)
+
+
+class _OneStepEnv:
+    def __init__(self):
+        self.reset_seeds: list[int | None] = []
+        self.steps = 0
+
+    def reset(self, seed=None):
+        self.reset_seeds.append(seed)
+        return np.zeros(2, dtype=np.float32), {}
+
+    def step(self, action):
+        del action
+        self.steps += 1
+        terminated = self.steps >= 10
+        return np.ones(2, dtype=np.float32), 1.0, terminated, False, {}
+
+
+def test_warmup_uses_seed_sequence_when_provided():
+    agent = NEFFQIAgent(
+        d_obs=2,
+        n_actions=2,
+        n_neurons=6,
+        target_mode="nstep",
+        forget_factor=0.95,
+        seed=2,
+    )
+    env = _OneStepEnv()
+
+    agent.warmup(env=env, n_episodes=3, seed=100)
+
+    assert env.reset_seeds == [100, 101, 102]

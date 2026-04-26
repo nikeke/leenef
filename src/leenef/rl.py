@@ -982,6 +982,7 @@ class NEFFQIAgent:
         *,
         env=None,
         n_episodes: int = 20,
+        seed: int | None = None,
     ) -> None:
         """Collect transitions with random policy to seed buffer and stats.
 
@@ -991,8 +992,11 @@ class NEFFQIAgent:
         if env is None and env_step is None:
             raise ValueError("Provide either env or env_step")
 
-        for _ in range(n_episodes):
-            obs, _ = env.reset()
+        for i in range(n_episodes):
+            if seed is None:
+                obs, _ = env.reset()
+            else:
+                obs, _ = env.reset(seed=seed + i)
             done = False
             while not done:
                 action = int(self.rng.integers(self.n_actions))
@@ -1106,15 +1110,18 @@ class NEFFQIEnsemble:
         for member in self.members:
             member.end_episode()
 
-    def warmup(self, *, env, n_episodes: int = 20) -> None:
+    def warmup(self, *, env, n_episodes: int = 20, seed: int | None = None) -> None:
         """Warmup all members using random exploration.
 
         Unlike individual warmup, runs episodes once and broadcasts
         transitions to all members (avoids N× environment interaction).
         """
         n_actions = self.members[0].n_actions
-        for _ in range(n_episodes):
-            obs, _ = env.reset()
+        for i in range(n_episodes):
+            if seed is None:
+                obs, _ = env.reset()
+            else:
+                obs, _ = env.reset(seed=seed + i)
             done = False
             while not done:
                 action = int(self.rng.integers(n_actions))

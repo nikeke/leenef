@@ -29,6 +29,9 @@ import numpy as np
 
 from leenef.rl import NEFFQIAgent
 
+RUNNER_VERSION = "seeded-warmup-v1"
+WARMUP_SEED_OFFSET = 100_000
+
 # Built-in default base (used if base_config.json is missing).  Must
 # match the post-recentering-sweep decision: 4000n, no recentering,
 # broadness=0.
@@ -109,7 +112,8 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
     agent = NEFFQIAgent(d_obs=d_obs, n_actions=n_actions, seed=seed, **agent_kwargs)
 
     warmup_env = gym.make(env_name)
-    agent.warmup(env=warmup_env, n_episodes=20)
+    warmup_seed = WARMUP_SEED_OFFSET + seed
+    agent.warmup(env=warmup_env, n_episodes=20, seed=warmup_seed)
     warmup_env.close()
 
     env = gym.make(env_name)
@@ -167,6 +171,8 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
         "final_eval": final_eval,
         "time_s": round(elapsed, 1),
         "config": agent_kwargs,
+        "runner_version": RUNNER_VERSION,
+        "warmup_seed": warmup_seed,
         "eval_history": eval_history,
         "rewards": [round(float(r), 1) for r in rewards],
     }
@@ -190,6 +196,15 @@ def value_tag(value) -> str:
         s = f"{value:g}"
         return s
     return str(value)
+
+
+def can_reuse_result(result: dict, expected_config: dict) -> bool:
+    """Return True when an existing result matches the current runner semantics."""
+    return (
+        "error" not in result
+        and result.get("runner_version") == RUNNER_VERSION
+        and result.get("config") == expected_config
+    )
 
 
 def main():
@@ -228,9 +243,11 @@ def main():
         tag = value_tag(v)
         for s in args.seeds:
             label = f"{args.knob}={tag}_s{s}"
-            if label in existing and "error" not in existing[label]:
+            if label in existing and can_reuse_result(existing[label], kw):
                 print(f"  Skipping {label} (already completed)")
                 continue
+            if label in existing:
+                print(f"  Re-running {label} (stale result metadata)")
             tasks.append((label, args.env, args.episodes, s, kw))
 
     if not tasks:

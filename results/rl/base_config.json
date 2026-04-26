@@ -1,5 +1,5 @@
 {
-  "n_neurons": 6000,
+  "n_neurons": 4000,
   "gamma": 0.99,
   "alpha": 0.1,
   "epsilon_start": 1.0,

@@ -68,9 +68,20 @@ when `forget_factor` is set (the agent dispatches to the RLS
 | A2 (forget_factor) | 4000 | 50 | **0.999** | 0.01 | 10 | 0.3 | 0.99 | 500 | kept (best mean, well above 0.9995) |
 | A3 (alpha) | 4000 | 50 | 0.999 | **0.1** | 10 | 0.3 | 0.99 | 500 | **adopted** — Δ=73.3 on best ≫ SE_comb=39.7; on final Δ=46.3 just above SE_comb=41.8 |
 | A3b (alpha extension) | 4000 | 50 | 0.999 | **0.1** | 10 | 0.3 | 0.99 | 500 | kept — extension values 0.3, 1.0, and 3.0 were all worse |
-| B1 (solve_every) | 4000 | 50 | 0.999 | 0.1 | **10** | 0.3 | 0.99 | 500 | kept — incumbent was the winner; no optimization smoke-test regression |
-| C1 (n_neurons) | **6000** | 50 | 0.999 | 0.1 | 10 | 0.3 | 0.99 | 500 | **adopted** — Δ=121.4 on best > SE_comb=41.4 |
-| D1 (gamma) | 6000 | 50 | 0.999 | 0.1 | 10 | 0.3 | **0.99** | 500 | kept — 0.97 led on mean but Δ=28.7 < SE_comb=38.9 |
+| ~~B1 (solve_every)~~ | 4000 | 50 | 0.999 | 0.1 | ~~**10**~~ | 0.3 | 0.99 | 500 | **superseded** — unseeded warmup made duplicate configs non-reproducible; rerun required |
+| ~~C1 (n_neurons)~~ | ~~**6000**~~ | 50 | 0.999 | 0.1 | 10 | 0.3 | 0.99 | 500 | **superseded** — 6000 adoption invalidated pending seeded rerun |
+| ~~D1 (gamma)~~ | ~~6000~~ | 50 | 0.999 | 0.1 | 10 | 0.3 | ~~**0.99**~~ | 500 | **superseded** — ran on suspect 6000-neuron base |
+
+**Important correction**: B1-D2 from commit `19ed052` were paused and
+superseded after discovering a reproducibility bug in the HP runner. The
+training episodes were seeded, but the 20 warmup episodes used unseeded
+`env.reset()`, so the same `(config, seed)` could produce different
+normalization statistics, initial decoders, and RNG consumption in different
+phases. The duplicate configuration `solve_every=10` in B1 and
+`n_neurons=4000` in C1 should have matched, but did not. The runner now uses
+seeded warmup and `runner_version="seeded-warmup-v1"` so stale unseeded
+entries are rerun rather than skipped. The live base is reset to the last
+defensible post-A3b config: **4000 neurons, alpha=0.1, solve_every=10**.
 
 ## Phase results
 
@@ -191,6 +202,9 @@ than blindly continuing.
 
 ### B1 — `solve_every`
 
+**Superseded pending seeded rerun**: these results were produced before
+the warmup seeding fix and should not drive claims or downstream adoption.
+
 | value | n | best_eval (mean ± SE) | final_eval (mean ± SE) |
 |---|---|---|---|
 | 5  | 8 | 125.7 ± 35.5 |  90.4 ± 38.4 |
@@ -221,6 +235,11 @@ If we ever swap to `target_mode='td'`, B2 must be re-introduced (then
 
 ### C1 — `n_neurons`
 
+**Superseded pending seeded rerun**: the 4000-neuron row is the same
+configuration as B1's `solve_every=10` incumbent, but the two rows disagree
+strongly because the unseeded warmup changed the pre-training state. The
+6000-neuron adoption is therefore invalid until this phase is rerun.
+
 | value | n | best_eval (mean ± SE) | final_eval (mean ± SE) |
 |---|---|---|---|
 | 2000 | 8 |   7.8 ± 36.7 | -24.5 ± 37.2 |
@@ -240,6 +259,9 @@ competitive but lower and noisier, so the current sweet spot is not simply
 
 ### D1 — `gamma`
 
+**Superseded pending seeded rerun**: this phase used the suspect
+6000-neuron base from C1, so it must be rerun after B1/C1 are rerun.
+
 | value | n | best_eval (mean ± SE) | final_eval (mean ± SE) |
 |---|---|---|---|
 | 0.97 | 8 | **185.4 ±  8.0** | **175.7 ±  8.5** |
@@ -256,7 +278,10 @@ its combined SE of about 46.2. If later phases stay noisy, 0.97 is a strong
 candidate for a targeted rerun with more seeds, but the live base remains
 `gamma=0.99` to avoid churn.
 
-### D2 — `epsilon_decay` (in progress)
+### D2 — `epsilon_decay` (paused)
+
+Paused after the warmup-seeding bug was found. Partial results were running
+on the suspect 6000-neuron base and are not decision-grade.
 
 ## Scratch observations / hypotheses
 
