@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Analyze a completed single-knob HP sweep and update the live base config.
 
-Rule for adopting a new base value:
-    adopt if  mean(winner).best_eval - mean(current_base).best_eval
-              > SE_combined = sqrt(SE_winner^2 + SE_current^2)
+Clean restart rule for adopting a new base value:
+    adopt if  mean(winner).robust_eval - mean(current_base).robust_eval
+               > SE_combined = sqrt(SE_winner^2 + SE_current^2)
 
 If the current base value was not among the sweep values, we still
 report per-value stats but do NOT change the base (nothing to compare).
@@ -24,6 +24,7 @@ from benchmarks.rl_repro import (
     env_tag,
     hp_run_context,
     is_current_hp_sweep_result,
+    result_robust_eval,
 )
 
 
@@ -43,22 +44,33 @@ def aggregate(
             expected_run_context=expected_run_context,
         ):
             continue
+        re = result_robust_eval(r)
         be = r.get("best_eval")
         fe = r.get("final_eval")
-        if be is None:
+        if re is None:
             continue
         tag = _tag(r.get("value"))
-        by_value.setdefault(tag, {"value": r.get("value"), "best": [], "final": []})
-        by_value[tag]["best"].append(be)
+        by_value.setdefault(
+            tag,
+            {"value": r.get("value"), "robust": [], "best": [], "final": []},
+        )
+        by_value[tag]["robust"].append(re)
+        if be is not None:
+            by_value[tag]["best"].append(be)
         if fe is not None:
             by_value[tag]["final"].append(fe)
     stats = {}
     for tag, d in by_value.items():
-        be = np.array(d["best"])
-        fe = np.array(d["final"]) if d["final"] else be
+        re = np.array(d["robust"])
+        be = np.array(d["best"]) if d["best"] else re
+        fe = np.array(d["final"]) if d["final"] else re
         stats[tag] = {
             "value": d["value"],
-            "n": len(be),
+            "n": len(re),
+            "robust_mean": float(re.mean()),
+            "robust_se": float(re.std(ddof=1) / np.sqrt(len(re))) if len(re) > 1 else float("nan"),
+            "robust_min": float(re.min()),
+            "robust_max": float(re.max()),
             "best_mean": float(be.mean()),
             "best_se": float(be.std(ddof=1) / np.sqrt(len(be))) if len(be) > 1 else float("nan"),
             "best_min": float(be.min()),
@@ -124,24 +136,25 @@ def main():
         print(f"[analyze] No valid runs found for knob={args.knob}")
         return
 
-    ordered = sorted(stats.items(), key=lambda kv: -kv[1]["best_mean"])
+    ordered = sorted(stats.items(), key=lambda kv: -kv[1]["robust_mean"])
     print(f"\n{'=' * 80}")
     print(f"  ANALYSIS: {args.knob}")
     print(f"{'=' * 80}")
     print(
-        f"  {'value':>12}  {'n':>3}  {'best_mean':>10} {'± SE':>7}  {'final_mean':>11} {'± SE':>7}"
+        f"  {'value':>12}  {'n':>3}  {'robust_mean':>12} {'± SE':>7}  "
+        f"{'best_mean':>10}  {'final_mean':>11}"
     )
     for tag, s in ordered:
         print(
-            f"  {tag:>12}  {s['n']:>3}  {s['best_mean']:>10.1f} ± {s['best_se']:5.1f}  "
-            f"{s['final_mean']:>11.1f} ± {s['final_se']:5.1f}"
+            f"  {tag:>12}  {s['n']:>3}  {s['robust_mean']:>12.1f} ± {s['robust_se']:5.1f}  "
+            f"{s['best_mean']:>10.1f}  {s['final_mean']:>11.1f}"
         )
 
     current_value = base.get(args.knob)
     current_tag = _tag(current_value)
 
     winner_tag, winner = ordered[0]
-    print(f"\n  winner: {args.knob}={winner_tag}  (best_mean={winner['best_mean']:.1f})")
+    print(f"\n  winner: {args.knob}={winner_tag}  (robust_mean={winner['robust_mean']:.1f})")
     print(
         f"  current base: {args.knob}={current_tag}  "
         f"(in sweep: {'yes' if current_tag in stats else 'no'})"
@@ -160,8 +173,8 @@ def main():
         return
 
     cur = stats[current_tag]
-    delta = winner["best_mean"] - cur["best_mean"]
-    se_comb = float(np.sqrt(winner["best_se"] ** 2 + cur["best_se"] ** 2))
+    delta = winner["robust_mean"] - cur["robust_mean"]
+    se_comb = float(np.sqrt(winner["robust_se"] ** 2 + cur["robust_se"] ** 2))
     print(f"  Δ = {delta:.1f}   SE_combined = {se_comb:.1f}   ratio = {delta / se_comb:.2f}")
 
     if delta > se_comb:

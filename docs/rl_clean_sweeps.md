@@ -4,8 +4,8 @@ This document tracks the **post-audit clean restart** for NEF-FQI RL sweeps.
 New reproducibility-sensitive sweep outputs must go to the clean namespace:
 
 - `results/rl_clean/`
-- `results/rl_clean/figures/`
 - `results/rl_clean/base_config.json`
+- `docs/figures/rl_clean_*.png`
 
 The clean runner policy is:
 
@@ -17,6 +17,8 @@ The clean runner policy is:
    same value.
 6. Resumable sweep entries are only reused when all of the following match:
    `result_namespace`, `runner_version`, `config`, `seed`, and `seed_policy`.
+7. Clean adoption uses `robust_eval = mean(eval_history[-3:])`; `best_eval` is
+   diagnostic only.
 
 ## Clean restart base config
 
@@ -26,7 +28,7 @@ The clean restart begins from the last defensible pre-bug base, copied into
 ```json
 {
   "n_neurons": 4000,
-  "gamma": 0.99,
+  "gamma": 0.97,
   "alpha": 0.1,
   "epsilon_start": 1.0,
   "epsilon_end": 0.01,

@@ -14,7 +14,7 @@ import torch
 
 RESULT_NAMESPACE = "rl_clean"
 RESULTS_DIR = Path("results") / RESULT_NAMESPACE
-FIGURES_DIR = RESULTS_DIR / "figures"
+FIGURES_DIR = Path("docs") / "figures"
 BASE_CONFIG_PATH = RESULTS_DIR / "base_config.json"
 DOC_PATH = Path("docs") / "rl_clean_sweeps.md"
 
@@ -124,6 +124,26 @@ def result_metadata(
         "code_version": code_version(),
         "run_context": run_context or {},
     }
+
+
+def robust_eval_from_history(
+    eval_history: list[dict[str, object]], window: int = 3
+) -> float | None:
+    """Mean of the last evaluation points, used as the clean adoption metric."""
+    values = [float(e["eval"]) for e in eval_history[-window:] if e.get("eval") is not None]
+    if not values:
+        return None
+    return round(float(np.mean(values)), 1)
+
+
+def result_robust_eval(result: dict, window: int = 3) -> float | None:
+    """Return stored or reconstructed robust eval for a clean result row."""
+    if result.get("robust_eval") is not None:
+        return float(result["robust_eval"])
+    history = result.get("eval_history")
+    if isinstance(history, list):
+        return robust_eval_from_history(history, window=window)
+    return None
 
 
 def hp_run_context(

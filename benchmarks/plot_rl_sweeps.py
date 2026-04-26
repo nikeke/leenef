@@ -26,6 +26,7 @@ from benchmarks.rl_repro import (
     env_tag,
     hp_run_context,
     is_current_hp_sweep_result,
+    result_robust_eval,
 )
 
 KNOBS = [
@@ -69,17 +70,20 @@ def load_sweep(
             expected_run_context=expected_run_context,
         ):
             continue
-        be = r.get("best_eval")
-        if be is None:
+        re = result_robust_eval(r)
+        if re is None:
             continue
+        be = r.get("best_eval")
         v = r.get("value")
         key = (
             (float("inf"), "none")
             if v is None
             else (v if isinstance(v, (int, float)) else 0, str(v))
         )
-        by_value.setdefault(key, {"value": v, "best": [], "final": []})
-        by_value[key]["best"].append(be)
+        by_value.setdefault(key, {"value": v, "robust": [], "best": [], "final": []})
+        by_value[key]["robust"].append(re)
+        if be is not None:
+            by_value[key]["best"].append(be)
         fe = r.get("final_eval")
         if fe is not None:
             by_value[key]["final"].append(fe)
@@ -132,7 +136,7 @@ def plot_knob(
     pos, labels, log_scale = _x_positions(by_value, knob)
     fig, (ax_best, ax_final) = plt.subplots(2, 1, figsize=(8, 6), sharex=True)
 
-    for ax, metric in [(ax_best, "best"), (ax_final, "final")]:
+    for ax, metric in [(ax_best, "robust"), (ax_final, "final")]:
         means, mins, maxs, xs_pts, ys_pts, ns = [], [], [], [], [], []
         for x, (_, d) in zip(pos, by_value.items()):
             vals = d[metric]
@@ -177,9 +181,10 @@ def plot_knob(
                 label="mean (min-max bars)",
             )
         ax.axhline(0, color="k", linewidth=0.5, alpha=0.4)
-        ax.set_ylabel(f"{metric}_eval")
+        ylabel = "robust_eval" if metric == "robust" else "final_eval"
+        ax.set_ylabel(ylabel)
         ax.grid(True, alpha=0.3)
-        if metric == "best":
+        if metric == "robust":
             n_str = ", ".join(str(n) for n in ns)
             ax.set_title(f"NEF-FQI {env_name} — knob: {knob}  (n per value: {n_str})")
             ax.legend(loc="lower right", fontsize=8)
@@ -192,7 +197,7 @@ def plot_knob(
     ax_final.set_xticklabels(labels, rotation=0)
 
     plt.tight_layout()
-    out_path = os.path.join(out_dir, f"sweep_{knob}.png")
+    out_path = os.path.join(out_dir, f"rl_clean_sweep_{knob}.png")
     tmp = out_path + ".tmp.png"
     fig.savefig(tmp, dpi=120)
     plt.close(fig)
@@ -201,13 +206,13 @@ def plot_knob(
     # Return per-value stats for the summary plot.
     summary = {}
     for _, d in by_value.items():
-        if d["best"]:
-            arr = np.array(d["best"])
+        if d["robust"]:
+            arr = np.array(d["robust"])
             summary[_tag(d["value"])] = {
                 "value": d["value"],
                 "n": len(arr),
-                "best_mean": float(arr.mean()),
-                "best_se": float(arr.std(ddof=1) / np.sqrt(len(arr))) if len(arr) > 1 else 0.0,
+                "robust_mean": float(arr.mean()),
+                "robust_se": float(arr.std(ddof=1) / np.sqrt(len(arr))) if len(arr) > 1 else 0.0,
             }
     return summary
 
@@ -237,16 +242,18 @@ def plot_summary(
     yticklabels = []
     for i, knob in enumerate(knobs_with_data):
         stats = per_knob_summary[knob]
-        means = [s["best_mean"] for s in stats.values()]
+        means = [s["robust_mean"] for s in stats.values()]
         best_idx = int(np.argmax(means))
         # Draw each value as a small dot; mark the best.
         for j, (tag, s) in enumerate(stats.items()):
             color = "#b34e1e" if j == best_idx else "#4a6aa8"
-            ax.plot(s["best_mean"], i, "o", color=color, markersize=8 if j == best_idx else 5)
-            ax.errorbar(s["best_mean"], i, xerr=s["best_se"], color=color, capsize=2, alpha=0.6)
+            ax.plot(s["robust_mean"], i, "o", color=color, markersize=8 if j == best_idx else 5)
+            ax.errorbar(
+                s["robust_mean"], i, xerr=s["robust_se"], color=color, capsize=2, alpha=0.6
+            )
             ax.annotate(
                 tag,
-                (s["best_mean"], i),
+                (s["robust_mean"], i),
                 fontsize=7,
                 xytext=(3, -2 if j % 2 == 0 else 6),
                 textcoords="offset points",
@@ -259,11 +266,11 @@ def plot_summary(
     ax.set_yticklabels(yticklabels)
     ax.invert_yaxis()
     ax.axvline(0, color="k", linewidth=0.5, alpha=0.4)
-    ax.set_xlabel("best_eval mean (± SE)")
-    ax.set_title(f"NEF-FQI {env_name} HP sweeps — per-knob mean ± SE of best_eval")
+    ax.set_xlabel("robust_eval mean (± SE)")
+    ax.set_title(f"NEF-FQI {env_name} HP sweeps — per-knob mean ± SE of robust_eval")
     ax.grid(True, axis="x", alpha=0.3)
     plt.tight_layout()
-    out_path = os.path.join(out_dir, "sweep_summary.png")
+    out_path = os.path.join(out_dir, "rl_clean_sweep_summary.png")
     tmp = out_path + ".tmp.png"
     fig.savefig(tmp, dpi=120)
     plt.close(fig)

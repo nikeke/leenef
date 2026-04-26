@@ -246,10 +246,11 @@ def _stub_hp_result(label: str, seed: int, agent_kwargs: dict) -> dict:
         "final_50": 1.0,
         "best_eval": 1.0,
         "final_eval": 1.0,
+        "robust_eval": 1.0,
         "time_s": 0.0,
         "warmup_seed": run_hp_sweep.warmup_seed(seed),
         "evaluation_seed_base": run_hp_sweep.EVAL_SEED_BASE,
-        "eval_history": [],
+        "eval_history": [{"episode": 1, "eval": 1.0}],
         "rewards": [],
     }
 
@@ -310,7 +311,15 @@ def test_run_hp_sweep_is_deterministic_for_same_config_and_seed(monkeypatch):
         eval_every=2,
     )
 
-    for key in ("rewards", "eval_history", "best_eval", "final_eval", "best_50", "final_50"):
+    for key in (
+        "rewards",
+        "eval_history",
+        "robust_eval",
+        "best_eval",
+        "final_eval",
+        "best_50",
+        "final_50",
+    ):
         assert second[key] == first[key]
 
 
@@ -335,7 +344,15 @@ def test_run_hp_sweep_metrics_ignore_knob_label_for_same_config(monkeypatch):
         eval_every=2,
     )
 
-    for key in ("rewards", "eval_history", "best_eval", "final_eval", "best_50", "final_50"):
+    for key in (
+        "rewards",
+        "eval_history",
+        "robust_eval",
+        "best_eval",
+        "final_eval",
+        "best_50",
+        "final_50",
+    ):
         assert second[key] == first[key]
 
 
@@ -489,6 +506,7 @@ def test_hp_analysis_and_plot_filter_stale_rows(tmp_path):
         expected_run_context=expected_run_context,
     )
     series = next(iter(plotted.values()))
+    assert series["robust"] == [1.0]
     assert series["best"] == [1.0]
 
 

@@ -11,7 +11,8 @@ Usage:
 
 Base config lives at ``results/rl_clean/base_config.json`` and is updated
 between phases by ``benchmarks/analyze_rl_sweep.py`` when a swept knob
-beats the current base by more than 1 combined SE of ``best_eval``.
+beats the current base by more than 1 combined SE of robust eval
+(``mean(eval_history[-3:])``).
 
 See ``docs/rl_clean_sweeps.md`` for the clean rerun design.
 """
@@ -37,6 +38,7 @@ from benchmarks.rl_repro import (
     is_current_hp_sweep_result,
     reset_env,
     result_metadata,
+    robust_eval_from_history,
     set_rl_seed,
     training_seed,
     warmup_seed,
@@ -51,8 +53,8 @@ from leenef.rl import NEFFQIAgent
 # broadness=0.
 DEFAULT_BASE: dict = {
     "n_neurons": 4000,
-    "gamma": 0.99,
-    "alpha": 1e-2,
+    "gamma": 0.97,
+    "alpha": 0.1,
     "epsilon_start": 1.0,
     "epsilon_end": 0.01,
     "epsilon_decay": 500,
@@ -179,6 +181,7 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
 
     best_eval = max(e["eval"] for e in eval_history) if eval_history else None
     final_eval = eval_history[-1]["eval"] if eval_history else None
+    robust_eval = robust_eval_from_history(eval_history)
 
     return {
         **result_metadata(
@@ -193,6 +196,7 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
         "final_50": round(final_50, 1),
         "best_eval": best_eval,
         "final_eval": final_eval,
+        "robust_eval": robust_eval,
         "time_s": round(elapsed, 1),
         "warmup_seed": warmup_seed_value,
         "evaluation_seed_base": EVAL_SEED_BASE,
@@ -332,7 +336,7 @@ def main():
     by_value: dict = {}
     expected_run_context = hp_run_context(args.env, args.episodes, eval_every=50)
     for r in existing.values():
-        if "best_eval" not in r or not is_current_hp_sweep_result(
+        if "robust_eval" not in r or not is_current_hp_sweep_result(
             r,
             base_config=base,
             knob=args.knob,
@@ -345,18 +349,22 @@ def main():
     ordered += [t for t in sorted(by_value) if t not in ordered]
     for tag in ordered:
         runs = by_value[tag]
+        re = [r["robust_eval"] for r in runs if r.get("robust_eval") is not None]
         be = [r["best_eval"] for r in runs if r.get("best_eval") is not None]
         fe = [r["final_eval"] for r in runs if r.get("final_eval") is not None]
-        if be:
+        if re:
+            re_a = np.array(re)
             be_a = np.array(be)
             fe_a = np.array(fe)
+            re_se = float(re_a.std(ddof=1) / np.sqrt(len(re))) if len(re) > 1 else 0.0
             be_se = float(be_a.std(ddof=1) / np.sqrt(len(be))) if len(be) > 1 else 0.0
             fe_se = float(fe_a.std(ddof=1) / np.sqrt(len(fe))) if len(fe) > 1 else 0.0
             print(
-                f"  {args.knob}={tag:>10}  n={len(be)}  "
+                f"  {args.knob}={tag:>10}  n={len(re)}  "
+                f"robust={re_a.mean():7.1f} ± {re_se:5.1f} SE  "
                 f"best={be_a.mean():7.1f} ± {be_se:5.1f} SE  "
                 f"final={fe_a.mean():7.1f} ± {fe_se:5.1f} SE  "
-                f"[{min(be):7.1f}, {max(be):7.1f}]"
+                f"[robust range {min(re):7.1f}, {max(re):7.1f}]"
             )
 
 
