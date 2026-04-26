@@ -15,7 +15,6 @@ results are added to the same JSON files.
 from __future__ import annotations
 
 import argparse
-import importlib
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -40,9 +39,12 @@ COLORS = {
 
 
 def _require_pyplot():
-    matplotlib = importlib.import_module("matplotlib")
+    import matplotlib
+
     matplotlib.use("Agg")
-    return importlib.import_module("matplotlib.pyplot")
+    import matplotlib.pyplot as plt
+
+    return plt
 
 
 def _load_records(paths: list[Path]) -> list[dict]:
