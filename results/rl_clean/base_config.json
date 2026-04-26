@@ -1,6 +1,6 @@
 {
   "n_neurons": 4000,
-  "gamma": 0.97,
+  "gamma": 0.98,
   "alpha": 0.1,
   "epsilon_start": 1.0,
   "epsilon_end": 0.01,
