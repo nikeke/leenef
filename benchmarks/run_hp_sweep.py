@@ -25,8 +25,20 @@ import os
 import time
 from multiprocessing import Pool
 
-import gymnasium as gym
 import numpy as np
+
+try:
+    import gymnasium as gym
+except ModuleNotFoundError:  # pragma: no cover - exercised in minimal test envs
+
+    class _MissingGymnasium:
+        def make(self, *args, **kwargs):
+            del args, kwargs
+            raise ModuleNotFoundError(
+                "gymnasium is required to run RL sweeps; install the RL benchmark dependencies."
+            )
+
+    gym = _MissingGymnasium()
 
 from benchmarks.rl_repro import (
     BASE_CONFIG_PATH,

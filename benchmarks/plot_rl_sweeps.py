@@ -14,7 +14,6 @@ import importlib
 import json
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -26,9 +25,6 @@ from benchmarks.rl_repro import (
     is_current_hp_sweep_result,
     result_robust_eval,
 )
-
-if TYPE_CHECKING:
-    from matplotlib.axes import Axes
 
 KNOBS = [
     "n_step",
