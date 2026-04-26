@@ -22,9 +22,8 @@ from benchmarks.rl_repro import (
     RESULTS_DIR,
     env_tag,
     hp_run_context,
-    is_current_hp_sweep_result,
-    result_robust_eval,
 )
+from benchmarks.rl_sweep_data import load_sweep
 
 KNOBS = [
     "n_step",
@@ -51,46 +50,6 @@ def _require_pyplot():
 def _stable_seed(*parts: object) -> int:
     digest = hashlib.sha256("|".join(str(part) for part in parts).encode("utf-8")).digest()
     return int.from_bytes(digest[:8], "big") % 2**31
-
-
-def load_sweep(
-    path: str,
-    knob: str,
-    *,
-    base_config: dict[str, object],
-    expected_run_context: dict[str, object],
-) -> dict:
-    if not os.path.exists(path):
-        return {}
-    with open(path) as f:
-        data = json.load(f)
-    by_value: dict = {}
-    for r in data.values():
-        if not is_current_hp_sweep_result(
-            r,
-            base_config=base_config,
-            knob=knob,
-            expected_run_context=expected_run_context,
-        ):
-            continue
-        re = result_robust_eval(r)
-        if re is None:
-            continue
-        be = r.get("best_eval")
-        v = r.get("value")
-        key = (
-            (float("inf"), "none")
-            if v is None
-            else (v if isinstance(v, (int, float)) else 0, str(v))
-        )
-        by_value.setdefault(key, {"value": v, "robust": [], "best": [], "final": []})
-        by_value[key]["robust"].append(re)
-        if be is not None:
-            by_value[key]["best"].append(be)
-        fe = r.get("final_eval")
-        if fe is not None:
-            by_value[key]["final"].append(fe)
-    return dict(sorted(by_value.items()))
 
 
 def _x_positions(by_value: dict, knob: str):

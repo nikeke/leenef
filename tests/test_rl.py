@@ -10,8 +10,9 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from benchmarks import analyze_rl_sweep, plot_rl_sweeps, rl_repro, run_config_sweep, run_hp_sweep
+from benchmarks import analyze_rl_sweep, rl_repro, run_config_sweep, run_hp_sweep
 from benchmarks.rl_repro import can_reuse_result, env_tag, hp_run_context
+from benchmarks.rl_sweep_data import load_sweep
 from leenef.rl import NEFFeatures, NEFFQIAgent, NEFFQIEnsemble
 
 
@@ -522,7 +523,7 @@ def test_hp_analysis_and_plot_filter_stale_rows(tmp_path):
     assert stats["1"]["n"] == 1
     sweep_path = tmp_path / "n_step_lunarlander.json"
     sweep_path.write_text(json.dumps(sweep))
-    plotted = plot_rl_sweeps.load_sweep(
+    plotted = load_sweep(
         str(sweep_path),
         knob,
         base_config=base_config,
