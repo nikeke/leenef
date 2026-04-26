@@ -14,9 +14,9 @@ import json
 import os
 from pathlib import Path
 
-import matplotlib
 import numpy as np
 
+from benchmarks.plot_utils import init_pyplot
 from benchmarks.rl_repro import (
     FIGURES_DIR,
     RESULTS_DIR,
@@ -25,15 +25,7 @@ from benchmarks.rl_repro import (
 )
 from benchmarks.rl_sweep_data import load_sweep
 
-
-def _require_pyplot():
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    return plt
-
-
-plt = _require_pyplot()
+plt = init_pyplot()
 
 KNOBS = [
     "n_step",
