@@ -10,7 +10,7 @@ analytical solve.  Both approaches approximate Q(s, a); the difference
 is *how* the approximation weights are updated — SGD mini-batches vs.
 one-shot least-squares on the full replay buffer.
 
-Five target modes are supported:
+Six target modes are supported:
 
 - **mc** (Monte Carlo): regression targets are discounted episode
   returns G_t = Σ γ^k r_{t+k}.  No bootstrapping, no target network.
@@ -20,6 +20,9 @@ Five target modes are supported:
 - **nstep**: truncated n-step returns G_t^(n) = Σ_{k=0}^{n-1} γ^k r_{t+k}.
   Like MC but with a fixed horizon, reducing variance at the cost of
   slight bias.  No bootstrapping.
+- **event_trace**: finite reward/event-triggered traces.  When a terminal
+  sparse event is observed, the previous K state-action rows receive a
+  discounted event target.  No bootstrapping.
 - **eligibility**: streaming eligibility traces that compute MC returns
   forward.  At each step, e_a ← γ·e_a + Φ(s), AᵀY += e·r.
   Mathematically equivalent to MC but constant memory (no episode
@@ -336,7 +339,7 @@ class NEFFeatures:
 class NEFFQIAgent:
     """Fitted Q-Iteration with fixed random NEF features.
 
-    Supports five target modes:
+    Supports six target modes:
 
     - **mc**: Monte Carlo returns.  Each solve uses actual discounted
       episode returns G_t = Σ γ^k r_{t+k}.  When ``td_lambda`` is set
@@ -346,6 +349,8 @@ class NEFFQIAgent:
     - **td**: bootstrapped TD targets with Polyak-averaged target
       weights.  Each solve computes y = r + γ(1-d) max Q_target(s').
     - **nstep**: truncated n-step returns (no bootstrapping).
+    - **event_trace**: finite reward/event-triggered traces over the
+      previous ``event_trace_horizon`` steps (no bootstrapping).
     - **eligibility**: streaming MC via eligibility traces.
       Requires ``forget_factor``.
     - **differential**: eligibility traces + EMA reward baseline.
@@ -377,8 +382,8 @@ class NEFFQIAgent:
         solve_batch: subsample buffer to this size for solve (None = all).
         tau: Polyak averaging coefficient for target weights (TD mode).
         fqi_iters: number of FQI iterations per solve (TD mode).
-        target_mode: ``"mc"``, ``"td"``, ``"nstep"``, ``"eligibility"``,
-            or ``"differential"``.
+        target_mode: ``"mc"``, ``"td"``, ``"nstep"``, ``"event_trace"``,
+            ``"eligibility"``, or ``"differential"``.
         td_lambda: λ for λ-returns in MC mode.  ``None`` or ``1.0``
             gives pure MC; ``0.0`` gives one-step TD.  Typical values
             0.8–0.95 reduce MC variance with minimal bias.
@@ -386,6 +391,15 @@ class NEFFQIAgent:
             uses exponentially-weighted sufficient statistics instead
             of a replay buffer.  Typical values: 0.99–0.999.
         n_step: horizon for n-step returns (default 20).
+        event_trace_horizon: horizon for event-triggered traces.  Defaults
+            to ``n_step``.
+        event_reward_min: reward threshold for detecting sparse events
+            (default 0.0).
+        event_trace_value: target value assigned at the event.  If None,
+            uses the observed event reward.  Default 1.0, useful for tasks
+            whose success transition has reward 0 after many -1 steps.
+        event_terminal_only: if True, only terminal transitions can trigger
+            event traces (default True).
         reward_ema_decay: EMA decay for reward baseline in differential
             mode (default 0.99).
         recenter_interval: if set, check for dead neurons every N
@@ -427,6 +441,10 @@ class NEFFQIAgent:
         td_lambda: float | None = None,
         forget_factor: float | None = None,
         n_step: int = 20,
+        event_trace_horizon: int | None = None,
+        event_reward_min: float = 0.0,
+        event_trace_value: float | None = 1.0,
+        event_terminal_only: bool = True,
         reward_ema_decay: float = 0.99,
         recenter_interval: int | None = None,
         recenter_percentile: float = 5.0,
@@ -436,11 +454,13 @@ class NEFFQIAgent:
         features_kwargs: dict | None = None,
         seed: int = 0,
     ):
-        valid_modes = ("mc", "td", "nstep", "eligibility", "differential")
+        valid_modes = ("mc", "td", "nstep", "event_trace", "eligibility", "differential")
         if target_mode not in valid_modes:
             raise ValueError(f"target_mode must be one of {valid_modes}, got {target_mode!r}")
         if target_mode in ("eligibility", "differential") and forget_factor is None:
             raise ValueError(f"target_mode={target_mode!r} requires forget_factor")
+        if event_trace_horizon is not None and event_trace_horizon <= 0:
+            raise ValueError(f"event_trace_horizon must be positive, got {event_trace_horizon!r}")
         if not 0.0 <= broadness <= 1.0:
             raise ValueError(f"broadness must be in [0, 1], got {broadness!r}")
 
@@ -459,6 +479,10 @@ class NEFFQIAgent:
         self.td_lambda = td_lambda
         self.forget_factor = forget_factor
         self.n_step = n_step
+        self.event_trace_horizon = event_trace_horizon or n_step
+        self.event_reward_min = event_reward_min
+        self.event_trace_value = event_trace_value
+        self.event_terminal_only = event_terminal_only
         self.reward_ema_decay = reward_ema_decay
         self.recenter_interval = recenter_interval
         self.recenter_percentile = recenter_percentile
@@ -572,9 +596,11 @@ class NEFFQIAgent:
 
         if self.target_mode in ("eligibility", "differential"):
             self._step_accumulate(obs, action, reward, done)
-        elif self.target_mode in ("mc", "nstep"):
+        elif self.target_mode in ("mc", "nstep", "event_trace"):
             if self.target_mode == "mc" and self._use_lambda_returns:
                 self._episode_transitions.append((obs, action, reward, next_obs))
+            elif self.target_mode == "event_trace":
+                self._episode_transitions.append((obs, action, reward, done))
             else:
                 self._episode_transitions.append((obs, action, reward))
             if done:
@@ -591,6 +617,8 @@ class NEFFQIAgent:
 
         if self.target_mode == "nstep":
             episode_data = self._compute_nstep_returns(transitions)
+        elif self.target_mode == "event_trace":
+            episode_data = self._compute_event_trace_returns(transitions)
         elif self._use_lambda_returns:
             episode_data = self._compute_lambda_returns(transitions)
         else:
@@ -639,6 +667,34 @@ class NEFFQIAgent:
             obs, action = transitions[t][0], transitions[t][1]
             episode_data.append((obs, action, G))
         return episode_data
+
+    def _compute_event_trace_returns(
+        self,
+        transitions: list[tuple],
+    ) -> list[tuple[np.ndarray, int, float]]:
+        """Finite event-triggered traces for sparse terminal rewards.
+
+        This creates a supervised event-proximity target without bootstrapping:
+        when a sparse event occurs, the preceding ``event_trace_horizon`` rows
+        receive ``event_trace_value * gamma^(event_step - t)``.
+        """
+        targets = np.zeros(len(transitions), dtype=np.float64)
+        for event_idx, transition in enumerate(transitions):
+            reward = float(transition[2])
+            done = bool(transition[3]) if len(transition) > 3 else False
+            if self.event_terminal_only and not done:
+                continue
+            if reward < self.event_reward_min:
+                continue
+            event_value = reward if self.event_trace_value is None else self.event_trace_value
+            start = max(0, event_idx - self.event_trace_horizon + 1)
+            for t in range(start, event_idx + 1):
+                targets[t] += float(event_value) * (self.gamma ** (event_idx - t))
+
+        return [
+            (transition[0], transition[1], float(targets[i]))
+            for i, transition in enumerate(transitions)
+        ]
 
     def _step_accumulate(
         self,

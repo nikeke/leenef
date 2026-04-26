@@ -17,10 +17,21 @@ from benchmarks import (
     run_config_sweep,
     run_ensemble_sweep,
     run_hp_sweep,
+    run_sparse_rl_diagnostics,
 )
 from benchmarks.rl_repro import can_reuse_result, env_tag, hp_run_context
 from benchmarks.rl_sweep_data import load_sweep
 from leenef.rl import NEFFeatures, NEFFQIAgent, NEFFQIEnsemble
+from leenef.rl_hindsight import (
+    acrobot_end_effector_height,
+    append_goal,
+    goal_reached,
+    hindsight_event_targets,
+    mountaincar_achieved_goal,
+    terminal_hindsight_goal,
+)
+from leenef.rl_novelty import leverage_scores, nef_fqi_action_novelty, novelty_scores
+from leenef.rl_successor import NEFSuccessorFeatureAgent, truncated_successor_targets
 
 
 def test_apply_broadness_uses_alive_mean_for_cumulative_stats():
@@ -151,6 +162,83 @@ def test_solve_from_stats_flushes_deferred_rls_episodes():
 
     assert agent._pending_stats == []
     assert int(agent._n_accumulated.sum().item()) == len(episode)
+
+
+def test_event_trace_returns_spread_terminal_event_over_window():
+    agent = NEFFQIAgent(
+        d_obs=2,
+        n_actions=2,
+        n_neurons=6,
+        gamma=0.5,
+        target_mode="event_trace",
+        n_step=3,
+        event_trace_value=1.0,
+        event_reward_min=0.0,
+        event_terminal_only=True,
+        seed=0,
+    )
+    transitions = [
+        (np.array([0.0, 0.0]), 0, -1.0, False),
+        (np.array([0.1, 0.0]), 1, -1.0, False),
+        (np.array([0.2, 0.0]), 1, -1.0, False),
+        (np.array([0.3, 0.0]), 0, 0.0, True),
+    ]
+
+    returns = agent._compute_event_trace_returns(transitions)
+
+    assert [round(t[2], 3) for t in returns] == [0.0, 0.25, 0.5, 1.0]
+
+
+def test_event_trace_ignores_nonterminal_event_when_terminal_only():
+    agent = NEFFQIAgent(
+        d_obs=2,
+        n_actions=2,
+        n_neurons=6,
+        gamma=0.5,
+        target_mode="event_trace",
+        n_step=2,
+        event_trace_value=1.0,
+        event_reward_min=0.0,
+        event_terminal_only=True,
+        seed=0,
+    )
+    transitions = [
+        (np.array([0.0, 0.0]), 0, 0.0, False),
+        (np.array([0.1, 0.0]), 1, -1.0, True),
+    ]
+
+    returns = agent._compute_event_trace_returns(transitions)
+
+    assert [t[2] for t in returns] == [0.0, 0.0]
+
+
+def test_event_trace_agent_accumulates_event_targets():
+    agent = NEFFQIAgent(
+        d_obs=2,
+        n_actions=2,
+        n_neurons=6,
+        gamma=0.9,
+        target_mode="event_trace",
+        n_step=2,
+        event_trace_value=1.0,
+        event_reward_min=0.0,
+        event_terminal_only=True,
+        forget_factor=0.99,
+        solve_every=1,
+        seed=0,
+    )
+    episode = [
+        (np.array([0.0, 0.0]), 0, -1.0, False),
+        (np.array([0.2, 0.0]), 1, 0.0, True),
+    ]
+
+    for i, (obs, action, reward, done) in enumerate(episode):
+        next_obs = episode[min(i + 1, len(episode) - 1)][0]
+        agent.update(obs, action, reward, next_obs, done)
+    agent.end_episode()
+
+    assert int(agent._n_accumulated.sum().item()) == len(episode)
+    assert torch.count_nonzero(agent._aty).item() > 0
 
 
 class _OneStepEnv:
@@ -644,7 +732,6 @@ def test_config_sweep_reuse_requires_grid_run_context():
     hp_context = hp_run_context("LunarLander-v3", 1000)
     assert not can_reuse_result(result, config, expected_seed=0, expected_run_context=hp_context)
 
-
 def test_ensemble_config_records_member_metadata_without_agent_keys():
     base = _tiny_hp_config()
 
@@ -675,3 +762,282 @@ def test_ensemble_run_context_is_distinct_from_hp_context():
     assert context["sweep_type"] == "ensemble"
     assert context["phase"] == "p8_ensemble_pilot"
     assert context != hp_run_context("LunarLander-v3", 1000)
+
+
+def test_sparse_success_event_detects_classic_control_goals():
+    assert run_sparse_rl_diagnostics.sparse_success_event(
+        "MountainCar-v0",
+        np.array([0.51, 0.0], dtype=np.float32),
+        -1.0,
+        terminated=True,
+        truncated=False,
+    )
+    assert not run_sparse_rl_diagnostics.sparse_success_event(
+        "MountainCar-v0",
+        np.array([0.49, 0.0], dtype=np.float32),
+        -1.0,
+        terminated=True,
+        truncated=False,
+    )
+    assert run_sparse_rl_diagnostics.sparse_success_event(
+        "Acrobot-v1",
+        np.zeros(6, dtype=np.float32),
+        0.0,
+        terminated=True,
+        truncated=False,
+    )
+    assert not run_sparse_rl_diagnostics.sparse_success_event(
+        "Acrobot-v1",
+        np.zeros(6, dtype=np.float32),
+        -1.0,
+        terminated=False,
+        truncated=True,
+    )
+
+
+def test_sparse_episode_diagnostics_report_target_diversity_and_success():
+    transitions = [
+        {
+            "action": 0,
+            "reward": -1.0,
+            "terminated": False,
+            "truncated": False,
+            "success_event": False,
+        },
+        {
+            "action": 1,
+            "reward": -1.0,
+            "terminated": False,
+            "truncated": False,
+            "success_event": False,
+        },
+        {
+            "action": 1,
+            "reward": 0.0,
+            "terminated": True,
+            "truncated": False,
+            "success_event": True,
+        },
+    ]
+
+    diag = run_sparse_rl_diagnostics.diagnose_episode(
+        transitions,
+        env_name="MountainCar-v0",
+        episode=1,
+        gamma=0.9,
+        target_mode="nstep",
+        n_step=3,
+        n_actions=3,
+    )
+
+    assert diag["success"]
+    assert diag["first_success_step"] == 2
+    assert diag["action_counts"] == [1, 2, 0]
+    assert diag["target_stats"]["unique_rounded"] == 3
+    assert "1_5" in diag["target_by_distance_to_event"]
+
+
+def test_sparse_diagnostic_run_is_deterministic_for_same_seed(monkeypatch):
+    monkeypatch.setattr(run_sparse_rl_diagnostics.gym, "make", lambda _: _TinyEnv())
+    config = _tiny_hp_config(n_neurons=8, n_step=1, solve_every=1)
+
+    first = run_sparse_rl_diagnostics.run_diagnostic_experiment(
+        "tiny_s3",
+        "TinyEnv-v0",
+        n_episodes=3,
+        seed=3,
+        agent_kwargs=config,
+        eval_every=1,
+        eval_episodes=2,
+        warmup_episodes=1,
+    )
+    second = run_sparse_rl_diagnostics.run_diagnostic_experiment(
+        "tiny_s3",
+        "TinyEnv-v0",
+        n_episodes=3,
+        seed=3,
+        agent_kwargs=config,
+        eval_every=1,
+        eval_episodes=2,
+        warmup_episodes=1,
+    )
+
+    assert second["diagnostic_summary"] == first["diagnostic_summary"]
+    assert second["eval_history"] == first["eval_history"]
+    assert second["episode_diagnostics"] == first["episode_diagnostics"]
+
+
+def test_truncated_successor_targets_use_finite_horizon():
+    features = torch.tensor(
+        [
+            [1.0, 0.0],
+            [0.0, 1.0],
+            [2.0, 0.0],
+        ]
+    )
+
+    targets = truncated_successor_targets(features, gamma=0.5, horizon=2)
+
+    expected = torch.tensor(
+        [
+            [1.0, 0.5],
+            [1.0, 1.0],
+            [2.0, 0.0],
+        ]
+    )
+    torch.testing.assert_close(targets, expected)
+
+
+def test_successor_feature_agent_accumulates_and_solves():
+    agent = NEFSuccessorFeatureAgent(
+        d_obs=2,
+        n_actions=2,
+        n_neurons=8,
+        gamma=0.9,
+        alpha=1e-2,
+        solve_every=1,
+        successor_horizon=3,
+        seed=0,
+    )
+    episode = [
+        (np.array([0.0, 0.0], dtype=np.float32), 0, -1.0, False),
+        (np.array([0.2, 0.0], dtype=np.float32), 1, -1.0, False),
+        (np.array([0.4, 0.1], dtype=np.float32), 1, 0.0, True),
+    ]
+
+    for i, (obs, action, reward, done) in enumerate(episode):
+        next_obs = episode[min(i + 1, len(episode) - 1)][0]
+        agent.update(obs, action, reward, next_obs, done)
+    agent.end_episode()
+
+    assert agent._n_accumulated == len(episode)
+    assert agent.successor_decoder.shape == (8, 8)
+    assert agent.reward_weight.shape == (8,)
+    q = agent.q_values(np.array([0.1, 0.0], dtype=np.float32))
+    assert q.shape == (2,)
+    assert torch.isfinite(q).all()
+
+
+def test_successor_feature_agent_is_deterministic_on_tiny_env():
+    def run_once():
+        env = _TinyEnv()
+        agent = NEFSuccessorFeatureAgent(
+            d_obs=2,
+            n_actions=2,
+            n_neurons=8,
+            gamma=0.9,
+            alpha=1e-2,
+            epsilon_decay=1,
+            solve_every=1,
+            successor_horizon=2,
+            seed=5,
+        )
+        agent.warmup(env=env, n_episodes=1, seed=100)
+        rewards = []
+        for ep in range(3):
+            obs, _ = env.reset(seed=ep)
+            done = False
+            total = 0.0
+            while not done:
+                action = agent.select_action(obs)
+                next_obs, reward, terminated, truncated, _ = env.step(action)
+                done = terminated or truncated
+                agent.update(obs, action, reward, next_obs, done)
+                obs = next_obs
+                total += reward
+            agent.end_episode()
+            rewards.append(total)
+        return rewards, agent.q_values(np.array([1.0, 0.0], dtype=np.float32))
+
+    rewards_a, q_a = run_once()
+    rewards_b, q_b = run_once()
+
+    assert rewards_b == rewards_a
+    torch.testing.assert_close(q_b, q_a)
+
+
+def test_leverage_novelty_decreases_with_feature_coverage():
+    features = torch.tensor([[1.0, 0.0]])
+    sparse_ata = torch.zeros(2, 2)
+    covered_ata = torch.diag(torch.tensor([10.0, 0.0]))
+
+    sparse = leverage_scores(features, sparse_ata, alpha=0.1)
+    covered = leverage_scores(features, covered_ata, alpha=0.1)
+
+    assert covered.item() < sparse.item()
+    torch.testing.assert_close(novelty_scores(features, sparse_ata, 0.1), sparse.sqrt())
+
+
+def test_nef_fqi_action_novelty_uses_per_action_statistics():
+    agent = NEFFQIAgent(
+        d_obs=2,
+        n_actions=2,
+        n_neurons=6,
+        target_mode="nstep",
+        forget_factor=0.99,
+        seed=0,
+    )
+    obs = np.array([0.5, -0.25], dtype=np.float32)
+    phi = agent.features.encode(torch.from_numpy(obs).float()).double()
+    agent._ata[0].add_(20.0 * torch.outer(phi, phi))
+
+    novelty = nef_fqi_action_novelty(agent, obs)
+
+    assert novelty.shape == (2,)
+    assert novelty[0] < novelty[1]
+
+
+def test_successor_agent_novelty_bonus_changes_greedy_selection():
+    agent = NEFSuccessorFeatureAgent(
+        d_obs=1,
+        n_actions=2,
+        n_neurons=2,
+        epsilon_start=0.0,
+        epsilon_end=0.0,
+        novelty_bonus=1.0,
+        seed=1,
+    )
+    obs = np.array([0.0], dtype=np.float32)
+    agent._candidate_features = lambda _: torch.eye(2)
+    agent._ata.add_(torch.diag(torch.tensor([20.0, 0.0], dtype=torch.float64)))
+
+    novelty = agent.action_novelty(obs)
+
+    assert novelty[1] > novelty[0]
+    assert agent.select_action(obs) == 1
+
+
+def test_hindsight_goal_helpers_for_classic_control():
+    mountain_obs = np.array([-0.2, 0.03], dtype=np.float32)
+    assert np.array_equal(
+        mountaincar_achieved_goal(mountain_obs), np.array([-0.2], dtype=np.float32)
+    )
+    augmented = append_goal(mountain_obs, np.array([0.5], dtype=np.float32))
+    np.testing.assert_allclose(augmented, np.array([-0.2, 0.03, 0.5], dtype=np.float32))
+
+    upright_acrobot = np.array([0.0, 1.0, 1.0, 0.0, 0.0, 0.0], dtype=np.float32)
+    np.testing.assert_allclose(acrobot_end_effector_height(upright_acrobot), np.array([-0.0]))
+
+    assert goal_reached(np.array([0.49]), np.array([0.5]), tolerance=0.02)
+    assert not goal_reached(np.array([0.45]), np.array([0.5]), tolerance=0.02)
+
+
+def test_hindsight_event_targets_use_terminal_goal():
+    achieved = [
+        np.array([0.0], dtype=np.float32),
+        np.array([0.2], dtype=np.float32),
+        np.array([0.4], dtype=np.float32),
+    ]
+    goal = terminal_hindsight_goal(achieved)
+
+    targets = hindsight_event_targets(
+        achieved,
+        goal,
+        gamma=0.5,
+        horizon=2,
+        tolerance=1e-6,
+        success_value=1.0,
+    )
+
+    np.testing.assert_allclose(goal, np.array([0.4], dtype=np.float32))
+    assert targets == [0.0, 0.5, 1.0]
