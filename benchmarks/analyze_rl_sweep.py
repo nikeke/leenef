@@ -18,17 +18,29 @@ from pathlib import Path
 
 import numpy as np
 
-from benchmarks.rl_repro import BASE_CONFIG_PATH, RESULT_NAMESPACE, RESULTS_DIR, RUNNER_VERSION
+from benchmarks.rl_repro import (
+    BASE_CONFIG_PATH,
+    RESULTS_DIR,
+    env_tag,
+    hp_run_context,
+    is_current_hp_sweep_result,
+)
 
 
-def aggregate(sweep_json: dict, knob: str) -> dict:
+def aggregate(
+    sweep_json: dict,
+    knob: str,
+    *,
+    base_config: dict[str, object],
+    expected_run_context: dict[str, object],
+) -> dict:
     by_value: dict = {}
     for r in sweep_json.values():
-        if (
-            "error" in r
-            or r.get("result_namespace") != RESULT_NAMESPACE
-            or r.get("runner_version") != RUNNER_VERSION
-            or r.get("knob") != knob
+        if not is_current_hp_sweep_result(
+            r,
+            base_config=base_config,
+            knob=knob,
+            expected_run_context=expected_run_context,
         ):
             continue
         be = r.get("best_eval")
@@ -68,15 +80,27 @@ def _tag(v) -> str:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--knob", required=True)
+    ap.add_argument("--env", default="LunarLander-v3")
     ap.add_argument("--sweep-json", default=None)
     ap.add_argument("--base-config", default=str(BASE_CONFIG_PATH))
+    ap.add_argument("--episodes", type=int, default=1000)
+    ap.add_argument("--eval-every", type=int, default=50)
+    ap.add_argument("--eval-episodes", type=int, default=20)
     ap.add_argument(
         "--min-seeds", type=int, default=4, help="skip values with fewer completed seeds"
     )
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
-    sweep_path = args.sweep_json or str(RESULTS_DIR / f"{args.knob}_lunarlander.json")
+    # Load current base.
+    if os.path.exists(args.base_config):
+        with open(args.base_config) as f:
+            base = json.load(f)
+    else:
+        print(f"[analyze] No base config at {args.base_config}; cannot decide adoption")
+        return
+
+    sweep_path = args.sweep_json or str(RESULTS_DIR / f"{args.knob}_{env_tag(args.env)}.json")
     if not os.path.exists(sweep_path):
         print(f"[analyze] No sweep results at {sweep_path} — skipping")
         return
@@ -84,7 +108,18 @@ def main():
     with open(sweep_path) as f:
         sweep = json.load(f)
 
-    stats = aggregate(sweep, args.knob)
+    expected_run_context = hp_run_context(
+        args.env,
+        args.episodes,
+        eval_every=args.eval_every,
+        eval_episodes=args.eval_episodes,
+    )
+    stats = aggregate(
+        sweep,
+        args.knob,
+        base_config=base,
+        expected_run_context=expected_run_context,
+    )
     if not stats:
         print(f"[analyze] No valid runs found for knob={args.knob}")
         return
@@ -101,14 +136,6 @@ def main():
             f"  {tag:>12}  {s['n']:>3}  {s['best_mean']:>10.1f} ± {s['best_se']:5.1f}  "
             f"{s['final_mean']:>11.1f} ± {s['final_se']:5.1f}"
         )
-
-    # Load current base.
-    if os.path.exists(args.base_config):
-        with open(args.base_config) as f:
-            base = json.load(f)
-    else:
-        print(f"[analyze] No base config at {args.base_config}; cannot decide adoption")
-        return
 
     current_value = base.get(args.knob)
     current_tag = _tag(current_value)

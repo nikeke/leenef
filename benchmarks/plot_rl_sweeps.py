@@ -20,7 +20,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from benchmarks.rl_repro import FIGURES_DIR, RESULT_NAMESPACE, RESULTS_DIR, RUNNER_VERSION
+from benchmarks.rl_repro import (
+    FIGURES_DIR,
+    RESULTS_DIR,
+    env_tag,
+    hp_run_context,
+    is_current_hp_sweep_result,
+)
 
 KNOBS = [
     "n_step",
@@ -43,18 +49,24 @@ def _stable_seed(*parts: object) -> int:
     return int.from_bytes(digest[:8], "big") % 2**31
 
 
-def load_sweep(path: str, knob: str) -> dict:
+def load_sweep(
+    path: str,
+    knob: str,
+    *,
+    base_config: dict[str, object],
+    expected_run_context: dict[str, object],
+) -> dict:
     if not os.path.exists(path):
         return {}
     with open(path) as f:
         data = json.load(f)
     by_value: dict = {}
     for r in data.values():
-        if (
-            "error" in r
-            or r.get("result_namespace") != RESULT_NAMESPACE
-            or r.get("runner_version") != RUNNER_VERSION
-            or r.get("knob") != knob
+        if not is_current_hp_sweep_result(
+            r,
+            base_config=base_config,
+            knob=knob,
+            expected_run_context=expected_run_context,
         ):
             continue
         be = r.get("best_eval")
@@ -90,9 +102,28 @@ def _x_positions(by_value: dict, knob: str):
     return pos, labels, log_scale
 
 
-def plot_knob(knob: str, out_dir: str = str(FIGURES_DIR)) -> dict | None:
-    sweep_path = str(RESULTS_DIR / f"{knob}_lunarlander.json")
-    by_value = load_sweep(sweep_path, knob)
+def plot_knob(
+    knob: str,
+    *,
+    env_name: str,
+    base_config: dict[str, object],
+    n_episodes: int,
+    eval_every: int,
+    eval_episodes: int,
+    out_dir: str = str(FIGURES_DIR),
+) -> dict | None:
+    sweep_path = str(RESULTS_DIR / f"{knob}_{env_tag(env_name)}.json")
+    by_value = load_sweep(
+        sweep_path,
+        knob,
+        base_config=base_config,
+        expected_run_context=hp_run_context(
+            env_name,
+            n_episodes,
+            eval_every=eval_every,
+            eval_episodes=eval_episodes,
+        ),
+    )
     if not by_value:
         return None
 
@@ -150,7 +181,7 @@ def plot_knob(knob: str, out_dir: str = str(FIGURES_DIR)) -> dict | None:
         ax.grid(True, alpha=0.3)
         if metric == "best":
             n_str = ", ".join(str(n) for n in ns)
-            ax.set_title(f"NEF-FQI LunarLander — knob: {knob}  (n per value: {n_str})")
+            ax.set_title(f"NEF-FQI {env_name} — knob: {knob}  (n per value: {n_str})")
             ax.legend(loc="lower right", fontsize=8)
 
     if log_scale:
@@ -189,7 +220,12 @@ def _tag(v) -> str:
     return str(v)
 
 
-def plot_summary(per_knob_summary: dict, out_dir: str = str(FIGURES_DIR)) -> None:
+def plot_summary(
+    per_knob_summary: dict,
+    *,
+    env_name: str,
+    out_dir: str = str(FIGURES_DIR),
+) -> None:
     """One-line-per-knob summary: range of means with the best starred."""
     knobs_with_data = [k for k in KNOBS if per_knob_summary.get(k)]
     if not knobs_with_data:
@@ -224,7 +260,7 @@ def plot_summary(per_knob_summary: dict, out_dir: str = str(FIGURES_DIR)) -> Non
     ax.invert_yaxis()
     ax.axvline(0, color="k", linewidth=0.5, alpha=0.4)
     ax.set_xlabel("best_eval mean (± SE)")
-    ax.set_title("NEF-FQI LunarLander HP sweeps — per-knob mean ± SE of best_eval")
+    ax.set_title(f"NEF-FQI {env_name} HP sweeps — per-knob mean ± SE of best_eval")
     ax.grid(True, axis="x", alpha=0.3)
     plt.tight_layout()
     out_path = os.path.join(out_dir, "sweep_summary.png")
@@ -237,14 +273,29 @@ def plot_summary(per_knob_summary: dict, out_dir: str = str(FIGURES_DIR)) -> Non
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--knobs", nargs="+", default=None, help="subset of knobs (default: all)")
+    ap.add_argument("--env", default="LunarLander-v3")
+    ap.add_argument("--base-config", default=str(RESULTS_DIR / "base_config.json"))
+    ap.add_argument("--episodes", type=int, default=1000)
+    ap.add_argument("--eval-every", type=int, default=50)
+    ap.add_argument("--eval-episodes", type=int, default=20)
     ap.add_argument("--out-dir", default=str(FIGURES_DIR))
     args = ap.parse_args()
 
     knobs = args.knobs or KNOBS
+    with open(args.base_config) as f:
+        base_config = json.load(f)
     summary = {}
     for knob in knobs:
         print(f"[plot] {knob} ... ", end="", flush=True)
-        s = plot_knob(knob, out_dir=args.out_dir)
+        s = plot_knob(
+            knob,
+            env_name=args.env,
+            base_config=base_config,
+            n_episodes=args.episodes,
+            eval_every=args.eval_every,
+            eval_episodes=args.eval_episodes,
+            out_dir=args.out_dir,
+        )
         if s is None:
             print("no data")
         else:
@@ -252,7 +303,7 @@ def main():
             print(f"plotted ({len(s)} values)")
 
     if len(summary) >= 1:
-        plot_summary(summary, out_dir=args.out_dir)
+        plot_summary(summary, env_name=args.env, out_dir=args.out_dir)
         print(f"[plot] summary saved to {args.out_dir}/sweep_summary.png")
 
 

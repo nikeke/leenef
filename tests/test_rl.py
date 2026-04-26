@@ -9,7 +9,8 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from benchmarks import run_hp_sweep
+from benchmarks import analyze_rl_sweep, plot_rl_sweeps, run_hp_sweep
+from benchmarks.rl_repro import can_reuse_result, env_tag, hp_run_context
 from leenef.rl import NEFFeatures, NEFFQIAgent, NEFFQIEnsemble
 
 
@@ -229,8 +230,14 @@ def _tiny_hp_config(**overrides):
 
 def _stub_hp_result(label: str, seed: int, agent_kwargs: dict) -> dict:
     config = {k: v for k, v in agent_kwargs.items() if not k.startswith("_")}
+    run_context = {
+        "env_name": "LunarLander-v3",
+        "n_episodes": 1,
+        "eval_every": 50,
+        "eval_episodes": 20,
+    }
     return {
-        **run_hp_sweep.result_metadata(config, seed),
+        **run_hp_sweep.result_metadata(config, seed, run_context=run_context),
         "label": label,
         "seed": seed,
         "knob": agent_kwargs.get("_knob"),
@@ -410,3 +417,103 @@ def test_run_hp_sweep_skips_current_results(tmp_path, monkeypatch, capsys):
 
     assert seen == []
     assert "Skipping n_step=1_s0" in capsys.readouterr().out
+
+
+def test_run_hp_sweep_reruns_when_run_context_changes(tmp_path, monkeypatch, capsys):
+    base_path = tmp_path / "base_config.json"
+    out_path = tmp_path / "n_step.json"
+    config = _tiny_hp_config()
+    base_path.write_text(json.dumps(config))
+    label = "n_step=1_s0"
+    stored = _stub_hp_result(label, 0, {**config, "_knob": "n_step", "_value": 1})
+    stored["run_context"]["n_episodes"] = 2
+    out_path.write_text(json.dumps({label: stored}))
+
+    seen: list[str] = []
+
+    def fake_worker(args):
+        label, _, _, seed, agent_kwargs = args
+        seen.append(label)
+        return _stub_hp_result(label, seed, agent_kwargs)
+
+    monkeypatch.setattr(run_hp_sweep, "_worker", fake_worker)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_hp_sweep.py",
+            "--knob",
+            "n_step",
+            "--values",
+            "1",
+            "--seeds",
+            "0",
+            "--episodes",
+            "1",
+            "--base-config",
+            str(base_path),
+            "--output",
+            str(out_path),
+        ],
+    )
+
+    run_hp_sweep.main()
+
+    assert seen == [label]
+    assert "Re-running n_step=1_s0" in capsys.readouterr().out
+
+
+def test_hp_analysis_and_plot_filter_stale_rows(tmp_path):
+    knob = "n_step"
+    base_config = _tiny_hp_config()
+    expected_run_context = hp_run_context("LunarLander-v3", 1)
+    current = _stub_hp_result("n_step=1_s0", 0, {**base_config, "_knob": knob, "_value": 1})
+    stale = _stub_hp_result("n_step=1_s1", 1, {**base_config, "_knob": knob, "_value": 1})
+    stale["config"]["gamma"] = 0.8
+    sweep = {current["label"]: current, stale["label"]: stale}
+
+    stats = analyze_rl_sweep.aggregate(
+        sweep,
+        knob,
+        base_config=base_config,
+        expected_run_context=expected_run_context,
+    )
+
+    assert stats["1"]["n"] == 1
+    sweep_path = tmp_path / "n_step_lunarlander.json"
+    sweep_path.write_text(json.dumps(sweep))
+    plotted = plot_rl_sweeps.load_sweep(
+        str(sweep_path),
+        knob,
+        base_config=base_config,
+        expected_run_context=expected_run_context,
+    )
+    series = next(iter(plotted.values()))
+    assert series["best"] == [1.0]
+
+
+def test_can_reuse_result_requires_matching_code_version():
+    config = _tiny_hp_config()
+    result = _stub_hp_result("n_step=1_s0", 0, {**config, "_knob": "n_step", "_value": 1})
+
+    assert can_reuse_result(
+        result,
+        config,
+        expected_seed=0,
+        expected_run_context=result["run_context"],
+    )
+
+    result["code_version"] = "stale-version"
+    assert not can_reuse_result(
+        result,
+        config,
+        expected_seed=0,
+        expected_run_context=result["run_context"],
+    )
+
+
+def test_env_tag_preserves_environment_version():
+    assert env_tag("LunarLander-v3") == "lunarlander_v3"
+    assert run_hp_sweep._default_output_path("LunarLander-v3", "n_step").endswith(
+        "n_step_lunarlander_v3.json"
+    )

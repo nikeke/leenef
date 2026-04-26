@@ -25,6 +25,7 @@ def fork_generator(
     if rng is None:
         child.manual_seed(fallback_seed)
         return child
-    seed = int(torch.randint(0, _MAX_SEED, (1,), generator=rng).item())
+    parent_device = getattr(rng, "device", torch.device("cpu"))
+    seed = int(torch.randint(0, _MAX_SEED, (1,), generator=rng, device=parent_device).item())
     child.manual_seed(seed)
     return child

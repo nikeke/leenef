@@ -40,6 +40,7 @@ import torch
 from benchmarks.rl_repro import (
     EVAL_SEED_BASE,
     RESULTS_DIR,
+    env_tag,
     reset_env,
     result_metadata,
     set_rl_seed,
@@ -192,9 +193,15 @@ def run_experiment(
         recenter_log = getattr(agent, "_recenter_log", [])
         n_mem_out = None
         explore_strategy = None
+    run_context = {
+        "env_name": env_name,
+        "n_episodes": n_episodes,
+        "eval_every": eval_every,
+        "eval_episodes": eval_episodes,
+    }
 
     return {
-        **result_metadata(agent_kwargs, seed),
+        **result_metadata(agent_kwargs, seed, run_context=run_context),
         "label": label,
         "best_50": round(best_50, 1),
         "final_50": round(final_50, 1),
@@ -238,8 +245,14 @@ def can_reuse_result(
     *,
     seed: int,
     ensemble_members,
+    expected_run_context: dict[str, object] | None = None,
 ) -> bool:
-    if not can_reuse_rl_result(result, expected_config, expected_seed=seed):
+    if not can_reuse_rl_result(
+        result,
+        expected_config,
+        expected_seed=seed,
+        expected_run_context=expected_run_context,
+    ):
         return False
     if ensemble_members is None:
         return result.get("ensemble_members") is None
@@ -612,7 +625,7 @@ def main():
         configs = all_configs
 
     # Load existing results to skip completed configs
-    out_path = args.output or str(RESULTS_DIR / f"sweep_{env_name.split('-')[0].lower()}.json")
+    out_path = args.output or str(RESULTS_DIR / f"sweep_{env_tag(env_name)}.json")
     existing = {}
     if os.path.exists(out_path):
         with open(out_path) as f:
@@ -622,8 +635,18 @@ def main():
     # Filter out completed configs
     todo = {}
     for label, (agent_kwargs, ens) in configs.items():
+        expected_run_context = {
+            "env_name": env_name,
+            "n_episodes": n_episodes,
+            "eval_every": 50,
+            "eval_episodes": 20,
+        }
         if label in existing and can_reuse_result(
-            existing[label], agent_kwargs, seed=seed, ensemble_members=ens
+            existing[label],
+            agent_kwargs,
+            seed=seed,
+            ensemble_members=ens,
+            expected_run_context=expected_run_context,
         ):
             print(f"  Skipping {label} (already completed)")
             continue

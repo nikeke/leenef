@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import hashlib
 import random
+import re
 import subprocess
 from functools import lru_cache
 from pathlib import Path
@@ -68,20 +70,50 @@ def seed_policy() -> dict[str, object]:
 
 @lru_cache(maxsize=1)
 def code_version() -> str | None:
+    repo_root = Path(__file__).resolve().parents[1]
     try:
-        proc = subprocess.run(
+        head = subprocess.run(
             ["git", "rev-parse", "HEAD"],
-            cwd=Path(__file__).resolve().parents[1],
+            cwd=repo_root,
             capture_output=True,
             text=True,
             check=True,
-        )
+        ).stdout.strip()
     except (FileNotFoundError, subprocess.CalledProcessError):
         return None
-    return proc.stdout.strip() or None
+    if not head:
+        return None
+    try:
+        diff = subprocess.run(
+            ["git", "diff", "--no-ext-diff", "HEAD"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+        untracked = subprocess.run(
+            ["git", "ls-files", "--others", "--exclude-standard"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return head
+    if not diff and not untracked:
+        return head
+    dirty_hash = hashlib.sha256(f"{diff}\n--untracked--\n{untracked}".encode("utf-8")).hexdigest()[
+        :12
+    ]
+    return f"{head}-dirty-{dirty_hash}"
 
 
-def result_metadata(config: dict, seed: int) -> dict[str, object]:
+def result_metadata(
+    config: dict,
+    seed: int,
+    *,
+    run_context: dict[str, object] | None = None,
+) -> dict[str, object]:
     """Metadata required to compare or resume RL runs safely."""
     return {
         "result_namespace": RESULT_NAMESPACE,
@@ -90,10 +122,42 @@ def result_metadata(config: dict, seed: int) -> dict[str, object]:
         "seed": seed,
         "seed_policy": seed_policy(),
         "code_version": code_version(),
+        "run_context": run_context or {},
     }
 
 
-def can_reuse_result(result: dict, expected_config: dict, *, expected_seed: int) -> bool:
+def hp_run_context(
+    env_name: str,
+    n_episodes: int,
+    *,
+    eval_every: int = 50,
+    eval_episodes: int = 20,
+) -> dict[str, object]:
+    return {
+        "env_name": env_name,
+        "n_episodes": n_episodes,
+        "eval_every": eval_every,
+        "eval_episodes": eval_episodes,
+    }
+
+
+def hp_expected_config(base_config: dict[str, object], knob: str, value) -> dict[str, object]:
+    expected = dict(base_config)
+    expected[knob] = value
+    return expected
+
+
+def env_tag(env_name: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", env_name.lower()).strip("_")
+
+
+def can_reuse_result(
+    result: dict,
+    expected_config: dict,
+    *,
+    expected_seed: int,
+    expected_run_context: dict[str, object] | None = None,
+) -> bool:
     """Return True when a stored result matches the current clean runner semantics."""
     return (
         "error" not in result
@@ -102,4 +166,25 @@ def can_reuse_result(result: dict, expected_config: dict, *, expected_seed: int)
         and result.get("config") == expected_config
         and result.get("seed") == expected_seed
         and result.get("seed_policy") == seed_policy()
+        and result.get("code_version") == code_version()
+        and result.get("run_context", {}) == (expected_run_context or {})
+    )
+
+
+def is_current_hp_sweep_result(
+    result: dict,
+    *,
+    base_config: dict[str, object],
+    knob: str,
+    expected_run_context: dict[str, object],
+) -> bool:
+    if "error" in result or result.get("knob") != knob:
+        return False
+    if "seed" not in result:
+        return False
+    return can_reuse_result(
+        result,
+        hp_expected_config(base_config, knob, result.get("value")),
+        expected_seed=result["seed"],
+        expected_run_context=expected_run_context,
     )

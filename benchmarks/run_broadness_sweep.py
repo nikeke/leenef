@@ -24,6 +24,7 @@ import torch
 from benchmarks.rl_repro import (
     EVAL_SEED_BASE,
     RESULTS_DIR,
+    env_tag,
     reset_env,
     result_metadata,
     set_rl_seed,
@@ -124,7 +125,16 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
     final_eval = eval_history[-1]["eval"] if eval_history else None
 
     return {
-        **result_metadata(agent_kwargs, seed),
+        **result_metadata(
+            agent_kwargs,
+            seed,
+            run_context={
+                "env_name": env_name,
+                "n_episodes": n_episodes,
+                "eval_every": eval_every,
+                "eval_episodes": 20,
+            },
+        ),
         "label": label,
         "broadness": agent_kwargs.get("broadness", 1.0),
         "best_50": round(best_50, 1),
@@ -140,8 +150,19 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
     }
 
 
-def can_reuse_result(result: dict, expected_config: dict, seed: int) -> bool:
-    return can_reuse_rl_result(result, expected_config, expected_seed=seed)
+def can_reuse_result(
+    result: dict,
+    expected_config: dict,
+    seed: int,
+    *,
+    expected_run_context: dict[str, object],
+) -> bool:
+    return can_reuse_rl_result(
+        result,
+        expected_config,
+        expected_seed=seed,
+        expected_run_context=expected_run_context,
+    )
 
 
 def _worker(args):
@@ -188,7 +209,7 @@ def main():
         "recenter_percentile": 5.0,
     }
 
-    out_path = args.output or str(RESULTS_DIR / f"broadness_{args.env.split('-')[0].lower()}.json")
+    out_path = args.output or str(RESULTS_DIR / f"broadness_{env_tag(args.env)}.json")
     existing = {}
     if os.path.exists(out_path):
         with open(out_path) as f:
@@ -199,8 +220,17 @@ def main():
     for b in broadness_values:
         for s in args.seeds:
             label = f"b{_format_broadness(b)}_s{s}"
+            expected_run_context = {
+                "env_name": args.env,
+                "n_episodes": args.episodes,
+                "eval_every": 50,
+                "eval_episodes": 20,
+            }
             if label in existing and can_reuse_result(
-                existing[label], dict(base_kwargs, broadness=b), s
+                existing[label],
+                dict(base_kwargs, broadness=b),
+                s,
+                expected_run_context=expected_run_context,
             ):
                 print(f"  Skipping {label} (already completed)")
                 continue

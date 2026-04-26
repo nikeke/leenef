@@ -50,6 +50,7 @@ import numpy as np
 from benchmarks.rl_repro import (
     EVAL_SEED_BASE,
     RESULTS_DIR,
+    env_tag,
     reset_env,
     result_metadata,
     set_rl_seed,
@@ -152,7 +153,16 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
     final_eval = eval_history[-1]["eval"] if eval_history else None
 
     return {
-        **result_metadata(agent_kwargs_clean, seed),
+        **result_metadata(
+            agent_kwargs_clean,
+            seed,
+            run_context={
+                "env_name": env_name,
+                "n_episodes": n_episodes,
+                "eval_every": 50,
+                "eval_episodes": 20,
+            },
+        ),
         "label": label,
         "condition": condition_name,
         "min_relative": agent_kwargs_clean.get("recenter_min_relative", 0.0),
@@ -171,8 +181,19 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
     }
 
 
-def can_reuse_result(result: dict, expected_config: dict, seed: int) -> bool:
-    return can_reuse_rl_result(result, expected_config, expected_seed=seed)
+def can_reuse_result(
+    result: dict,
+    expected_config: dict,
+    seed: int,
+    *,
+    expected_run_context: dict[str, object],
+) -> bool:
+    return can_reuse_rl_result(
+        result,
+        expected_config,
+        expected_seed=seed,
+        expected_run_context=expected_run_context,
+    )
 
 
 def _worker(args):
@@ -204,7 +225,7 @@ def main():
     parser.add_argument(
         "--output",
         type=str,
-        default=str(RESULTS_DIR / "min_relative_lunarlander.json"),
+        default=None,
     )
     args = parser.parse_args()
 
@@ -225,7 +246,7 @@ def main():
         "broadness": args.broadness,
     }
 
-    out_path = args.output
+    out_path = args.output or str(RESULTS_DIR / f"min_relative_{env_tag(args.env)}.json")
     existing = {}
     if os.path.exists(out_path):
         with open(out_path) as f:
@@ -245,9 +266,21 @@ def main():
         kw = dict(base_kwargs)
         kw.update(overrides)
         kw["_condition_name"] = name
+        expected_config = {k: v for k, v in kw.items() if not k.startswith("_")}
         for s in args.seeds:
             label = f"{name}_s{s}"
-            if label in existing and can_reuse_result(existing[label], kw, s):
+            expected_run_context = {
+                "env_name": args.env,
+                "n_episodes": args.episodes,
+                "eval_every": 50,
+                "eval_episodes": 20,
+            }
+            if label in existing and can_reuse_result(
+                existing[label],
+                expected_config,
+                s,
+                expected_run_context=expected_run_context,
+            ):
                 print(f"  Skipping {label} (already completed)")
                 continue
             if label in existing:

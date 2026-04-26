@@ -31,6 +31,10 @@ from benchmarks.rl_repro import (
     BASE_CONFIG_PATH,
     EVAL_SEED_BASE,
     RESULTS_DIR,
+    env_tag,
+    hp_expected_config,
+    hp_run_context,
+    is_current_hp_sweep_result,
     reset_env,
     result_metadata,
     set_rl_seed,
@@ -110,6 +114,10 @@ def evaluate_greedy(agent, env_name, n_episodes=20, seed=42):
     return round(float(np.mean(returns)), 1)
 
 
+def _default_output_path(env_name: str, knob: str) -> str:
+    return str(RESULTS_DIR / f"{knob}_{env_tag(env_name)}.json")
+
+
 def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=50):
     set_rl_seed(seed)
     env = gym.make(env_name)
@@ -173,7 +181,11 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
     final_eval = eval_history[-1]["eval"] if eval_history else None
 
     return {
-        **result_metadata(run_kwargs, seed),
+        **result_metadata(
+            run_kwargs,
+            seed,
+            run_context=hp_run_context(env_name, n_episodes, eval_every=eval_every),
+        ),
         "label": label,
         "knob": knob,
         "value": value,
@@ -212,12 +224,19 @@ def value_tag(value) -> str:
 def can_reuse_result(
     result: dict,
     expected_config: dict,
+    *,
     expected_seed: int | None = None,
+    expected_run_context: dict[str, object] | None = None,
 ) -> bool:
     """Return True when an existing result matches the current runner semantics."""
     if expected_seed is None:
         expected_seed = int(result.get("seed", -1))
-    return can_reuse_rl_result(result, expected_config, expected_seed=expected_seed)
+    return can_reuse_rl_result(
+        result,
+        expected_config,
+        expected_seed=expected_seed,
+        expected_run_context=expected_run_context,
+    )
 
 
 def main():
@@ -235,14 +254,14 @@ def main():
         "--output",
         type=str,
         default=None,
-        help="Defaults to results/rl_clean/<knob>_lunarlander.json",
+        help="Defaults to results/rl_clean/<knob>_<env>.json",
     )
     args = parser.parse_args()
 
     base = load_base_config(args.base_config)
     parsed_values = [parse_value(args.knob, v) for v in args.values]
 
-    out_path = args.output or str(RESULTS_DIR / f"{args.knob}_lunarlander.json")
+    out_path = args.output or _default_output_path(args.env, args.knob)
 
     existing = {}
     if os.path.exists(out_path):
@@ -256,12 +275,16 @@ def main():
         kw[args.knob] = v
         kw["_knob"] = args.knob
         kw["_value"] = v
-        expected_config = {k: value for k, value in kw.items() if not k.startswith("_")}
+        expected_config = hp_expected_config(base, args.knob, v)
+        expected_run_context = hp_run_context(args.env, args.episodes, eval_every=50)
         tag = value_tag(v)
         for s in args.seeds:
             label = f"{args.knob}={tag}_s{s}"
-            if label in existing and can_reuse_rl_result(
-                existing[label], expected_config, expected_seed=s
+            if label in existing and can_reuse_result(
+                existing[label],
+                expected_config,
+                expected_seed=s,
+                expected_run_context=expected_run_context,
             ):
                 print(f"  Skipping {label} (already completed)")
                 continue
@@ -307,8 +330,14 @@ def main():
     print(f"  SUMMARY: {args.env} — {args.knob}")
     print(f"{'=' * 80}")
     by_value: dict = {}
+    expected_run_context = hp_run_context(args.env, args.episodes, eval_every=50)
     for r in existing.values():
-        if "error" in r or "best_eval" not in r or r.get("knob") != args.knob:
+        if "best_eval" not in r or not is_current_hp_sweep_result(
+            r,
+            base_config=base,
+            knob=args.knob,
+            expected_run_context=expected_run_context,
+        ):
             continue
         by_value.setdefault(value_tag(r.get("value")), []).append(r)
 
