@@ -14,13 +14,13 @@ from __future__ import annotations
 
 import json
 import time
-from pathlib import Path
 
 import gymnasium as gym
 
+from benchmarks.rl_repro import BASE_CONFIG_PATH, reset_env, training_seed, warmup_seed
 from leenef.rl import NEFFQIAgent
 
-CFG_PATH = Path("/home/amnesia/Persistent/src/leenef/results/rl/base_config.json")
+CFG_PATH = BASE_CONFIG_PATH
 ENV_NAME = "LunarLander-v3"
 N_EPISODES = 50
 SEED = 0
@@ -29,7 +29,7 @@ SEED = 0
 def main() -> None:
     cfg = json.loads(CFG_PATH.read_text())
     env = gym.make(ENV_NAME)
-    obs, _ = env.reset(seed=SEED)
+    obs, _ = reset_env(env, seed=SEED)
     d_obs = obs.shape[0]
     n_actions = env.action_space.n  # type: ignore[attr-defined]
 
@@ -56,8 +56,7 @@ def main() -> None:
 
     # Warmup just to set normalization (tiny; not measured).
     warmup_env = gym.make(ENV_NAME)
-    warmup_env.reset(seed=SEED)
-    agent.warmup(env=warmup_env, n_episodes=20)
+    agent.warmup(env=warmup_env, n_episodes=20, seed=warmup_seed(SEED))
     warmup_env.close()
 
     t_select = 0.0
@@ -68,7 +67,7 @@ def main() -> None:
     n_steps = 0
     n_episodes_done = 0
 
-    obs, _ = env.reset(seed=SEED + 100)
+    obs, _ = reset_env(env, seed=SEED + 100)
     t_total_start = time.perf_counter()
 
     while n_episodes_done < N_EPISODES:
@@ -89,7 +88,7 @@ def main() -> None:
             te0 = time.perf_counter()
             agent.end_episode()
             te1 = time.perf_counter()
-            obs, _ = env.reset()
+            obs, _ = reset_env(env, seed=training_seed(SEED + 100, n_episodes_done + 1))
             te2 = time.perf_counter()
             t_endep += te1 - te0
             t_reset += te2 - te1

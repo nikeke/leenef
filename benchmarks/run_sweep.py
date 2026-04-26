@@ -37,6 +37,18 @@ import gymnasium as gym
 import numpy as np
 import torch
 
+from benchmarks.rl_repro import (
+    EVAL_SEED_BASE,
+    RESULTS_DIR,
+    reset_env,
+    result_metadata,
+    set_rl_seed,
+    training_seed,
+    warmup_seed,
+)
+from benchmarks.rl_repro import (
+    can_reuse_result as can_reuse_rl_result,
+)
 from leenef.rl import NEFFQIAgent, NEFFQIEnsemble
 
 # ---------------------------------------------------------------------------
@@ -49,7 +61,7 @@ def evaluate_greedy(agent, env_name, n_episodes=20, seed=42):
     env = gym.make(env_name)
     returns = []
     for i in range(n_episodes):
-        obs, _ = env.reset(seed=seed + i)
+        obs, _ = reset_env(env, seed=seed + i)
         total_reward = 0.0
         done = False
         while not done:
@@ -89,6 +101,7 @@ def run_experiment(
     - int — ensemble with that many members (Thompson strategy)
     - (int, str) — ensemble with (n_members, explore_strategy)
     """
+    set_rl_seed(seed)
     env = gym.make(env_name)
     d_obs = env.observation_space.shape[0]
     n_actions = env.action_space.n
@@ -117,7 +130,7 @@ def run_experiment(
 
     # Warmup
     warmup_env = gym.make(env_name)
-    agent.warmup(env=warmup_env, n_episodes=20)
+    agent.warmup(env=warmup_env, n_episodes=20, seed=warmup_seed(seed))
     warmup_env.close()
 
     # Training
@@ -127,7 +140,7 @@ def run_experiment(
     t_start = time.time()
 
     for ep in range(n_episodes):
-        obs, _ = env.reset(seed=seed + ep)
+        obs, _ = reset_env(env, seed=training_seed(seed, ep))
         total_reward = 0.0
         done = False
         while not done:
@@ -141,7 +154,7 @@ def run_experiment(
         rewards.append(total_reward)
 
         if (ep + 1) % eval_every == 0:
-            eval_ret = evaluate_greedy(agent, env_name, eval_episodes, seed=10000)
+            eval_ret = evaluate_greedy(agent, env_name, eval_episodes, seed=EVAL_SEED_BASE)
             eval_history.append({"episode": ep + 1, "eval": round(eval_ret, 1)})
             r50 = np.mean(rewards[-50:]) if len(rewards) >= 50 else np.mean(rewards)
             print(
@@ -173,12 +186,15 @@ def run_experiment(
         for m in agent.members:
             recenter_log.extend(getattr(m, "_recenter_log", []))
         n_mem_out = n_mem
+        explore_strategy = strategy
     else:
         recentered = getattr(agent, "_recentered_total", 0)
         recenter_log = getattr(agent, "_recenter_log", [])
         n_mem_out = None
+        explore_strategy = None
 
     return {
+        **result_metadata(agent_kwargs, seed),
         "label": label,
         "best_50": round(best_50, 1),
         "final_50": round(final_50, 1),
@@ -186,8 +202,8 @@ def run_experiment(
         "final_eval": final_eval,
         "time_s": round(elapsed, 1),
         "recentered": recentered,
-        "config": agent_kwargs,
         "ensemble_members": n_mem_out,
+        "explore_strategy": explore_strategy,
         "eval_history": eval_history,
         "rewards": [round(float(r), 1) for r in rewards],
         "recenter_log": recenter_log,
@@ -214,6 +230,27 @@ def _worker(args):
     except Exception as e:
         print(f"  [{label}] FAILED: {e}", flush=True)
         return {"label": label, "error": str(e)}
+
+
+def can_reuse_result(
+    result: dict,
+    expected_config: dict,
+    *,
+    seed: int,
+    ensemble_members,
+) -> bool:
+    if not can_reuse_rl_result(result, expected_config, expected_seed=seed):
+        return False
+    if ensemble_members is None:
+        return result.get("ensemble_members") is None
+    if isinstance(ensemble_members, tuple):
+        n_members, explore_strategy = ensemble_members
+    else:
+        n_members, explore_strategy = ensemble_members, "thompson"
+    return (
+        result.get("ensemble_members") == n_members
+        and result.get("explore_strategy") == explore_strategy
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -533,7 +570,7 @@ def main():
         "--output",
         type=str,
         default=None,
-        help="Output JSON path (default: results/rl/sweep_<env>.json)",
+        help="Output JSON path (default: results/rl_clean/sweep_<env>.json)",
     )
     args = parser.parse_args()
 
@@ -575,7 +612,7 @@ def main():
         configs = all_configs
 
     # Load existing results to skip completed configs
-    out_path = args.output or f"results/rl/sweep_{env_name.split('-')[0].lower()}.json"
+    out_path = args.output or str(RESULTS_DIR / f"sweep_{env_name.split('-')[0].lower()}.json")
     existing = {}
     if os.path.exists(out_path):
         with open(out_path) as f:
@@ -585,10 +622,14 @@ def main():
     # Filter out completed configs
     todo = {}
     for label, (agent_kwargs, ens) in configs.items():
-        if label in existing and "error" not in existing[label]:
+        if label in existing and can_reuse_result(
+            existing[label], agent_kwargs, seed=seed, ensemble_members=ens
+        ):
             print(f"  Skipping {label} (already completed)")
-        else:
-            todo[label] = (agent_kwargs, ens)
+            continue
+        if label in existing:
+            print(f"  Re-running {label} (stale result metadata)")
+        todo[label] = (agent_kwargs, ens)
 
     if not todo:
         print("All configs already completed!")

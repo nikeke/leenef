@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generic single-knob hyperparameter sweep for NEF-FQI on LunarLander.
 
-Reads the current "live" base config from ``results/rl/base_config.json``
+Reads the clean restart base config from ``results/rl_clean/base_config.json``
 and overrides a single knob with each of the provided values, running
 8 seeds per value.  Results are saved incrementally so the sweep is
 safe to stop, resume, and re-analyze.
@@ -9,11 +9,11 @@ safe to stop, resume, and re-analyze.
 Usage:
     python benchmarks/run_hp_sweep.py --knob n_step --values 10 20 50 100 --parallel 6
 
-Base config lives at ``results/rl/base_config.json`` and is updated
+Base config lives at ``results/rl_clean/base_config.json`` and is updated
 between phases by ``benchmarks/analyze_rl_sweep.py`` when a swept knob
 beats the current base by more than 1 combined SE of ``best_eval``.
 
-See ``docs/rl_review.md`` §9+ for the full design.
+See ``docs/rl_clean_sweeps.md`` for the clean rerun design.
 """
 
 from __future__ import annotations
@@ -27,10 +27,20 @@ from multiprocessing import Pool
 import gymnasium as gym
 import numpy as np
 
+from benchmarks.rl_repro import (
+    BASE_CONFIG_PATH,
+    EVAL_SEED_BASE,
+    RESULTS_DIR,
+    reset_env,
+    result_metadata,
+    set_rl_seed,
+    training_seed,
+    warmup_seed,
+)
+from benchmarks.rl_repro import (
+    can_reuse_result as can_reuse_rl_result,
+)
 from leenef.rl import NEFFQIAgent
-
-RUNNER_VERSION = "seeded-warmup-v1"
-WARMUP_SEED_OFFSET = 100_000
 
 # Built-in default base (used if base_config.json is missing).  Must
 # match the post-recentering-sweep decision: 4000n, no recentering,
@@ -85,7 +95,7 @@ def evaluate_greedy(agent, env_name, n_episodes=20, seed=42):
     env = gym.make(env_name)
     returns = []
     for i in range(n_episodes):
-        obs, _ = env.reset(seed=seed + i)
+        obs, _ = reset_env(env, seed=seed + i)
         total_reward = 0.0
         done = False
         while not done:
@@ -101,19 +111,21 @@ def evaluate_greedy(agent, env_name, n_episodes=20, seed=42):
 
 
 def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=50):
+    set_rl_seed(seed)
     env = gym.make(env_name)
     d_obs = env.observation_space.shape[0]
     n_actions = env.action_space.n
     env.close()
 
-    knob = agent_kwargs.pop("_knob", None)
-    value = agent_kwargs.pop("_value", None)
+    run_kwargs = dict(agent_kwargs)
+    knob = run_kwargs.pop("_knob", None)
+    value = run_kwargs.pop("_value", None)
 
-    agent = NEFFQIAgent(d_obs=d_obs, n_actions=n_actions, seed=seed, **agent_kwargs)
+    agent = NEFFQIAgent(d_obs=d_obs, n_actions=n_actions, seed=seed, **run_kwargs)
 
     warmup_env = gym.make(env_name)
-    warmup_seed = WARMUP_SEED_OFFSET + seed
-    agent.warmup(env=warmup_env, n_episodes=20, seed=warmup_seed)
+    warmup_seed_value = warmup_seed(seed)
+    agent.warmup(env=warmup_env, n_episodes=20, seed=warmup_seed_value)
     warmup_env.close()
 
     env = gym.make(env_name)
@@ -122,7 +134,7 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
     t_start = time.time()
 
     for ep in range(n_episodes):
-        obs, _ = env.reset(seed=seed + ep)
+        obs, _ = reset_env(env, seed=training_seed(seed, ep))
         total_reward = 0.0
         done = False
         while not done:
@@ -136,7 +148,7 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
         rewards.append(total_reward)
 
         if (ep + 1) % eval_every == 0:
-            eval_ret = evaluate_greedy(agent, env_name, 20, seed=10000)
+            eval_ret = evaluate_greedy(agent, env_name, 20, seed=EVAL_SEED_BASE)
             eval_history.append({"episode": ep + 1, "eval": eval_ret})
             r50 = np.mean(rewards[-50:]) if len(rewards) >= 50 else np.mean(rewards)
             print(
@@ -161,8 +173,8 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
     final_eval = eval_history[-1]["eval"] if eval_history else None
 
     return {
+        **result_metadata(run_kwargs, seed),
         "label": label,
-        "seed": seed,
         "knob": knob,
         "value": value,
         "best_50": round(best_50, 1),
@@ -170,9 +182,8 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
         "best_eval": best_eval,
         "final_eval": final_eval,
         "time_s": round(elapsed, 1),
-        "config": agent_kwargs,
-        "runner_version": RUNNER_VERSION,
-        "warmup_seed": warmup_seed,
+        "warmup_seed": warmup_seed_value,
+        "evaluation_seed_base": EVAL_SEED_BASE,
         "eval_history": eval_history,
         "rewards": [round(float(r), 1) for r in rewards],
     }
@@ -198,13 +209,15 @@ def value_tag(value) -> str:
     return str(value)
 
 
-def can_reuse_result(result: dict, expected_config: dict) -> bool:
+def can_reuse_result(
+    result: dict,
+    expected_config: dict,
+    expected_seed: int | None = None,
+) -> bool:
     """Return True when an existing result matches the current runner semantics."""
-    return (
-        "error" not in result
-        and result.get("runner_version") == RUNNER_VERSION
-        and result.get("config") == expected_config
-    )
+    if expected_seed is None:
+        expected_seed = int(result.get("seed", -1))
+    return can_reuse_rl_result(result, expected_config, expected_seed=expected_seed)
 
 
 def main():
@@ -217,16 +230,19 @@ def main():
     parser.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2, 3, 4, 5, 6, 7])
     parser.add_argument("--episodes", type=int, default=1000)
     parser.add_argument("--parallel", type=int, default=1)
-    parser.add_argument("--base-config", type=str, default="results/rl/base_config.json")
+    parser.add_argument("--base-config", type=str, default=str(BASE_CONFIG_PATH))
     parser.add_argument(
-        "--output", type=str, default=None, help="Defaults to results/rl/<knob>_lunarlander.json"
+        "--output",
+        type=str,
+        default=None,
+        help="Defaults to results/rl_clean/<knob>_lunarlander.json",
     )
     args = parser.parse_args()
 
     base = load_base_config(args.base_config)
     parsed_values = [parse_value(args.knob, v) for v in args.values]
 
-    out_path = args.output or f"results/rl/{args.knob}_lunarlander.json"
+    out_path = args.output or str(RESULTS_DIR / f"{args.knob}_lunarlander.json")
 
     existing = {}
     if os.path.exists(out_path):
@@ -240,10 +256,13 @@ def main():
         kw[args.knob] = v
         kw["_knob"] = args.knob
         kw["_value"] = v
+        expected_config = {k: value for k, value in kw.items() if not k.startswith("_")}
         tag = value_tag(v)
         for s in args.seeds:
             label = f"{args.knob}={tag}_s{s}"
-            if label in existing and can_reuse_result(existing[label], kw):
+            if label in existing and can_reuse_rl_result(
+                existing[label], expected_config, expected_seed=s
+            ):
                 print(f"  Skipping {label} (already completed)")
                 continue
             if label in existing:
@@ -302,10 +321,12 @@ def main():
         if be:
             be_a = np.array(be)
             fe_a = np.array(fe)
+            be_se = float(be_a.std(ddof=1) / np.sqrt(len(be))) if len(be) > 1 else 0.0
+            fe_se = float(fe_a.std(ddof=1) / np.sqrt(len(fe))) if len(fe) > 1 else 0.0
             print(
                 f"  {args.knob}={tag:>10}  n={len(be)}  "
-                f"best={be_a.mean():7.1f} ± {be_a.std(ddof=1) / np.sqrt(len(be)):5.1f} SE  "
-                f"final={fe_a.mean():7.1f} ± {fe_a.std(ddof=1) / np.sqrt(len(fe)):5.1f} SE  "
+                f"best={be_a.mean():7.1f} ± {be_se:5.1f} SE  "
+                f"final={fe_a.mean():7.1f} ± {fe_se:5.1f} SE  "
                 f"[{min(be):7.1f}, {max(be):7.1f}]"
             )
 

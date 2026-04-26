@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 
+from ._rng import fork_generator
 from .activations import make_activation
 from .encoders import make_encoders
 from .layers import _make_gain
@@ -441,8 +442,7 @@ class RecurrentNEFLayer(nn.Module):
 
             if batch_size is not None:
                 dataset = torch.utils.data.TensorDataset(seq, grad_targets)
-                g = torch.Generator()
-                g.manual_seed(0)
+                g = fork_generator(self._rng)
                 loader = torch.utils.data.DataLoader(
                     dataset, batch_size=batch_size, shuffle=True, generator=g
                 )
@@ -561,8 +561,7 @@ class RecurrentNEFLayer(nn.Module):
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=n_epochs)
 
         dataset = torch.utils.data.TensorDataset(seq, train_targets)
-        g = torch.Generator()
-        g.manual_seed(0)
+        g = fork_generator(self._rng)
         loader = torch.utils.data.DataLoader(
             dataset, batch_size=batch_size, shuffle=True, generator=g
         )

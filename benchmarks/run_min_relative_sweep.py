@@ -47,6 +47,18 @@ from multiprocessing import Pool
 import gymnasium as gym
 import numpy as np
 
+from benchmarks.rl_repro import (
+    EVAL_SEED_BASE,
+    RESULTS_DIR,
+    reset_env,
+    result_metadata,
+    set_rl_seed,
+    training_seed,
+    warmup_seed,
+)
+from benchmarks.rl_repro import (
+    can_reuse_result as can_reuse_rl_result,
+)
 from leenef.rl import NEFFQIAgent
 
 CONDITIONS: list[tuple[str, dict]] = [
@@ -63,7 +75,7 @@ def evaluate_greedy(agent, env_name, n_episodes=20, seed=42):
     env = gym.make(env_name)
     returns = []
     for i in range(n_episodes):
-        obs, _ = env.reset(seed=seed + i)
+        obs, _ = reset_env(env, seed=seed + i)
         total_reward = 0.0
         done = False
         while not done:
@@ -79,6 +91,7 @@ def evaluate_greedy(agent, env_name, n_episodes=20, seed=42):
 
 
 def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=50):
+    set_rl_seed(seed)
     env = gym.make(env_name)
     d_obs = env.observation_space.shape[0]
     n_actions = env.action_space.n
@@ -91,7 +104,7 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
     agent = NEFFQIAgent(d_obs=d_obs, n_actions=n_actions, seed=seed, **agent_kwargs_clean)
 
     warmup_env = gym.make(env_name)
-    agent.warmup(env=warmup_env, n_episodes=20)
+    agent.warmup(env=warmup_env, n_episodes=20, seed=warmup_seed(seed))
     warmup_env.close()
 
     env = gym.make(env_name)
@@ -100,7 +113,7 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
     t_start = time.time()
 
     for ep in range(n_episodes):
-        obs, _ = env.reset(seed=seed + ep)
+        obs, _ = reset_env(env, seed=training_seed(seed, ep))
         total_reward = 0.0
         done = False
         while not done:
@@ -114,7 +127,7 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
         rewards.append(total_reward)
 
         if (ep + 1) % eval_every == 0:
-            eval_ret = evaluate_greedy(agent, env_name, 20, seed=10000)
+            eval_ret = evaluate_greedy(agent, env_name, 20, seed=EVAL_SEED_BASE)
             eval_history.append({"episode": ep + 1, "eval": eval_ret})
             r50 = np.mean(rewards[-50:]) if len(rewards) >= 50 else np.mean(rewards)
             print(
@@ -139,8 +152,8 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
     final_eval = eval_history[-1]["eval"] if eval_history else None
 
     return {
+        **result_metadata(agent_kwargs_clean, seed),
         "label": label,
-        "seed": seed,
         "condition": condition_name,
         "min_relative": agent_kwargs_clean.get("recenter_min_relative", 0.0),
         "percentile": agent_kwargs_clean.get("recenter_percentile", 5.0),
@@ -156,6 +169,10 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
         "rewards": [round(float(r), 1) for r in rewards],
         "recenter_log": agent._recenter_log,
     }
+
+
+def can_reuse_result(result: dict, expected_config: dict, seed: int) -> bool:
+    return can_reuse_rl_result(result, expected_config, expected_seed=seed)
 
 
 def _worker(args):
@@ -184,7 +201,11 @@ def main():
     parser.add_argument("--neurons", type=int, default=4000)
     parser.add_argument("--broadness", type=float, default=0.0)
     parser.add_argument("--parallel", type=int, default=1)
-    parser.add_argument("--output", type=str, default="results/rl/min_relative_lunarlander.json")
+    parser.add_argument(
+        "--output",
+        type=str,
+        default=str(RESULTS_DIR / "min_relative_lunarlander.json"),
+    )
     args = parser.parse_args()
 
     base_kwargs = {
@@ -226,9 +247,11 @@ def main():
         kw["_condition_name"] = name
         for s in args.seeds:
             label = f"{name}_s{s}"
-            if label in existing and "error" not in existing[label]:
+            if label in existing and can_reuse_result(existing[label], kw, s):
                 print(f"  Skipping {label} (already completed)")
                 continue
+            if label in existing:
+                print(f"  Re-running {label} (stale result metadata)")
             tasks.append((label, args.env, args.episodes, s, kw))
 
     if not tasks:

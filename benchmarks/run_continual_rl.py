@@ -25,6 +25,7 @@ import time
 import gymnasium as gym
 import numpy as np
 
+from benchmarks.rl_repro import reset_env, training_seed, warmup_seed
 from leenef.rl import NEFFQIAgent
 
 sys.stdout.reconfigure(line_buffering=True)
@@ -36,6 +37,7 @@ TASKS = {
 }
 
 TASK_ORDER = ["A_default", "B_lowgrav", "C_wind"]
+TASK_SEED_STRIDE = 10_000
 
 
 def make_env(task_name: str) -> gym.Env:
@@ -47,7 +49,7 @@ def evaluate(agent: NEFFQIAgent, task_name: str, n: int = 20, seed: int = 42) ->
     env = make_env(task_name)
     returns = []
     for i in range(n):
-        obs, _ = env.reset(seed=seed + i)
+        obs, _ = reset_env(env, seed=seed + i)
         done, total = False, 0.0
         while not done:
             q = agent.q_values(obs)
@@ -71,6 +73,7 @@ def train_phase(
     n_episodes: int,
     eval_every: int = 50,
     eval_n: int = 20,
+    seed_base: int = 0,
 ) -> list[dict]:
     """Train agent on a specific task for n_episodes.
 
@@ -80,7 +83,7 @@ def train_phase(
     checkpoints = []
 
     for ep in range(1, n_episodes + 1):
-        obs, _ = env.reset()
+        obs, _ = reset_env(env, seed=training_seed(seed_base, ep - 1))
         done = False
         while not done:
             action = agent.select_action(obs)
@@ -127,15 +130,16 @@ def run_separate(d_obs, n_actions, n_neurons, beta, episodes_per_task, args):
     """Train independent agents per task (upper bound)."""
     print("\n=== SEPARATE (independent agent per task) ===")
     results = {}
-    for task in TASK_ORDER:
+    for task_idx, task in enumerate(TASK_ORDER):
         print(f"\n  Task {task}:")
-        agent = make_agent(d_obs, n_actions, n_neurons, beta, seed=args.seed)
+        phase_seed = args.seed + task_idx * TASK_SEED_STRIDE
+        agent = make_agent(d_obs, n_actions, n_neurons, beta, seed=phase_seed)
         # Warmup on this task
         env = make_env(task)
-        agent.warmup(env=env, n_episodes=20)
+        agent.warmup(env=env, n_episodes=20, seed=warmup_seed(phase_seed))
         env.close()
 
-        checkpoints = train_phase(agent, task, episodes_per_task)
+        checkpoints = train_phase(agent, task, episodes_per_task, seed_base=phase_seed)
         final = evaluate_all(agent)
         results[task] = {
             "checkpoints": checkpoints,
@@ -155,13 +159,18 @@ def run_continual(d_obs, n_actions, n_neurons, beta, episodes_per_task, args, la
 
     # Warmup on task A
     env = make_env(TASK_ORDER[0])
-    agent.warmup(env=env, n_episodes=20)
+    agent.warmup(env=env, n_episodes=20, seed=warmup_seed(args.seed))
     env.close()
 
     all_checkpoints = {}
-    for task in TASK_ORDER:
+    for phase_idx, task in enumerate(TASK_ORDER):
         print(f"\n  Phase: {task}")
-        checkpoints = train_phase(agent, task, episodes_per_task)
+        checkpoints = train_phase(
+            agent,
+            task,
+            episodes_per_task,
+            seed_base=args.seed + phase_idx * TASK_SEED_STRIDE,
+        )
         all_checkpoints[task] = checkpoints
 
     final = evaluate_all(agent)

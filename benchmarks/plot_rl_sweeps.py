@@ -9,6 +9,7 @@ live sweep; overwrites PNGs atomically.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -18,6 +19,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+
+from benchmarks.rl_repro import FIGURES_DIR, RESULT_NAMESPACE, RESULTS_DIR, RUNNER_VERSION
 
 KNOBS = [
     "n_step",
@@ -35,6 +38,11 @@ LOG_X_KNOBS = {"alpha", "epsilon_decay"}  # use log x-axis for these
 # forget_factor is best shown as 1-f on log scale (tail mass).
 
 
+def _stable_seed(*parts: object) -> int:
+    digest = hashlib.sha256("|".join(str(part) for part in parts).encode("utf-8")).digest()
+    return int.from_bytes(digest[:8], "big") % 2**31
+
+
 def load_sweep(path: str, knob: str) -> dict:
     if not os.path.exists(path):
         return {}
@@ -42,7 +50,12 @@ def load_sweep(path: str, knob: str) -> dict:
         data = json.load(f)
     by_value: dict = {}
     for r in data.values():
-        if "error" in r or r.get("knob") != knob:
+        if (
+            "error" in r
+            or r.get("result_namespace") != RESULT_NAMESPACE
+            or r.get("runner_version") != RUNNER_VERSION
+            or r.get("knob") != knob
+        ):
             continue
         be = r.get("best_eval")
         if be is None:
@@ -77,8 +90,8 @@ def _x_positions(by_value: dict, knob: str):
     return pos, labels, log_scale
 
 
-def plot_knob(knob: str, out_dir: str = "results/rl/figures") -> dict | None:
-    sweep_path = f"results/rl/{knob}_lunarlander.json"
+def plot_knob(knob: str, out_dir: str = str(FIGURES_DIR)) -> dict | None:
+    sweep_path = str(RESULTS_DIR / f"{knob}_lunarlander.json")
     by_value = load_sweep(sweep_path, knob)
     if not by_value:
         return None
@@ -103,9 +116,7 @@ def plot_knob(knob: str, out_dir: str = "results/rl/figures") -> dict | None:
             mins.append(arr.min())
             maxs.append(arr.max())
             ns.append(len(arr))
-            jitter = (
-                np.random.default_rng(abs(hash((knob, metric, x))) % 2**31).random(len(arr)) - 0.5
-            )
+            jitter = np.random.default_rng(_stable_seed(knob, metric, x)).random(len(arr)) - 0.5
             if log_scale and x > 0:
                 jitter *= x * 0.05
             else:
@@ -178,7 +189,7 @@ def _tag(v) -> str:
     return str(v)
 
 
-def plot_summary(per_knob_summary: dict, out_dir: str = "results/rl/figures") -> None:
+def plot_summary(per_knob_summary: dict, out_dir: str = str(FIGURES_DIR)) -> None:
     """One-line-per-knob summary: range of means with the best starred."""
     knobs_with_data = [k for k in KNOBS if per_knob_summary.get(k)]
     if not knobs_with_data:
@@ -226,7 +237,7 @@ def plot_summary(per_knob_summary: dict, out_dir: str = "results/rl/figures") ->
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--knobs", nargs="+", default=None, help="subset of knobs (default: all)")
-    ap.add_argument("--out-dir", default="results/rl/figures")
+    ap.add_argument("--out-dir", default=str(FIGURES_DIR))
     args = ap.parse_args()
 
     knobs = args.knobs or KNOBS

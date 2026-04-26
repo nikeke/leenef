@@ -18,11 +18,18 @@ from pathlib import Path
 
 import numpy as np
 
+from benchmarks.rl_repro import BASE_CONFIG_PATH, RESULT_NAMESPACE, RESULTS_DIR, RUNNER_VERSION
+
 
 def aggregate(sweep_json: dict, knob: str) -> dict:
     by_value: dict = {}
     for r in sweep_json.values():
-        if "error" in r or r.get("knob") != knob:
+        if (
+            "error" in r
+            or r.get("result_namespace") != RESULT_NAMESPACE
+            or r.get("runner_version") != RUNNER_VERSION
+            or r.get("knob") != knob
+        ):
             continue
         be = r.get("best_eval")
         fe = r.get("final_eval")
@@ -62,14 +69,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--knob", required=True)
     ap.add_argument("--sweep-json", default=None)
-    ap.add_argument("--base-config", default="results/rl/base_config.json")
+    ap.add_argument("--base-config", default=str(BASE_CONFIG_PATH))
     ap.add_argument(
         "--min-seeds", type=int, default=4, help="skip values with fewer completed seeds"
     )
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
-    sweep_path = args.sweep_json or f"results/rl/{args.knob}_lunarlander.json"
+    sweep_path = args.sweep_json or str(RESULTS_DIR / f"{args.knob}_lunarlander.json")
     if not os.path.exists(sweep_path):
         print(f"[analyze] No sweep results at {sweep_path} — skipping")
         return

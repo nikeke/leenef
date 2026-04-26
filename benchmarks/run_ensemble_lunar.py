@@ -16,6 +16,7 @@ import time
 import gymnasium as gym
 import numpy as np
 
+from benchmarks.rl_repro import EVAL_SEED_BASE, reset_env, set_rl_seed, training_seed, warmup_seed
 from leenef.rl import NEFFQIAgent, NEFFQIEnsemble
 
 sys.stdout.reconfigure(line_buffering=True)
@@ -36,7 +37,7 @@ def evaluate_single(agent, n=20, seed=42):
     env = gym.make(ENV_NAME)
     returns = []
     for i in range(n):
-        obs, _ = env.reset(seed=seed + i)
+        obs, _ = reset_env(env, seed=seed + i)
         done, total = False, 0.0
         while not done:
             q = agent.q_values(obs)
@@ -53,7 +54,7 @@ def evaluate_ensemble(ensemble, n=20, seed=42):
     env = gym.make(ENV_NAME)
     returns = []
     for i in range(n):
-        obs, _ = env.reset(seed=seed + i)
+        obs, _ = reset_env(env, seed=seed + i)
         done, total = False, 0.0
         while not done:
             q = ensemble.q_values(obs)
@@ -68,16 +69,18 @@ def evaluate_ensemble(ensemble, n=20, seed=42):
 
 def train_single(label, agent_kwargs):
     print(f"\n>>> {label}")
+    base_seed = int(agent_kwargs.get("seed", 0))
+    set_rl_seed(base_seed)
     agent = NEFFQIAgent(d_obs=D_OBS, n_actions=N_ACTIONS, **agent_kwargs)
     warmup_env = gym.make(ENV_NAME)
-    agent.warmup(env=warmup_env, n_episodes=20)
+    agent.warmup(env=warmup_env, n_episodes=20, seed=warmup_seed(base_seed))
     warmup_env.close()
 
     env = gym.make(ENV_NAME)
     t0 = time.time()
     evals = []
     for ep in range(EPISODES):
-        obs, _ = env.reset(seed=ep)
+        obs, _ = reset_env(env, seed=training_seed(base_seed, ep))
         done = False
         while not done:
             action = agent.select_action(obs)
@@ -88,7 +91,7 @@ def train_single(label, agent_kwargs):
         agent.end_episode()
 
         if (ep + 1) % EVAL_EVERY == 0:
-            ev = evaluate_single(agent, n=20, seed=10000)
+            ev = evaluate_single(agent, n=20, seed=EVAL_SEED_BASE)
             evals.append({"episode": ep + 1, "eval": ev})
             elapsed = time.time() - t0
             print(f"  ep {ep + 1:4d}  eval={ev:7.1f}  t={elapsed:.0f}s")
@@ -109,6 +112,8 @@ def train_single(label, agent_kwargs):
 
 def train_ensemble(label, ensemble_kwargs, agent_kwargs):
     print(f"\n>>> {label}")
+    base_seed = int(ensemble_kwargs.get("base_seed", 0))
+    set_rl_seed(base_seed)
     ensemble = NEFFQIEnsemble(
         d_obs=D_OBS,
         n_actions=N_ACTIONS,
@@ -116,14 +121,14 @@ def train_ensemble(label, ensemble_kwargs, agent_kwargs):
         **agent_kwargs,
     )
     warmup_env = gym.make(ENV_NAME)
-    ensemble.warmup(env=warmup_env, n_episodes=20)
+    ensemble.warmup(env=warmup_env, n_episodes=20, seed=warmup_seed(base_seed))
     warmup_env.close()
 
     env = gym.make(ENV_NAME)
     t0 = time.time()
     evals = []
     for ep in range(EPISODES):
-        obs, _ = env.reset(seed=ep)
+        obs, _ = reset_env(env, seed=training_seed(base_seed, ep))
         done = False
         while not done:
             action = ensemble.select_action(obs)
@@ -134,7 +139,7 @@ def train_ensemble(label, ensemble_kwargs, agent_kwargs):
         ensemble.end_episode()
 
         if (ep + 1) % EVAL_EVERY == 0:
-            ev = evaluate_ensemble(ensemble, n=20, seed=10000)
+            ev = evaluate_ensemble(ensemble, n=20, seed=EVAL_SEED_BASE)
             evals.append({"episode": ep + 1, "eval": ev})
             elapsed = time.time() - t0
             print(f"  ep {ep + 1:4d}  eval={ev:7.1f}  t={elapsed:.0f}s")

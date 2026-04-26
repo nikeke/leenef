@@ -6,6 +6,10 @@ exploratory single-seed sweeps live in `docs/rl_review.md`; this document
 covers the post-`rl_review.md` §8 sweeps where every value is re-run with
 8 fresh seeds and a strict statistical adoption rule.
 
+**Clean restart note**: after the reproducibility audit, new reruns live in
+`results/rl_clean/` and are tracked in `docs/rl_clean_sweeps.md`. The legacy
+`results/rl/` files documented here remain historical context only.
+
 ## Methodology
 
 - **Environment**: LunarLander-v3, 1000 episodes per run, eval every

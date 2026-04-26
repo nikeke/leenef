@@ -53,6 +53,16 @@ from .activations import make_activation
 from .encoders import make_encoders
 
 
+def _reset_env(env, seed: int | None):
+    """Reset a Gymnasium-style environment with explicit action-space seeding."""
+    if seed is not None:
+        action_space = getattr(env, "action_space", None)
+        if action_space is not None and hasattr(action_space, "seed"):
+            action_space.seed(seed)
+        return env.reset(seed=seed)
+    return env.reset()
+
+
 class NEFFeatures:
     """Fixed random feature encoder for RL states.
 
@@ -993,10 +1003,7 @@ class NEFFQIAgent:
             raise ValueError("Provide either env or env_step")
 
         for i in range(n_episodes):
-            if seed is None:
-                obs, _ = env.reset()
-            else:
-                obs, _ = env.reset(seed=seed + i)
+            obs, _ = _reset_env(env, None if seed is None else seed + i)
             done = False
             while not done:
                 action = int(self.rng.integers(self.n_actions))
@@ -1118,10 +1125,7 @@ class NEFFQIEnsemble:
         """
         n_actions = self.members[0].n_actions
         for i in range(n_episodes):
-            if seed is None:
-                obs, _ = env.reset()
-            else:
-                obs, _ = env.reset(seed=seed + i)
+            obs, _ = _reset_env(env, None if seed is None else seed + i)
             done = False
             while not done:
                 action = int(self.rng.integers(n_actions))

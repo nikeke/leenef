@@ -1,0 +1,16 @@
+{
+  "n_neurons": 4000,
+  "gamma": 0.99,
+  "alpha": 0.1,
+  "epsilon_start": 1.0,
+  "epsilon_end": 0.01,
+  "epsilon_decay": 500,
+  "solve_every": 10,
+  "target_mode": "nstep",
+  "n_step": 50,
+  "forget_factor": 0.999,
+  "fqi_iters": 1,
+  "tau": 0.3,
+  "broadness": 0.0,
+  "recenter_interval": null
+}

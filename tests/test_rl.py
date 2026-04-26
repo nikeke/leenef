@@ -1,9 +1,16 @@
 """Tests for RL utilities."""
 
+import json
+import sys
+from pathlib import Path
+
 import numpy as np
 import torch
 
-from leenef.rl import NEFFeatures, NEFFQIAgent
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from benchmarks import run_hp_sweep
+from leenef.rl import NEFFeatures, NEFFQIAgent, NEFFQIEnsemble
 
 
 def test_apply_broadness_uses_alive_mean_for_cumulative_stats():
@@ -139,9 +146,11 @@ def test_solve_from_stats_flushes_deferred_rls_episodes():
 class _OneStepEnv:
     def __init__(self):
         self.reset_seeds: list[int | None] = []
+        self.action_space = _SeedableActionSpace(2)
         self.steps = 0
 
     def reset(self, seed=None):
+        self.steps = 0
         self.reset_seeds.append(seed)
         return np.zeros(2, dtype=np.float32), {}
 
@@ -150,6 +159,92 @@ class _OneStepEnv:
         self.steps += 1
         terminated = self.steps >= 10
         return np.ones(2, dtype=np.float32), 1.0, terminated, False, {}
+
+
+class _SeedableActionSpace:
+    def __init__(self, n):
+        self.n = n
+        self.seed_values: list[int] = []
+
+    def seed(self, seed):
+        self.seed_values.append(seed)
+
+
+class _TinyObsSpace:
+    shape = (2,)
+
+
+class _TinyEnv:
+    def __init__(self):
+        self.observation_space = _TinyObsSpace()
+        self.action_space = _SeedableActionSpace(2)
+        self.reset_seeds: list[int | None] = []
+        self._episode_seed = 0
+        self._step = 0
+
+    def reset(self, seed=None):
+        self._episode_seed = 0 if seed is None else int(seed)
+        self._step = 0
+        self.reset_seeds.append(seed)
+        obs = np.array(
+            [self._episode_seed % 7, (self._episode_seed // 7) % 7],
+            dtype=np.float32,
+        )
+        return obs, {}
+
+    def step(self, action):
+        self._step += 1
+        next_obs = np.array(
+            [self._episode_seed % 5 + self._step, action + self._step],
+            dtype=np.float32,
+        )
+        reward = float((self._episode_seed % 11) - action + self._step)
+        terminated = self._step >= 2
+        return next_obs, reward, terminated, False, {}
+
+    def close(self):
+        return None
+
+
+def _tiny_hp_config(**overrides):
+    config = {
+        "n_neurons": 8,
+        "gamma": 0.9,
+        "alpha": 1e-2,
+        "epsilon_start": 0.0,
+        "epsilon_end": 0.0,
+        "epsilon_decay": 1,
+        "solve_every": 1,
+        "target_mode": "nstep",
+        "n_step": 1,
+        "forget_factor": 0.95,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": None,
+    }
+    config.update(overrides)
+    return config
+
+
+def _stub_hp_result(label: str, seed: int, agent_kwargs: dict) -> dict:
+    config = {k: v for k, v in agent_kwargs.items() if not k.startswith("_")}
+    return {
+        **run_hp_sweep.result_metadata(config, seed),
+        "label": label,
+        "seed": seed,
+        "knob": agent_kwargs.get("_knob"),
+        "value": agent_kwargs.get("_value"),
+        "best_50": 1.0,
+        "final_50": 1.0,
+        "best_eval": 1.0,
+        "final_eval": 1.0,
+        "time_s": 0.0,
+        "warmup_seed": run_hp_sweep.warmup_seed(seed),
+        "evaluation_seed_base": run_hp_sweep.EVAL_SEED_BASE,
+        "eval_history": [],
+        "rewards": [],
+    }
 
 
 def test_warmup_uses_seed_sequence_when_provided():
@@ -166,3 +261,152 @@ def test_warmup_uses_seed_sequence_when_provided():
     agent.warmup(env=env, n_episodes=3, seed=100)
 
     assert env.reset_seeds == [100, 101, 102]
+    assert env.action_space.seed_values == [100, 101, 102]
+
+
+def test_ensemble_warmup_uses_seed_sequence_when_provided():
+    env = _OneStepEnv()
+    ensemble = NEFFQIEnsemble(
+        n_members=2,
+        d_obs=2,
+        n_actions=2,
+        n_neurons=6,
+        target_mode="nstep",
+        forget_factor=0.95,
+        base_seed=3,
+    )
+
+    ensemble.warmup(env=env, n_episodes=3, seed=200)
+
+    assert env.reset_seeds == [200, 201, 202]
+    assert env.action_space.seed_values == [200, 201, 202]
+
+
+def test_run_hp_sweep_is_deterministic_for_same_config_and_seed(monkeypatch):
+    monkeypatch.setattr(run_hp_sweep.gym, "make", lambda _: _TinyEnv())
+    kwargs = _tiny_hp_config(_knob="n_step", _value=1)
+
+    first = run_hp_sweep.run_experiment(
+        "n_step=1_s7",
+        "TinyEnv-v0",
+        n_episodes=4,
+        seed=7,
+        agent_kwargs=kwargs,
+        eval_every=2,
+    )
+    second = run_hp_sweep.run_experiment(
+        "n_step=1_s7",
+        "TinyEnv-v0",
+        n_episodes=4,
+        seed=7,
+        agent_kwargs=kwargs,
+        eval_every=2,
+    )
+
+    for key in ("rewards", "eval_history", "best_eval", "final_eval", "best_50", "final_50"):
+        assert second[key] == first[key]
+
+
+def test_run_hp_sweep_metrics_ignore_knob_label_for_same_config(monkeypatch):
+    monkeypatch.setattr(run_hp_sweep.gym, "make", lambda _: _TinyEnv())
+    config = _tiny_hp_config()
+
+    first = run_hp_sweep.run_experiment(
+        "alpha=0.01_s4",
+        "TinyEnv-v0",
+        n_episodes=4,
+        seed=4,
+        agent_kwargs={**config, "_knob": "alpha", "_value": 0.01},
+        eval_every=2,
+    )
+    second = run_hp_sweep.run_experiment(
+        "tau=0.3_s4",
+        "TinyEnv-v0",
+        n_episodes=4,
+        seed=4,
+        agent_kwargs={**config, "_knob": "tau", "_value": 0.3},
+        eval_every=2,
+    )
+
+    for key in ("rewards", "eval_history", "best_eval", "final_eval", "best_50", "final_50"):
+        assert second[key] == first[key]
+
+
+def test_run_hp_sweep_reruns_stale_results(tmp_path, monkeypatch, capsys):
+    base_path = tmp_path / "base_config.json"
+    out_path = tmp_path / "n_step.json"
+    config = _tiny_hp_config()
+    base_path.write_text(json.dumps(config))
+    label = "n_step=1_s0"
+    out_path.write_text(json.dumps({label: {"label": label, "seed": 0, "config": config}}))
+
+    seen: list[str] = []
+
+    def fake_worker(args):
+        label, _, _, seed, agent_kwargs = args
+        seen.append(label)
+        return _stub_hp_result(label, seed, agent_kwargs)
+
+    monkeypatch.setattr(run_hp_sweep, "_worker", fake_worker)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_hp_sweep.py",
+            "--knob",
+            "n_step",
+            "--values",
+            "1",
+            "--seeds",
+            "0",
+            "--episodes",
+            "1",
+            "--base-config",
+            str(base_path),
+            "--output",
+            str(out_path),
+        ],
+    )
+
+    run_hp_sweep.main()
+
+    assert seen == [label]
+    assert "Re-running n_step=1_s0" in capsys.readouterr().out
+
+
+def test_run_hp_sweep_skips_current_results(tmp_path, monkeypatch, capsys):
+    base_path = tmp_path / "base_config.json"
+    out_path = tmp_path / "n_step.json"
+    config = _tiny_hp_config()
+    base_path.write_text(json.dumps(config))
+    label = "n_step=1_s0"
+    out_path.write_text(
+        json.dumps({label: _stub_hp_result(label, 0, {**config, "_knob": "n_step", "_value": 1})})
+    )
+
+    seen: list[str] = []
+    monkeypatch.setattr(run_hp_sweep, "_worker", lambda args: seen.append(args[0]))
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_hp_sweep.py",
+            "--knob",
+            "n_step",
+            "--values",
+            "1",
+            "--seeds",
+            "0",
+            "--episodes",
+            "1",
+            "--base-config",
+            str(base_path),
+            "--output",
+            str(out_path),
+        ],
+    )
+
+    run_hp_sweep.main()
+
+    assert seen == []
+    assert "Skipping n_step=1_s0" in capsys.readouterr().out

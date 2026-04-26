@@ -21,6 +21,8 @@ import time
 import gymnasium as gym
 import numpy as np
 
+from benchmarks.rl_repro import reset_env, set_rl_seed, training_seed, warmup_seed
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from leenef.rl import NEFFQIAgent  # noqa: E402
 
@@ -32,8 +34,9 @@ def run_experiment(
     seed: int = 0,
 ) -> dict:
     """Run a single experiment and return results."""
+    set_rl_seed(seed)
     env = gym.make("LunarLander-v3")
-    env.reset(seed=seed)
+    reset_env(env, seed=seed)
 
     agent = NEFFQIAgent(
         d_obs=env.observation_space.shape[0],
@@ -43,13 +46,13 @@ def run_experiment(
     )
 
     # Warmup
-    agent.warmup(env=env, n_episodes=warmup_episodes)
+    agent.warmup(env=env, n_episodes=warmup_episodes, seed=warmup_seed(seed))
 
     rewards = []
     t0 = time.time()
 
     for ep in range(n_episodes):
-        obs, _ = env.reset()
+        obs, _ = reset_env(env, seed=training_seed(seed, ep))
         total_reward = 0.0
         done = False
         while not done:

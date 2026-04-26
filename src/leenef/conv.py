@@ -15,6 +15,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 
+from ._rng import fork_generator
 from .activations import make_activation
 from .layers import NEFLayer
 
@@ -136,7 +137,7 @@ class ConvNEFStage(nn.Module):
         # For k-means: ||c_k||² after centering, for distance computation
         self.register_buffer("_centroid_sq", torch.empty(0))
 
-    def _extract_patches(self, images: Tensor) -> Tensor:
+    def _extract_patches(self, images: Tensor, *, rng: torch.Generator | None = None) -> Tensor:
         """Extract and subsample patches from images.
 
         Returns:
@@ -163,7 +164,11 @@ class ConvNEFStage(nn.Module):
 
         patches = torch.cat(all_patches, dim=0)
         if patches.shape[0] > self.max_patches:
-            idx = torch.randperm(patches.shape[0], device=patches.device)[: self.max_patches]
+            idx = torch.randperm(
+                patches.shape[0],
+                generator=rng,
+                device=patches.device,
+            )[: self.max_patches]
             patches = patches[idx]
         return patches
 
@@ -187,7 +192,14 @@ class ConvNEFStage(nn.Module):
         return patches
 
     @staticmethod
-    def _kmeans(patches: Tensor, k: int, n_iter: int = 20, seed: int = 0) -> Tensor:
+    def _kmeans(
+        patches: Tensor,
+        k: int,
+        n_iter: int = 20,
+        *,
+        rng: torch.Generator | None = None,
+        seed: int = 0,
+    ) -> Tensor:
         """Pure-PyTorch k-means clustering.
 
         Args:
@@ -200,7 +212,7 @@ class ConvNEFStage(nn.Module):
             ``(k, d)`` cluster centroids.
         """
         n, d = patches.shape
-        g = torch.Generator(device=patches.device).manual_seed(seed)
+        g = fork_generator(rng, fallback_seed=seed, device=patches.device)
         idx = torch.randperm(n, generator=g, device=patches.device)[:k]
         centroids = patches[idx].clone()
 
@@ -226,7 +238,7 @@ class ConvNEFStage(nn.Module):
 
         return centroids
 
-    def fit(self, images: Tensor) -> None:
+    def fit(self, images: Tensor, *, rng: torch.Generator | None = None) -> None:
         """Learn filters from training images.
 
         For ``filter_strategy='pca'``, computes PCA of patches and uses
@@ -239,7 +251,8 @@ class ConvNEFStage(nn.Module):
         C = images.shape[1]
         ph, pw = self.patch_size
 
-        patches = self._extract_patches(images)
+        patch_rng = fork_generator(rng, fallback_seed=0, device=images.device)
+        patches = self._extract_patches(images, rng=patch_rng)
         if self.normalize_patches:
             self._normalize_patches_inplace(patches)
         mean = patches.mean(dim=0)
@@ -261,7 +274,12 @@ class ConvNEFStage(nn.Module):
                 patches_w = patches_centered @ W
             else:
                 patches_w = patches_centered
-            centroids = self._kmeans(patches_w, self.n_filters, self.kmeans_iter)
+            centroids = self._kmeans(
+                patches_w,
+                self.n_filters,
+                self.kmeans_iter,
+                rng=fork_generator(rng, fallback_seed=1, device=patches.device),
+            )
             if self.whiten_patches:
                 # Map centroids back to original space
                 W_inv = eigvecs @ torch.diag(eigvals_safe.sqrt()) @ eigvecs.T
@@ -589,11 +607,11 @@ class ConvNEFPipeline(nn.Module):
         # Fit stages on subsample
         if self.parallel:
             for stage in self.stages:
-                stage.fit(sub_images)
+                stage.fit(sub_images, rng=fork_generator(g, device=sub_images.device))
         else:
             x_sub = sub_images
             for stage in self.stages:
-                stage.fit(x_sub)
+                stage.fit(x_sub, rng=fork_generator(g, device=x_sub.device))
                 # Forward through fitted stage in chunks to limit memory
                 chunks = []
                 for j in range(0, x_sub.shape[0], batch_size):
@@ -632,6 +650,7 @@ class ConvNEFPipeline(nn.Module):
             self.n_neurons,
             targets.shape[1],
             centers=centers,
+            rng=fork_generator(g, device=images.device),
             **head_kwargs,
         )
         self.head = self.head.to(images.device)

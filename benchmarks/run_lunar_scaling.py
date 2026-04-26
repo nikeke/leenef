@@ -11,6 +11,7 @@ import time
 import gymnasium as gym
 import numpy as np
 
+from benchmarks.rl_repro import EVAL_SEED_BASE, reset_env, set_rl_seed, training_seed, warmup_seed
 from leenef.rl import NEFFQIAgent
 
 sys.stdout.reconfigure(line_buffering=True)
@@ -31,7 +32,7 @@ def evaluate(agent, n=20, seed=42):
     env = gym.make(ENV_NAME)
     returns = []
     for i in range(n):
-        obs, _ = env.reset(seed=seed + i)
+        obs, _ = reset_env(env, seed=seed + i)
         done, total = False, 0.0
         while not done:
             q = agent.q_values(obs)
@@ -46,16 +47,18 @@ def evaluate(agent, n=20, seed=42):
 
 def train(label, agent_kwargs, episodes=EPISODES, eval_every=EVAL_EVERY):
     print(f"\n>>> {label}")
+    base_seed = int(agent_kwargs.get("seed", 0))
+    set_rl_seed(base_seed)
     agent = NEFFQIAgent(d_obs=D_OBS, n_actions=N_ACTIONS, **agent_kwargs)
     warmup_env = gym.make(ENV_NAME)
-    agent.warmup(env=warmup_env, n_episodes=20)
+    agent.warmup(env=warmup_env, n_episodes=20, seed=warmup_seed(base_seed))
     warmup_env.close()
 
     env = gym.make(ENV_NAME)
     t0 = time.time()
     evals = []
     for ep in range(episodes):
-        obs, _ = env.reset(seed=ep)
+        obs, _ = reset_env(env, seed=training_seed(base_seed, ep))
         done = False
         while not done:
             action = agent.select_action(obs)
@@ -66,7 +69,7 @@ def train(label, agent_kwargs, episodes=EPISODES, eval_every=EVAL_EVERY):
         agent.end_episode()
 
         if (ep + 1) % eval_every == 0:
-            ev = evaluate(agent, n=20, seed=10000)
+            ev = evaluate(agent, n=20, seed=EVAL_SEED_BASE)
             evals.append({"episode": ep + 1, "eval": ev})
             elapsed = time.time() - t0
             recentered = getattr(agent, "_recentered_total", 0)

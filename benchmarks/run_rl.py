@@ -29,6 +29,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from benchmarks.rl_repro import reset_env, set_rl_seed, training_seed, warmup_seed
 from leenef.rl import NEFFQIAgent
 
 # ---------------------------------------------------------------------------
@@ -152,7 +153,7 @@ def evaluate(
     env = gym.make(env_name)
     returns = []
     for i in range(n_episodes):
-        obs, _ = env.reset(seed=seed + i)
+        obs, _ = reset_env(env, seed=seed + i)
         total_reward = 0.0
         done = False
         while not done:
@@ -183,19 +184,20 @@ def train_agent(
     verbose: bool = True,
 ) -> dict:
     """Train agent and return results dict."""
+    set_rl_seed(seed)
     env = gym.make(env_name)
     eval_history = []
     episode_rewards = []
 
     if isinstance(agent, NEFFQIAgent):
         warmup_env = gym.make(env_name)
-        agent.warmup(env=warmup_env, n_episodes=20)
+        agent.warmup(env=warmup_env, n_episodes=20, seed=warmup_seed(seed))
         warmup_env.close()
 
     t_start = time.time()
 
     for ep in range(n_episodes):
-        obs, _ = env.reset(seed=seed + ep)
+        obs, _ = reset_env(env, seed=training_seed(seed, ep))
         total_reward = 0.0
         done = False
 

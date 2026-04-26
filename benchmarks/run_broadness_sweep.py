@@ -21,6 +21,18 @@ import gymnasium as gym
 import numpy as np
 import torch
 
+from benchmarks.rl_repro import (
+    EVAL_SEED_BASE,
+    RESULTS_DIR,
+    reset_env,
+    result_metadata,
+    set_rl_seed,
+    training_seed,
+    warmup_seed,
+)
+from benchmarks.rl_repro import (
+    can_reuse_result as can_reuse_rl_result,
+)
 from leenef.rl import NEFFQIAgent, NEFFQIEnsemble
 
 
@@ -34,7 +46,7 @@ def evaluate_greedy(agent, env_name, n_episodes=20, seed=42):
     env = gym.make(env_name)
     returns = []
     for i in range(n_episodes):
-        obs, _ = env.reset(seed=seed + i)
+        obs, _ = reset_env(env, seed=seed + i)
         total_reward = 0.0
         done = False
         while not done:
@@ -55,6 +67,7 @@ def evaluate_greedy(agent, env_name, n_episodes=20, seed=42):
 
 def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=50):
     """Run one experiment with eval metrics and recenter logging."""
+    set_rl_seed(seed)
     env = gym.make(env_name)
     d_obs = env.observation_space.shape[0]
     n_actions = env.action_space.n
@@ -63,7 +76,7 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
     agent = NEFFQIAgent(d_obs=d_obs, n_actions=n_actions, seed=seed, **agent_kwargs)
 
     warmup_env = gym.make(env_name)
-    agent.warmup(env=warmup_env, n_episodes=20)
+    agent.warmup(env=warmup_env, n_episodes=20, seed=warmup_seed(seed))
     warmup_env.close()
 
     env = gym.make(env_name)
@@ -72,7 +85,7 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
     t_start = time.time()
 
     for ep in range(n_episodes):
-        obs, _ = env.reset(seed=seed + ep)
+        obs, _ = reset_env(env, seed=training_seed(seed, ep))
         total_reward = 0.0
         done = False
         while not done:
@@ -86,7 +99,7 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
         rewards.append(total_reward)
 
         if (ep + 1) % eval_every == 0:
-            eval_ret = evaluate_greedy(agent, env_name, 20, seed=10000)
+            eval_ret = evaluate_greedy(agent, env_name, 20, seed=EVAL_SEED_BASE)
             eval_history.append({"episode": ep + 1, "eval": eval_ret})
             r50 = np.mean(rewards[-50:]) if len(rewards) >= 50 else np.mean(rewards)
             print(
@@ -111,8 +124,8 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
     final_eval = eval_history[-1]["eval"] if eval_history else None
 
     return {
+        **result_metadata(agent_kwargs, seed),
         "label": label,
-        "seed": seed,
         "broadness": agent_kwargs.get("broadness", 1.0),
         "best_50": round(best_50, 1),
         "final_50": round(final_50, 1),
@@ -125,6 +138,10 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
         "rewards": [round(float(r), 1) for r in rewards],
         "recenter_log": agent._recenter_log,
     }
+
+
+def can_reuse_result(result: dict, expected_config: dict, seed: int) -> bool:
+    return can_reuse_rl_result(result, expected_config, expected_seed=seed)
 
 
 def _worker(args):
@@ -171,7 +188,7 @@ def main():
         "recenter_percentile": 5.0,
     }
 
-    out_path = args.output or f"results/rl/broadness_{args.env.split('-')[0].lower()}.json"
+    out_path = args.output or str(RESULTS_DIR / f"broadness_{args.env.split('-')[0].lower()}.json")
     existing = {}
     if os.path.exists(out_path):
         with open(out_path) as f:
@@ -182,9 +199,13 @@ def main():
     for b in broadness_values:
         for s in args.seeds:
             label = f"b{_format_broadness(b)}_s{s}"
-            if label in existing and "error" not in existing[label]:
+            if label in existing and can_reuse_result(
+                existing[label], dict(base_kwargs, broadness=b), s
+            ):
                 print(f"  Skipping {label} (already completed)")
                 continue
+            if label in existing:
+                print(f"  Re-running {label} (stale result metadata)")
             kw = dict(base_kwargs)
             kw["broadness"] = b
             tasks.append((label, args.env, args.episodes, s, kw))

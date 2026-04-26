@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 
+from ._rng import fork_generator
 from .layers import NEFLayer
 from .solvers import solve_decoders
 
@@ -406,6 +407,7 @@ class NEFNetwork(nn.Module):
                 activation=self._activation,
                 encoder_strategy=self._encoder_strategy,
                 centers=centers,
+                rng=fork_generator(self._rng),
                 encoder_kwargs=self._layer_encoder_kwargs(train_data=x, is_input_layer=True),
             ).to(x.device)
             tmp.fit(x, targets, solver=solver, **solver_kw)
@@ -432,8 +434,7 @@ class NEFNetwork(nn.Module):
         # --- optional mini-batch loader ---
         if batch_size is not None:
             dataset = torch.utils.data.TensorDataset(x, grad_targets)
-            g = torch.Generator()
-            g.manual_seed(0)
+            g = fork_generator(self._rng)
             loader = torch.utils.data.DataLoader(
                 dataset, batch_size=batch_size, shuffle=True, generator=g
             )
@@ -490,8 +491,7 @@ class NEFNetwork(nn.Module):
                 train_targets = targets
 
             dataset = torch.utils.data.TensorDataset(x, train_targets)
-            g = torch.Generator()
-            g.manual_seed(0)
+            g = fork_generator(self._rng)
             loader = torch.utils.data.DataLoader(
                 dataset, batch_size=batch_size, shuffle=True, generator=g
             )
