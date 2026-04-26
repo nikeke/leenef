@@ -21,10 +21,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import matplotlib
-import matplotlib.pyplot as plt
-import numpy as np
 
 matplotlib.use("Agg")
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
