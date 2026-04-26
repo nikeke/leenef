@@ -21,12 +21,20 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import numpy as np
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
+
+
+def _require_pyplot():
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    return plt
+
+
+plt = _require_pyplot()
 
 DEFAULT_INPUTS = [
     Path("results/rl/broadness_lunarlander_corrected.json"),

@@ -15,8 +15,6 @@ import os
 from pathlib import Path
 
 import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import numpy as np
 
 from benchmarks.rl_repro import (
@@ -26,6 +24,16 @@ from benchmarks.rl_repro import (
     hp_run_context,
 )
 from benchmarks.rl_sweep_data import load_sweep
+
+
+def _require_pyplot():
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    return plt
+
+
+plt = _require_pyplot()
 
 KNOBS = [
     "n_step",
