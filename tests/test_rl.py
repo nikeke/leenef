@@ -6,12 +6,14 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import pytest
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from benchmarks import analyze_rl_sweep, plot_rl_sweeps, rl_repro, run_config_sweep, run_hp_sweep
+from benchmarks import analyze_rl_sweep, rl_repro, run_config_sweep, run_hp_sweep
 from benchmarks.rl_repro import can_reuse_result, env_tag, hp_run_context
+from benchmarks.rl_sweep_data import load_sweep
 from leenef.rl import NEFFeatures, NEFFQIAgent, NEFFQIEnsemble
 
 
@@ -380,6 +382,7 @@ def test_run_hp_sweep_records_run_context_extra(monkeypatch):
 
 
 def test_run_hp_sweep_reruns_stale_results(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(run_hp_sweep, "_GYMNASIUM_IMPORT_ERROR", None)
     base_path = tmp_path / "base_config.json"
     out_path = tmp_path / "n_step.json"
     config = _tiny_hp_config()
@@ -422,6 +425,7 @@ def test_run_hp_sweep_reruns_stale_results(tmp_path, monkeypatch, capsys):
 
 
 def test_run_hp_sweep_skips_current_results(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(run_hp_sweep, "_GYMNASIUM_IMPORT_ERROR", None)
     base_path = tmp_path / "base_config.json"
     out_path = tmp_path / "n_step.json"
     config = _tiny_hp_config()
@@ -460,6 +464,7 @@ def test_run_hp_sweep_skips_current_results(tmp_path, monkeypatch, capsys):
 
 
 def test_run_hp_sweep_reruns_when_run_context_changes(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(run_hp_sweep, "_GYMNASIUM_IMPORT_ERROR", None)
     base_path = tmp_path / "base_config.json"
     out_path = tmp_path / "n_step.json"
     config = _tiny_hp_config()
@@ -503,6 +508,36 @@ def test_run_hp_sweep_reruns_when_run_context_changes(tmp_path, monkeypatch, cap
     assert "Re-running n_step=1_s0" in capsys.readouterr().out
 
 
+def test_run_hp_sweep_fails_fast_without_gymnasium(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        run_hp_sweep,
+        "_GYMNASIUM_IMPORT_ERROR",
+        ModuleNotFoundError(run_hp_sweep._MISSING_GYMNASIUM_MESSAGE),
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_hp_sweep.py",
+            "--knob",
+            "n_step",
+            "--values",
+            "1",
+            "--seeds",
+            "0",
+            "--episodes",
+            "1",
+            "--base-config",
+            str(tmp_path / "base_config.json"),
+            "--output",
+            str(tmp_path / "n_step.json"),
+        ],
+    )
+
+    with pytest.raises(SystemExit, match="gymnasium is required to run RL sweeps"):
+        run_hp_sweep.main()
+
+
 def test_hp_analysis_and_plot_filter_stale_rows(tmp_path):
     knob = "n_step"
     base_config = _tiny_hp_config()
@@ -522,7 +557,7 @@ def test_hp_analysis_and_plot_filter_stale_rows(tmp_path):
     assert stats["1"]["n"] == 1
     sweep_path = tmp_path / "n_step_lunarlander.json"
     sweep_path.write_text(json.dumps(sweep))
-    plotted = plot_rl_sweeps.load_sweep(
+    plotted = load_sweep(
         str(sweep_path),
         knob,
         base_config=base_config,

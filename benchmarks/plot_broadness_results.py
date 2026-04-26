@@ -18,9 +18,17 @@ import argparse
 import json
 from collections import defaultdict
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+import matplotlib
+
+matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import numpy as np
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 DEFAULT_INPUTS = [
     Path("results/rl/broadness_lunarlander_corrected.json"),
@@ -81,7 +89,7 @@ def _aggregate(records: list[dict], metric: str) -> dict[int, list[dict]]:
     return out
 
 
-def _plot_metric(ax: plt.Axes, aggregated: dict[int, list[dict]], metric: str) -> None:
+def _plot_metric(ax: "Axes", aggregated: dict[int, list[dict]], metric: str) -> None:
     for n_neurons in sorted(aggregated):
         rows = aggregated[n_neurons]
         x = np.array([row["broadness"] for row in rows], dtype=float)
