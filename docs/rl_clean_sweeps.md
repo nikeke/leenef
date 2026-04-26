@@ -52,7 +52,7 @@ Current clean base after completed phases:
 
 ```json
 {
-  "n_neurons": 4000,
+  "n_neurons": 6000,
   "gamma": 0.98,
   "alpha": 0.1,
   "epsilon_start": 1.0,
@@ -60,7 +60,7 @@ Current clean base after completed phases:
   "epsilon_decay": 500,
   "solve_every": 10,
   "target_mode": "nstep",
-  "n_step": 50,
+  "n_step": 100,
   "forget_factor": 0.999,
   "fqi_iters": 1,
   "tau": 0.3,
@@ -75,6 +75,7 @@ Current clean base after completed phases:
 |---|---:|---:|---:|---:|---:|---:|---:|---|
 | start | 4000 | 0.97 | 0.1 | 50 | 0.999 | 10 | 500 | clean post-audit starting point |
 | P1 gamma | 4000 | **0.98** | 0.1 | 50 | 0.999 | 10 | 500 | adopted over 0.97 by robust_eval |
+| P3b H1 | **6000** | 0.98 | 0.1 | **100** | 0.999 | 10 | 500 | adopted over 4000@50 and rejected 8000/12000 edges |
 
 ## Phase results
 
@@ -124,6 +125,39 @@ Next action: run an edge-extended P3b rather than the original grid alone:
 `{4000,6000,8000} x {50,100}` plus `8000@200` and `12000@100` if memory
 allows. This preserves the scaling-law story while directly testing whether the
 P3a winner is an edge artifact.
+
+### P3b — H1 edge-extended grid: horizon x capacity
+
+Result file: `results/rl_clean/p3b_h1_grid_lunarlander_v3.json`
+
+Figure:
+
+- `docs/figures/rl_clean_p3b_h1_grid.png`
+
+| config | n_step | n_neurons | n | robust_eval mean ± SE | best_eval mean | final_eval mean |
+|---|---:|---:|---:|---:|---:|---:|
+| `n50_k4000` | 50 | 4000 | 5 | 183.0 ± 11.6 | 204.2 | 180.1 |
+| `n100_k4000` | 100 | 4000 | 5 | 184.8 ± 2.9 | 195.5 | 182.1 |
+| `n50_k6000` | 50 | 6000 | 5 | 172.1 ± 13.3 | 190.8 | 177.0 |
+| **`n100_k6000`** | 100 | 6000 | 5 | **216.7 ± 6.2** | **232.8** | **212.3** |
+| `n50_k8000` | 50 | 8000 | 5 | 152.6 ± 9.1 | 166.7 | 151.6 |
+| `n100_k8000` | 100 | 8000 | 5 | 189.5 ± 20.0 | 198.6 | 187.3 |
+| `n200_k8000` | 200 | 8000 | 5 | 158.1 ± 13.1 | 176.3 | 157.5 |
+| `n100_k12000` | 100 | 12000 | 5 | 163.0 ± 11.9 | 183.6 | 176.2 |
+
+Decision: adopt `n_neurons=6000` and `n_step=100`. This is the best
+configuration in robust_eval and both diagnostics. It improves over the P1
+incumbent `n50_k4000` by `+33.7` robust_eval (`SE_combined=13.2`) and over
+`n50_k6000` by `+44.6` (`SE_combined=14.7`), so the clean H1 result supports a
+horizon-capacity interaction rather than a pure capacity increase. The
+high-capacity edge did not reproduce the P3a two-seed spike: `n100_k8000`,
+`n200_k8000`, and `n100_k12000` all underperformed `n100_k6000`, and the
+12000-neuron edge was also slower and more memory-intensive.
+
+Next action: continue to P4 H2 using the new clean base
+`n_neurons=6000, n_step=100`. Treat 8000/12000-neuron capacity as de-emphasized
+unless a later phase reveals a new interaction that specifically justifies
+returning to it.
 
 ## Historical results that are stale for sweep adoption
 
