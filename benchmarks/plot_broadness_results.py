@@ -15,12 +15,16 @@ results are added to the same JSON files.
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 from collections import defaultdict
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-import matplotlib.pyplot as plt
 import numpy as np
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 DEFAULT_INPUTS = [
     Path("results/rl/broadness_lunarlander_corrected.json"),
@@ -33,6 +37,12 @@ COLORS = {
     6000: "#D55E00",
     8000: "#009E73",
 }
+
+
+def _require_pyplot():
+    matplotlib = importlib.import_module("matplotlib")
+    matplotlib.use("Agg")
+    return importlib.import_module("matplotlib.pyplot")
 
 
 def _load_records(paths: list[Path]) -> list[dict]:
@@ -81,7 +91,7 @@ def _aggregate(records: list[dict], metric: str) -> dict[int, list[dict]]:
     return out
 
 
-def _plot_metric(ax: plt.Axes, aggregated: dict[int, list[dict]], metric: str) -> None:
+def _plot_metric(ax: "Axes", aggregated: dict[int, list[dict]], metric: str) -> None:
     for n_neurons in sorted(aggregated):
         rows = aggregated[n_neurons]
         x = np.array([row["broadness"] for row in rows], dtype=float)
@@ -116,6 +126,7 @@ def _plot_metric(ax: plt.Axes, aggregated: dict[int, list[dict]], metric: str) -
 
 
 def main() -> None:
+    plt = _require_pyplot()
     parser = argparse.ArgumentParser(description="Plot broadness sweep summaries")
     parser.add_argument(
         "--inputs",

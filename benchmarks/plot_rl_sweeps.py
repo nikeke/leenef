@@ -10,14 +10,12 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib
 import json
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import numpy as np
 
 from benchmarks.rl_repro import (
@@ -28,6 +26,9 @@ from benchmarks.rl_repro import (
     is_current_hp_sweep_result,
     result_robust_eval,
 )
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 KNOBS = [
     "n_step",
@@ -43,6 +44,12 @@ KNOBS = [
 
 LOG_X_KNOBS = {"alpha", "epsilon_decay"}  # use log x-axis for these
 # forget_factor is best shown as 1-f on log scale (tail mass).
+
+
+def _require_pyplot():
+    matplotlib = importlib.import_module("matplotlib")
+    matplotlib.use("Agg")
+    return importlib.import_module("matplotlib.pyplot")
 
 
 def _stable_seed(*parts: object) -> int:
@@ -116,6 +123,7 @@ def plot_knob(
     eval_episodes: int,
     out_dir: str = str(FIGURES_DIR),
 ) -> dict | None:
+    plt = _require_pyplot()
     sweep_path = str(RESULTS_DIR / f"{knob}_{env_tag(env_name)}.json")
     by_value = load_sweep(
         sweep_path,
@@ -232,6 +240,7 @@ def plot_summary(
     out_dir: str = str(FIGURES_DIR),
 ) -> None:
     """One-line-per-knob summary: range of means with the best starred."""
+    plt = _require_pyplot()
     knobs_with_data = [k for k in KNOBS if per_knob_summary.get(k)]
     if not knobs_with_data:
         return
