@@ -20,7 +20,11 @@ from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
+
+matplotlib.use("Agg")
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
@@ -36,15 +40,6 @@ COLORS = {
     6000: "#D55E00",
     8000: "#009E73",
 }
-
-
-def _require_pyplot():
-    import matplotlib
-
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    return plt
 
 
 def _load_records(paths: list[Path]) -> list[dict]:
@@ -128,7 +123,6 @@ def _plot_metric(ax: "Axes", aggregated: dict[int, list[dict]], metric: str) -> 
 
 
 def main() -> None:
-    plt = _require_pyplot()
     parser = argparse.ArgumentParser(description="Plot broadness sweep summaries")
     parser.add_argument(
         "--inputs",
