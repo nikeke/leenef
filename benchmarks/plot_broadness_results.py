@@ -24,10 +24,10 @@ import numpy as np
 
 from benchmarks.plot_utils import init_pyplot
 
+plt = init_pyplot()
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
-
-plt = init_pyplot()
 
 DEFAULT_INPUTS = [
     Path("results/rl/broadness_lunarlander_corrected.json"),
