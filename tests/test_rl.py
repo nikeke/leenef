@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import pytest
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -381,6 +382,7 @@ def test_run_hp_sweep_records_run_context_extra(monkeypatch):
 
 
 def test_run_hp_sweep_reruns_stale_results(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(run_hp_sweep, "_GYMNASIUM_IMPORT_ERROR", None)
     base_path = tmp_path / "base_config.json"
     out_path = tmp_path / "n_step.json"
     config = _tiny_hp_config()
@@ -423,6 +425,7 @@ def test_run_hp_sweep_reruns_stale_results(tmp_path, monkeypatch, capsys):
 
 
 def test_run_hp_sweep_skips_current_results(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(run_hp_sweep, "_GYMNASIUM_IMPORT_ERROR", None)
     base_path = tmp_path / "base_config.json"
     out_path = tmp_path / "n_step.json"
     config = _tiny_hp_config()
@@ -461,6 +464,7 @@ def test_run_hp_sweep_skips_current_results(tmp_path, monkeypatch, capsys):
 
 
 def test_run_hp_sweep_reruns_when_run_context_changes(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(run_hp_sweep, "_GYMNASIUM_IMPORT_ERROR", None)
     base_path = tmp_path / "base_config.json"
     out_path = tmp_path / "n_step.json"
     config = _tiny_hp_config()
@@ -502,6 +506,36 @@ def test_run_hp_sweep_reruns_when_run_context_changes(tmp_path, monkeypatch, cap
 
     assert seen == [label]
     assert "Re-running n_step=1_s0" in capsys.readouterr().out
+
+
+def test_run_hp_sweep_fails_fast_without_gymnasium(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        run_hp_sweep,
+        "_GYMNASIUM_IMPORT_ERROR",
+        ModuleNotFoundError(run_hp_sweep._MISSING_GYMNASIUM_MESSAGE),
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_hp_sweep.py",
+            "--knob",
+            "n_step",
+            "--values",
+            "1",
+            "--seeds",
+            "0",
+            "--episodes",
+            "1",
+            "--base-config",
+            str(tmp_path / "base_config.json"),
+            "--output",
+            str(tmp_path / "n_step.json"),
+        ],
+    )
+
+    with pytest.raises(SystemExit, match="gymnasium is required to run RL sweeps"):
+        run_hp_sweep.main()
 
 
 def test_hp_analysis_and_plot_filter_stale_rows(tmp_path):

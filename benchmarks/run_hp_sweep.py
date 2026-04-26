@@ -27,19 +27,6 @@ from multiprocessing import Pool
 
 import numpy as np
 
-try:
-    import gymnasium as gym
-except ModuleNotFoundError:  # pragma: no cover - exercised in minimal test envs
-
-    class _MissingGymnasium:
-        def make(self, *args, **kwargs):
-            del args, kwargs
-            raise ModuleNotFoundError(
-                "gymnasium is required to run RL sweeps; install the RL benchmark dependencies."
-            )
-
-    gym = _MissingGymnasium()
-
 from benchmarks.rl_repro import (
     BASE_CONFIG_PATH,
     EVAL_SEED_BASE,
@@ -59,6 +46,25 @@ from benchmarks.rl_repro import (
     can_reuse_result as can_reuse_rl_result,
 )
 from leenef.rl import NEFFQIAgent
+
+_MISSING_GYMNASIUM_MESSAGE = (
+    "gymnasium is required to run RL sweeps; install it with "
+    "`pip install gymnasium` or install this project's benchmark "
+    "dependencies with `pip install .[bench]`."
+)
+_GYMNASIUM_IMPORT_ERROR: ModuleNotFoundError | None = None
+
+try:
+    import gymnasium as gym
+except ModuleNotFoundError:  # pragma: no cover - exercised in minimal test envs
+    _GYMNASIUM_IMPORT_ERROR = ModuleNotFoundError(_MISSING_GYMNASIUM_MESSAGE)
+
+    class _MissingGymnasium:
+        def make(self, *args, **kwargs):
+            del args, kwargs
+            raise _GYMNASIUM_IMPORT_ERROR
+
+    gym = _MissingGymnasium()
 
 # Built-in default base (used if base_config.json is missing).  Must
 # match the post-recentering-sweep decision: 4000n, no recentering,
@@ -277,6 +283,8 @@ def main():
         help="Defaults to results/rl_clean/<knob>_<env>.json",
     )
     args = parser.parse_args()
+    if _GYMNASIUM_IMPORT_ERROR is not None:
+        raise SystemExit(_GYMNASIUM_IMPORT_ERROR)
 
     base = load_base_config(args.base_config)
     parsed_values = [parse_value(args.knob, v) for v in args.values]
