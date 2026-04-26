@@ -130,6 +130,7 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
     run_kwargs = dict(agent_kwargs)
     knob = run_kwargs.pop("_knob", None)
     value = run_kwargs.pop("_value", None)
+    run_context_extra = run_kwargs.pop("_run_context_extra", {})
 
     agent = NEFFQIAgent(d_obs=d_obs, n_actions=n_actions, seed=seed, **run_kwargs)
 
@@ -187,7 +188,10 @@ def run_experiment(label, env_name, n_episodes, seed, agent_kwargs, eval_every=5
         **result_metadata(
             run_kwargs,
             seed,
-            run_context=hp_run_context(env_name, n_episodes, eval_every=eval_every),
+            run_context={
+                **hp_run_context(env_name, n_episodes, eval_every=eval_every),
+                **run_context_extra,
+            },
         ),
         "label": label,
         "knob": knob,

@@ -10,7 +10,7 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from benchmarks import analyze_rl_sweep, plot_rl_sweeps, rl_repro, run_hp_sweep
+from benchmarks import analyze_rl_sweep, plot_rl_sweeps, rl_repro, run_config_sweep, run_hp_sweep
 from benchmarks.rl_repro import can_reuse_result, env_tag, hp_run_context
 from leenef.rl import NEFFeatures, NEFFQIAgent, NEFFQIEnsemble
 
@@ -357,6 +357,28 @@ def test_run_hp_sweep_metrics_ignore_knob_label_for_same_config(monkeypatch):
         assert second[key] == first[key]
 
 
+def test_run_hp_sweep_records_run_context_extra(monkeypatch):
+    monkeypatch.setattr(run_hp_sweep.gym, "make", lambda _: _TinyEnv())
+
+    result = run_hp_sweep.run_experiment(
+        "h1_pilot_n50_k4_s0",
+        "TinyEnv-v0",
+        n_episodes=4,
+        seed=0,
+        agent_kwargs={
+            **_tiny_hp_config(),
+            "_knob": "h1_pilot",
+            "_value": "n50_k4",
+            "_run_context_extra": {"sweep_type": "config_grid", "phase": "h1_pilot"},
+        },
+        eval_every=2,
+    )
+
+    assert result["run_context"]["sweep_type"] == "config_grid"
+    assert result["run_context"]["phase"] == "h1_pilot"
+    assert "_run_context_extra" not in result["config"]
+
+
 def test_run_hp_sweep_reruns_stale_results(tmp_path, monkeypatch, capsys):
     base_path = tmp_path / "base_config.json"
     out_path = tmp_path / "n_step.json"
@@ -562,3 +584,21 @@ def test_env_tag_preserves_environment_version():
     assert run_hp_sweep._default_output_path("LunarLander-v3", "n_step").endswith(
         "n_step_lunarlander_v3.json"
     )
+
+
+def test_config_sweep_reuse_requires_grid_run_context():
+    config = _tiny_hp_config(n_step=2, n_neurons=16)
+    context = run_config_sweep.config_grid_run_context("LunarLander-v3", 1000, phase="h1_pilot")
+    result = {
+        **run_hp_sweep.result_metadata(config, 0, run_context=context),
+        "label": "h1_pilot_n2_k16_s0",
+        "seed": 0,
+        "knob": "h1_pilot",
+        "value": "n2_k16",
+        "config_name": "n2_k16",
+        "robust_eval": 1.0,
+    }
+
+    assert can_reuse_result(result, config, expected_seed=0, expected_run_context=context)
+    hp_context = hp_run_context("LunarLander-v3", 1000)
+    assert not can_reuse_result(result, config, expected_seed=0, expected_run_context=hp_context)
