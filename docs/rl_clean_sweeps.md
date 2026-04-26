@@ -98,6 +98,33 @@ Decision: adopt `gamma=0.98`. The robust-eval improvement over the incumbent
 also favored 0.98. P2 alpha sanity is skipped because the gamma frame-setter did
 not move to `gamma <= 0.96`.
 
+### P3a — H1 diagonal pilot: horizon x capacity
+
+Result file: `results/rl_clean/p3a_h1_pilot_lunarlander_v3.json`
+
+Figure:
+
+- `docs/figures/rl_clean_p3a_h1_pilot.png`
+
+| config | n_step | n_neurons | n | robust_eval mean ± SE | best_eval mean | final_eval mean |
+|---|---:|---:|---:|---:|---:|---:|
+| `n25_k4000` | 25 | 4000 | 2 | 120.1 ± 4.0 | 141.8 | 133.6 |
+| `n50_k4000` | 50 | 4000 | 2 | 172.6 ± 19.0 | 183.2 | 172.8 |
+| `n50_k6000` | 50 | 6000 | 2 | 151.5 ± 17.0 | 181.1 | 165.9 |
+| `n50_k8000` | 50 | 8000 | 2 | 171.8 ± 1.7 | 189.8 | 170.8 |
+| **`n100_k8000`** | 100 | 8000 | 2 | **227.7 ± 6.3** | **233.9** | **232.2** |
+
+Decision: P3a is **not** an adoption phase, but it cleanly triggered the
+planned long-horizon/high-capacity reframe condition. The short-horizon
+candidate `n25_k4000` was weak, the 6000-neuron tainted hint did not reproduce
+in this pilot, and `n50_k8000` only tied the 4000-neuron incumbent. In contrast,
+`n100_k8000` was strong on both seeds and both robust/final diagnostics.
+
+Next action: run an edge-extended P3b rather than the original grid alone:
+`{4000,6000,8000} x {50,100}` plus `8000@200` and `12000@100` if memory
+allows. This preserves the scaling-law story while directly testing whether the
+P3a winner is an edge artifact.
+
 ## Historical results that are stale for sweep adoption
 
 Treat these as **historical only**. Do not use them for skip/reuse decisions or
