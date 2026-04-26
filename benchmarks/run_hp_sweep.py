@@ -284,7 +284,7 @@ def main():
     )
     args = parser.parse_args()
     if _GYMNASIUM_IMPORT_ERROR is not None:
-        raise SystemExit(_GYMNASIUM_IMPORT_ERROR)
+        raise SystemExit(str(_GYMNASIUM_IMPORT_ERROR))
 
     base = load_base_config(args.base_config)
     parsed_values = [parse_value(args.knob, v) for v in args.values]
