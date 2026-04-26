@@ -14,6 +14,15 @@ from .layers import NEFLayer
 from .networks import NEFNetwork
 from .recurrent import RecurrentNEFLayer
 from .rl import NEFFeatures, NEFFQIAgent, NEFFQIEnsemble
+from .rl_diag import (
+    SparseChainEnv,
+    SparseRewardDiagnostics,
+    feature_coverage_stats,
+    leverage_stats,
+    solve_conditioning,
+    sparse_metric_summary,
+)
+from .rl_sf import NEFSuccessor
 from .solvers import SOLVERS, solve_decoders, solve_from_normal_equations
 from .streaming import StreamingNEFClassifier
 
@@ -29,6 +38,13 @@ __all__ = [
     "NEFFeatures",
     "NEFFQIAgent",
     "NEFFQIEnsemble",
+    "NEFSuccessor",
+    "SparseChainEnv",
+    "SparseRewardDiagnostics",
+    "feature_coverage_stats",
+    "leverage_stats",
+    "solve_conditioning",
+    "sparse_metric_summary",
     "local_contrast_normalize",
     "global_contrast_normalize",
     "make_encoders",
