@@ -20,19 +20,19 @@ def load_sweep(
     with open(path) as f:
         data = json.load(f)
     by_value: dict = {}
-    for result in data.values():
+    for sweep_result in data.values():
         if not is_current_hp_sweep_result(
-            result,
+            sweep_result,
             base_config=base_config,
             knob=knob,
             expected_run_context=expected_run_context,
         ):
             continue
-        robust_eval = result_robust_eval(result)
+        robust_eval = result_robust_eval(sweep_result)
         if robust_eval is None:
             continue
-        best_eval = result.get("best_eval")
-        value = result.get("value")
+        best_eval = sweep_result.get("best_eval")
+        value = sweep_result.get("value")
         key = (
             (float("inf"), "none")
             if value is None
@@ -42,7 +42,7 @@ def load_sweep(
         by_value[key]["robust"].append(robust_eval)
         if best_eval is not None:
             by_value[key]["best"].append(best_eval)
-        final_eval = result.get("final_eval")
+        final_eval = sweep_result.get("final_eval")
         if final_eval is not None:
             by_value[key]["final"].append(final_eval)
     return dict(sorted(by_value.items()))
