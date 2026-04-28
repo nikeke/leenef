@@ -68,3 +68,6 @@ nohup: ignoring input
   [nef_sf_novelty/seed=2] ep  125  train_avg= -499.60  eval= -492.80  ε=0.766
   [nef_sf_novelty/seed=2] ep  150  train_avg= -471.84  eval= -492.80  ε=0.729
   [nef_sf_novelty/seed=2] ep  175  train_avg= -493.44  eval= -482.20  ε=0.694
+  [nef_sf_novelty/seed=2] ep  200  train_avg= -500.00  eval= -500.00  ε=0.660
+  [nef_sf_novelty/seed=2] ep  225  train_avg= -495.96  eval= -500.00  ε=0.629
+  [nef_sf_novelty/seed=2] ep  250  train_avg= -490.04  eval= -500.00  ε=0.599
