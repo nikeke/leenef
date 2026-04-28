@@ -68,6 +68,8 @@ def _build_agent(
     goal_buffer_size: int,
     goal_horizon: int,
     goal_warmup_solves: int,
+    goal_mode: str,
+    goal_random_prob: float,
 ):
     """Construct an agent of the given variant from the rl_clean base config.
 
@@ -103,6 +105,8 @@ def _build_agent(
                 goal_buffer_size=int(goal_buffer_size),
                 goal_horizon=int(goal_horizon),
                 goal_warmup_solves=int(goal_warmup_solves),
+                goal_mode=goal_mode,
+                goal_random_prob=float(goal_random_prob),
             )
         return NEFSFAgent(**common)
     raise ValueError(f"Unknown variant {variant!r}, expected one of {VARIANTS}")
@@ -166,6 +170,8 @@ def _train(
     goal_buffer_size: int,
     goal_horizon: int,
     goal_warmup_solves: int,
+    goal_mode: str,
+    goal_random_prob: float,
     verbose: bool,
 ) -> dict:
     set_rl_seed(seed)
@@ -183,6 +189,8 @@ def _train(
         goal_buffer_size=goal_buffer_size,
         goal_horizon=goal_horizon,
         goal_warmup_solves=goal_warmup_solves,
+        goal_mode=goal_mode,
+        goal_random_prob=goal_random_prob,
     )
 
     warmup_env = gym.make(env_name)
@@ -267,6 +275,15 @@ def main(argv=None):
     parser.add_argument("--goal-buffer-size", type=int, default=1024)
     parser.add_argument("--goal-horizon", type=int, default=50)
     parser.add_argument("--goal-warmup-solves", type=int, default=1)
+    parser.add_argument(
+        "--goal-mode",
+        choices=("buffer", "random_direction", "mixed"),
+        default="buffer",
+        help="hindsight goal sampling: buffer=visited states (default), "
+        "random_direction=uniform unit vector in feature space, "
+        "mixed=coin-flip with --goal-random-prob.",
+    )
+    parser.add_argument("--goal-random-prob", type=float, default=0.5)
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument(
@@ -310,6 +327,8 @@ def main(argv=None):
             "goal_buffer_size": args.goal_buffer_size,
             "goal_horizon": args.goal_horizon,
             "goal_warmup_solves": args.goal_warmup_solves,
+            "goal_mode": args.goal_mode,
+            "goal_random_prob": args.goal_random_prob,
         },
     )
     metadata["seed_policy"] = seed_policy()
@@ -345,6 +364,8 @@ def main(argv=None):
                 goal_buffer_size=args.goal_buffer_size,
                 goal_horizon=args.goal_horizon,
                 goal_warmup_solves=args.goal_warmup_solves,
+                goal_mode=args.goal_mode,
+                goal_random_prob=args.goal_random_prob,
                 verbose=not args.quiet,
             )
             runs.append(result)
