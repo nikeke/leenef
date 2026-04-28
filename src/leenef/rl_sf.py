@@ -721,14 +721,14 @@ class NEFHindsightSFAgent(NEFSFAgent):
           motor sequence.
 
         - ``goal_action_mode="commit"``: after warmup, *every*
-          training step takes ``argmax_a Q(s, a; g)``.  Exploration
-          is repurposed to the goal channel: with probability ε the
-          current goal is resampled immediately (so behaviour
-          changes), and goals naturally rotate every
-          ``goal_horizon`` steps.  This is the SF-native answer to
-          the "ε-greedy random walks cannot reach the goal" failure
-          mode: the agent always commits to *some* directed sequence,
-          and ε controls how often the direction flips.
+          training step takes ``argmax_a Q(s, a; g)``.  ε is
+          **ignored** entirely — goals rotate every ``goal_horizon``
+          steps and exploration arises from rotating *directions* in
+          feature space rather than from random actions.  This is the
+          SF-native answer to the "ε-greedy random walks cannot reach
+          the goal" failure mode: the agent always commits to *some*
+          directed sequence, and the diversity of sampled goal
+          directions is what keeps the policy non-degenerate.
 
         Evaluation always uses the extrinsic Q.
         """
@@ -738,12 +738,7 @@ class NEFHindsightSFAgent(NEFSFAgent):
         warm = self._solve_count >= self.goal_warmup_solves and goals_available
 
         if self.goal_action_mode == "commit" and warm:
-            eps_resample = self.rng.random() < self._epsilon()
-            if (
-                self._current_goal_phi is None
-                or self._steps_on_goal >= self.goal_horizon
-                or eps_resample
-            ):
+            if self._current_goal_phi is None or self._steps_on_goal >= self.goal_horizon:
                 self._resample_goal()
             self._steps_on_goal += 1
 

@@ -1,0 +1,6 @@
+[proxychains] DLL init: proxychains-ng 4.17
+nohup: ignoring input
+[proxychains] DLL init: proxychains-ng 4.17
+  [nef_sf_hindsight/seed=0] ep   25  train_avg= -200.00  eval= -200.00  ε=0.933
+  [nef_sf_hindsight/seed=0] ep   50  train_avg= -200.00  eval= -200.00  ε=0.888
+  [nef_sf_hindsight/seed=0] ep   75  train_avg= -200.00  eval= -200.00  ε=0.845

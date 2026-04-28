@@ -223,11 +223,12 @@ def test_commit_mode_takes_goal_action_every_step():
     assert diag["goal_action_count"] >= 1
 
 
-def test_commit_mode_epsilon_resamples_goal():
-    """In commit mode with ε=1 every step, goal should resample on every step."""
+def test_commit_mode_holds_goal_for_horizon():
+    """In commit mode, ε is ignored and goal holds for goal_horizon steps."""
+    horizon = 5
     agent = NEFHindsightSFAgent(
         **_common_kwargs(
-            goal_horizon=1000,
+            goal_horizon=horizon,
             goal_warmup_solves=0,
             goal_mode="random_direction",
             goal_action_mode="commit",
@@ -242,12 +243,14 @@ def test_commit_mode_epsilon_resamples_goal():
     agent.update(obs, 0, 1.0, obs, True)
     agent.solve()
 
-    n_steps = 25
+    n_steps = 30
     for _ in range(n_steps):
         agent.select_action(rng.normal(size=4).astype(np.float32))
     diag = agent.goal_diagnostics()
-    # Initial resample + ~one per step at ε=1.0 -> count ≥ ~half of n_steps.
-    assert diag["goal_resample_count"] >= n_steps // 2
+    # Should resample roughly n_steps / horizon times, not every step.
+    expected = n_steps // horizon
+    assert diag["goal_resample_count"] <= expected + 2
+    assert diag["goal_resample_count"] >= max(1, expected - 1)
 
 
 def test_chain_recovers_optimal_policy():
