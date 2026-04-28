@@ -498,3 +498,21 @@ class NEFSFAgent:
         self.successor.solve()
         self._solve_count += 1
         self._refresh_novelty_inverse()
+
+    def warmup(self, *, env, n_episodes: int = 20, seed: int | None = None) -> None:
+        """Random-policy warmup to seed Welford stats and prime sufficient stats.
+
+        Mirrors :meth:`NEFFQIAgent.warmup`.  After collecting random
+        transitions, performs a single solve so the policy is
+        immediately evaluable (no zero-Q random-tie window).
+        """
+        for i in range(n_episodes):
+            obs, _ = env.reset() if seed is None else env.reset(seed=seed + i)
+            done = False
+            while not done:
+                action = int(self.rng.integers(self.n_actions))
+                next_obs, reward, terminated, truncated, _ = env.step(action)
+                done = bool(terminated or truncated)
+                self.update(obs, action, reward, next_obs, done)
+                obs = next_obs
+        self.solve()
