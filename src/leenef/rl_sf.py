@@ -601,6 +601,7 @@ class NEFHindsightSFAgent(NEFSFAgent):
         goal_mode: str = "buffer",
         goal_random_prob: float = 0.5,
         goal_action_mode: str = "epsilon",
+        eval_goal: np.ndarray | list[float] | None = None,
         **kwargs,
     ):
         super().__init__(d_obs=d_obs, n_actions=n_actions, **kwargs)
@@ -629,6 +630,16 @@ class NEFHindsightSFAgent(NEFSFAgent):
         self.goal_mode = goal_mode
         self.goal_random_prob = float(goal_random_prob)
         self.goal_action_mode = goal_action_mode
+
+        if eval_goal is None:
+            self._eval_goal: np.ndarray | None = None
+            self._eval_goal_phi: Tensor | None = None
+        else:
+            g = np.asarray(eval_goal, dtype=np.float32)
+            if g.shape != (d_obs,):
+                raise ValueError(f"eval_goal must have shape ({d_obs},), got {tuple(g.shape)}")
+            self._eval_goal = g
+            self._eval_goal_phi = None  # lazily computed on first use
 
         self._goal_buffer: list[np.ndarray] = []
         self._goal_buffer_pos = 0
@@ -706,6 +717,40 @@ class NEFHindsightSFAgent(NEFSFAgent):
             phi = self.successor.features.encode(s)  # (n,) float32
             psi = torch.einsum("n,anm->am", phi, self.Psi)  # (a, n) float32
             return psi @ self._current_goal_phi.to(psi.dtype)  # (a,)
+
+    def _ensure_eval_goal_phi(self) -> Tensor | None:
+        """Compute and cache ``u(eval_goal) = φ(g*)/‖φ(g*)‖`` lazily."""
+        if self._eval_goal is None:
+            return None
+        if self._eval_goal_phi is not None:
+            return self._eval_goal_phi
+        with torch.no_grad():
+            phi_g = self.successor.features.encode(
+                torch.from_numpy(self._eval_goal).float()
+            ).double()
+            norm = float(torch.linalg.vector_norm(phi_g).item())
+        if norm < self.goal_eps:
+            return None
+        self._eval_goal_phi = phi_g / norm
+        return self._eval_goal_phi
+
+    def q_values(self, obs: np.ndarray) -> Tensor:
+        """Q used by the evaluator (overrides parent).
+
+        If ``eval_goal`` is set, returns the goal-conditioned Q
+        ``ψ(s,a) · u(g*)`` for the fixed task goal — this is the
+        natural SF/HER eval protocol on sparse tasks where the
+        extrinsic Q is starved of reward signal.  Otherwise falls
+        back to the inherited extrinsic Q (``ψ(s,a) · w_a``).
+        """
+        eval_phi = self._ensure_eval_goal_phi()
+        if eval_phi is None:
+            return super().q_values(obs)
+        with torch.no_grad():
+            s = torch.from_numpy(obs).float()
+            phi = self.successor.features.encode(s)
+            psi = torch.einsum("n,anm->am", phi, self.Psi)
+            return psi @ eval_phi.to(psi.dtype)
 
     def select_action(self, obs: np.ndarray) -> int:
         """Action selection with hindsight goal conditioning during training.

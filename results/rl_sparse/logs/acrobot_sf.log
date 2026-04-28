@@ -71,3 +71,7 @@ nohup: ignoring input
   [nef_sf_novelty/seed=2] ep  200  train_avg= -500.00  eval= -500.00  ε=0.660
   [nef_sf_novelty/seed=2] ep  225  train_avg= -495.96  eval= -500.00  ε=0.629
   [nef_sf_novelty/seed=2] ep  250  train_avg= -490.04  eval= -500.00  ε=0.599
+  [nef_sf_novelty/seed=2] ep  275  train_avg= -484.08  eval= -436.60  ε=0.570
+  [nef_sf_novelty/seed=2] ep  300  train_avg= -478.36  eval= -500.00  ε=0.543
+
+Wrote 6 runs to results/rl_sparse/acrobot_sf.json
