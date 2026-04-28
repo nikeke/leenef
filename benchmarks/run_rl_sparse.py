@@ -48,9 +48,9 @@ from leenef.rl_diag import (
     solve_conditioning,
     sparse_metric_summary,
 )
-from leenef.rl_sf import NEFSFAgent
+from leenef.rl_sf import NEFHindsightSFAgent, NEFSFAgent
 
-VARIANTS = ("nef_fqi", "nef_sf", "nef_sf_novelty")
+VARIANTS = ("nef_fqi", "nef_sf", "nef_sf_novelty", "nef_sf_hindsight")
 
 
 def _load_base_config() -> dict:
@@ -65,6 +65,9 @@ def _build_agent(
     n_actions: int,
     seed: int,
     novelty_beta: float,
+    goal_buffer_size: int,
+    goal_horizon: int,
+    goal_warmup_solves: int,
 ):
     """Construct an agent of the given variant from the rl_clean base config.
 
@@ -76,9 +79,9 @@ def _build_agent(
     if variant == "nef_fqi":
         cfg = dict(base_config)
         return NEFFQIAgent(d_obs=d_obs, n_actions=n_actions, seed=seed, **cfg)
-    if variant in ("nef_sf", "nef_sf_novelty"):
+    if variant in ("nef_sf", "nef_sf_novelty", "nef_sf_hindsight"):
         bonus = float(novelty_beta) if variant == "nef_sf_novelty" else 0.0
-        return NEFSFAgent(
+        common = dict(
             d_obs=d_obs,
             n_actions=n_actions,
             n_neurons=int(base_config["n_neurons"]),
@@ -94,6 +97,14 @@ def _build_agent(
             novelty_beta=bonus,
             seed=seed,
         )
+        if variant == "nef_sf_hindsight":
+            return NEFHindsightSFAgent(
+                **common,
+                goal_buffer_size=int(goal_buffer_size),
+                goal_horizon=int(goal_horizon),
+                goal_warmup_solves=int(goal_warmup_solves),
+            )
+        return NEFSFAgent(**common)
     raise ValueError(f"Unknown variant {variant!r}, expected one of {VARIANTS}")
 
 
@@ -152,6 +163,9 @@ def _train(
     eval_episodes: int,
     novelty_beta: float,
     warmup_episodes: int,
+    goal_buffer_size: int,
+    goal_horizon: int,
+    goal_warmup_solves: int,
     verbose: bool,
 ) -> dict:
     set_rl_seed(seed)
@@ -166,6 +180,9 @@ def _train(
         n_actions=n_actions,
         seed=seed,
         novelty_beta=novelty_beta,
+        goal_buffer_size=goal_buffer_size,
+        goal_horizon=goal_horizon,
+        goal_warmup_solves=goal_warmup_solves,
     )
 
     warmup_env = gym.make(env_name)
@@ -247,6 +264,9 @@ def main(argv=None):
     )
     parser.add_argument("--novelty-beta", type=float, default=0.5)
     parser.add_argument("--warmup-episodes", type=int, default=20)
+    parser.add_argument("--goal-buffer-size", type=int, default=1024)
+    parser.add_argument("--goal-horizon", type=int, default=50)
+    parser.add_argument("--goal-warmup-solves", type=int, default=1)
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument(
@@ -287,6 +307,9 @@ def main(argv=None):
             "warmup_episodes": args.warmup_episodes,
             "variants": args.variants,
             "novelty_beta": args.novelty_beta,
+            "goal_buffer_size": args.goal_buffer_size,
+            "goal_horizon": args.goal_horizon,
+            "goal_warmup_solves": args.goal_warmup_solves,
         },
     )
     metadata["seed_policy"] = seed_policy()
@@ -319,6 +342,9 @@ def main(argv=None):
                 eval_episodes=args.eval_episodes,
                 novelty_beta=args.novelty_beta,
                 warmup_episodes=args.warmup_episodes,
+                goal_buffer_size=args.goal_buffer_size,
+                goal_horizon=args.goal_horizon,
+                goal_warmup_solves=args.goal_warmup_solves,
                 verbose=not args.quiet,
             )
             runs.append(result)
