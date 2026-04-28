@@ -253,6 +253,34 @@ def test_commit_mode_holds_goal_for_horizon():
     assert diag["goal_resample_count"] >= max(1, expected - 1)
 
 
+def test_eval_goal_overrides_q_values():
+    """eval_goal should make q_values return goal-conditioned Q ψ·u(g*)."""
+    g = np.array([0.5, -0.1, 0.2, 0.3], dtype=np.float32)
+    agent = NEFHindsightSFAgent(eval_goal=g, **_common_kwargs())
+    rng = np.random.default_rng(7)
+    for _ in range(20):
+        obs = rng.normal(size=4).astype(np.float32)
+        agent.update(obs, 0, 1.0, obs, False)
+    agent.update(obs, 0, 1.0, obs, True)
+    agent.solve()
+
+    test_obs = rng.normal(size=4).astype(np.float32)
+    q_eval = agent.q_values(test_obs)
+    # Manually compute ψ(s) · u(g)
+    with torch.no_grad():
+        phi_g = agent.successor.features.encode(torch.from_numpy(g).float()).double()
+        u = (phi_g / torch.linalg.vector_norm(phi_g)).to(torch.float32)
+        phi_s = agent.successor.features.encode(torch.from_numpy(test_obs).float())
+        psi = torch.einsum("n,anm->am", phi_s, agent.Psi)
+        expected = psi @ u
+    assert torch.allclose(q_eval, expected, atol=1e-6)
+
+
+def test_eval_goal_validates_shape():
+    with pytest.raises(ValueError):
+        NEFHindsightSFAgent(eval_goal=np.zeros(3, dtype=np.float32), **_common_kwargs())
+
+
 def test_chain_recovers_optimal_policy():
     """Sanity: hindsight agent's underlying extrinsic Q still solves the toy chain.
 

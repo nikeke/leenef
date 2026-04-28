@@ -71,6 +71,7 @@ def _build_agent(
     goal_mode: str,
     goal_random_prob: float,
     goal_action_mode: str,
+    eval_goal: list[float] | None,
 ):
     """Construct an agent of the given variant from the rl_clean base config.
 
@@ -109,6 +110,7 @@ def _build_agent(
                 goal_mode=goal_mode,
                 goal_random_prob=float(goal_random_prob),
                 goal_action_mode=goal_action_mode,
+                eval_goal=eval_goal,
             )
         return NEFSFAgent(**common)
     raise ValueError(f"Unknown variant {variant!r}, expected one of {VARIANTS}")
@@ -175,6 +177,7 @@ def _train(
     goal_mode: str,
     goal_random_prob: float,
     goal_action_mode: str,
+    eval_goal: list[float] | None,
     verbose: bool,
 ) -> dict:
     set_rl_seed(seed)
@@ -195,6 +198,7 @@ def _train(
         goal_mode=goal_mode,
         goal_random_prob=goal_random_prob,
         goal_action_mode=goal_action_mode,
+        eval_goal=eval_goal,
     )
 
     warmup_env = gym.make(env_name)
@@ -295,6 +299,14 @@ def main(argv=None):
         help="epsilon=ε-greedy, goal-Q only on greedy steps (default); "
         "commit=after warmup take goal-greedy every step, ε resamples goal.",
     )
+    parser.add_argument(
+        "--eval-goal",
+        type=str,
+        default=None,
+        help="Comma-separated state vector used as the eval-time goal "
+        "(SF/HER-style eval). E.g. for MountainCar-v0: '0.5,0.0'. "
+        "Only meaningful for nef_sf_hindsight; ignored otherwise.",
+    )
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument(
@@ -305,6 +317,10 @@ def main(argv=None):
         help="Override a base_config key (e.g. --config-override n_neurons=2000).",
     )
     args = parser.parse_args(argv)
+
+    eval_goal_parsed: list[float] | None = None
+    if args.eval_goal is not None:
+        eval_goal_parsed = [float(x) for x in args.eval_goal.split(",")]
 
     base_config = _load_base_config()
     for kv in args.config_override:
@@ -341,6 +357,7 @@ def main(argv=None):
             "goal_mode": args.goal_mode,
             "goal_random_prob": args.goal_random_prob,
             "goal_action_mode": args.goal_action_mode,
+            "eval_goal": args.eval_goal,
         },
     )
     metadata["seed_policy"] = seed_policy()
@@ -379,6 +396,7 @@ def main(argv=None):
                 goal_mode=args.goal_mode,
                 goal_random_prob=args.goal_random_prob,
                 goal_action_mode=args.goal_action_mode,
+                eval_goal=eval_goal_parsed,
                 verbose=not args.quiet,
             )
             runs.append(result)
