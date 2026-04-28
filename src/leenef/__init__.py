@@ -22,7 +22,7 @@ from .rl_diag import (
     solve_conditioning,
     sparse_metric_summary,
 )
-from .rl_sf import NEFSFAgent, NEFSuccessor
+from .rl_sf import NEFHindsightSFAgent, NEFSFAgent, NEFSuccessor
 from .solvers import SOLVERS, solve_decoders, solve_from_normal_equations
 from .streaming import StreamingNEFClassifier
 
@@ -38,6 +38,7 @@ __all__ = [
     "NEFFeatures",
     "NEFFQIAgent",
     "NEFFQIEnsemble",
+    "NEFHindsightSFAgent",
     "NEFSFAgent",
     "NEFSuccessor",
     "SparseChainEnv",

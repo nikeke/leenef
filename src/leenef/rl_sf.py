@@ -516,3 +516,155 @@ class NEFSFAgent:
                 self.update(obs, action, reward, next_obs, done)
                 obs = next_obs
         self.solve()
+
+
+class NEFHindsightSFAgent(NEFSFAgent):
+    """SF agent with hindsight goal-conditioning (D4).
+
+    Exploits the SF decomposition ``Q(s, a) = ψ(s, a) · w_a`` to
+    *redefine* the reward weight on the fly without retraining:
+
+    - Pick any goal observation ``g`` (sampled from a ring buffer of
+      recently-visited states).
+    - Define ``r_g(s) = φ(s) · u(g)`` with ``u(g) = φ(g) / ‖φ(g)‖``.
+      This is a unit-norm "feature-similarity" reward.
+    - Then the goal-conditioned Q is
+
+      ``Q(s, a; g) = ψ(s, a) · u(g) = (φ(s) @ Ψ_a) · φ(g) / ‖φ(g)‖``
+
+      with **no extra solve** — only the cached ``Ψ_a`` is used.
+
+    Action selection during training uses ``Q(s, a; g)`` for a goal
+    held fixed for ``goal_horizon`` consecutive steps, then resamples.
+    The goal-conditioned greedy action commits to a directed motor
+    sequence — exactly the failure mode (sustained back-and-forth in
+    MC) that ε-greedy random walks cannot bridge.
+
+    The successor solve and reward decoder are unchanged: ``Ψ_a`` is
+    learned from real trajectories (via truncated-MC successor
+    targets) and ``w_a`` from real rewards.  Hindsight is pure
+    behavior — the *value* the agent acts on at training time is
+    re-derived from the same ψ via a fresh weight vector ``u(g)``.
+
+    Evaluation always uses the extrinsic Q (``ψ · w_a``); goal
+    conditioning is only active during data collection.
+
+    Args:
+        goal_buffer_size: ring-buffer capacity of past observations
+            used as candidate goals.
+        goal_horizon: number of consecutive training steps a goal is
+            held before resampling.
+        goal_warmup_solves: number of solves required before goal-
+            conditioned action selection kicks in.  Until then the
+            agent is pure ε-greedy on the extrinsic Q (since ``Ψ_a``
+            is meaningless before the first solve).
+        goal_eps: numerical floor for ``‖φ(g)‖`` to keep ``u(g)``
+            well-defined.
+        Otherwise identical to :class:`NEFSFAgent`.
+    """
+
+    def __init__(
+        self,
+        d_obs: int,
+        n_actions: int,
+        *,
+        goal_buffer_size: int = 1024,
+        goal_horizon: int = 50,
+        goal_warmup_solves: int = 1,
+        goal_eps: float = 1e-6,
+        **kwargs,
+    ):
+        super().__init__(d_obs=d_obs, n_actions=n_actions, **kwargs)
+        if goal_buffer_size <= 0:
+            raise ValueError(f"goal_buffer_size must be > 0, got {goal_buffer_size!r}")
+        if goal_horizon <= 0:
+            raise ValueError(f"goal_horizon must be > 0, got {goal_horizon!r}")
+        if goal_warmup_solves < 0:
+            raise ValueError(f"goal_warmup_solves must be >= 0, got {goal_warmup_solves!r}")
+
+        self.goal_buffer_size = int(goal_buffer_size)
+        self.goal_horizon = int(goal_horizon)
+        self.goal_warmup_solves = int(goal_warmup_solves)
+        self.goal_eps = float(goal_eps)
+
+        self._goal_buffer: list[np.ndarray] = []
+        self._goal_buffer_pos = 0
+        self._current_goal: np.ndarray | None = None
+        self._current_goal_phi: Tensor | None = None
+        self._steps_on_goal = 0
+        self._goal_resample_count = 0
+        self._goal_action_count = 0
+
+    def _push_goal_candidate(self, obs: np.ndarray) -> None:
+        if len(self._goal_buffer) < self.goal_buffer_size:
+            self._goal_buffer.append(np.asarray(obs, dtype=np.float32).copy())
+        else:
+            self._goal_buffer[self._goal_buffer_pos] = np.asarray(obs, dtype=np.float32).copy()
+            self._goal_buffer_pos = (self._goal_buffer_pos + 1) % self.goal_buffer_size
+
+    def _resample_goal(self) -> None:
+        if not self._goal_buffer:
+            self._current_goal = None
+            self._current_goal_phi = None
+            return
+        idx = int(self.rng.integers(len(self._goal_buffer)))
+        g = self._goal_buffer[idx]
+        with torch.no_grad():
+            phi_g = self.successor.features.encode(torch.from_numpy(g).float()).double()
+            norm = float(torch.linalg.vector_norm(phi_g).item())
+        if norm < self.goal_eps:
+            self._current_goal = None
+            self._current_goal_phi = None
+            return
+        self._current_goal = g
+        self._current_goal_phi = phi_g / norm
+        self._steps_on_goal = 0
+        self._goal_resample_count += 1
+
+    def goal_q_values(self, obs: np.ndarray) -> Tensor | None:
+        """``Q(s, a; g) = ψ(s, a) · u(g)`` for the current goal.
+
+        Returns ``None`` when no goal is active (no buffer, pre-warmup,
+        or degenerate ``φ(g)``).
+        """
+        if self._current_goal_phi is None:
+            return None
+        with torch.no_grad():
+            s = torch.from_numpy(obs).float()
+            phi = self.successor.features.encode(s)  # (n,) float32
+            psi = torch.einsum("n,anm->am", phi, self.Psi)  # (a, n) float32
+            return psi @ self._current_goal_phi.to(psi.dtype)  # (a,)
+
+    def select_action(self, obs: np.ndarray) -> int:
+        """ε-greedy with hindsight-goal conditioning during training.
+
+        After ``goal_warmup_solves`` solves, the greedy action is taken
+        w.r.t. ``Q(s, a; g)`` (goal-conditioned) instead of the
+        extrinsic Q.  ε-exploration is unchanged.  Resamples ``g``
+        every ``goal_horizon`` steps.
+        """
+        self._push_goal_candidate(obs)
+
+        if self._solve_count >= self.goal_warmup_solves and self._goal_buffer:
+            if self._current_goal_phi is None or self._steps_on_goal >= self.goal_horizon:
+                self._resample_goal()
+            self._steps_on_goal += 1
+
+        if self.rng.random() < self._epsilon() or self._solve_count == 0:
+            return int(self.rng.integers(self.n_actions))
+
+        gq = self.goal_q_values(obs) if self._solve_count >= self.goal_warmup_solves else None
+        if gq is None:
+            with torch.no_grad():
+                q = self.successor.q_values(obs)
+                return int(q.argmax().item())
+        self._goal_action_count += 1
+        return int(gq.argmax().item())
+
+    def goal_diagnostics(self) -> dict:
+        return {
+            "goal_buffer_size": len(self._goal_buffer),
+            "goal_resample_count": int(self._goal_resample_count),
+            "goal_action_count": int(self._goal_action_count),
+            "current_goal_active": self._current_goal_phi is not None,
+        }
