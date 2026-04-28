@@ -70,6 +70,7 @@ def _build_agent(
     goal_warmup_solves: int,
     goal_mode: str,
     goal_random_prob: float,
+    goal_action_mode: str,
 ):
     """Construct an agent of the given variant from the rl_clean base config.
 
@@ -107,6 +108,7 @@ def _build_agent(
                 goal_warmup_solves=int(goal_warmup_solves),
                 goal_mode=goal_mode,
                 goal_random_prob=float(goal_random_prob),
+                goal_action_mode=goal_action_mode,
             )
         return NEFSFAgent(**common)
     raise ValueError(f"Unknown variant {variant!r}, expected one of {VARIANTS}")
@@ -172,6 +174,7 @@ def _train(
     goal_warmup_solves: int,
     goal_mode: str,
     goal_random_prob: float,
+    goal_action_mode: str,
     verbose: bool,
 ) -> dict:
     set_rl_seed(seed)
@@ -191,6 +194,7 @@ def _train(
         goal_warmup_solves=goal_warmup_solves,
         goal_mode=goal_mode,
         goal_random_prob=goal_random_prob,
+        goal_action_mode=goal_action_mode,
     )
 
     warmup_env = gym.make(env_name)
@@ -284,6 +288,13 @@ def main(argv=None):
         "mixed=coin-flip with --goal-random-prob.",
     )
     parser.add_argument("--goal-random-prob", type=float, default=0.5)
+    parser.add_argument(
+        "--goal-action-mode",
+        choices=("epsilon", "commit"),
+        default="epsilon",
+        help="epsilon=ε-greedy, goal-Q only on greedy steps (default); "
+        "commit=after warmup take goal-greedy every step, ε resamples goal.",
+    )
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument(
@@ -329,6 +340,7 @@ def main(argv=None):
             "goal_warmup_solves": args.goal_warmup_solves,
             "goal_mode": args.goal_mode,
             "goal_random_prob": args.goal_random_prob,
+            "goal_action_mode": args.goal_action_mode,
         },
     )
     metadata["seed_policy"] = seed_policy()
@@ -366,6 +378,7 @@ def main(argv=None):
                 goal_warmup_solves=args.goal_warmup_solves,
                 goal_mode=args.goal_mode,
                 goal_random_prob=args.goal_random_prob,
+                goal_action_mode=args.goal_action_mode,
                 verbose=not args.quiet,
             )
             runs.append(result)

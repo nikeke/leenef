@@ -189,6 +189,67 @@ def test_mixed_mode_uses_both_branches():
     assert diag["goal_buffer_count"] >= 5
 
 
+def test_init_validates_goal_action_mode():
+    with pytest.raises(ValueError):
+        NEFHindsightSFAgent(goal_action_mode="invalid", **_common_kwargs())
+
+
+def test_commit_mode_takes_goal_action_every_step():
+    """In commit mode + after warmup, every action is goal-Q greedy (modulo ties)."""
+    agent = NEFHindsightSFAgent(
+        **_common_kwargs(
+            goal_horizon=1000,
+            goal_warmup_solves=0,
+            goal_mode="random_direction",
+            goal_action_mode="commit",
+            epsilon_start=0.0,
+            epsilon_end=0.0,
+        )
+    )
+    rng = np.random.default_rng(1)
+    for _ in range(20):
+        obs = rng.normal(size=4).astype(np.float32)
+        agent.update(obs, 0, 1.0, obs, False)
+    agent.update(obs, 0, 1.0, obs, True)
+    agent.solve()
+
+    obs = rng.normal(size=4).astype(np.float32)
+    a = agent.select_action(obs)
+    gq = agent.goal_q_values(obs)
+    assert gq is not None
+    assert a == int(gq.argmax().item())
+    diag = agent.goal_diagnostics()
+    assert diag["goal_action_mode"] == "commit"
+    assert diag["goal_action_count"] >= 1
+
+
+def test_commit_mode_epsilon_resamples_goal():
+    """In commit mode with ε=1 every step, goal should resample on every step."""
+    agent = NEFHindsightSFAgent(
+        **_common_kwargs(
+            goal_horizon=1000,
+            goal_warmup_solves=0,
+            goal_mode="random_direction",
+            goal_action_mode="commit",
+            epsilon_start=1.0,
+            epsilon_end=1.0,
+        )
+    )
+    rng = np.random.default_rng(2)
+    for _ in range(15):
+        obs = rng.normal(size=4).astype(np.float32)
+        agent.update(obs, 0, 1.0, obs, False)
+    agent.update(obs, 0, 1.0, obs, True)
+    agent.solve()
+
+    n_steps = 25
+    for _ in range(n_steps):
+        agent.select_action(rng.normal(size=4).astype(np.float32))
+    diag = agent.goal_diagnostics()
+    # Initial resample + ~one per step at ε=1.0 -> count ≥ ~half of n_steps.
+    assert diag["goal_resample_count"] >= n_steps // 2
+
+
 def test_chain_recovers_optimal_policy():
     """Sanity: hindsight agent's underlying extrinsic Q still solves the toy chain.
 

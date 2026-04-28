@@ -600,6 +600,7 @@ class NEFHindsightSFAgent(NEFSFAgent):
         goal_eps: float = 1e-6,
         goal_mode: str = "buffer",
         goal_random_prob: float = 0.5,
+        goal_action_mode: str = "epsilon",
         **kwargs,
     ):
         super().__init__(d_obs=d_obs, n_actions=n_actions, **kwargs)
@@ -616,6 +617,10 @@ class NEFHindsightSFAgent(NEFSFAgent):
             )
         if not (0.0 <= goal_random_prob <= 1.0):
             raise ValueError(f"goal_random_prob must be in [0,1], got {goal_random_prob!r}")
+        if goal_action_mode not in ("epsilon", "commit"):
+            raise ValueError(
+                f"goal_action_mode must be 'epsilon' or 'commit'; got {goal_action_mode!r}"
+            )
 
         self.goal_buffer_size = int(goal_buffer_size)
         self.goal_horizon = int(goal_horizon)
@@ -623,6 +628,7 @@ class NEFHindsightSFAgent(NEFSFAgent):
         self.goal_eps = float(goal_eps)
         self.goal_mode = goal_mode
         self.goal_random_prob = float(goal_random_prob)
+        self.goal_action_mode = goal_action_mode
 
         self._goal_buffer: list[np.ndarray] = []
         self._goal_buffer_pos = 0
@@ -702,17 +708,56 @@ class NEFHindsightSFAgent(NEFSFAgent):
             return psi @ self._current_goal_phi.to(psi.dtype)  # (a,)
 
     def select_action(self, obs: np.ndarray) -> int:
-        """ε-greedy with hindsight-goal conditioning during training.
+        """Action selection with hindsight goal conditioning during training.
 
-        After ``goal_warmup_solves`` solves, the greedy action is taken
-        w.r.t. ``Q(s, a; g)`` (goal-conditioned) instead of the
-        extrinsic Q.  ε-exploration is unchanged.  Resamples ``g``
-        every ``goal_horizon`` steps.
+        Two modes:
+
+        - ``goal_action_mode="epsilon"`` (default): standard ε-greedy.
+          On greedy steps after warmup, action is argmax of
+          ``Q(s, a; g)`` (goal-conditioned).  ε-random steps are
+          uniform random.  Faithful to plain ε-greedy semantics, but
+          on tasks where ε remains high (e.g. early MountainCar) the
+          goal-greedy fraction is too small to sustain a directed
+          motor sequence.
+
+        - ``goal_action_mode="commit"``: after warmup, *every*
+          training step takes ``argmax_a Q(s, a; g)``.  Exploration
+          is repurposed to the goal channel: with probability ε the
+          current goal is resampled immediately (so behaviour
+          changes), and goals naturally rotate every
+          ``goal_horizon`` steps.  This is the SF-native answer to
+          the "ε-greedy random walks cannot reach the goal" failure
+          mode: the agent always commits to *some* directed sequence,
+          and ε controls how often the direction flips.
+
+        Evaluation always uses the extrinsic Q.
         """
         self._push_goal_candidate(obs)
 
         goals_available = (self.goal_mode != "buffer") or bool(self._goal_buffer)
-        if self._solve_count >= self.goal_warmup_solves and goals_available:
+        warm = self._solve_count >= self.goal_warmup_solves and goals_available
+
+        if self.goal_action_mode == "commit" and warm:
+            eps_resample = self.rng.random() < self._epsilon()
+            if (
+                self._current_goal_phi is None
+                or self._steps_on_goal >= self.goal_horizon
+                or eps_resample
+            ):
+                self._resample_goal()
+            self._steps_on_goal += 1
+
+            if self._solve_count == 0 or self._current_goal_phi is None:
+                return int(self.rng.integers(self.n_actions))
+            gq = self.goal_q_values(obs)
+            if gq is None:
+                with torch.no_grad():
+                    q = self.successor.q_values(obs)
+                    return int(q.argmax().item())
+            self._goal_action_count += 1
+            return int(gq.argmax().item())
+
+        if warm:
             if self._current_goal_phi is None or self._steps_on_goal >= self.goal_horizon:
                 self._resample_goal()
             self._steps_on_goal += 1
@@ -720,7 +765,7 @@ class NEFHindsightSFAgent(NEFSFAgent):
         if self.rng.random() < self._epsilon() or self._solve_count == 0:
             return int(self.rng.integers(self.n_actions))
 
-        gq = self.goal_q_values(obs) if self._solve_count >= self.goal_warmup_solves else None
+        gq = self.goal_q_values(obs) if warm else None
         if gq is None:
             with torch.no_grad():
                 q = self.successor.q_values(obs)
@@ -737,4 +782,5 @@ class NEFHindsightSFAgent(NEFSFAgent):
             "goal_action_count": int(self._goal_action_count),
             "current_goal_active": self._current_goal_phi is not None,
             "goal_mode": self.goal_mode,
+            "goal_action_mode": self.goal_action_mode,
         }
