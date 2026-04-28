@@ -560,6 +560,32 @@ class NEFHindsightSFAgent(NEFSFAgent):
             is meaningless before the first solve).
         goal_eps: numerical floor for ``‖φ(g)‖`` to keep ``u(g)``
             well-defined.
+        goal_mode: how goal directions are sampled.
+
+            ``"buffer"`` (default) draws a visited observation
+            uniformly from the ring buffer and uses
+            ``u(g) = φ(g)/‖φ(g)‖``.  Best for tasks where the buffer
+            already spans the relevant region (e.g. dense-reward
+            chains, Acrobot once swings start sampling state space).
+
+            ``"random_direction"`` draws ``u`` directly as a
+            uniformly-random unit vector in feature space (no buffer
+            lookup, no encoder pass).  Each goal direction defines a
+            fresh "task" ``r(s) = φ(s)·u``.  Targets unexplored
+            feature-space directions whose Ψ has been built only from
+            *trajectories that crossed them*: when the agent has been
+            stuck in a small neighbourhood, random directions give it
+            sustained outward pushes that the buffer-mode goals (all
+            inside that neighbourhood) cannot.  Recommended for the
+            MountainCar-style "agent never leaves the valley" failure
+            mode.
+
+            ``"mixed"`` flips a coin (``p = goal_random_prob``) per
+            resample between buffer and random_direction modes — the
+            buffer side exploits known reachable structure, the
+            random_direction side keeps pushing on the frontier.
+        goal_random_prob: probability of drawing a random_direction
+            goal in ``"mixed"`` mode (ignored otherwise).
         Otherwise identical to :class:`NEFSFAgent`.
     """
 
@@ -572,6 +598,8 @@ class NEFHindsightSFAgent(NEFSFAgent):
         goal_horizon: int = 50,
         goal_warmup_solves: int = 1,
         goal_eps: float = 1e-6,
+        goal_mode: str = "buffer",
+        goal_random_prob: float = 0.5,
         **kwargs,
     ):
         super().__init__(d_obs=d_obs, n_actions=n_actions, **kwargs)
@@ -581,11 +609,20 @@ class NEFHindsightSFAgent(NEFSFAgent):
             raise ValueError(f"goal_horizon must be > 0, got {goal_horizon!r}")
         if goal_warmup_solves < 0:
             raise ValueError(f"goal_warmup_solves must be >= 0, got {goal_warmup_solves!r}")
+        if goal_mode not in ("buffer", "random_direction", "mixed"):
+            raise ValueError(
+                f"goal_mode must be one of 'buffer', 'random_direction', "
+                f"'mixed'; got {goal_mode!r}"
+            )
+        if not (0.0 <= goal_random_prob <= 1.0):
+            raise ValueError(f"goal_random_prob must be in [0,1], got {goal_random_prob!r}")
 
         self.goal_buffer_size = int(goal_buffer_size)
         self.goal_horizon = int(goal_horizon)
         self.goal_warmup_solves = int(goal_warmup_solves)
         self.goal_eps = float(goal_eps)
+        self.goal_mode = goal_mode
+        self.goal_random_prob = float(goal_random_prob)
 
         self._goal_buffer: list[np.ndarray] = []
         self._goal_buffer_pos = 0
@@ -593,6 +630,8 @@ class NEFHindsightSFAgent(NEFSFAgent):
         self._current_goal_phi: Tensor | None = None
         self._steps_on_goal = 0
         self._goal_resample_count = 0
+        self._goal_random_count = 0
+        self._goal_buffer_count = 0
         self._goal_action_count = 0
 
     def _push_goal_candidate(self, obs: np.ndarray) -> None:
@@ -602,7 +641,33 @@ class NEFHindsightSFAgent(NEFSFAgent):
             self._goal_buffer[self._goal_buffer_pos] = np.asarray(obs, dtype=np.float32).copy()
             self._goal_buffer_pos = (self._goal_buffer_pos + 1) % self.goal_buffer_size
 
+    def _draw_random_direction(self) -> Tensor:
+        """Sample a unit vector uniformly on the n-sphere in feature space."""
+        n = self.successor.features.n_neurons
+        v = torch.from_numpy(self.rng.standard_normal(n).astype(np.float64))
+        norm = float(torch.linalg.vector_norm(v).item())
+        if norm < self.goal_eps:
+            v = torch.zeros(n, dtype=torch.float64)
+            v[0] = 1.0
+            return v
+        return v / norm
+
     def _resample_goal(self) -> None:
+        if self.goal_mode == "random_direction":
+            use_random = True
+        elif self.goal_mode == "mixed":
+            use_random = (not self._goal_buffer) or (self.rng.random() < self.goal_random_prob)
+        else:  # "buffer"
+            use_random = False
+
+        if use_random:
+            self._current_goal = None
+            self._current_goal_phi = self._draw_random_direction()
+            self._steps_on_goal = 0
+            self._goal_resample_count += 1
+            self._goal_random_count += 1
+            return
+
         if not self._goal_buffer:
             self._current_goal = None
             self._current_goal_phi = None
@@ -620,6 +685,7 @@ class NEFHindsightSFAgent(NEFSFAgent):
         self._current_goal_phi = phi_g / norm
         self._steps_on_goal = 0
         self._goal_resample_count += 1
+        self._goal_buffer_count += 1
 
     def goal_q_values(self, obs: np.ndarray) -> Tensor | None:
         """``Q(s, a; g) = ψ(s, a) · u(g)`` for the current goal.
@@ -645,7 +711,8 @@ class NEFHindsightSFAgent(NEFSFAgent):
         """
         self._push_goal_candidate(obs)
 
-        if self._solve_count >= self.goal_warmup_solves and self._goal_buffer:
+        goals_available = (self.goal_mode != "buffer") or bool(self._goal_buffer)
+        if self._solve_count >= self.goal_warmup_solves and goals_available:
             if self._current_goal_phi is None or self._steps_on_goal >= self.goal_horizon:
                 self._resample_goal()
             self._steps_on_goal += 1
@@ -665,6 +732,9 @@ class NEFHindsightSFAgent(NEFSFAgent):
         return {
             "goal_buffer_size": len(self._goal_buffer),
             "goal_resample_count": int(self._goal_resample_count),
+            "goal_random_count": int(self._goal_random_count),
+            "goal_buffer_count": int(self._goal_buffer_count),
             "goal_action_count": int(self._goal_action_count),
             "current_goal_active": self._current_goal_phi is not None,
+            "goal_mode": self.goal_mode,
         }

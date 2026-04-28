@@ -133,6 +133,62 @@ def test_goal_action_uses_goal_q_when_greedy():
     assert actual == expected
 
 
+def test_init_validates_goal_mode():
+    with pytest.raises(ValueError):
+        NEFHindsightSFAgent(goal_mode="invalid", **_common_kwargs())
+
+
+def test_init_validates_goal_random_prob():
+    with pytest.raises(ValueError):
+        NEFHindsightSFAgent(goal_random_prob=1.5, **_common_kwargs())
+
+
+def test_random_direction_mode_unit_norm_no_buffer():
+    """random_direction mode draws a unit goal vector even with empty buffer."""
+    agent = NEFHindsightSFAgent(
+        **_common_kwargs(goal_warmup_solves=0, goal_mode="random_direction")
+    )
+    # Force one solve so the goal mechanism activates.
+    rng = np.random.default_rng(0)
+    for _ in range(20):
+        obs = rng.normal(size=4).astype(np.float32)
+        agent.update(obs, 0, 1.0, obs, False)
+    agent.update(obs, 0, 1.0, obs, True)
+    agent.solve()
+
+    agent._resample_goal()
+    assert agent._current_goal_phi is not None
+    norm = float(torch.linalg.vector_norm(agent._current_goal_phi).item())
+    assert abs(norm - 1.0) < 1e-9
+    assert agent._goal_random_count >= 1
+
+
+def test_mixed_mode_uses_both_branches():
+    """In mixed mode, with prob=0.5 over many resamples, both counters grow."""
+    agent = NEFHindsightSFAgent(
+        **_common_kwargs(
+            goal_horizon=1,
+            goal_warmup_solves=0,
+            goal_mode="mixed",
+            goal_random_prob=0.5,
+            epsilon_start=0.0,
+            epsilon_end=0.0,
+        )
+    )
+    rng = np.random.default_rng(0)
+    for _ in range(30):
+        obs = rng.normal(size=4).astype(np.float32)
+        agent.update(obs, 0, 1.0, obs, False)
+    agent.update(obs, 0, 1.0, obs, True)
+    agent.solve()
+
+    for _ in range(80):
+        agent.select_action(rng.normal(size=4).astype(np.float32))
+    diag = agent.goal_diagnostics()
+    assert diag["goal_random_count"] >= 5
+    assert diag["goal_buffer_count"] >= 5
+
+
 def test_chain_recovers_optimal_policy():
     """Sanity: hindsight agent's underlying extrinsic Q still solves the toy chain.
 
