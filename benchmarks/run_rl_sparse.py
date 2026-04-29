@@ -79,7 +79,7 @@ def _make_env(env_name: str) -> gym.Env:
         import minigrid  # noqa: F401  (registers MiniGrid envs with gymnasium)
         from minigrid.wrappers import FullyObsWrapper, ImgObsWrapper
 
-        env = gym.make(env_name)
+        env = gym.make(env_name, max_episode_steps=100)
         env = _MiniGridFlatNorm(ImgObsWrapper(FullyObsWrapper(env)))
         return env
     return gym.make(env_name)
