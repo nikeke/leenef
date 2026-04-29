@@ -227,6 +227,29 @@ not an improvement. The result is still useful: it suggests that deployment
 readout matters, and a larger ensemble confirmation should prioritize voting
 readout if ensembles are revisited.
 
+### P8b — voting-exploration ensemble pilot
+
+Result file:
+`results/rl_clean/p8_voting_ensemble_pilot_lunarlander_v3.json`
+
+Configuration: same three `6000`-neuron members and seeds as P8, but with
+majority-voting exploration during training instead of Thompson exploration.
+Mean-Q and majority-voting readouts were again evaluated from each trained
+ensemble.
+
+| readout | n | robust_eval mean ± SE | values |
+|---|---:|---:|---|
+| mean-Q | 3 | 41.9 ± 70.1 | -98.0, 120.2, 103.6 |
+| voting | 3 | 41.9 ± 69.8 | -97.0, 124.3, 98.3 |
+
+Decision: reject voting exploration for the current clean base. This phase
+answers a different question from P8: P8 tested Thompson-trained ensembles with
+different deployment readouts, while P8b changed the exploration policy itself.
+Voting exploration is far below both the single-agent incumbent (`216.7 ± 6.2`)
+and the Thompson-exploration ensemble pilot (`218.8 ± 8.9` with voting
+readout). The failure is driven by a catastrophic seed 0 run, so there is no
+case for extending this branch before the final single-agent confirmation.
+
 ## Historical results that are stale for sweep adoption
 
 Treat these as **historical only**. Do not use them for skip/reuse decisions or
