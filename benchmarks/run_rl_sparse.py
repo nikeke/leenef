@@ -53,6 +53,38 @@ from leenef.rl_sf import NEFHindsightSFAgent, NEFSFAgent
 VARIANTS = ("nef_fqi", "nef_sf", "nef_sf_novelty", "nef_sf_hindsight")
 
 
+class _MiniGridFlatNorm(gym.ObservationWrapper):
+    """Flatten a MiniGrid (H, W, C) uint8 image obs to a normalized float32 vector.
+
+    Used to make MiniGrid envs Box-compatible with the existing NEF agents,
+    which assume a 1-D observation vector. Pixel values are rescaled to
+    [0, 1] so that the data-driven biases drawn from the warmup buffer
+    sit in the same range as the NEF encoders expect from continuous-state
+    classic-control envs.
+    """
+
+    def __init__(self, env: gym.Env) -> None:
+        super().__init__(env)
+        shape = env.observation_space.shape
+        flat = int(np.prod(shape))
+        self.observation_space = gym.spaces.Box(low=0.0, high=1.0, shape=(flat,), dtype=np.float32)
+
+    def observation(self, obs):
+        return (np.asarray(obs, dtype=np.float32).ravel()) / 255.0
+
+
+def _make_env(env_name: str) -> gym.Env:
+    """Construct a Box-observation gym env, with MiniGrid wrapping when needed."""
+    if env_name.startswith("MiniGrid-"):
+        import minigrid  # noqa: F401  (registers MiniGrid envs with gymnasium)
+        from minigrid.wrappers import FullyObsWrapper, ImgObsWrapper
+
+        env = gym.make(env_name)
+        env = _MiniGridFlatNorm(ImgObsWrapper(FullyObsWrapper(env)))
+        return env
+    return gym.make(env_name)
+
+
 def _load_base_config() -> dict:
     return json.loads(BASE_CONFIG_PATH.read_text())
 
@@ -117,7 +149,7 @@ def _build_agent(
 
 
 def _evaluate(agent, env_name: str, n_episodes: int, seed: int) -> float:
-    env = gym.make(env_name)
+    env = _make_env(env_name)
     returns: list[float] = []
     for i in range(n_episodes):
         obs, _ = reset_env(env, seed=seed + i)
@@ -181,7 +213,7 @@ def _train(
     verbose: bool,
 ) -> dict:
     set_rl_seed(seed)
-    env = gym.make(env_name)
+    env = _make_env(env_name)
     d_obs = env.observation_space.shape[0]
     n_actions = env.action_space.n
 
@@ -201,7 +233,7 @@ def _train(
         eval_goal=eval_goal,
     )
 
-    warmup_env = gym.make(env_name)
+    warmup_env = _make_env(env_name)
     agent.warmup(env=warmup_env, n_episodes=warmup_episodes, seed=warmup_seed(seed))
     warmup_env.close()
 
