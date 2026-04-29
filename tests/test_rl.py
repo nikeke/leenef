@@ -11,7 +11,13 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from benchmarks import analyze_rl_sweep, rl_repro, run_config_sweep, run_hp_sweep
+from benchmarks import (
+    analyze_rl_sweep,
+    rl_repro,
+    run_config_sweep,
+    run_ensemble_sweep,
+    run_hp_sweep,
+)
 from benchmarks.rl_repro import can_reuse_result, env_tag, hp_run_context
 from benchmarks.rl_sweep_data import load_sweep
 from leenef.rl import NEFFeatures, NEFFQIAgent, NEFFQIEnsemble
@@ -637,3 +643,35 @@ def test_config_sweep_reuse_requires_grid_run_context():
     assert can_reuse_result(result, config, expected_seed=0, expected_run_context=context)
     hp_context = hp_run_context("LunarLander-v3", 1000)
     assert not can_reuse_result(result, config, expected_seed=0, expected_run_context=hp_context)
+
+
+def test_ensemble_config_records_member_metadata_without_agent_keys():
+    base = _tiny_hp_config()
+
+    config = run_ensemble_sweep.ensemble_config(
+        base,
+        n_members=3,
+        n_neurons=16,
+        train_policy="thompson",
+        eval_policies=["mean", "voting"],
+    )
+
+    assert config["n_neurons"] == 16
+    assert config["n_members"] == 3
+    assert config["train_policy"] == "thompson"
+    assert config["eval_policies"] == ["mean", "voting"]
+    assert "n_members" not in run_ensemble_sweep.agent_config(config)
+    assert "train_policy" not in run_ensemble_sweep.agent_config(config)
+    assert "eval_policies" not in run_ensemble_sweep.agent_config(config)
+
+
+def test_ensemble_run_context_is_distinct_from_hp_context():
+    context = run_ensemble_sweep.ensemble_run_context(
+        "LunarLander-v3",
+        1000,
+        phase="p8_ensemble_pilot",
+    )
+
+    assert context["sweep_type"] == "ensemble"
+    assert context["phase"] == "p8_ensemble_pilot"
+    assert context != hp_run_context("LunarLander-v3", 1000)
