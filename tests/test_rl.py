@@ -732,6 +732,7 @@ def test_config_sweep_reuse_requires_grid_run_context():
     hp_context = hp_run_context("LunarLander-v3", 1000)
     assert not can_reuse_result(result, config, expected_seed=0, expected_run_context=hp_context)
 
+
 def test_ensemble_config_records_member_metadata_without_agent_keys():
     base = _tiny_hp_config()
 
