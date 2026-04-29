@@ -76,6 +76,8 @@ Current clean base after completed phases:
 | start | 4000 | 0.97 | 0.1 | 50 | 0.999 | 10 | 500 | clean post-audit starting point |
 | P1 gamma | 4000 | **0.98** | 0.1 | 50 | 0.999 | 10 | 500 | adopted over 0.97 by robust_eval |
 | P3b H1 | **6000** | 0.98 | 0.1 | **100** | 0.999 | 10 | 500 | adopted over 4000@50 and rejected 8000/12000 edges |
+| P4 H2 | 6000 | 0.98 | 0.1 | 100 | **0.999** | **10** | 500 | incumbent cadence/window remained best |
+| P5 epsilon | 6000 | 0.98 | 0.1 | 100 | 0.999 | 10 | **500** | incumbent exploration decay remained best |
 
 ## Phase results
 
@@ -158,6 +160,72 @@ Next action: continue to P4 H2 using the new clean base
 `n_neurons=6000, n_step=100`. Treat 8000/12000-neuron capacity as de-emphasized
 unless a later phase reveals a new interaction that specifically justifies
 returning to it.
+
+### P4 — H2 grid: RLS cadence x forgetting window
+
+Result file: `results/rl_clean/p4_h2_grid_lunarlander_v3.json`
+
+| config | solve_every | forget_factor | n | robust_eval mean ± SE |
+|---|---:|---:|---:|---:|
+| `se5_ff995` | 5 | 0.995 | 5 | 182.2 ± 14.8 |
+| `se5_ff998` | 5 | 0.998 | 5 | 196.3 ± 12.0 |
+| `se5_ff999` | 5 | 0.999 | 5 | 200.4 ± 16.2 |
+| `se5_ff9995` | 5 | 0.9995 | 5 | 193.8 ± 6.4 |
+| `se10_ff995` | 10 | 0.995 | 5 | 214.4 ± 12.6 |
+| `se10_ff998` | 10 | 0.998 | 5 | 181.8 ± 11.3 |
+| **`se10_ff999`** | 10 | 0.999 | 5 | **216.7 ± 6.2** |
+| `se10_ff9995` | 10 | 0.9995 | 5 | 192.7 ± 16.3 |
+| `se25_ff995` | 25 | 0.995 | 5 | 200.2 ± 16.2 |
+| `se25_ff998` | 25 | 0.998 | 5 | 184.1 ± 9.0 |
+| `se25_ff999` | 25 | 0.999 | 5 | 192.9 ± 12.9 |
+| `se25_ff9995` | 25 | 0.9995 | 5 | 179.0 ± 5.9 |
+
+Decision: keep `solve_every=10` and `forget_factor=0.999`. Faster refresh
+(`solve_every=5`) did not improve nonstationarity handling, slower refresh
+(`25`) lost ground, and neither shorter nor longer forgetting windows beat the
+incumbent under the combined-SE rule. `se10_ff995` was close but still below
+the incumbent and had a larger SE.
+
+### P5 — exploration decay
+
+Result file: `results/rl_clean/epsilon_decay_lunarlander_v3.json`
+
+Figure:
+
+- `docs/figures/rl_clean_sweep_epsilon_decay.png`
+
+| epsilon_decay | n | robust_eval mean ± SE | best_eval mean ± SE | final_eval mean ± SE |
+|---:|---:|---:|---:|---:|
+| 200 | 5 | -42.8 ± 53.1 | 43.4 ± 64.5 | -49.6 ± 55.2 |
+| **500** | 5 | **216.7 ± 6.2** | **232.8 ± 8.4** | **212.3 ± 10.6** |
+| 1000 | 5 | 123.8 ± 8.5 | 149.4 ± 7.7 | 117.0 ± 12.4 |
+| 2000 | 5 | -122.3 ± 13.2 | -69.8 ± 8.8 | -129.8 ± 23.4 |
+
+Decision: keep `epsilon_decay=500`. Faster exploitation (`200`) and slower
+exploration decay (`1000`, `2000`) both underperformed the clean incumbent by a
+large margin, so the result is an exploration-schedule failure rather than a
+signal for recentering or capacity changes.
+
+### P8 — 3-member ensemble pilot
+
+Result file: `results/rl_clean/p8_ensemble_pilot_lunarlander_v3.json`
+
+Configuration: three `6000`-neuron members, Thompson exploration during
+training, seeds 0-2, and both mean-Q and majority-voting readouts evaluated
+from the same trained ensembles.
+
+| readout | n | robust_eval mean ± SE | values |
+|---|---:|---:|---|
+| mean-Q | 3 | 212.3 ± 8.8 | 195.7, 215.3, 225.8 |
+| voting | 3 | 218.8 ± 8.9 | 201.6, 223.1, 231.6 |
+
+Decision: promising but not adopted. Voting readout beats mean-Q on average and
+two individual seeds exceed the single-agent incumbent, but the voting mean is
+only `+2.1` robust_eval above the clean `6000@100` incumbent while
+`SE_combined=10.9`. Under the clean adoption rule this is a statistical tie,
+not an improvement. The result is still useful: it suggests that deployment
+readout matters, and a larger ensemble confirmation should prioritize voting
+readout if ensembles are revisited.
 
 ## Historical results that are stale for sweep adoption
 
