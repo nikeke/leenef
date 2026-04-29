@@ -1,0 +1,39 @@
+[proxychains] DLL init: proxychains-ng 4.17
+  [nef_fqi/seed=0] ep   25  train_avg= -168.86  eval= -541.18  ε=0.952
+  [nef_fqi/seed=0] ep   50  train_avg= -151.25  eval= -353.94  ε=0.906
+  [nef_fqi/seed=0] ep   75  train_avg= -132.89  eval= -273.92  ε=0.862
+  [nef_fqi/seed=0] ep  100  train_avg=  -88.31  eval= -145.00  ε=0.821
+  [nef_fqi/seed=0] ep  125  train_avg= -118.45  eval= -250.78  ε=0.781
+  [nef_fqi/seed=0] ep  150  train_avg= -105.37  eval=  -19.64  ε=0.743
+  [nef_fqi/seed=0] ep  175  train_avg=  -81.01  eval= -119.41  ε=0.708
+  [nef_fqi/seed=0] ep  200  train_avg=  -81.97  eval= -338.01  ε=0.674
+  [nef_fqi/seed=0] ep  225  train_avg=  -68.38  eval= -427.10  ε=0.641
+  [nef_fqi/seed=0] ep  250  train_avg=  -56.24  eval= -220.30  ε=0.610
+  [nef_fqi/seed=0] ep  275  train_avg=  -72.64  eval= -109.13  ε=0.581
+  [nef_fqi/seed=0] ep  300  train_avg=  -59.64  eval= -119.43  ε=0.553
+  [nef_fqi/seed=1] ep   25  train_avg= -167.05  eval= -254.06  ε=0.952
+  [nef_fqi/seed=1] ep   50  train_avg= -150.74  eval= -477.01  ε=0.906
+  [nef_fqi/seed=1] ep   75  train_avg= -121.23  eval=  -76.92  ε=0.862
+  [nef_fqi/seed=1] ep  100  train_avg= -118.46  eval= -307.03  ε=0.821
+  [nef_fqi/seed=1] ep  125  train_avg= -129.63  eval= -319.39  ε=0.781
+  [nef_fqi/seed=1] ep  150  train_avg= -110.62  eval=  -50.06  ε=0.743
+  [nef_fqi/seed=1] ep  175  train_avg= -108.77  eval=  -86.91  ε=0.708
+  [nef_fqi/seed=1] ep  200  train_avg=  -99.11  eval=  -59.10  ε=0.674
+  [nef_fqi/seed=1] ep  225  train_avg=  -92.37  eval=  -65.33  ε=0.641
+  [nef_fqi/seed=1] ep  250  train_avg=  -84.96  eval= -131.29  ε=0.610
+  [nef_fqi/seed=1] ep  275  train_avg=  -74.51  eval= -165.88  ε=0.581
+  [nef_fqi/seed=1] ep  300  train_avg=  -96.15  eval= -174.99  ε=0.553
+  [nef_fqi/seed=2] ep   25  train_avg= -192.61  eval= -411.49  ε=0.952
+  [nef_fqi/seed=2] ep   50  train_avg= -180.54  eval= -920.81  ε=0.906
+  [nef_fqi/seed=2] ep   75  train_avg= -132.99  eval= -673.94  ε=0.862
+  [nef_fqi/seed=2] ep  100  train_avg= -102.02  eval= -316.77  ε=0.821
+  [nef_fqi/seed=2] ep  125  train_avg= -113.93  eval= -488.34  ε=0.781
+  [nef_fqi/seed=2] ep  150  train_avg= -105.44  eval= -497.36  ε=0.743
+  [nef_fqi/seed=2] ep  175  train_avg=  -91.87  eval= -808.08  ε=0.708
+  [nef_fqi/seed=2] ep  200  train_avg= -104.18  eval= -424.22  ε=0.674
+  [nef_fqi/seed=2] ep  225  train_avg=  -84.02  eval= -900.19  ε=0.641
+  [nef_fqi/seed=2] ep  250  train_avg=  -82.81  eval= -721.48  ε=0.610
+  [nef_fqi/seed=2] ep  275  train_avg=  -89.78  eval= -142.13  ε=0.581
+  [nef_fqi/seed=2] ep  300  train_avg=  -72.23  eval= -199.28  ε=0.553
+
+Wrote 3 runs to results/rl_sparse/lunarlander_fqi_n2000.json
