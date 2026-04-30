@@ -1,0 +1,1427 @@
+{
+  "streaming_solve_modes_accumulate_s0": {
+    "code_identity": "26cf0339159b0b5f8d2c5f7c46fc42a5a9c9efb5",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.01,
+      "batch_size": 1000,
+      "chunk_stats": false,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 4000,
+      "solve_mode": "accumulate",
+      "window_size": 10
+    },
+    "experiment": "streaming_solve_modes",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "solve_mode",
+    "label": "streaming_solve_modes_accumulate_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "bias_mean": 0.000254,
+        "bias_std": 0.418113,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.244072
+      },
+      "eval_time_s": 9.8195,
+      "factors": {
+        "dataset": "sMNIST-row",
+        "n_neurons": 4000,
+        "solve_mode": "accumulate",
+        "window_size": 10
+      },
+      "fit_time_s": 68.9616,
+      "test_accuracy": 0.9812,
+      "train_accuracy": null
+    },
+    "phase": "streaming_solve_modes",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 28,
+      "d_timestep": 28,
+      "dataset": "sMNIST-row",
+      "experiment_kind": "smnist_row_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "accumulate",
+    "wall_time_s": 78.9219
+  },
+  "streaming_solve_modes_accumulate_s1": {
+    "code_identity": "26cf0339159b0b5f8d2c5f7c46fc42a5a9c9efb5",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.01,
+      "batch_size": 1000,
+      "chunk_stats": false,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 4000,
+      "solve_mode": "accumulate",
+      "window_size": 10
+    },
+    "experiment": "streaming_solve_modes",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "solve_mode",
+    "label": "streaming_solve_modes_accumulate_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "bias_mean": 0.011269,
+        "bias_std": 0.428852,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.250167
+      },
+      "eval_time_s": 9.4752,
+      "factors": {
+        "dataset": "sMNIST-row",
+        "n_neurons": 4000,
+        "solve_mode": "accumulate",
+        "window_size": 10
+      },
+      "fit_time_s": 68.7456,
+      "test_accuracy": 0.9801,
+      "train_accuracy": null
+    },
+    "phase": "streaming_solve_modes",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 28,
+      "d_timestep": 28,
+      "dataset": "sMNIST-row",
+      "experiment_kind": "smnist_row_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "accumulate",
+    "wall_time_s": 78.334
+  },
+  "streaming_solve_modes_accumulate_s2": {
+    "code_identity": "26cf0339159b0b5f8d2c5f7c46fc42a5a9c9efb5",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.01,
+      "batch_size": 1000,
+      "chunk_stats": false,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 4000,
+      "solve_mode": "accumulate",
+      "window_size": 10
+    },
+    "experiment": "streaming_solve_modes",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "solve_mode",
+    "label": "streaming_solve_modes_accumulate_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "bias_mean": 0.000777,
+        "bias_std": 0.424895,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.249785
+      },
+      "eval_time_s": 9.0997,
+      "factors": {
+        "dataset": "sMNIST-row",
+        "n_neurons": 4000,
+        "solve_mode": "accumulate",
+        "window_size": 10
+      },
+      "fit_time_s": 67.7458,
+      "test_accuracy": 0.981,
+      "train_accuracy": null
+    },
+    "phase": "streaming_solve_modes",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 28,
+      "d_timestep": 28,
+      "dataset": "sMNIST-row",
+      "experiment_kind": "smnist_row_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "accumulate",
+    "wall_time_s": 77.0699
+  },
+  "streaming_solve_modes_accumulate_s3": {
+    "code_identity": "26cf0339159b0b5f8d2c5f7c46fc42a5a9c9efb5",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.01,
+      "batch_size": 1000,
+      "chunk_stats": false,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 4000,
+      "solve_mode": "accumulate",
+      "window_size": 10
+    },
+    "experiment": "streaming_solve_modes",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "solve_mode",
+    "label": "streaming_solve_modes_accumulate_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "bias_mean": 0.007949,
+        "bias_std": 0.423853,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.244434
+      },
+      "eval_time_s": 9.1258,
+      "factors": {
+        "dataset": "sMNIST-row",
+        "n_neurons": 4000,
+        "solve_mode": "accumulate",
+        "window_size": 10
+      },
+      "fit_time_s": 67.2336,
+      "test_accuracy": 0.9805,
+      "train_accuracy": null
+    },
+    "phase": "streaming_solve_modes",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 28,
+      "d_timestep": 28,
+      "dataset": "sMNIST-row",
+      "experiment_kind": "smnist_row_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "accumulate",
+    "wall_time_s": 76.5678
+  },
+  "streaming_solve_modes_accumulate_s4": {
+    "code_identity": "26cf0339159b0b5f8d2c5f7c46fc42a5a9c9efb5",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.01,
+      "batch_size": 1000,
+      "chunk_stats": false,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 4000,
+      "solve_mode": "accumulate",
+      "window_size": 10
+    },
+    "experiment": "streaming_solve_modes",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "solve_mode",
+    "label": "streaming_solve_modes_accumulate_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "bias_mean": -0.008095,
+        "bias_std": 0.409697,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.247997
+      },
+      "eval_time_s": 8.908,
+      "factors": {
+        "dataset": "sMNIST-row",
+        "n_neurons": 4000,
+        "solve_mode": "accumulate",
+        "window_size": 10
+      },
+      "fit_time_s": 67.7184,
+      "test_accuracy": 0.9803,
+      "train_accuracy": null
+    },
+    "phase": "streaming_solve_modes",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 28,
+      "d_timestep": 28,
+      "dataset": "sMNIST-row",
+      "experiment_kind": "smnist_row_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "accumulate",
+    "wall_time_s": 76.7725
+  },
+  "streaming_solve_modes_batch_acc_s0": {
+    "code_identity": "26cf0339159b0b5f8d2c5f7c46fc42a5a9c9efb5",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.01,
+      "batch_size": 1000,
+      "chunk_stats": false,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 4000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_solve_modes",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "solve_mode",
+    "label": "streaming_solve_modes_batch_acc_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "bias_mean": 0.000254,
+        "bias_std": 0.418113,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.244072
+      },
+      "eval_time_s": 8.9953,
+      "factors": {
+        "dataset": "sMNIST-row",
+        "n_neurons": 4000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 64.7558,
+      "test_accuracy": 0.9819,
+      "train_accuracy": null
+    },
+    "phase": "streaming_solve_modes",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 28,
+      "d_timestep": 28,
+      "dataset": "sMNIST-row",
+      "experiment_kind": "smnist_row_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "batch_acc",
+    "wall_time_s": 74.3615
+  },
+  "streaming_solve_modes_batch_acc_s1": {
+    "code_identity": "26cf0339159b0b5f8d2c5f7c46fc42a5a9c9efb5",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.01,
+      "batch_size": 1000,
+      "chunk_stats": false,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 4000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_solve_modes",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "solve_mode",
+    "label": "streaming_solve_modes_batch_acc_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "bias_mean": 0.011269,
+        "bias_std": 0.428852,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.250167
+      },
+      "eval_time_s": 9.1534,
+      "factors": {
+        "dataset": "sMNIST-row",
+        "n_neurons": 4000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 64.6716,
+      "test_accuracy": 0.98,
+      "train_accuracy": null
+    },
+    "phase": "streaming_solve_modes",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 28,
+      "d_timestep": 28,
+      "dataset": "sMNIST-row",
+      "experiment_kind": "smnist_row_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "batch_acc",
+    "wall_time_s": 73.938
+  },
+  "streaming_solve_modes_batch_acc_s2": {
+    "code_identity": "26cf0339159b0b5f8d2c5f7c46fc42a5a9c9efb5",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.01,
+      "batch_size": 1000,
+      "chunk_stats": false,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 4000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_solve_modes",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "solve_mode",
+    "label": "streaming_solve_modes_batch_acc_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "bias_mean": 0.000777,
+        "bias_std": 0.424895,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.249785
+      },
+      "eval_time_s": 8.442,
+      "factors": {
+        "dataset": "sMNIST-row",
+        "n_neurons": 4000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 66.0002,
+      "test_accuracy": 0.9809,
+      "train_accuracy": null
+    },
+    "phase": "streaming_solve_modes",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 28,
+      "d_timestep": 28,
+      "dataset": "sMNIST-row",
+      "experiment_kind": "smnist_row_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "batch_acc",
+    "wall_time_s": 74.6448
+  },
+  "streaming_solve_modes_batch_acc_s3": {
+    "code_identity": "26cf0339159b0b5f8d2c5f7c46fc42a5a9c9efb5",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.01,
+      "batch_size": 1000,
+      "chunk_stats": false,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 4000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_solve_modes",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "solve_mode",
+    "label": "streaming_solve_modes_batch_acc_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "bias_mean": 0.007949,
+        "bias_std": 0.423853,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.244434
+      },
+      "eval_time_s": 8.7545,
+      "factors": {
+        "dataset": "sMNIST-row",
+        "n_neurons": 4000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 65.0073,
+      "test_accuracy": 0.9801,
+      "train_accuracy": null
+    },
+    "phase": "streaming_solve_modes",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 28,
+      "d_timestep": 28,
+      "dataset": "sMNIST-row",
+      "experiment_kind": "smnist_row_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "batch_acc",
+    "wall_time_s": 73.919
+  },
+  "streaming_solve_modes_batch_acc_s4": {
+    "code_identity": "26cf0339159b0b5f8d2c5f7c46fc42a5a9c9efb5",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.01,
+      "batch_size": 1000,
+      "chunk_stats": false,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 4000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_solve_modes",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "solve_mode",
+    "label": "streaming_solve_modes_batch_acc_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "bias_mean": -0.008095,
+        "bias_std": 0.409697,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.247997
+      },
+      "eval_time_s": 9.4069,
+      "factors": {
+        "dataset": "sMNIST-row",
+        "n_neurons": 4000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 65.6746,
+      "test_accuracy": 0.9806,
+      "train_accuracy": null
+    },
+    "phase": "streaming_solve_modes",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 28,
+      "d_timestep": 28,
+      "dataset": "sMNIST-row",
+      "experiment_kind": "smnist_row_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "batch_acc",
+    "wall_time_s": 75.301
+  },
+  "streaming_solve_modes_woodbury_s0": {
+    "code_identity": "26cf0339159b0b5f8d2c5f7c46fc42a5a9c9efb5",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.01,
+      "batch_size": 1000,
+      "chunk_stats": false,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 4000,
+      "solve_mode": "woodbury",
+      "window_size": 10
+    },
+    "experiment": "streaming_solve_modes",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "solve_mode",
+    "label": "streaming_solve_modes_woodbury_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "bias_mean": 0.000254,
+        "bias_std": 0.418113,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.244072
+      },
+      "eval_time_s": 9.0982,
+      "factors": {
+        "dataset": "sMNIST-row",
+        "n_neurons": 4000,
+        "solve_mode": "woodbury",
+        "window_size": 10
+      },
+      "fit_time_s": 132.3062,
+      "test_accuracy": 0.9812,
+      "train_accuracy": null
+    },
+    "phase": "streaming_solve_modes",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 28,
+      "d_timestep": 28,
+      "dataset": "sMNIST-row",
+      "experiment_kind": "smnist_row_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "woodbury",
+    "wall_time_s": 141.5604
+  },
+  "streaming_solve_modes_woodbury_s1": {
+    "code_identity": "26cf0339159b0b5f8d2c5f7c46fc42a5a9c9efb5",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.01,
+      "batch_size": 1000,
+      "chunk_stats": false,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 4000,
+      "solve_mode": "woodbury",
+      "window_size": 10
+    },
+    "experiment": "streaming_solve_modes",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "solve_mode",
+    "label": "streaming_solve_modes_woodbury_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "bias_mean": 0.011269,
+        "bias_std": 0.428852,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.250167
+      },
+      "eval_time_s": 9.4071,
+      "factors": {
+        "dataset": "sMNIST-row",
+        "n_neurons": 4000,
+        "solve_mode": "woodbury",
+        "window_size": 10
+      },
+      "fit_time_s": 130.6934,
+      "test_accuracy": 0.9801,
+      "train_accuracy": null
+    },
+    "phase": "streaming_solve_modes",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 28,
+      "d_timestep": 28,
+      "dataset": "sMNIST-row",
+      "experiment_kind": "smnist_row_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "woodbury",
+    "wall_time_s": 140.2407
+  },
+  "streaming_solve_modes_woodbury_s2": {
+    "code_identity": "26cf0339159b0b5f8d2c5f7c46fc42a5a9c9efb5",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.01,
+      "batch_size": 1000,
+      "chunk_stats": false,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 4000,
+      "solve_mode": "woodbury",
+      "window_size": 10
+    },
+    "experiment": "streaming_solve_modes",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "solve_mode",
+    "label": "streaming_solve_modes_woodbury_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "bias_mean": 0.000777,
+        "bias_std": 0.424895,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.249785
+      },
+      "eval_time_s": 7.8106,
+      "factors": {
+        "dataset": "sMNIST-row",
+        "n_neurons": 4000,
+        "solve_mode": "woodbury",
+        "window_size": 10
+      },
+      "fit_time_s": 131.4519,
+      "test_accuracy": 0.981,
+      "train_accuracy": null
+    },
+    "phase": "streaming_solve_modes",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 28,
+      "d_timestep": 28,
+      "dataset": "sMNIST-row",
+      "experiment_kind": "smnist_row_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "woodbury",
+    "wall_time_s": 139.4014
+  },
+  "streaming_solve_modes_woodbury_s3": {
+    "code_identity": "26cf0339159b0b5f8d2c5f7c46fc42a5a9c9efb5",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.01,
+      "batch_size": 1000,
+      "chunk_stats": false,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 4000,
+      "solve_mode": "woodbury",
+      "window_size": 10
+    },
+    "experiment": "streaming_solve_modes",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "solve_mode",
+    "label": "streaming_solve_modes_woodbury_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "bias_mean": 0.007949,
+        "bias_std": 0.423853,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.244434
+      },
+      "eval_time_s": 9.2223,
+      "factors": {
+        "dataset": "sMNIST-row",
+        "n_neurons": 4000,
+        "solve_mode": "woodbury",
+        "window_size": 10
+      },
+      "fit_time_s": 130.6632,
+      "test_accuracy": 0.9805,
+      "train_accuracy": null
+    },
+    "phase": "streaming_solve_modes",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 28,
+      "d_timestep": 28,
+      "dataset": "sMNIST-row",
+      "experiment_kind": "smnist_row_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "woodbury",
+    "wall_time_s": 140.0233
+  },
+  "streaming_solve_modes_woodbury_s4": {
+    "code_identity": "26cf0339159b0b5f8d2c5f7c46fc42a5a9c9efb5",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.01,
+      "batch_size": 1000,
+      "chunk_stats": false,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 4000,
+      "solve_mode": "woodbury",
+      "window_size": 10
+    },
+    "experiment": "streaming_solve_modes",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "solve_mode",
+    "label": "streaming_solve_modes_woodbury_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "bias_mean": -0.008095,
+        "bias_std": 0.409697,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.247997
+      },
+      "eval_time_s": 9.1585,
+      "factors": {
+        "dataset": "sMNIST-row",
+        "n_neurons": 4000,
+        "solve_mode": "woodbury",
+        "window_size": 10
+      },
+      "fit_time_s": 129.0505,
+      "test_accuracy": 0.9803,
+      "train_accuracy": null
+    },
+    "phase": "streaming_solve_modes",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 28,
+      "d_timestep": 28,
+      "dataset": "sMNIST-row",
+      "experiment_kind": "smnist_row_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "woodbury",
+    "wall_time_s": 138.35
+  }
+}

@@ -74,6 +74,9 @@ def streaming_run(config: dict, seed: int, run_context: dict) -> dict:
     gain_low = float(config["gain_low"])
     gain_high = float(config["gain_high"])
     alpha = float(config["alpha"])
+    alpha_scale = str(config.get("alpha_scale", "trace"))
+    if alpha_scale not in ("trace", "fixed"):
+        raise ValueError(f"unknown alpha_scale {alpha_scale!r}; expected 'trace' or 'fixed'")
     solve_mode = str(config["solve_mode"])
     batch_size = int(config.get("batch_size", 1000))
     use_centers = bool(config.get("data_driven_biases", True))
@@ -110,27 +113,62 @@ def streaming_run(config: dict, seed: int, run_context: dict) -> dict:
     )
 
     t0 = time.perf_counter()
-    if solve_mode == "batch_acc":
-        # Single-call fixed-alpha solve via accumulate+solve: matches the
-        # numerics of the woodbury/accumulate paths so H3 equivalence is
-        # a clean numerics-of-solver comparison.
+    # When alpha_scale='trace', do a pilot accumulate pass to compute the
+    # full-data trace(AᵀA)/n, then set alpha_eff = alpha * trace/n.  This
+    # matches solvers.tikhonov / solve_from_normal_equations elsewhere in
+    # the codebase and removes the n_neurons-dependent under-regularisation
+    # that fixed alpha suffers from at large n.  All three solve modes use
+    # the SAME alpha_eff so H3 equivalence stays clean.
+    if alpha_scale == "trace":
         clf.accumulate(x_train, Y_oh, max_tokens=encode_max_tokens, chunk_stats=chunk_stats)
-        clf.solve(alpha=alpha)
-    elif solve_mode == "accumulate":
-        for s in range(0, x_train.shape[0], batch_size):
-            e = min(s + batch_size, x_train.shape[0])
-            clf.accumulate(
-                x_train[s:e],
-                Y_oh[s:e],
-                max_tokens=encode_max_tokens,
-                chunk_stats=chunk_stats,
-            )
-        clf.solve(alpha=alpha)
-    else:  # woodbury
-        for s in range(0, x_train.shape[0], batch_size):
-            e = min(s + batch_size, x_train.shape[0])
-            clf.continuous_fit(x_train[s:e], Y_oh[s:e], alpha=alpha, max_tokens=encode_max_tokens)
-        clf.refresh_inverse(alpha=alpha)
+        trace_per_neuron = float(torch.diagonal(clf._ata).mean())
+        alpha_eff = max(alpha * trace_per_neuron, alpha)
+        if solve_mode == "batch_acc":
+            clf.solve(alpha=alpha_eff)
+        elif solve_mode == "accumulate":
+            # Pilot already accumulated everything in one shot — but we
+            # want to faithfully exercise the multi-batch accumulate path
+            # for H3.  Reset and redo in batches with the locked alpha_eff.
+            clf.reset_continuous()
+            for s in range(0, x_train.shape[0], batch_size):
+                e = min(s + batch_size, x_train.shape[0])
+                clf.accumulate(
+                    x_train[s:e],
+                    Y_oh[s:e],
+                    max_tokens=encode_max_tokens,
+                    chunk_stats=chunk_stats,
+                )
+            clf.solve(alpha=alpha_eff)
+        else:  # woodbury — needs alpha locked for the M⁻¹ invariant
+            clf.reset_continuous()
+            for s in range(0, x_train.shape[0], batch_size):
+                e = min(s + batch_size, x_train.shape[0])
+                clf.continuous_fit(
+                    x_train[s:e], Y_oh[s:e], alpha=alpha_eff, max_tokens=encode_max_tokens
+                )
+            clf.refresh_inverse(alpha=alpha_eff)
+    else:  # alpha_scale == 'fixed'
+        alpha_eff = alpha
+        if solve_mode == "batch_acc":
+            clf.accumulate(x_train, Y_oh, max_tokens=encode_max_tokens, chunk_stats=chunk_stats)
+            clf.solve(alpha=alpha)
+        elif solve_mode == "accumulate":
+            for s in range(0, x_train.shape[0], batch_size):
+                e = min(s + batch_size, x_train.shape[0])
+                clf.accumulate(
+                    x_train[s:e],
+                    Y_oh[s:e],
+                    max_tokens=encode_max_tokens,
+                    chunk_stats=chunk_stats,
+                )
+            clf.solve(alpha=alpha)
+        else:  # woodbury
+            for s in range(0, x_train.shape[0], batch_size):
+                e = min(s + batch_size, x_train.shape[0])
+                clf.continuous_fit(
+                    x_train[s:e], Y_oh[s:e], alpha=alpha, max_tokens=encode_max_tokens
+                )
+            clf.refresh_inverse(alpha=alpha)
     fit_s = time.perf_counter() - t0
 
     t1 = time.perf_counter()
@@ -159,6 +197,9 @@ def streaming_run(config: dict, seed: int, run_context: dict) -> dict:
             "bias_mean": round(float(clf.bias.mean()), 6),
             "bias_std": round(float(clf.bias.std()), 6),
             "gain_mean": round(float(clf._gain.mean()), 6),
+            "alpha_scale": alpha_scale,
+            "alpha_nominal": alpha,
+            "alpha_eff": round(float(alpha_eff), 9),
         },
         "dataset_metadata": bundle.metadata(),
     }
@@ -199,6 +240,7 @@ STREAMING_ROW_BASE_CONFIG: dict[str, object] = {
     "gain_low": 0.5,
     "gain_high": 2.0,
     "alpha": 1e-2,
+    "alpha_scale": "trace",
     "solve_mode": "batch_acc",
     "batch_size": 1000,
     "data_driven_biases": True,

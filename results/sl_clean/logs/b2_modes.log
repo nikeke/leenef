@@ -1,0 +1,33 @@
+================================================================
+  PHASE streaming_solve_modes  exp=streaming_solve_modes  knob=solve_mode  values=batch_acc,accumulate,woodbury
+  base_config=results/sl_clean/base_config_streaming_solve_modes.json  out=results/sl_clean/streaming_solve_modes.json
+================================================================
+[2026-04-30T20:22:16] phase=streaming_solve_modes experiment=streaming_solve_modes knob=solve_mode values=['batch_acc', 'accumulate', 'woodbury'] seeds=[0, 1, 2, 3, 4] code_identity=26cf0339159b0b5f8d2c5f7c46fc42a5a9c9efb5
+[2026-04-30T20:22:16]   [1/15] run    streaming_solve_modes_batch_acc_s0
+[2026-04-30T20:23:31]   [2/15] run    streaming_solve_modes_batch_acc_s1
+[2026-04-30T20:24:45]   [3/15] run    streaming_solve_modes_batch_acc_s2
+[2026-04-30T20:25:59]   [4/15] run    streaming_solve_modes_batch_acc_s3
+[2026-04-30T20:27:13]   [5/15] run    streaming_solve_modes_batch_acc_s4
+[2026-04-30T20:28:29]   [6/15] run    streaming_solve_modes_accumulate_s0
+[2026-04-30T20:29:47]   [7/15] run    streaming_solve_modes_accumulate_s1
+[2026-04-30T20:31:06]   [8/15] run    streaming_solve_modes_accumulate_s2
+[2026-04-30T20:32:23]   [9/15] run    streaming_solve_modes_accumulate_s3
+[2026-04-30T20:33:39]   [10/15] run    streaming_solve_modes_accumulate_s4
+[2026-04-30T20:34:56]   [11/15] run    streaming_solve_modes_woodbury_s0
+[2026-04-30T20:37:18]   [12/15] run    streaming_solve_modes_woodbury_s1
+[2026-04-30T20:39:38]   [13/15] run    streaming_solve_modes_woodbury_s2
+[2026-04-30T20:41:57]   [14/15] run    streaming_solve_modes_woodbury_s3
+[2026-04-30T20:44:17]   [15/15] run    streaming_solve_modes_woodbury_s4
+[2026-04-30T20:46:36] phase streaming_solve_modes done — 15 rows in results/sl_clean/streaming_solve_modes.json
+==============================================================================
+  ANALYSIS  experiment=streaming_solve_modes  knob=solve_mode
+  metric=test_accuracy  (↑ better)   sweep=results/sl_clean/streaming_solve_modes.json
+==============================================================================
+           value    n        mean      ± SE         min         max
+       batch_acc    5      0.9807  ± 0.0003      0.9800      0.9819
+      accumulate    5      0.9806  ± 0.0002      0.9801      0.9812
+        woodbury    5      0.9806  ± 0.0002      0.9801      0.9812
+
+  winner:       solve_mode=batch_acc  (mean=0.9807)
+  current base: solve_mode=batch_acc  (in sweep: yes)
+  → base is already the winner; no change
