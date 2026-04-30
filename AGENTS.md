@@ -25,7 +25,7 @@
 source venv/bin/activate
 
 # Tests
-pytest                                        # full suite (271 tests)
+pytest                                        # full suite
 pytest tests/test_core.py -q                  # core module tests
 pytest tests/test_core.py::TestNEFLayer -q    # single test class
 pytest -k test_fit_identity -q                # single test by name
@@ -38,12 +38,69 @@ ruff format src/leenef/ tests/ benchmarks/
 
 # Install after changing pyproject.toml
 pip install -e '.[dev]'
+
+# sl_clean sweeps (Paper I)
+# All driver invocations need PYTHON= explicit because no `python` binary
+# exists on PATH (only `python3` and the venv).
+PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
+    bash benchmarks/sl_clean/sl_hp_driver.sh biases_mnist
+PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
+    bash benchmarks/sl_clean/sl_hp_driver.sh biases_fashion
+PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
+    bash benchmarks/sl_clean/sl_hp_driver.sh biases_cifar10
 ```
 
-> Benchmark, figure-generation, and sweep-driver commands will be
-> reintroduced under `benchmarks/sl_clean/` during Phase A2.  Until
-> then, no production benchmark commands are available; consult the
-> session plan.md for the current phase status.
+> Pre-Phase-A2 benchmark, figure-generation, and other sweep-driver
+> commands have moved to `attic/`; only the `sl_clean` block above is
+> live.  See `docs/sl_clean_sweeps.md` for the running phase log.
+
+## Foundational paper series (Paper I — Supervised Learning)
+
+The active plan lives in
+`~/.copilot/session-state/<session>/plan.md`.  Paper I owns the
+`benchmarks/sl_clean/`, `results/sl_clean/`, `docs/sl_clean_sweeps.md`
+trio, modeled after the rl_clean infrastructure.
+
+**Operational rules:**
+
+- Every result row must carry a `code_identity` SHA (HEAD or
+  `<sha>-dirty-<sha256[:12]>`).  Rows whose identity no longer matches
+  the current tree are kept on disk but excluded from aggregates.
+- Every dataset row must carry `dataset_metadata.raw_hashes` (SHA-256
+  of on-disk bytes) and `processed_hashes` (SHA-256 of the
+  preprocessed float32 tensor).  See `benchmarks/sl_clean/datasets.py`.
+- Sweeps are launched detached via `setsid ... < /dev/null &; disown`
+  (NOT `nohup ... &` — that has been killed by session shutdown in
+  practice).  Confirm only one runner PID is alive after launch — a
+  duplicate writer will race on the result JSON.
+- All randomness inside the harness uses explicit `torch.Generator`
+  instances seeded from a per-stream sub-RNG
+  (`_make_subrngs(seed)`).  Never rely on the global default RNG.
+- Encoders + gains are derived from sub-RNGs that depend ONLY on the
+  seed, never on the contrasted factor — so the same seed produces
+  bit-identical encoders across e.g. all three bias modes.
+
+**Live phase log:** `docs/sl_clean_sweeps.md`.
+
+## Reproducibility hazards (must not regress)
+
+- **Default RNG vs explicit Generator.** Every place that draws
+  randomness must use an explicit `torch.Generator()` seeded from
+  `_make_subrngs(seed)` (or equivalent).  Past sweeps were silently
+  irreproducible because some helper used the global default RNG.
+- **Encoders+gains shared across factor levels.** When contrasting
+  factor X (e.g. bias_mode), all RNG streams that don't depend on X
+  must be functions of the seed alone, so they're bit-identical across
+  X levels.  This both isolates causality and gives ~3× speedup.
+- **Detached launches.** Use `setsid ... < /dev/null &; disown`, not
+  `nohup ... &`.  After launch, immediately `ps -ef | grep` for the
+  runner — a stale instance + the new instance racing on the same
+  result JSON is the most common silent failure.
+- **GPT-5.5 review pass.** Before launching any long sweep that will
+  consume hours of CPU/GPU, dispatch a `task` agent with model
+  `gpt-5.5` to review the hot path for optimization opportunities
+  (matmul shapes, dtype churn, missing in-place ops).  See
+  `7703a1010c10bbcf0c11d821792c3aad386ef6e7` for the precedent.
 
 ## Technical report as design reference (ATTIC EPOCH — pending rewrite)
 
