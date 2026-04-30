@@ -48,10 +48,101 @@ counterparts of this log; this file is the human-readable summary.
 |---|---|---|---|---|
 | — | smoke_n_neurons | smoke | `n_neurons` | infrastructure plumbing only |
 | — | smoke_data_driven_bias | smoke | `data_driven_biases` | infrastructure plumbing only |
+| B1 | biases_mnist_panel | biases_mnist | `cell` (3×3 factorial) | H1 — encoder-type gap closure |
 
-Headline-claim phases (data-driven biases, streaming sMNIST, MLP / LSTM
-/ ESN baselines, etc.) will be added as the corresponding experiments
-are wired up.
+Headline-claim phases (streaming sMNIST, MLP / LSTM / ESN baselines,
+etc.) will be added as the corresponding experiments are wired up.
+
+---
+
+## B1 — biases_mnist_panel (H1 keystone)
+
+**Question.** Does the choice of bias mechanism matter for the encoder-
+type gap on MNIST? The original H1 hypothesis was *"data-driven biases
+collapse the encoder-type gap"*. The data tells a more nuanced story.
+
+**Setup.** 3×3 factorial: `bias_mode ∈ {data_driven, random_normal,
+zero}` × `encoder_strategy ∈ {hypersphere, gaussian, sparse}` × 10 seeds
+× n_neurons=5000, abs activation, gain U(0.5, 2.0), α=1e-3, Cholesky
+solver, chunked accumulation. Encoders and gains are bit-identical
+across the 3 bias modes for the same seed (independent sub-RNGs per
+stream), so the bias-mode contrast is causal.
+
+Results: `results/sl_clean/biases_mnist_panel.json` (90 rows),
+summary in `biases_mnist_panel_summary.json`. Wall time: ~18 min on
+12-thread Ryzen CPU.
+
+### Per-cell test accuracy (mean ± SE, n=10)
+
+| bias_mode \ encoder | hypersphere | gaussian | sparse |
+|---|---|---|---|
+| data_driven   | 97.1 ± 0.0 | 97.1 ± 0.0 | 97.1 ± 0.0 |
+| random_normal | **96.1 ± 0.0** | 97.1 ± 0.0 | 97.2 ± 0.0 |
+| zero          | 97.1 ± 0.0 | 97.1 ± 0.0 | 97.2 ± 0.0 |
+
+### Encoder-type gap (max pairwise gap within each bias_mode, paired by seed)
+
+| bias_mode | mean | SE | n | verdict |
+|---|---|---|---|---|
+| data_driven   | 0.10% | 0.02% | 10 | collapse_supported |
+| random_normal | 1.12% | 0.04% | 10 | gap_present |
+| zero          | 0.11% | 0.02% | 10 | collapse_supported |
+
+(collapse threshold = 0.50 pp.)
+
+### Headline contrasts: data_driven − random_normal (paired by seed)
+
+| encoder | Δ mean | Δ SE | ratio | n |
+|---|---|---|---|---|
+| hypersphere | **+0.99 pp** | 0.05 | **18.5** | 10 |
+| gaussian    | −0.06 pp | 0.05 | −1.3 | 10 |
+| sparse      | −0.11 pp | 0.03 | −4.0 | 10 |
+
+### Verdict
+
+The original H1 framing — *"data-driven biases close the encoder-type
+gap"* — needs revision. The data shows three things the simple framing
+hides:
+
+1. **`random_normal` biases are a failure mode for `hypersphere`
+   encoders specifically** — they cost ~1 pp on MNIST. `gaussian` and
+   `sparse` encoders are robust to bias choice.
+2. **`zero` biases collapse the gap just as effectively as
+   `data_driven`.** The honest story is not that data-driven biases
+   are uniquely good, but that random Gaussian biases are uniquely bad
+   for some encoders.
+3. **Therefore the practical recommendation simplifies:** *don't use
+   random Gaussian biases.* `data_driven` and `zero` are
+   interchangeable on this benchmark within ≤ 0.05 pp.
+
+This is a stronger and more useful finding than the original H1, and
+it raises follow-up questions before B1 can close:
+
+- **Is `data_driven == zero` dataset-specific?** Probably not on MNIST,
+  but Fashion-MNIST and CIFAR-10 may differentiate them. Adding a
+  Fashion-MNIST replication of B1 is now elevated to a B-phase blocker.
+- **Does the gain range matter?** Larger gains amplify the
+  random-Gaussian bias offset; smaller gains may close it. A gain
+  ablation with random_normal+hypersphere is queued.
+- **Why `hypersphere` only?** The unit-norm constraint means random
+  biases land neurons at unpredictable points relative to the data
+  cloud. `gaussian` and `sparse` directions implicitly carry magnitude
+  variation that interacts with U(0.5, 2.0) gain in a way that
+  compensates. This is a hypothesis for §5 of the paper, not yet
+  proven.
+
+### Code / data identity
+
+- `code_identity` for all 90 rows: `a1837796f1fc783b83846670e39f75548281a979`
+- `dataset.raw_hashes` (MNIST IDX): per-row in JSON; should match across
+  any reproduction on this machine.
+
+### Reproduce
+
+```bash
+SEEDS=0-9 PYTHON=$PWD/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh biases_mnist
+```
 
 ---
 

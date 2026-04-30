@@ -1,0 +1,116 @@
+[2026-04-30T18:06:18] phase=biases_mnist_panel experiment=biases_mnist knob=cell values=['data_driven+hypersphere', 'data_driven+gaussian', 'data_driven+sparse', 'random_normal+hypersphere', 'random_normal+gaussian', 'random_normal+sparse', 'zero+hypersphere', 'zero+gaussian', 'zero+sparse'] seeds=[0] code_identity=a1837796f1fc783b83846670e39f75548281a979
+[2026-04-30T18:06:18]   [1/9] run    biases_mnist_panel_data_driven+hypersphere_s0
+[2026-04-30T18:06:29]   [2/9] run    biases_mnist_panel_data_driven+gaussian_s0
+[2026-04-30T18:06:41]   [3/9] run    biases_mnist_panel_data_driven+sparse_s0
+[2026-04-30T18:06:53]   [4/9] run    biases_mnist_panel_random_normal+hypersphere_s0
+[2026-04-30T18:07:04]   [5/9] run    biases_mnist_panel_random_normal+gaussian_s0
+[2026-04-30T18:07:16]   [6/9] run    biases_mnist_panel_random_normal+sparse_s0
+[2026-04-30T18:07:28]   [7/9] run    biases_mnist_panel_zero+hypersphere_s0
+[2026-04-30T18:07:40]   [8/9] run    biases_mnist_panel_zero+gaussian_s0
+[2026-04-30T18:07:52]   [9/9] run    biases_mnist_panel_zero+sparse_s0
+[2026-04-30T18:08:04] phase biases_mnist_panel done — 9 rows in results/sl_clean/biases_mnist_panel.json
+[2026-04-30T18:10:30] phase=biases_mnist_panel experiment=biases_mnist knob=cell values=['data_driven+hypersphere', 'data_driven+gaussian', 'data_driven+sparse', 'random_normal+hypersphere', 'random_normal+gaussian', 'random_normal+sparse', 'zero+hypersphere', 'zero+gaussian', 'zero+sparse'] seeds=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] code_identity=a1837796f1fc783b83846670e39f75548281a979
+[2026-04-30T18:10:30]   [1/90] run    biases_mnist_panel_data_driven+hypersphere_s0
+[2026-04-30T18:10:42]   [2/90] run    biases_mnist_panel_data_driven+hypersphere_s1
+[2026-04-30T18:10:54]   [3/90] run    biases_mnist_panel_data_driven+hypersphere_s2
+[2026-04-30T18:11:06]   [4/90] run    biases_mnist_panel_data_driven+hypersphere_s3
+[2026-04-30T18:11:17]   [5/90] run    biases_mnist_panel_data_driven+hypersphere_s4
+[2026-04-30T18:11:29]   [6/90] run    biases_mnist_panel_data_driven+hypersphere_s5
+[2026-04-30T18:11:40]   [7/90] run    biases_mnist_panel_data_driven+hypersphere_s6
+[2026-04-30T18:11:52]   [8/90] run    biases_mnist_panel_data_driven+hypersphere_s7
+[2026-04-30T18:12:04]   [9/90] run    biases_mnist_panel_data_driven+hypersphere_s8
+[2026-04-30T18:12:16]   [10/90] run    biases_mnist_panel_data_driven+hypersphere_s9
+[2026-04-30T18:12:27]   [11/90] run    biases_mnist_panel_data_driven+gaussian_s0
+[2026-04-30T18:12:39] phase=biases_mnist_panel experiment=biases_mnist knob=cell values=['data_driven+hypersphere', 'data_driven+gaussian', 'data_driven+sparse', 'random_normal+hypersphere', 'random_normal+gaussian', 'random_normal+sparse', 'zero+hypersphere', 'zero+gaussian', 'zero+sparse'] seeds=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] code_identity=a1837796f1fc783b83846670e39f75548281a979
+[2026-04-30T18:12:39]   [1/90] skip   biases_mnist_panel_data_driven+hypersphere_s0  (cached)
+[2026-04-30T18:12:39]   [2/90] skip   biases_mnist_panel_data_driven+hypersphere_s1  (cached)
+[2026-04-30T18:12:39]   [3/90] skip   biases_mnist_panel_data_driven+hypersphere_s2  (cached)
+[2026-04-30T18:12:39]   [4/90] skip   biases_mnist_panel_data_driven+hypersphere_s3  (cached)
+[2026-04-30T18:12:39]   [5/90] skip   biases_mnist_panel_data_driven+hypersphere_s4  (cached)
+[2026-04-30T18:12:39]   [6/90] skip   biases_mnist_panel_data_driven+hypersphere_s5  (cached)
+[2026-04-30T18:12:39]   [7/90] skip   biases_mnist_panel_data_driven+hypersphere_s6  (cached)
+[2026-04-30T18:12:39]   [8/90] skip   biases_mnist_panel_data_driven+hypersphere_s7  (cached)
+[2026-04-30T18:12:39]   [9/90] skip   biases_mnist_panel_data_driven+hypersphere_s8  (cached)
+[2026-04-30T18:12:39]   [10/90] skip   biases_mnist_panel_data_driven+hypersphere_s9  (cached)
+[2026-04-30T18:12:39]   [11/90] run    biases_mnist_panel_data_driven+gaussian_s0
+[2026-04-30T18:12:39]   [12/90] run    biases_mnist_panel_data_driven+gaussian_s1
+[2026-04-30T18:12:59]   [12/90] run    biases_mnist_panel_data_driven+gaussian_s1
+[2026-04-30T18:13:10]   [13/90] run    biases_mnist_panel_data_driven+gaussian_s2
+[2026-04-30T18:13:22]   [14/90] run    biases_mnist_panel_data_driven+gaussian_s3
+[2026-04-30T18:13:34]   [15/90] run    biases_mnist_panel_data_driven+gaussian_s4
+[2026-04-30T18:13:46]   [16/90] run    biases_mnist_panel_data_driven+gaussian_s5
+[2026-04-30T18:13:57]   [17/90] run    biases_mnist_panel_data_driven+gaussian_s6
+[2026-04-30T18:14:09]   [18/90] run    biases_mnist_panel_data_driven+gaussian_s7
+[2026-04-30T18:14:21]   [19/90] run    biases_mnist_panel_data_driven+gaussian_s8
+[2026-04-30T18:14:33]   [20/90] run    biases_mnist_panel_data_driven+gaussian_s9
+[2026-04-30T18:14:44]   [21/90] run    biases_mnist_panel_data_driven+sparse_s0
+[2026-04-30T18:14:56]   [22/90] run    biases_mnist_panel_data_driven+sparse_s1
+[2026-04-30T18:15:08]   [23/90] run    biases_mnist_panel_data_driven+sparse_s2
+[2026-04-30T18:15:19]   [24/90] run    biases_mnist_panel_data_driven+sparse_s3
+[2026-04-30T18:15:31]   [25/90] run    biases_mnist_panel_data_driven+sparse_s4
+[2026-04-30T18:15:43]   [26/90] run    biases_mnist_panel_data_driven+sparse_s5
+[2026-04-30T18:15:54]   [27/90] run    biases_mnist_panel_data_driven+sparse_s6
+[2026-04-30T18:16:06]   [28/90] run    biases_mnist_panel_data_driven+sparse_s7
+[2026-04-30T18:16:18]   [29/90] run    biases_mnist_panel_data_driven+sparse_s8
+[2026-04-30T18:16:29]   [30/90] run    biases_mnist_panel_data_driven+sparse_s9
+[2026-04-30T18:16:41]   [31/90] run    biases_mnist_panel_random_normal+hypersphere_s0
+[2026-04-30T18:16:52]   [32/90] run    biases_mnist_panel_random_normal+hypersphere_s1
+[2026-04-30T18:17:04]   [33/90] run    biases_mnist_panel_random_normal+hypersphere_s2
+[2026-04-30T18:17:16]   [34/90] run    biases_mnist_panel_random_normal+hypersphere_s3
+[2026-04-30T18:17:27]   [35/90] run    biases_mnist_panel_random_normal+hypersphere_s4
+[2026-04-30T18:17:39]   [36/90] run    biases_mnist_panel_random_normal+hypersphere_s5
+[2026-04-30T18:17:50]   [37/90] run    biases_mnist_panel_random_normal+hypersphere_s6
+[2026-04-30T18:18:02]   [38/90] run    biases_mnist_panel_random_normal+hypersphere_s7
+[2026-04-30T18:18:13]   [39/90] run    biases_mnist_panel_random_normal+hypersphere_s8
+[2026-04-30T18:18:25]   [40/90] run    biases_mnist_panel_random_normal+hypersphere_s9
+[2026-04-30T18:18:36]   [41/90] run    biases_mnist_panel_random_normal+gaussian_s0
+[2026-04-30T18:18:48]   [42/90] run    biases_mnist_panel_random_normal+gaussian_s1
+[2026-04-30T18:18:59]   [43/90] run    biases_mnist_panel_random_normal+gaussian_s2
+[2026-04-30T18:19:11]   [44/90] run    biases_mnist_panel_random_normal+gaussian_s3
+[2026-04-30T18:19:23]   [45/90] run    biases_mnist_panel_random_normal+gaussian_s4
+[2026-04-30T18:19:34]   [46/90] run    biases_mnist_panel_random_normal+gaussian_s5
+[2026-04-30T18:19:46]   [47/90] run    biases_mnist_panel_random_normal+gaussian_s6
+[2026-04-30T18:19:57]   [48/90] run    biases_mnist_panel_random_normal+gaussian_s7
+[2026-04-30T18:20:09]   [49/90] run    biases_mnist_panel_random_normal+gaussian_s8
+[2026-04-30T18:20:20]   [50/90] run    biases_mnist_panel_random_normal+gaussian_s9
+[2026-04-30T18:20:32]   [51/90] run    biases_mnist_panel_random_normal+sparse_s0
+[2026-04-30T18:20:43]   [52/90] run    biases_mnist_panel_random_normal+sparse_s1
+[2026-04-30T18:20:54]   [53/90] run    biases_mnist_panel_random_normal+sparse_s2
+[2026-04-30T18:21:06]   [54/90] run    biases_mnist_panel_random_normal+sparse_s3
+[2026-04-30T18:21:17]   [55/90] run    biases_mnist_panel_random_normal+sparse_s4
+[2026-04-30T18:21:29]   [56/90] run    biases_mnist_panel_random_normal+sparse_s5
+[2026-04-30T18:21:40]   [57/90] run    biases_mnist_panel_random_normal+sparse_s6
+[2026-04-30T18:21:52]   [58/90] run    biases_mnist_panel_random_normal+sparse_s7
+[2026-04-30T18:22:03]   [59/90] run    biases_mnist_panel_random_normal+sparse_s8
+[2026-04-30T18:22:15]   [60/90] run    biases_mnist_panel_random_normal+sparse_s9
+[2026-04-30T18:22:26]   [61/90] run    biases_mnist_panel_zero+hypersphere_s0
+[2026-04-30T18:22:38]   [62/90] run    biases_mnist_panel_zero+hypersphere_s1
+[2026-04-30T18:22:49]   [63/90] run    biases_mnist_panel_zero+hypersphere_s2
+[2026-04-30T18:23:01]   [64/90] run    biases_mnist_panel_zero+hypersphere_s3
+[2026-04-30T18:23:12]   [65/90] run    biases_mnist_panel_zero+hypersphere_s4
+[2026-04-30T18:23:24]   [66/90] run    biases_mnist_panel_zero+hypersphere_s5
+[2026-04-30T18:23:35]   [67/90] run    biases_mnist_panel_zero+hypersphere_s6
+[2026-04-30T18:23:47]   [68/90] run    biases_mnist_panel_zero+hypersphere_s7
+[2026-04-30T18:23:58]   [69/90] run    biases_mnist_panel_zero+hypersphere_s8
+[2026-04-30T18:24:10]   [70/90] run    biases_mnist_panel_zero+hypersphere_s9
+[2026-04-30T18:24:21]   [71/90] run    biases_mnist_panel_zero+gaussian_s0
+[2026-04-30T18:24:33]   [72/90] run    biases_mnist_panel_zero+gaussian_s1
+[2026-04-30T18:24:44]   [73/90] run    biases_mnist_panel_zero+gaussian_s2
+[2026-04-30T18:24:56]   [74/90] run    biases_mnist_panel_zero+gaussian_s3
+[2026-04-30T18:25:07]   [75/90] run    biases_mnist_panel_zero+gaussian_s4
+[2026-04-30T18:25:19]   [76/90] run    biases_mnist_panel_zero+gaussian_s5
+[2026-04-30T18:25:30]   [77/90] run    biases_mnist_panel_zero+gaussian_s6
+[2026-04-30T18:25:42]   [78/90] run    biases_mnist_panel_zero+gaussian_s7
+[2026-04-30T18:25:53]   [79/90] run    biases_mnist_panel_zero+gaussian_s8
+[2026-04-30T18:26:05]   [80/90] run    biases_mnist_panel_zero+gaussian_s9
+[2026-04-30T18:26:16]   [81/90] run    biases_mnist_panel_zero+sparse_s0
+[2026-04-30T18:26:27]   [82/90] run    biases_mnist_panel_zero+sparse_s1
+[2026-04-30T18:26:39]   [83/90] run    biases_mnist_panel_zero+sparse_s2
+[2026-04-30T18:26:51]   [84/90] run    biases_mnist_panel_zero+sparse_s3
+[2026-04-30T18:27:02]   [85/90] run    biases_mnist_panel_zero+sparse_s4
+[2026-04-30T18:27:14]   [86/90] run    biases_mnist_panel_zero+sparse_s5
+[2026-04-30T18:27:25]   [87/90] run    biases_mnist_panel_zero+sparse_s6
+[2026-04-30T18:27:37]   [88/90] run    biases_mnist_panel_zero+sparse_s7
+[2026-04-30T18:27:48]   [89/90] run    biases_mnist_panel_zero+sparse_s8
+[2026-04-30T18:28:00]   [90/90] run    biases_mnist_panel_zero+sparse_s9
+[2026-04-30T18:28:11] phase biases_mnist_panel done — 90 rows in results/sl_clean/biases_mnist_panel.json
