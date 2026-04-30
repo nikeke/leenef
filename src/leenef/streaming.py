@@ -129,6 +129,22 @@ class StreamingNEFClassifier(nn.Module):
         """Encode flat delay-line features (M, K*d) → activities (M, n)."""
         return self.activation(self._gain * (x_flat @ self.encoders.T) + self.bias)
 
+    def _encoded_sequence_chunks(self, x_seq: Tensor, max_tokens: int = 50_000):
+        """Yield ``(start, end, pooled)`` chunks of pooled activities.
+
+        Streaming variant of :meth:`encode_sequence` that avoids
+        materializing the full ``(N, n_neurons)`` matrix at once.  Useful
+        for accumulating ``AᵀA`` / ``AᵀY`` without large peak memory.
+        """
+        N, T, _ = x_seq.shape
+        chunk = max(1, max_tokens // T)
+        for i in range(0, N, chunk):
+            d_chunk = self._delay_features(x_seq[i : i + chunk])
+            Nc = d_chunk.shape[0]
+            Kd = d_chunk.shape[2]
+            a = self._encode_flat(d_chunk.reshape(Nc * T, Kd))
+            yield i, i + Nc, a.reshape(Nc, T, -1).mean(dim=1)
+
     def encode_sequence(self, x_seq: Tensor, max_tokens: int = 50_000) -> Tensor:
         """Encode sequence to mean-pooled activities. (N, T, d) → (N, n).
 
@@ -142,22 +158,24 @@ class StreamingNEFClassifier(nn.Module):
             _, _, Kd = delay.shape
             acts = self._encode_flat(delay.reshape(total, Kd))
             return acts.reshape(N, T, -1).mean(dim=1)
-        chunk = max(1, max_tokens // T)
-        pooled = []
-        for i in range(0, N, chunk):
-            d_chunk = self._delay_features(x_seq[i : i + chunk])
-            Nc = d_chunk.shape[0]
-            Kd = d_chunk.shape[2]
-            a = self._encode_flat(d_chunk.reshape(Nc * T, Kd))
-            pooled.append(a.reshape(Nc, T, -1).mean(dim=1))
-        return torch.cat(pooled, dim=0)
+        return torch.cat(
+            [pooled for _, _, pooled in self._encoded_sequence_chunks(x_seq, max_tokens)],
+            dim=0,
+        )
 
     def forward(self, x_seq: Tensor) -> Tensor:
         """Forward pass: encode sequence → decode. (N, T, d) → (N, d_out)."""
         return self.encode_sequence(x_seq) @ self.decoders
 
     @torch.no_grad()
-    def fit(self, x_seq: Tensor, targets: Tensor, solver: str = "tikhonov", **kwargs) -> None:
+    def fit(
+        self,
+        x_seq: Tensor,
+        targets: Tensor,
+        solver: str = "tikhonov",
+        max_tokens: int = 50_000,
+        **kwargs,
+    ) -> None:
         """Batch-fit decoders from sequences and targets.
 
         Args:
@@ -165,12 +183,18 @@ class StreamingNEFClassifier(nn.Module):
             targets: (N, d_out) target values.
             solver:  Solver name from ``leenef.solvers``.
         """
-        A = self.encode_sequence(x_seq)
+        A = self.encode_sequence(x_seq, max_tokens=max_tokens)
         D = solve_decoders(A, targets, method=solver, **kwargs)
         self.decoders.data.copy_(D)
 
     @torch.no_grad()
-    def continuous_fit(self, x_seq: Tensor, targets: Tensor, alpha: float = 1e-2) -> None:
+    def continuous_fit(
+        self,
+        x_seq: Tensor,
+        targets: Tensor,
+        alpha: float = 1e-2,
+        max_tokens: int = 50_000,
+    ) -> None:
         """Accumulate sequences and update decoders via Woodbury updates.
 
         Args:
@@ -178,9 +202,13 @@ class StreamingNEFClassifier(nn.Module):
             targets: (N, d_out) target values.
             alpha:   Fixed Tikhonov regularisation strength.
         """
-        A = self.encode_sequence(x_seq)  # (N, n)
-        ata = A.T @ A
-        aty = A.T @ targets
+        A = self.encode_sequence(x_seq, max_tokens=max_tokens)  # (N, n)
+        # Match :meth:`accumulate`: float32 GEMM, float64 running stats.
+        # Keeping the dtypes aligned across the two paths is what lets
+        # H3 (woodbury vs accumulate vs batch_acc) be a real equivalence
+        # check rather than a noise floor comparison.
+        ata = (A.T @ A).double()
+        aty = (A.T @ targets).double()
 
         if not hasattr(self, "_ata") or self._ata is None:
             self.register_buffer("_ata", ata)
@@ -209,8 +237,29 @@ class StreamingNEFClassifier(nn.Module):
 
         self.decoders.data.copy_((self._M_inv @ self._aty.double()).to(self.decoders.dtype))
 
+    def _accumulate_encoded(self, A: Tensor, targets: Tensor) -> None:
+        """Accumulate ``AᵀA`` / ``AᵀY`` from an encoded chunk.
+
+        Float32 GEMMs, float64 running stats — see :meth:`accumulate`
+        for the rationale.
+        """
+        ata = (A.T @ A).double()
+        aty = (A.T @ targets).double()
+        if not hasattr(self, "_ata") or self._ata is None:
+            self.register_buffer("_ata", ata)
+            self.register_buffer("_aty", aty)
+        else:
+            self._ata.add_(ata)
+            self._aty.add_(aty)
+
     @torch.no_grad()
-    def accumulate(self, x_seq: Tensor, targets: Tensor) -> None:
+    def accumulate(
+        self,
+        x_seq: Tensor,
+        targets: Tensor,
+        max_tokens: int = 50_000,
+        chunk_stats: bool = False,
+    ) -> None:
         """Accumulate normal-equation statistics without solving.
 
         GPU-friendly alternative to :meth:`continuous_fit`.  Computes
@@ -220,22 +269,21 @@ class StreamingNEFClassifier(nn.Module):
         Call :meth:`solve` when you want updated decoders.
 
         Args:
-            x_seq:   (N, T, d) input sequences.
-            targets: (N, d_out) target values.
+            x_seq:        (N, T, d) input sequences.
+            targets:      (N, d_out) target values.
+            max_tokens:   Encoding chunk size in N*T tokens.
+            chunk_stats:  If True, accumulate AᵀA / AᵀY chunk-by-chunk
+                without ever materializing the full ``(N, n_neurons)``
+                pooled matrix.  Slightly slower per call but caps peak
+                memory at ``chunk × n_neurons`` instead of ``N × n_neurons``.
+                Recommended for large n_neurons.
         """
-        A = self.encode_sequence(x_seq)  # (N, n) — float32 encoding
-        # Matmul in float32 (fast on GPU), promote result to float64
-        # for accumulation.  A single batch's outer product is fine in
-        # float32; the precision issue is the running sum across batches.
-        ata = (A.T @ A).double()
-        aty = (A.T @ targets).double()
-
-        if not hasattr(self, "_ata") or self._ata is None:
-            self.register_buffer("_ata", ata)
-            self.register_buffer("_aty", aty)
-        else:
-            self._ata.add_(ata)
-            self._aty.add_(aty)
+        if chunk_stats:
+            for s, e, A in self._encoded_sequence_chunks(x_seq, max_tokens):
+                self._accumulate_encoded(A, targets[s:e])
+            return
+        A = self.encode_sequence(x_seq, max_tokens=max_tokens)  # (N, n) — float32
+        self._accumulate_encoded(A, targets)
 
     @torch.no_grad()
     def solve(self, alpha: float = 1e-2) -> None:
@@ -256,7 +304,14 @@ class StreamingNEFClassifier(nn.Module):
             raise RuntimeError("No accumulated statistics — call accumulate() first")
         ATA = self._ata.clone()
         ATA.diagonal().add_(alpha)
-        D = torch.linalg.solve(ATA, self._aty)
+        # ATA is symmetric positive definite for any alpha > 0, so prefer
+        # Cholesky over the generic LU solve.  Fall back to LU on the
+        # exotic case where numerical noise drives Cholesky to fail.
+        try:
+            L = torch.linalg.cholesky(ATA)
+            D = torch.cholesky_solve(self._aty, L)
+        except RuntimeError:
+            D = torch.linalg.solve(ATA, self._aty)
         self.decoders.data.copy_(D.to(self.decoders.dtype))
 
     @torch.no_grad()
