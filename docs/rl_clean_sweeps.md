@@ -250,6 +250,28 @@ and the Thompson-exploration ensemble pilot (`218.8 ± 8.9` with voting
 readout). The failure is driven by a catastrophic seed 0 run, so there is no
 case for extending this branch before the final single-agent confirmation.
 
+### P7 — final single-agent confirmation
+
+Result file: `results/rl_clean/p7_final_confirm_lunarlander_v3.json`
+
+Configuration: the final clean single-agent base, a duplicated incumbent
+sentinel with the same scientific configuration, and the closest H2 runner-up
+(`solve_every=10, forget_factor=0.995`), all on seeds 0-2.
+
+| config | n | robust_eval mean ± SE | values |
+|---|---:|---:|---|
+| `incumbent` | 3 | 220.9 ± 10.3 | 219.1, 204.1, 239.5 |
+| `incumbent_duplicate` | 3 | 220.9 ± 10.3 | 204.1, 219.1, 239.5 |
+| `h2_runnerup_se10_ff995` | 3 | 219.6 ± 10.6 | 239.1, 217.1, 202.5 |
+
+Decision: keep the final clean base unchanged. The duplicate incumbent exactly
+reproduces the incumbent values up to row order, which is the intended
+determinism sentinel. The closest H2 runner-up is a statistical tie but remains
+slightly lower (`-1.3` robust_eval) and does not clear the adoption rule. This
+confirms the post-clean-restart default as `gamma=0.98`, `n_step=100`,
+`n_neurons=6000`, `solve_every=10`, `forget_factor=0.999`,
+`epsilon_decay=500`, and no recentering.
+
 ## Historical results that are stale for sweep adoption
 
 Treat these as **historical only**. Do not use them for skip/reuse decisions or
