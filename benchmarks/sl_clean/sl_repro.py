@@ -91,10 +91,16 @@ def _git(*args: str, repo_root: Path = REPO_ROOT) -> str | None:
 def code_identity() -> str | None:
     """Identity for the source tree, ignoring generated artifacts.
 
-    Clean tree → ``<HEAD-sha>``.
-    Dirty tree → ``<HEAD-sha>-dirty-<sha256[:12]>``, where the inner hash
-    is computed from the diff of ``CODE_IDENTITY_PATHS`` plus the list of
-    untracked files in the same paths.
+    Content-based: derived from the recursive ``git ls-tree`` listing of
+    ``CODE_IDENTITY_PATHS``. Two commits that leave the watched paths
+    bit-identical (e.g. a docs-only or results-only commit) produce the
+    same identity, so result rows from one are not invalidated by the
+    other.
+
+    Clean tree → ``<sha256(tree-listing)[:40]>``.
+    Dirty tree → ``<content-id>-dirty-<sha256(diff+untracked)[:12]>``.
+
+    Returns ``None`` if not in a git checkout.
     """
     head_out = _git("rev-parse", "HEAD")
     if not head_out:
@@ -102,15 +108,17 @@ def code_identity() -> str | None:
     head = head_out.strip()
     if not head:
         return None
+    tree_listing = _git("ls-tree", "-r", "HEAD", "--", *CODE_IDENTITY_PATHS) or ""
+    content_id = hashlib.sha256(tree_listing.encode("utf-8")).hexdigest()[:40]
     diff = _git("diff", "--no-ext-diff", "HEAD", "--", *CODE_IDENTITY_PATHS) or ""
     untracked = (
         _git("ls-files", "--others", "--exclude-standard", "--", *CODE_IDENTITY_PATHS) or ""
     )
     if not diff and not untracked:
-        return head
+        return content_id
     blob = f"{diff}\n--untracked--\n{untracked}".encode("utf-8")
     dirty = hashlib.sha256(blob).hexdigest()[:12]
-    return f"{head}-dirty-{dirty}"
+    return f"{content_id}-dirty-{dirty}"
 
 
 def reset_code_identity_cache() -> None:

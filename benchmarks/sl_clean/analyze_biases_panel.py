@@ -44,7 +44,7 @@ def _is_data_row(row: dict) -> bool:
         isinstance(row, dict)
         and "error" not in row
         and row.get("result_namespace") == RESULT_NAMESPACE
-        and row.get("experiment") == "biases_mnist"
+        and row.get("experiment") in {"biases_mnist", "biases_fashion", "biases_cifar10"}
         and "metrics" in row
     )
 
