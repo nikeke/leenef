@@ -272,6 +272,46 @@ confirms the post-clean-restart default as `gamma=0.98`, `n_step=100`,
 `n_neurons=6000`, `solve_every=10`, `forget_factor=0.999`,
 `epsilon_decay=500`, and no recentering.
 
+## Future work
+
+The clean restart produced a reliable NEF-FQI configuration, but not yet a
+standalone RL breakthrough claim. The most valuable next steps are those that
+test whether the analytic-decoder principle transfers or exposes a sharper
+advantage than a single LunarLander score.
+
+1. **Matched baseline study for the paper.** Run DQN, ExtraTrees/FQI, and
+   linear/RBF FQI baselines on the same seeds, evaluation policy, and episode
+   budget. The key question is not just final return, but sample efficiency,
+   wall-clock cost, and seed stability under the same deterministic protocol.
+2. **Transfer the clean recipe to a sparse-reward control task.** Try Acrobot or
+   MountainCar only with an explicit sparse-reward mechanism, such as reward
+   shaping, prioritized replay, or success-conditioned replay. A naive retune is
+   unlikely to be informative; the research question is whether fixed random or
+   data-adapted encoders plus analytic decoder updates can handle delayed credit
+   assignment.
+3. **State-distribution adaptation without breaking reproducibility.** The P6
+   recentering branch was not triggered by clean diagnostics, but a controlled
+   follow-up could compare no adaptation, quiet-neuron recentering, and replay
+   buffer resampling on tasks with clear distribution shift. This should be a
+   mechanism study, not another blind hyperparameter sweep.
+4. **Ensemble deployment, not ensemble exploration.** Thompson-trained ensembles
+   with voting readout tied the single-agent incumbent and voting exploration
+   failed. If ensembles are revisited, extend the Thompson-trained voting readout
+   to more seeds or smaller/heterogeneous members; do not prioritize
+   majority-vote exploration without a new mechanism.
+5. **Derive scaling rules instead of fixed knobs.** The strongest clean RL
+   signal remains the horizon-capacity interaction: `6000` neurons worked best
+   with `n_step=100`, while larger capacities did not automatically improve
+   return. A more publishable follow-up would fit a rule for choosing
+   `n_step`, capacity, and refresh cadence from task horizon and state dimension,
+   then test it out of sample.
+6. **Move beyond LunarLander before making broad RL claims.** The current
+   results justify saying that NEF-style analytic decoders are viable for a
+   continuous-state control benchmark. They do not yet justify claiming a new
+   general RL method. A combined paper should frame LunarLander as the RL
+   proof-of-concept unless at least one additional task reproduces the
+   sample-efficiency/stability story.
+
 ## Historical results that are stale for sweep adoption
 
 Treat these as **historical only**. Do not use them for skip/reuse decisions or
