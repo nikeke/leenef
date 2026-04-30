@@ -65,11 +65,41 @@ case "${EXPERIMENT}" in
     run_phase smoke_data_driven_bias data_driven_biases "true,false" "0,1,2,3,4" "${BASE}" smoke
     ;;
 
+  biases_mnist)
+    # B1 — H1 panel.  Single factorial phase with 9 cells × N seeds.
+    # The standard adoption analyzer does NOT run on this phase
+    # (knob 'cell' is enumerative, not adoptable); the panel verdict
+    # is produced by analyze_biases_panel.py instead.
+    BASE="${RESULTS_DIR}/base_config_biases_mnist.json"
+    SEEDS="${SEEDS:-0-9}"
+    CELLS="data_driven+hypersphere,data_driven+gaussian,data_driven+sparse,random_normal+hypersphere,random_normal+gaussian,random_normal+sparse,zero+hypersphere,zero+gaussian,zero+sparse"
+
+    phase="biases_mnist_panel"
+    out="${RESULTS_DIR}/${phase}.json"
+    log="${LOGS_DIR}/${phase}.log"
+    echo "================================================================"
+    echo "  PHASE ${phase}  exp=biases_mnist  cells=${CELLS}  seeds=${SEEDS}"
+    echo "================================================================"
+    ${PYTHON} -u -m benchmarks.sl_clean.sl_phase_runner \
+        --experiment biases_mnist \
+        --phase      "${phase}" \
+        --knob       cell \
+        --values     "${CELLS}" \
+        --seeds      "${SEEDS}" \
+        --base-config "${BASE}" \
+        --out         "${out}" \
+        --log         "${log}"
+
+    ${PYTHON} -u -m benchmarks.sl_clean.analyze_biases_panel \
+        --results "${out}" \
+        --out     "${RESULTS_DIR}/biases_mnist_panel_summary.json"
+    ;;
+
   # New blocks land here as B-phase / C-phase experiments are written.
 
   *)
     echo "unknown experiment block: ${EXPERIMENT}" >&2
-    echo "available: smoke" >&2
+    echo "available: smoke biases_mnist" >&2
     exit 2
     ;;
 esac
