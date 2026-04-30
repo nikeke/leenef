@@ -1,12 +1,31 @@
 # AGENTS.md — leenef
 
+> **Status — clean restart in progress.**
+>
+> The library source (`src/leenef/`) and core tests (`tests/`) are
+> stable.  Everything else — `benchmarks/`, `docs/`, `results/`,
+> `notebooks/` — has been moved to `attic/` while a foundational
+> three-paper series (Supervised → Continual → Reinforcement Learning)
+> is rebuilt with rl_clean-grade reproducibility.
+>
+> The active plan lives in
+> `~/.copilot/session-state/<session>/plan.md` (see "Foundational Paper
+> Series — Plan for Paper I").  New infrastructure
+> (`benchmarks/sl_clean/`, `results/sl_clean/`, `docs/sl_clean_sweeps.md`)
+> will be created during Phase A2.
+>
+> The sections below labeled **(ATTIC EPOCH — pending rewrite)** describe
+> the prior infrastructure and are kept for reference until the new
+> equivalents are written.  Do not run their commands (the referenced
+> scripts and result paths now live under `attic/`).
+
 ## Commands
 
 ```bash
 source venv/bin/activate
 
 # Tests
-pytest                                        # full suite
+pytest                                        # full suite (271 tests)
 pytest tests/test_core.py -q                  # core module tests
 pytest tests/test_core.py::TestNEFLayer -q    # single test class
 pytest -k test_fit_identity -q                # single test by name
@@ -19,34 +38,14 @@ ruff format src/leenef/ tests/ benchmarks/
 
 # Install after changing pyproject.toml
 pip install -e '.[dev]'
-
-# Report figures
-python docs/generate_figures.py
-
-# Benchmarks (use --seed 0 so reruns stay comparable)
-python benchmarks/run.py --multi --seed 0
-python benchmarks/run.py --ensemble --ensemble-members 20 --ensemble-receptive-field --seed 0
-python benchmarks/run_recurrent.py --seed 0
-python benchmarks/run_recurrent.py --streaming --streaming-neurons 4000 --streaming-window 10 --seed 0
-python benchmarks/run_recurrent.py --streaming --streaming-solve-mode accumulate --streaming-neurons 4000 --streaming-window 10 --seed 0
-
-# Continual learning
-python benchmarks/run_continual.py --scenario both --seed 0
-python benchmarks/run_continual.py --dataset cifar10 --scenario split --n-neurons 5000 --seed 0
-python benchmarks/run_continual.py --dataset cifar100 --scenario split --n-neurons 5000 --seed 0
-python benchmarks/run_capacity.py --seed 0
-python benchmarks/run_convnef_cl.py --seed 0
-
-# Colab suites (GPU)
-python benchmarks/colab_suites.py --suite row_focus --device auto --output-dir results/colab
-python benchmarks/colab_suites.py --suite sequential_hard --device auto --output-dir results/colab
-python benchmarks/colab_suites.py --suite sequential_audio --device auto --output-dir results/colab
-python benchmarks/colab_suites.py --suite sequential_audio_v2 --device auto --output-dir results/colab
-python benchmarks/colab_suites.py --suite conv_cifar --device auto --output-dir results/colab
-python benchmarks/colab_suites.py --suite continual_cl --device auto --output-dir results/colab
 ```
 
-## Technical report as design reference
+> Benchmark, figure-generation, and sweep-driver commands will be
+> reintroduced under `benchmarks/sl_clean/` during Phase A2.  Until
+> then, no production benchmark commands are available; consult the
+> session plan.md for the current phase status.
+
+## Technical report as design reference (ATTIC EPOCH — pending rewrite)
 
 Before designing new experiments, planning enhancements, adding features, or
 exploring research directions, **read `docs/technical_report.md`** to
@@ -110,7 +109,7 @@ summary snapshots to a dedicated log file, and regenerates charts or other
 derived artifacts after each completed phase.  That makes it safe to stop
 and resume long pipelines without losing already finished runs.
 
-## Colab benchmark suite rules
+## Colab benchmark suite rules (ATTIC EPOCH — pending rewrite)
 
 - If you change a Colab benchmark suite or its launcher workflow, **commit and
   push immediately** after the relevant checks pass so Colab can rerun against
@@ -119,7 +118,7 @@ and resume long pipelines without losing already finished runs.
   JSON/CSV outputs should be updated incrementally during the run, not only at
   the end, so interrupted sweeps still preserve completed results.
 
-## RL multi-seed sweep notes
+## RL multi-seed sweep notes (ATTIC EPOCH — pending rewrite)
 
 Long-running, multi-seed isolation sweeps for NEF-FQI are tracked in
 `docs/rl_multiseed_sweeps.md`. After each phase of `rl_hp_driver.sh`
@@ -145,7 +144,7 @@ matches — the multi-seed series uses `recenter_interval=None`,
 `broadness=0`, and a strict statistical adoption rule that earlier
 sweeps did not.
 
-## Technical report maintenance
+## Technical report maintenance (ATTIC EPOCH — pending rewrite)
 
 The technical report (TR) is `docs/technical_report.md`. Treat it as a
 globally coupled document: later edits often change earlier framing,

@@ -3,10 +3,15 @@
 Machine learning with the Neural Engineering Framework (NEF) of
 Eliasmith and Anderson, using rate-based neurons on PyTorch.
 
-**[Technical report](docs/technical_report.md)** — supervised learning
-background, method details, and benchmark analysis.
-**[RL research notes](docs/rl_notes.md)** — reinforcement learning
-experiments and continual RL analysis.
+> **Repository status — clean restart in progress.**  The library
+> source (`src/leenef/`) and core tests (`tests/`) are stable, but
+> `benchmarks/`, `docs/`, `results/`, and the historical technical
+> report have been moved to `attic/` while a foundational three-paper
+> series is rebuilt with rl_clean-grade reproducibility.  The historical
+> technical report (`attic/docs/technical_report.md`) and RL notes
+> (`attic/docs/rl_notes.md`) remain available for reference, but their
+> claims and tables predate the new multi-seed protocol and should not
+> be cited as current results.
 
 ## Overview
 
