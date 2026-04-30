@@ -103,11 +103,34 @@ def load_mnist(preprocessing: str = "div255_flat", root: Path | None = None) -> 
             ``"div255_flat"`` — divide by 255 and flatten (matches legacy TR).
         root: override data root (defaults to ``<repo>/data``).
     """
+    return _load_idx_dataset(name="MNIST", subdir="MNIST", preprocessing=preprocessing, root=root)
+
+
+@lru_cache(maxsize=4)
+def load_fashion_mnist(
+    preprocessing: str = "div255_flat", root: Path | None = None
+) -> DatasetBundle:
+    """Load Fashion-MNIST as float32 tensors with deterministic preprocessing.
+
+    Same on-disk format and shape as MNIST (28×28 grayscale, 10 classes).
+    """
+    return _load_idx_dataset(
+        name="FashionMNIST",
+        subdir="FashionMNIST",
+        preprocessing=preprocessing,
+        root=root,
+    )
+
+
+def _load_idx_dataset(
+    *, name: str, subdir: str, preprocessing: str, root: Path | None
+) -> DatasetBundle:
+    """Shared IDX loader for MNIST-like datasets (28×28 grayscale, 10 classes)."""
     root = root or DATA_ROOT
-    raw_dir = root / "MNIST" / "raw"
+    raw_dir = root / subdir / "raw"
     if not raw_dir.exists():
         raise FileNotFoundError(
-            f"MNIST raw files not found at {raw_dir}. Place the four IDX files under {raw_dir}/."
+            f"{name} raw files not found at {raw_dir}. Place the four IDX files under {raw_dir}/."
         )
 
     train_imgs, train_imgs_hash = _read_idx_images(raw_dir / "train-images-idx3-ubyte")
@@ -121,15 +144,12 @@ def load_mnist(preprocessing: str = "div255_flat", root: Path | None = None) -> 
     else:
         raise ValueError(f"unknown preprocessing {preprocessing!r}")
 
-    y_train = train_lbls
-    y_test = test_lbls
-
     return DatasetBundle(
-        name="MNIST",
+        name=name,
         x_train=x_train,
-        y_train=y_train,
+        y_train=train_lbls,
         x_test=x_test,
-        y_test=y_test,
+        y_test=test_lbls,
         n_classes=10,
         preprocessing=preprocessing,
         raw_hashes={
@@ -140,8 +160,91 @@ def load_mnist(preprocessing: str = "div255_flat", root: Path | None = None) -> 
         },
         processed_hashes={
             "x_train": _hash_tensor(x_train),
-            "y_train": _hash_tensor(y_train),
+            "y_train": _hash_tensor(train_lbls),
             "x_test": _hash_tensor(x_test),
-            "y_test": _hash_tensor(y_test),
+            "y_test": _hash_tensor(test_lbls),
         },
     )
+
+
+@lru_cache(maxsize=2)
+def load_cifar10(preprocessing: str = "div255_flat", root: Path | None = None) -> DatasetBundle:
+    """Load CIFAR-10 as float32 tensors with deterministic preprocessing.
+
+    Reads the standard ``cifar-10-batches-py`` Python-pickle layout.
+    Each pickle file ships with its own MD5 in the upstream tarball; we
+    additionally hash the raw bytes (SHA-256) so any local mutation is
+    caught.
+
+    Output shape: (N, 3072) float32, byte order RGBRGB...  (channel-major
+    per CIFAR convention: first 1024 are red, next 1024 green, last 1024
+    blue), normalized to [0, 1] via division by 255.
+    """
+    import pickle
+
+    root = root or DATA_ROOT
+    raw_dir = root / "cifar-10-batches-py"
+    if not raw_dir.exists():
+        raise FileNotFoundError(
+            f"CIFAR-10 not found at {raw_dir}. Expected the standard cifar-10-batches-py layout."
+        )
+
+    train_files = [raw_dir / f"data_batch_{i}" for i in range(1, 6)]
+    test_file = raw_dir / "test_batch"
+
+    raw_hashes: dict[str, str] = {}
+    train_x_list: list[Tensor] = []
+    train_y_list: list[Tensor] = []
+    for p in train_files:
+        raw_bytes = p.read_bytes()
+        raw_hashes[p.name] = hashlib.sha256(raw_bytes).hexdigest()
+        d = pickle.loads(raw_bytes, encoding="bytes")
+        train_x_list.append(torch.from_numpy(d[b"data"]).to(torch.uint8))
+        train_y_list.append(torch.tensor(d[b"labels"], dtype=torch.int64))
+
+    raw_bytes = test_file.read_bytes()
+    raw_hashes[test_file.name] = hashlib.sha256(raw_bytes).hexdigest()
+    d = pickle.loads(raw_bytes, encoding="bytes")
+    test_x = torch.from_numpy(d[b"data"]).to(torch.uint8)
+    test_y = torch.tensor(d[b"labels"], dtype=torch.int64)
+
+    train_x = torch.cat(train_x_list, dim=0)  # (50000, 3072) uint8
+    train_y = torch.cat(train_y_list, dim=0)  # (50000,) int64
+
+    if preprocessing == "div255_flat":
+        x_train = (train_x.to(torch.float32) / 255.0).contiguous()
+        x_test = (test_x.to(torch.float32) / 255.0).contiguous()
+    else:
+        raise ValueError(f"unknown preprocessing {preprocessing!r}")
+
+    return DatasetBundle(
+        name="CIFAR10",
+        x_train=x_train,
+        y_train=train_y,
+        x_test=x_test,
+        y_test=test_y,
+        n_classes=10,
+        preprocessing=preprocessing,
+        raw_hashes=raw_hashes,
+        processed_hashes={
+            "x_train": _hash_tensor(x_train),
+            "y_train": _hash_tensor(train_y),
+            "x_test": _hash_tensor(x_test),
+            "y_test": _hash_tensor(test_y),
+        },
+    )
+
+
+_DATASET_LOADERS = {
+    "MNIST": load_mnist,
+    "FashionMNIST": load_fashion_mnist,
+    "CIFAR10": load_cifar10,
+}
+
+
+def load_dataset(name: str, preprocessing: str = "div255_flat") -> DatasetBundle:
+    """Dispatch by name. Adds a single point of entry for the experiments
+    module so a new dataset only requires a loader registration."""
+    if name not in _DATASET_LOADERS:
+        raise ValueError(f"unknown dataset {name!r}; known: {sorted(_DATASET_LOADERS)}")
+    return _DATASET_LOADERS[name](preprocessing=preprocessing)

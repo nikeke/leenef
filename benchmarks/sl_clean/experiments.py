@@ -28,7 +28,7 @@ import torch
 from leenef.encoders import make_encoders
 from leenef.layers import NEFLayer
 
-from .datasets import load_mnist
+from .datasets import load_dataset
 from .sl_repro import set_sl_seed
 
 RunFn = Callable[[dict, int, dict], dict]
@@ -214,7 +214,17 @@ def _make_subrngs(seed: int) -> dict[str, torch.Generator]:
     }
 
 
-def _biases_mnist_run(config: dict, seed: int, run_context: dict) -> dict:
+def _biases_run(config: dict, seed: int, run_context: dict) -> dict:
+    """Generic data-driven-biases panel runner.
+
+    The dataset is read from ``run_context['dataset']`` (one of
+    ``MNIST``, ``FashionMNIST``, ``CIFAR10``).  Everything else is
+    dataset-agnostic: encoders, gain, bias_mode, chunked Cholesky solve,
+    accuracy on the test split.
+
+    The cache key already includes the full ``run_context`` so two
+    different datasets cannot collide.
+    """
     set_sl_seed(seed)
     bias_mode, encoder_strategy = _parse_biases_cell(str(config["cell"]))
     n_neurons = int(config["n_neurons"])
@@ -223,7 +233,11 @@ def _biases_mnist_run(config: dict, seed: int, run_context: dict) -> dict:
     gain_high = float(config["gain_high"])
     chunk_size = int(config.get("chunk_size", 5000))
 
-    bundle = load_mnist(preprocessing=str(run_context.get("preprocessing", "div255_flat")))
+    dataset_name = str(run_context.get("dataset", "MNIST"))
+    bundle = load_dataset(
+        dataset_name,
+        preprocessing=str(run_context.get("preprocessing", "div255_flat")),
+    )
     x_train, y_train = bundle.x_train, bundle.y_train
     x_test, y_test = bundle.x_test, bundle.y_test
     d_in = int(x_train.shape[1])
@@ -300,16 +314,37 @@ def _biases_mnist_run(config: dict, seed: int, run_context: dict) -> dict:
     }
 
 
+# Back-compat alias.  Tests still import the old name.
+_biases_mnist_run = _biases_run
+
+
+def _make_biases_context(
+    *, dataset: str, n_train: int, n_test: int, d_in: int
+) -> Callable[[], dict]:
+    def _ctx() -> dict:
+        return {
+            "experiment_kind": f"{dataset.lower()}_singlelayer_biases_panel",
+            "dataset": dataset,
+            "preprocessing": "div255_flat",
+            "n_train": n_train,
+            "n_test": n_test,
+            "d_in": d_in,
+            "n_classes": 10,
+        }
+
+    return _ctx
+
+
 def _biases_mnist_context() -> dict:
-    return {
-        "experiment_kind": "mnist_singlelayer_biases_panel",
-        "dataset": "MNIST",
-        "preprocessing": "div255_flat",
-        "n_train": 60000,
-        "n_test": 10000,
-        "d_in": 784,
-        "n_classes": 10,
-    }
+    return _make_biases_context(dataset="MNIST", n_train=60000, n_test=10000, d_in=784)()
+
+
+def _biases_fashion_context() -> dict:
+    return _make_biases_context(dataset="FashionMNIST", n_train=60000, n_test=10000, d_in=784)()
+
+
+def _biases_cifar10_context() -> dict:
+    return _make_biases_context(dataset="CIFAR10", n_train=50000, n_test=10000, d_in=3072)()
 
 
 BIASES_MNIST_BASE_CONFIG: dict[str, object] = {
@@ -323,19 +358,53 @@ BIASES_MNIST_BASE_CONFIG: dict[str, object] = {
 }
 
 
+# Default base configs for the Fashion-MNIST and CIFAR-10 panels.
+# Same shape as MNIST; CIFAR-10 lowers chunk_size to bound peak memory
+# of the (chunk × n_neurons) activity matrix on a 12-thread CPU.
+BIASES_FASHION_BASE_CONFIG: dict[str, object] = dict(BIASES_MNIST_BASE_CONFIG)
+BIASES_CIFAR10_BASE_CONFIG: dict[str, object] = {
+    **BIASES_MNIST_BASE_CONFIG,
+    "chunk_size": 2500,
+}
+
+
+_BIASES_DESCRIPTION = (
+    "B1 panel for H1: bias_mode × encoder_strategy. Knob 'cell' "
+    "enumerates 9 cells; the headline is the 2×3 panel of "
+    "{data_driven, random_normal} × {hypersphere, gaussian, sparse}. "
+    "Dataset is taken from run_context. See analyze_biases_panel.py "
+    "for the panel-level claim verdict."
+)
+
 register(
     ExperimentSpec(
         name="biases_mnist",
-        run_fn=_biases_mnist_run,
+        run_fn=_biases_run,
         default_run_context=_biases_mnist_context,
         primary_metric="test_accuracy",
         higher_is_better=True,
-        description=(
-            "B1 panel for H1: bias_mode × encoder_strategy on MNIST. "
-            "Knob 'cell' enumerates 9 cells; the headline is the 2×3 panel "
-            "of {data_driven, random_normal} × {hypersphere, gaussian, "
-            "sparse}.  See analyze_biases_panel.py for the panel-level "
-            "claim verdict."
-        ),
+        description=_BIASES_DESCRIPTION + " (MNIST)",
+    )
+)
+
+register(
+    ExperimentSpec(
+        name="biases_fashion",
+        run_fn=_biases_run,
+        default_run_context=_biases_fashion_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_BIASES_DESCRIPTION + " (Fashion-MNIST)",
+    )
+)
+
+register(
+    ExperimentSpec(
+        name="biases_cifar10",
+        run_fn=_biases_run,
+        default_run_context=_biases_cifar10_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_BIASES_DESCRIPTION + " (CIFAR-10)",
     )
 )
