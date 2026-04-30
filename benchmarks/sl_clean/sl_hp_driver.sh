@@ -101,9 +101,35 @@ case "${EXPERIMENT}" in
 
   # New blocks land here as B-phase / C-phase experiments are written.
 
+  streaming_smnist_row|streaming_smnist_permuted)
+    # B2 — H4 streaming-NEF panel.  Knob is n_neurons; 10 seeds.
+    case "${EXPERIMENT}" in
+      streaming_smnist_row)      BASE="${RESULTS_DIR}/base_config_streaming_smnist_row.json"      ;;
+      streaming_smnist_permuted) BASE="${RESULTS_DIR}/base_config_streaming_smnist_permuted.json" ;;
+    esac
+
+    SEEDS="${SEEDS:-0-9}"
+    # Row defaults: 2k/4k/8k.  Permuted defaults: 2k/4k (8k is too slow on CPU).
+    if [ "${EXPERIMENT}" = "streaming_smnist_row" ]; then
+      VALUES="${VALUES:-2000,4000,8000}"
+    else
+      VALUES="${VALUES:-2000,4000}"
+    fi
+
+    run_phase "${EXPERIMENT}_n_neurons" n_neurons "${VALUES}" "${SEEDS}" "${BASE}" "${EXPERIMENT}"
+    ;;
+
+  streaming_solve_modes)
+    # B2 — H3 equivalence: batch_acc vs accumulate vs woodbury at fixed n.
+    BASE="${RESULTS_DIR}/base_config_streaming_solve_modes.json"
+    SEEDS="${SEEDS:-0-4}"
+    VALUES="${VALUES:-batch_acc,accumulate,woodbury}"
+    run_phase streaming_solve_modes solve_mode "${VALUES}" "${SEEDS}" "${BASE}" "${EXPERIMENT}"
+    ;;
+
   *)
     echo "unknown experiment block: ${EXPERIMENT}" >&2
-    echo "available: smoke biases_mnist biases_fashion biases_cifar10" >&2
+    echo "available: smoke biases_mnist biases_fashion biases_cifar10 streaming_smnist_row streaming_smnist_permuted streaming_solve_modes" >&2
     exit 2
     ;;
 esac

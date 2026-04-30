@@ -408,3 +408,44 @@ register(
         description=_BIASES_DESCRIPTION + " (CIFAR-10)",
     )
 )
+
+
+# ---------------------------------------------------------------------------
+# B2 — streaming sMNIST.  Implementation lives in _streaming_exp.py to keep
+# this file from sprawling further.  We register the three experiments here.
+# ---------------------------------------------------------------------------
+
+from . import _streaming_exp as _streaming  # noqa: E402
+
+register(
+    ExperimentSpec(
+        name="streaming_smnist_row",
+        run_fn=_streaming.streaming_run,
+        default_run_context=_streaming.streaming_row_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_streaming.STREAMING_DESCRIPTION_ROW,
+    )
+)
+
+register(
+    ExperimentSpec(
+        name="streaming_smnist_permuted",
+        run_fn=_streaming.streaming_run,
+        default_run_context=_streaming.streaming_permuted_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_streaming.STREAMING_DESCRIPTION_PERMUTED,
+    )
+)
+
+register(
+    ExperimentSpec(
+        name="streaming_solve_modes",
+        run_fn=_streaming.streaming_run,
+        default_run_context=_streaming.streaming_row_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_streaming.STREAMING_DESCRIPTION_MODES,
+    )
+)

@@ -57,29 +57,42 @@ def _hash_tensor(t: Tensor) -> str:
 
 @dataclass(frozen=True)
 class DatasetBundle:
-    """A preprocessed, hash-stamped dataset."""
+    """A preprocessed, hash-stamped dataset.
+
+    ``x_train``/``x_test`` are 2D ``(N, d_in)`` for static datasets and
+    3D ``(N, T, d_timestep)`` for sequential datasets.  ``sequence_shape``
+    is ``(T, d_timestep)`` when sequential, ``None`` otherwise.
+    """
 
     name: str
-    x_train: Tensor  # (N, d_in) float32
+    x_train: Tensor  # (N, d_in) or (N, T, d) float32
     y_train: Tensor  # (N,) int64
-    x_test: Tensor  # (M, d_in) float32
+    x_test: Tensor  # (M, d_in) or (M, T, d) float32
     y_test: Tensor  # (M,) int64
     n_classes: int
     preprocessing: str
     raw_hashes: dict
     processed_hashes: dict
+    sequence_shape: tuple[int, int] | None = None
 
     def metadata(self) -> dict:
-        return {
+        meta = {
             "dataset": self.name,
             "n_train": int(self.x_train.shape[0]),
             "n_test": int(self.x_test.shape[0]),
-            "d_in": int(self.x_train.shape[1]),
             "n_classes": self.n_classes,
             "preprocessing": self.preprocessing,
             "raw_hashes": self.raw_hashes,
             "processed_hashes": self.processed_hashes,
         }
+        if self.sequence_shape is None:
+            meta["d_in"] = int(self.x_train.shape[1])
+        else:
+            T, d = self.sequence_shape
+            meta["sequence_shape"] = [int(T), int(d)]
+            meta["T"] = int(T)
+            meta["d_timestep"] = int(d)
+        return meta
 
     def one_hot(self, y: Tensor) -> Tensor:
         oh = torch.zeros(y.shape[0], self.n_classes, dtype=torch.float32)
@@ -240,6 +253,109 @@ _DATASET_LOADERS = {
     "FashionMNIST": load_fashion_mnist,
     "CIFAR10": load_cifar10,
 }
+
+
+# ---------------------------------------------------------------------------
+# Sequential MNIST variants for the streaming/recurrent experiments.
+#
+# We reuse the MNIST raw bytes and just reshape.  The "permuted" variant
+# applies a fixed permutation derived from a seeded ``torch.Generator`` so
+# the dataset hash is stable across machines.  The permutation seed lives
+# in the preprocessing string (``"smnist_permuted_seed=0"``) so downstream
+# cache keys reflect the choice.
+# ---------------------------------------------------------------------------
+
+
+def _mnist_image_tensors(
+    root: Path | None = None,
+) -> tuple[Tensor, Tensor, Tensor, Tensor, dict[str, str]]:
+    """Return raw MNIST images/labels (uint8) and their raw hashes."""
+    root = root or DATA_ROOT
+    raw_dir = root / "MNIST" / "raw"
+    if not raw_dir.exists():
+        raise FileNotFoundError(
+            f"MNIST raw files not found at {raw_dir}. Place the four IDX files under {raw_dir}/."
+        )
+    train_imgs, ti_h = _read_idx_images(raw_dir / "train-images-idx3-ubyte")
+    train_lbls, tl_h = _read_idx_labels(raw_dir / "train-labels-idx1-ubyte")
+    test_imgs, ki_h = _read_idx_images(raw_dir / "t10k-images-idx3-ubyte")
+    test_lbls, kl_h = _read_idx_labels(raw_dir / "t10k-labels-idx1-ubyte")
+    raw_hashes = {
+        "train_images": ti_h,
+        "train_labels": tl_h,
+        "test_images": ki_h,
+        "test_labels": kl_h,
+    }
+    return train_imgs, train_lbls, test_imgs, test_lbls, raw_hashes
+
+
+@lru_cache(maxsize=2)
+def load_smnist_row(root: Path | None = None) -> DatasetBundle:
+    """Sequential MNIST in row-major form: ``(N, T=28, d=28)`` float32 in [0, 1].
+
+    Each timestep is one row of the image; sequences are 28 timesteps long.
+    """
+    train_imgs, train_lbls, test_imgs, test_lbls, raw_hashes = _mnist_image_tensors(root)
+    x_train = (train_imgs.to(torch.float32) / 255.0).contiguous()  # (N, 28, 28)
+    x_test = (test_imgs.to(torch.float32) / 255.0).contiguous()
+    return DatasetBundle(
+        name="sMNIST-row",
+        x_train=x_train,
+        y_train=train_lbls,
+        x_test=x_test,
+        y_test=test_lbls,
+        n_classes=10,
+        preprocessing="smnist_row_div255",
+        raw_hashes=raw_hashes,
+        processed_hashes={
+            "x_train": _hash_tensor(x_train),
+            "y_train": _hash_tensor(train_lbls),
+            "x_test": _hash_tensor(x_test),
+            "y_test": _hash_tensor(test_lbls),
+        },
+        sequence_shape=(28, 28),
+    )
+
+
+@lru_cache(maxsize=4)
+def load_smnist_permuted(perm_seed: int = 0, root: Path | None = None) -> DatasetBundle:
+    """Permuted Sequential MNIST: ``(N, T=784, d=1)`` with a fixed pixel permutation.
+
+    The permutation is derived from a seeded ``torch.Generator`` so the
+    dataset hash is reproducible across machines.  ``perm_seed`` is part
+    of the preprocessing string and the cache key.
+    """
+    train_imgs, train_lbls, test_imgs, test_lbls, raw_hashes = _mnist_image_tensors(root)
+    g = torch.Generator().manual_seed(int(perm_seed))
+    perm = torch.randperm(784, generator=g)
+    x_train = (train_imgs.to(torch.float32) / 255.0).reshape(-1, 784)[:, perm]
+    x_test = (test_imgs.to(torch.float32) / 255.0).reshape(-1, 784)[:, perm]
+    x_train = x_train.unsqueeze(-1).contiguous()  # (N, 784, 1)
+    x_test = x_test.unsqueeze(-1).contiguous()
+    return DatasetBundle(
+        name="sMNIST-permuted",
+        x_train=x_train,
+        y_train=train_lbls,
+        x_test=x_test,
+        y_test=test_lbls,
+        n_classes=10,
+        preprocessing=f"smnist_permuted_div255_seed={int(perm_seed)}",
+        raw_hashes=raw_hashes,
+        processed_hashes={
+            "x_train": _hash_tensor(x_train),
+            "y_train": _hash_tensor(train_lbls),
+            "x_test": _hash_tensor(x_test),
+            "y_test": _hash_tensor(test_lbls),
+            "permutation": hashlib.sha256(perm.numpy().tobytes()).hexdigest(),
+        },
+        sequence_shape=(784, 1),
+    )
+
+
+_DATASET_LOADERS["sMNIST-row"] = lambda preprocessing="smnist_row_div255": load_smnist_row()
+_DATASET_LOADERS["sMNIST-permuted-seed0"] = lambda preprocessing="smnist_permuted_div255_seed=0": (
+    load_smnist_permuted(perm_seed=0)
+)
 
 
 def load_dataset(name: str, preprocessing: str = "div255_flat") -> DatasetBundle:
