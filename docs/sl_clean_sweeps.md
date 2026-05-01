@@ -469,16 +469,36 @@ Adam optimizer, batch=128, up to 50 epochs, early stopping with
 patience=5 on a 10% validation hold-out.  Dropout=0; weight_decay=1e-4.
 Code identity `01a071…` (post-`b895794`).
 
-**Status.** **In flight at time of writing** (driver
-`run_b4_panels.sh`, sentinel `results/sl_clean/b4_panels_done`).
-MNIST and Fashion expected within minutes; CIFAR-10 is the bottleneck
-at ~1h45m additional wall time.  Raw JSON paths:
-`results/sl_clean/b4_mlp_{mnist,fashion,cifar10}_panel.json`.
+**Status.** Run; raw JSON in `results/sl_clean/b4_mlp_{mnist,fashion,cifar10}_panel.json`
+and per-cell summaries in `..._panel_summary.json`.
 
-The headline H2 verdict (does NEF *match* a gradient-trained MLP?
-where does it *not*?) will be written in this section once all three
-panels close and `analyze_b4_panel.py` has produced the per-dataset
-parsimony-rule winners.
+| dataset | NEF baseline (B1, hypersphere n=5000) | best MLP (B4) | best MLP cell | Δ (MLP − NEF) |
+|---|---|---|---|---|
+| MNIST | 97.08 ± 0.04 | **98.10 ± 0.08** | `d1_w512_lr0.003` (407k params, 22 ep, 58 s) | +1.02 pp |
+| Fashion-MNIST | 87.75 ± 0.06 | **89.39 ± 0.08** | `d2_w1024_lr0.001` (1.86M params, 24 ep, 254 s) | +1.64 pp |
+| CIFAR-10 | 49.72 ± 0.08 | **53.73 ± 0.22** | `d2_w1024_lr0.001` (4.21M params, 34 ep, 327 s) | +4.01 pp |
+
+**Verdict (H2).** A properly tuned gradient-trained MLP **beats**
+single-layer hypersphere NEF on all three datasets, by a margin that
+grows with task difficulty (+1.0 / +1.6 / +4.0 pp).  This is the
+honest framing for the paper: NEF does not match an MLP at fixed
+hardware effort if the encoder is generic.
+
+But — **B3 receptive_field NEF on CIFAR-10 reaches 55.10 ± 0.10**,
+which beats the best B4 MLP at `d2_w1024_lr0.001` (53.73 ± 0.22) by
++1.37 pp at well outside seed noise.  When the encoder carries the
+spatial prior, a fully gradient-free single-layer NEF *exceeds* a
+4.2M-parameter gradient-trained MLP on CIFAR-10, in a ~25 s analytic
+solve versus a ~5 min Adam fit.  This is the interesting headline:
+**the encoder, not the decoder, is where representational work
+happens; a good encoder closes (and sometimes reverses) the
+single-layer / gradient-trained gap**.
+
+What this story is *not*: a claim that NEF beats deep convnets, or
+that NEF is universally faster than gradient training.  Tuned MLPs
+beat hypersphere NEF; a good prior closes the gap on spatial data;
+deeper gradient-trained models would presumably extend the gap again.
+The paper should state all three observations side-by-side.
 
 ---
 

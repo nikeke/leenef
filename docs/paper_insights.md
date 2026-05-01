@@ -919,3 +919,34 @@ across library changes; the policy is documented in
 When the paper text is written, every numeric claim should cite the
 panel JSON it draws from, and the code_identity for that panel can
 be read directly from the JSON if a reviewer asks.
+
+## 14. B4 verdict — gradient-trained MLP vs single-layer NEF (H2)
+
+Final 5-seed numbers (panel summaries
+`results/sl_clean/b4_mlp_{mnist,fashion,cifar10}_panel_summary.json`):
+
+| dataset | NEF (hypersphere n=5000) | tuned MLP best | Δ (MLP − NEF) |
+|---|---|---|---|
+| MNIST | 97.08 ± 0.04 | **98.10 ± 0.08**  (407k params, 22 ep, 58 s) | +1.02 pp |
+| Fashion-MNIST | 87.75 ± 0.06 | **89.39 ± 0.08** (1.86M params, 24 ep, 254 s) | +1.64 pp |
+| CIFAR-10 | 49.72 ± 0.08 | **53.73 ± 0.22** (4.21M params, 34 ep, 327 s) | +4.01 pp |
+
+The honest single-line story: **a tuned MLP beats hypersphere NEF, and
+the gap grows with task difficulty.**  The interesting twist is that
+B3's `receptive_field` NEF reaches **55.10 ± 0.10** on CIFAR-10, which
+beats the best B4 MLP by +1.37 pp at a fraction of the wall time.
+The paper's framing (consistent with §0pre principle 1) is that the
+encoder is where representational work happens; the decoder is just
+the analytic readout.  A good encoder closes the gap; a generic
+encoder doesn't.
+
+Things to write carefully and not over-claim:
+- We are not claiming NEF beats deep convnets.  We are showing that a
+  single linear analytic readout on top of a fixed feature extractor
+  can match or beat a tuned gradient-trained MLP on these benchmarks.
+- We are not claiming MLPs are obsolete.  MLPs win the generic
+  comparison; NEF wins when the encoder carries a useful prior.
+- The wall-time comparison should be reported with hardware
+  qualified (CPU, single thread for both is the default).  The MLPs
+  we ran are CPU baselines; the headline timing comparison is also
+  CPU-only.  GPU numbers would be a separate exercise.

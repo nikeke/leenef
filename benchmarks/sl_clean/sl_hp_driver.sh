@@ -211,9 +211,69 @@ case "${EXPERIMENT}" in
     run_phase streaming_alpha_sweep cell "${VALUES}" "${SEEDS}" "${BASE}" "${EXPERIMENT}"
     ;;
 
+  b5_lstm_smnist_row|b5_lstm_smnist_permuted)
+    # B5 — LSTM gradient-trained baseline (sMNIST). 18 cells × N seeds.
+    case "${EXPERIMENT}" in
+      b5_lstm_smnist_row)      BASE="${RESULTS_DIR}/base_config_b5_lstm_smnist_row.json"      ; PHASE_NAME="b5_lstm_smnist_row_panel"      ;;
+      b5_lstm_smnist_permuted) BASE="${RESULTS_DIR}/base_config_b5_lstm_smnist_permuted.json" ; PHASE_NAME="b5_lstm_smnist_permuted_panel" ;;
+    esac
+
+    SEEDS="${SEEDS:-0-4}"
+    CELLS="${VALUES:-h64_l1_lr0.0003,h64_l1_lr0.001,h64_l1_lr0.003,h128_l1_lr0.0003,h128_l1_lr0.001,h128_l1_lr0.003,h256_l1_lr0.0003,h256_l1_lr0.001,h256_l1_lr0.003,h64_l2_lr0.0003,h64_l2_lr0.001,h64_l2_lr0.003,h128_l2_lr0.0003,h128_l2_lr0.001,h128_l2_lr0.003,h256_l2_lr0.0003,h256_l2_lr0.001,h256_l2_lr0.003}"
+
+    out="${RESULTS_DIR}/${PHASE_NAME}.json"
+    log="${LOGS_DIR}/${PHASE_NAME}.log"
+    echo "================================================================"
+    echo "  PHASE ${PHASE_NAME}  exp=${EXPERIMENT}  seeds=${SEEDS}"
+    echo "================================================================"
+    ${PYTHON} -u -m benchmarks.sl_clean.sl_phase_runner \
+        --experiment "${EXPERIMENT}" \
+        --phase      "${PHASE_NAME}" \
+        --knob       cell \
+        --values     "${CELLS}" \
+        --seeds      "${SEEDS}" \
+        --base-config "${BASE}" \
+        --out         "${out}" \
+        --log         "${log}"
+
+    ${PYTHON} -u -m benchmarks.sl_clean.analyze_b5_panel \
+        --results "${out}" \
+        --out     "${RESULTS_DIR}/${PHASE_NAME}_summary.json"
+    ;;
+
+  b6_esn_smnist_row|b6_esn_smnist_permuted)
+    # B6 — ESN gradient-free reservoir baseline (sMNIST).
+    case "${EXPERIMENT}" in
+      b6_esn_smnist_row)      BASE="${RESULTS_DIR}/base_config_b6_esn_smnist_row.json"      ; PHASE_NAME="b6_esn_smnist_row_panel"      ;;
+      b6_esn_smnist_permuted) BASE="${RESULTS_DIR}/base_config_b6_esn_smnist_permuted.json" ; PHASE_NAME="b6_esn_smnist_permuted_panel" ;;
+    esac
+
+    SEEDS="${SEEDS:-0-4}"
+    CELLS="${VALUES:-n500_sr0.7_leak0.3,n500_sr0.7_leak1.0,n500_sr0.95_leak0.3,n500_sr0.95_leak1.0,n1000_sr0.7_leak0.3,n1000_sr0.7_leak1.0,n1000_sr0.95_leak0.3,n1000_sr0.95_leak1.0,n2000_sr0.7_leak0.3,n2000_sr0.7_leak1.0,n2000_sr0.95_leak0.3,n2000_sr0.95_leak1.0}"
+
+    out="${RESULTS_DIR}/${PHASE_NAME}.json"
+    log="${LOGS_DIR}/${PHASE_NAME}.log"
+    echo "================================================================"
+    echo "  PHASE ${PHASE_NAME}  exp=${EXPERIMENT}  seeds=${SEEDS}"
+    echo "================================================================"
+    ${PYTHON} -u -m benchmarks.sl_clean.sl_phase_runner \
+        --experiment "${EXPERIMENT}" \
+        --phase      "${PHASE_NAME}" \
+        --knob       cell \
+        --values     "${CELLS}" \
+        --seeds      "${SEEDS}" \
+        --base-config "${BASE}" \
+        --out         "${out}" \
+        --log         "${log}"
+
+    ${PYTHON} -u -m benchmarks.sl_clean.analyze_b6_panel \
+        --results "${out}" \
+        --out     "${RESULTS_DIR}/${PHASE_NAME}_summary.json"
+    ;;
+
   *)
     echo "unknown experiment block: ${EXPERIMENT}" >&2
-    echo "available: smoke biases_mnist biases_fashion biases_cifar10 biases_cifar10_centered biases_mnist_decentered b3_strategies_mnist b3_strategies_fashion b3_strategies_cifar10 b4_mlp_mnist b4_mlp_fashion b4_mlp_cifar10 streaming_smnist_row streaming_smnist_permuted streaming_solve_modes streaming_alpha_sweep" >&2
+    echo "available: smoke biases_mnist biases_fashion biases_cifar10 biases_cifar10_centered biases_mnist_decentered b3_strategies_mnist b3_strategies_fashion b3_strategies_cifar10 b4_mlp_mnist b4_mlp_fashion b4_mlp_cifar10 b5_lstm_smnist_row b5_lstm_smnist_permuted b6_esn_smnist_row b6_esn_smnist_permuted streaming_smnist_row streaming_smnist_permuted streaming_solve_modes streaming_alpha_sweep" >&2
     exit 2
     ;;
 esac
