@@ -170,6 +170,15 @@ class NEFLayer(nn.Module):
         # Decoders — always a parameter so it participates in state_dict
         self.decoders = nn.Parameter(torch.zeros(n_neurons, d_out), requires_grad=False)
 
+        # Pre-register buffers for incremental / continuous fit so they
+        # move with .to(device) and serialize via state_dict.  ``_M_inv``
+        # is non-persistent because it can be recomputed exactly from
+        # ``_ata`` via :meth:`refresh_inverse`.
+        self.register_buffer("_ata", None, persistent=True)
+        self.register_buffer("_aty", None, persistent=True)
+        self.register_buffer("_M_inv", None, persistent=False)
+        self._woodbury_alpha: float | None = None
+
     @property
     def gain(self) -> Tensor:
         """Per-neuron gain vector (n_neurons,)."""
@@ -229,12 +238,16 @@ class NEFLayer(nn.Module):
                 f"got {x.shape[0]} vs {targets.shape[0]}"
             )
         A = self.encode(x)
-        ata = A.T @ A
-        aty = A.T @ targets
+        # Accumulate in float64 to keep long streaming runs stable; cf.
+        # streaming.py finding (commit c1d9b0a) and review finding 2.
+        A_stats = A.float() if A.dtype in (torch.float16, torch.bfloat16) else A
+        T_stats = targets.float() if targets.dtype in (torch.float16, torch.bfloat16) else targets
+        ata = (A_stats.T @ A_stats).double()
+        aty = (A_stats.T @ T_stats).double()
 
-        if not hasattr(self, "_ata") or self._ata is None:
-            self.register_buffer("_ata", ata)
-            self.register_buffer("_aty", aty)
+        if self._ata is None:
+            self._ata = ata.clone()
+            self._aty = aty.clone()
         else:
             self._ata.add_(ata)
             self._aty.add_(aty)
@@ -248,17 +261,15 @@ class NEFLayer(nn.Module):
         Args:
             alpha: Tikhonov regularisation strength.
         """
-        if not hasattr(self, "_ata") or self._ata is None:
+        if self._ata is None:
             raise RuntimeError("No accumulated statistics — call partial_fit() first")
         D = solve_from_normal_equations(self._ata, self._aty, alpha=alpha)
-        self.decoders.data.copy_(D)
+        self.decoders.data.copy_(D.to(self.decoders.dtype))
 
     def reset_accumulators(self) -> None:
         """Clear accumulated normal-equation statistics."""
-        if hasattr(self, "_ata"):
-            self._ata = None
-        if hasattr(self, "_aty"):
-            self._aty = None
+        self._ata = None
+        self._aty = None
 
     # ── Continuous fit (Woodbury rank-k updates) ──────────────────────
 
@@ -309,27 +320,38 @@ class NEFLayer(nn.Module):
                 f"got {activities.shape[0]} vs {targets.shape[0]}"
             )
         A = activities  # (k, n)
-        ata = A.T @ A
-        aty = A.T @ targets
+        # Accumulate normal equations in float64 (review finding 2).
+        A_stats = A.float() if A.dtype in (torch.float16, torch.bfloat16) else A
+        T_stats = targets.float() if targets.dtype in (torch.float16, torch.bfloat16) else targets
+        ata = (A_stats.T @ A_stats).double()
+        aty = (A_stats.T @ T_stats).double()
 
-        # Accumulate normal equations (for refresh_inverse / solve_accumulated)
-        if not hasattr(self, "_ata") or self._ata is None:
-            self.register_buffer("_ata", ata)
-            self.register_buffer("_aty", aty)
+        if self._ata is None:
+            self._ata = ata.clone()
+            self._aty = aty.clone()
         else:
             self._ata.add_(ata)
             self._aty.add_(aty)
 
         # Woodbury inverse is maintained in float64 to prevent drift
-        # across many rank-k updates in float32.
-        if not hasattr(self, "_M_inv") or self._M_inv is None:
+        # across many rank-k updates in float32.  Reject mid-stream
+        # alpha changes — they silently invalidate the cached inverse
+        # (review finding 3).
+        if self._M_inv is None:
             n = A.shape[1]
             self._M_inv = torch.eye(n, device=A.device, dtype=torch.float64) / alpha
             self._woodbury_alpha = alpha
+        else:
+            cached = self._woodbury_alpha
+            if cached is not None and cached != alpha:
+                raise ValueError(
+                    f"continuous_fit alpha changed from {cached} to {alpha}; "
+                    "call reset_continuous() or refresh_inverse(alpha=...) first"
+                )
 
         k, n = A.shape
         if k >= n:
-            M = self._ata.double().clone()
+            M = self._ata.clone()
             M.diagonal().add_(alpha)
             self._M_inv = torch.linalg.inv(M)
         else:
@@ -340,7 +362,7 @@ class NEFLayer(nn.Module):
             C_inv_V = torch.linalg.solve(C, V)  # (k, n)
             self._M_inv.sub_(V.T @ C_inv_V)  # in-place (n, n)
 
-        self.decoders.data.copy_((self._M_inv @ self._aty.double()).to(self.decoders.dtype))
+        self.decoders.data.copy_((self._M_inv @ self._aty).to(self.decoders.dtype))
 
     @torch.no_grad()
     def refresh_inverse(self, alpha: float | None = None) -> None:
@@ -354,23 +376,18 @@ class NEFLayer(nn.Module):
             alpha: Tikhonov α.  Defaults to the value used in the last
                    :meth:`continuous_fit` call.
         """
-        if not hasattr(self, "_ata") or self._ata is None:
+        if self._ata is None:
             raise RuntimeError("No accumulated statistics — call continuous_fit() first")
         if alpha is None:
-            if hasattr(self, "_woodbury_alpha"):
-                alpha = self._woodbury_alpha
-            else:
-                alpha = 1e-2
-        M = self._ata.double().clone()
+            alpha = self._woodbury_alpha if self._woodbury_alpha is not None else 1e-2
+        M = self._ata.clone()
         M.diagonal().add_(alpha)
         self._M_inv = torch.linalg.inv(M)
         self._woodbury_alpha = alpha
-        self.decoders.data.copy_((self._M_inv @ self._aty.double()).to(self.decoders.dtype))
+        self.decoders.data.copy_((self._M_inv @ self._aty).to(self.decoders.dtype))
 
     def reset_continuous(self) -> None:
         """Clear Woodbury inverse, accumulators, and decoders."""
         self.reset_accumulators()
-        if hasattr(self, "_M_inv"):
-            self._M_inv = None
-        if hasattr(self, "_woodbury_alpha"):
-            del self._woodbury_alpha
+        self._M_inv = None
+        self._woodbury_alpha = None

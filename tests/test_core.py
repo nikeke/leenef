@@ -763,7 +763,7 @@ class TestContinuousFit:
         layer.reset_continuous()
         assert layer._ata is None
         assert layer._M_inv is None
-        assert not hasattr(layer, "_woodbury_alpha")
+        assert not hasattr(layer, "_woodbury_alpha") or layer._woodbury_alpha is None
 
     def test_continuous_fit_sample_mismatch(self):
         layer = NEFLayer(3, 100, 2)
