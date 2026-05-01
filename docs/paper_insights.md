@@ -810,3 +810,112 @@ text.
   from the JSON in `results/sl_clean/`.  A claim without a JSON is
   not a claim.
 
+## 11. NEF vs NEF-inspired — naming decision
+
+Eliasmith and Anderson's *Neural Engineering Framework*
+(`Neural Engineering: Computation, Representation, and Dynamics in
+Neurobiological Systems`, MIT Press 2003) frames its three principles
+around **spiking neuron models**: representation by population spike
+rates, transformations decoded from those rates, and dynamics expressed
+through recurrent synaptic projections.  The signature use case is
+neural-control of continuous-time dynamics with leaky-integrate-and-fire
+populations; the optimization step is least-squares decoder fitting,
+identical to ours.
+
+What we keep verbatim from NEF:
+- fixed encoders (`e_i`), per-neuron gain (`α_i`), bias as a function
+  of an intercept (`b_i = -α_i (d_i · e_i)` in our data-driven case);
+- analytic least-squares decoders against an arbitrary target function
+  of the encoded variable;
+- the conceptual split: representation (encode), transformation
+  (decode), and the freedom to compose decoded signals.
+
+What we change:
+- **Rate neurons with `abs` activation** rather than spiking LIF.  This
+  is more than a numerical convenience: the abs-rate readout is what
+  gives us the frame-coefficient interpretation §1, and it makes the
+  decoder's job a linear inverse problem with a clean condition-number
+  story.
+- **Data-driven biases** (`centers = x_train`) rather than the random
+  intercept distributions used in the textbook.  This places each
+  neuron at a training sample, making the resulting representation
+  closer to a learned dictionary than to a generic frame.
+- **Sufficient-statistic-first programming model**: `AᵀA`, `AᵀY` as
+  the universe, supporting incremental, online, ensemble, and
+  per-action solves with no extra machinery.  This is implicit in
+  NEF (the least-squares decoder pre-supposes it) but we make it the
+  central object.
+- **No dynamics step.**  We do not use NEF's principle 3 (recurrent
+  dynamics through decoded projections) anywhere in this paper.  The
+  recurrent and streaming variants reuse encoders and decoders with
+  pooling, not recurrent dynamics solve.
+
+**Decision for the paper.** We continue to call the method "NEF" with
+a clearly stated deviation: the opening of §1 will (a) attribute the
+core encode-activate-decode pattern to Eliasmith & Anderson and cite
+their book; (b) state explicitly that we use rate-`abs` neurons, that
+our biases are data-driven, and that we do not use the dynamics
+principle; (c) name our specialization "leenef" (or, in mathematical
+prose, "the analytic-rate variant of NEF") so any later reader who
+looks for spiking-NEF behaviour does not feel misled.  This is the
+same way other communities cite NEF (Nengo, BCM, etc.) — as a starting
+point that is then specialized.
+
+If a later reviewer pushes back, "NEF-inspired" / "NEFi" is the
+fallback rename, but we expect the explicit deviations paragraph to
+satisfy good-faith readers.
+
+The trilogy's shared opener (§0pre — the six principles) is *our*
+distillation, not Eliasmith & Anderson's; the paper should make this
+distinction clear by attributing each principle to its origin.
+
+## 12. Sparse-reward RL — relevant background for Paper I framing
+
+The sparse-reward research line (worktrees `leenef-sparse-reward-c`
+and `leenef-sparse-reward-g`; primary doc
+[`../leenef-sparse-reward-c/docs/rl_sparse_notes.md`](../leenef-sparse-reward-c/docs/rl_sparse_notes.md))
+is canonical reading for Paper III but worth mentioning here because
+its §1.2 ("the leenef essence") is the *clearest existing spelling-out
+of the base principles* anywhere in the project — it predates and
+informed §0pre above.  Differences worth tracking when we synthesize
+Paper III:
+
+- Sparse-reward §1.2 enumerates **six principles** in the same shape
+  as our §0pre, with one extra emphasis: principle 6
+  (per-class/per-action additivity) is what makes CL and per-action
+  FQI work.  Paper II inherits this and Paper III rests on it.
+- The mechanism stack — D1 (NEF Successor Features), D2 (leverage
+  novelty), D4 (hindsight + `eval_goal` projection) — is each just
+  another reuse of `AᵀA / AᵀY` over a different target.  Principle 4
+  ("targets are where task structure enters") does most of the work.
+- Multi-seed evidence (3 seeds) for MountainCar and Acrobot under
+  sparse reward; explicit clean negatives (LunarLander regression,
+  toy-chain `eval_goal` failure) recorded in the same notes.
+
+Paper I should reference this line only briefly (in §1, when we
+introduce the sufficient-statistic framing, we can foreshadow that
+the same primitives carry CL and RL — with citations to the live
+sparse-reward branches and to Paper II/III for the specifics).
+
+## 13. Configuration provenance and code-identity policy (operational)
+
+Our `code_identity` (40-hex SHA over
+`src benchmarks tests pyproject.toml`) discriminates result rows
+across library changes; the policy is documented in
+[`docs/sl_clean_sweeps.md`](sl_clean_sweeps.md) under
+"Code-identity timeline".  Headline reading for Paper I:
+
+- Six panels are pinned to six different identities; we never mix
+  identities inside an aggregate; per-row reproducibility is exact.
+- The fixes between identities (Cholesky solve, clone-fix, alpha
+  guard, float64 accumulators) only touch `continuous_fit` /
+  Woodbury paths — they do not change `NEFLayer.fit()`'s analytical
+  decoder solve, which is the path on which B1/B3/B7's headline H1
+  and H6 numbers rest.
+- B2 (streaming) lives on the post-Cholesky/clone-fix identity, so
+  the H3/H4 streaming numbers are taken under the now-correct
+  numerics.  No re-runs are required.
+
+When the paper text is written, every numeric claim should cite the
+panel JSON it draws from, and the code_identity for that panel can
+be read directly from the JSON if a reviewer asks.

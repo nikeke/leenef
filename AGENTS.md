@@ -8,11 +8,18 @@
 > three-paper series (Supervised → Continual → Reinforcement Learning)
 > is rebuilt with rl_clean-grade reproducibility.
 >
-> The active plan lives in
-> `~/.copilot/session-state/<session>/plan.md` (see "Foundational Paper
-> Series — Plan for Paper I").  New infrastructure
+> The active paper outline lives in
+> [`docs/paper_i_outline.md`](docs/paper_i_outline.md); the synthesized
+> insights story in [`docs/paper_insights.md`](docs/paper_insights.md);
+> the running sweep execution log in
+> [`docs/sl_clean_sweeps.md`](docs/sl_clean_sweeps.md); follow-up
+> experiment specs in [`docs/b1_followups.md`](docs/b1_followups.md).
+> Per-session work-in-progress notes live under
+> `~/.copilot/session-state/<session>/` (gitignored, may be wiped on
+> compaction); anything that should outlast a session must be migrated
+> into `docs/`.  New infrastructure
 > (`benchmarks/sl_clean/`, `results/sl_clean/`, `docs/sl_clean_sweeps.md`)
-> will be created during Phase A2.
+> is in place.
 >
 > The sections below labeled **(ATTIC EPOCH — pending rewrite)** describe
 > the prior infrastructure and are kept for reference until the new
@@ -61,10 +68,31 @@ PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
 
 ## Foundational paper series (Paper I — Supervised Learning)
 
-The active plan lives in
-`~/.copilot/session-state/<session>/plan.md`.  Paper I owns the
-`benchmarks/sl_clean/`, `results/sl_clean/`, `docs/sl_clean_sweeps.md`
-trio, modeled after the rl_clean infrastructure.
+Paper I owns the `benchmarks/sl_clean/`, `results/sl_clean/`,
+`docs/sl_clean_sweeps.md` trio, modeled after the rl_clean
+infrastructure.
+
+**Documents you should read before non-trivial work:**
+
+- [`docs/paper_i_outline.md`](docs/paper_i_outline.md) — paper structure
+  (the six principles, §-by-§ skeleton).
+- [`docs/paper_insights.md`](docs/paper_insights.md) — synthesized
+  story (frame coefficients, DC framing, α-as-function-of-n, manifold
+  view, H8 linear collapse).  This is the **spine** of Paper I.
+- [`docs/sl_clean_sweeps.md`](docs/sl_clean_sweeps.md) — chronological
+  execution log of B-phases (configs, sentinels, dates, raw verdicts).
+- [`docs/b1_followups.md`](docs/b1_followups.md) — queued
+  H1-completion experiment specs (B1.4 / B1.5 DC-mechanism falsifiers).
+- [`attic/docs/technical_report.md`](attic/docs/technical_report.md) —
+  pre-restart single-seed TR.  Useful for understanding earlier
+  results/defaults but **claims must be re-validated** under the
+  rl_clean-style multi-seed protocol before reuse.
+- [`../leenef-sparse-reward-c/docs/rl_sparse_notes.md`](../leenef-sparse-reward-c/docs/rl_sparse_notes.md)
+  — canonical sparse-reward notes; §1.2 is the clearest existing
+  spelling-out of the leenef base principles (relevant for Paper III
+  and as background for Paper I framing).
+- [`../leenef-sparse-reward-g/docs/rl_sparse_sweeps.md`](../leenef-sparse-reward-g/docs/rl_sparse_sweeps.md)
+  — sparse-reward sweep log.
 
 **Operational rules:**
 
@@ -139,13 +167,40 @@ wait_for_b2_panels.sh}` and the B2 launch in
 - **GPT-5.5 review pass.** Before launching any long sweep that will
   consume hours of CPU/GPU, dispatch a `task` agent with model
   `gpt-5.5` to review the hot path for optimization opportunities
-  (matmul shapes, dtype churn, missing in-place ops).  See
-  `7703a1010c10bbcf0c11d821792c3aad386ef6e7` for the precedent.
+  (matmul shapes, dtype churn, missing in-place ops) **and**
+  reproducibility hazards (default-RNG draws, scatter-with-collision
+  patterns).  See `7703a1010c10bbcf0c11d821792c3aad386ef6e7` for the
+  precedent.  GPT-5.5's pattern-matching here is genuinely
+  complementary to the main agent's coding strengths.
+- **Scatter-write with possibly-colliding indices is non-deterministic.**
+  `W[rows, cols] = vals` where `rows`/`cols` come from independent
+  `randint` draws is non-deterministic on collisions because PyTorch
+  does not specify scatter write-order.  Use `randperm(N*N)[:k]` and
+  decode to `(row, col)` to guarantee unique positions.  Caught in
+  `benchmarks/sl_clean/baselines/esn.py` (commit `19ed80d`).
+- **Mid-stream alpha changes with cached Woodbury inverses are silent
+  bugs.**  Both `NEFLayer.continuous_fit_encoded` and
+  `StreamingNEFClassifier.continuous_fit` reject changing `alpha`
+  while a `_M_inv` is cached for an earlier `alpha`.  Callers must
+  call `refresh_inverse()` or `reset_continuous()` first.  See
+  commits `b895794`, `45e2db9`.
+- **Cached `nn.Linear`/`nn.LSTM` constructors consume the global RNG**
+  before deterministic re-init overwrites the weights.  Currently
+  results don't depend on this (we overwrite), but any subsequent
+  global-RNG draw in the same process becomes seed-dependent on the
+  Linear/LSTM construction order.  Either save/restore global RNG
+  state across construction or avoid relying on it downstream.
+  See `benchmarks/sl_clean/baselines/{mlp,lstm}.py`.
+- **`nn.Dropout` (and built-in `nn.LSTM(dropout=...)`) uses the global
+  RNG** with no `generator=` kwarg.  Base configs set dropout=0; if
+  you raise it for an experiment, implement explicit-Generator masks
+  manually (or accept that runs become irreproducible).
 
 ## Technical report as design reference (ATTIC EPOCH — pending rewrite)
 
 Before designing new experiments, planning enhancements, adding features, or
-exploring research directions, **read `docs/technical_report.md`** to
+exploring research directions, **read
+[`attic/docs/technical_report.md`](attic/docs/technical_report.md)** to
 understand:
 
 - existing results, defaults, and the claims they support

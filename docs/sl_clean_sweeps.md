@@ -44,6 +44,34 @@ counterparts of this log; this file is the human-readable summary.
   `(experiment, code_identity, config, seed, run_context)` and only
   computes the rest. Logs land under `results/sl_clean/logs/<phase>.log`.
 
+### Code-identity timeline
+
+The library has been touched several times since the sl_clean infrastructure
+landed (commit `668df59`).  The timeline below maps each B-panel JSON to the
+`code_identity` it was written under, plus the human-readable git commit
+that produced that identity.  Numerical reproducibility is per-row exact;
+cross-row comparison within a panel is safe because every row in a single
+panel shares one identity (we never mix identities inside an aggregate).
+
+| panel | rows | code_identity (prefix) | commit landed | notable changes vs prior identity |
+|---|---|---|---|---|
+| `biases_mnist_panel.json` | 90 | `a18377…` | `a183779` (B1 scaffold) | first sl_clean panel |
+| `biases_fashion_panel.json` | 90 | `644d7c…` | `644d7c1` (Fashion+CIFAR generalization) | adds dataset switches; no path change to the `fit()` analytical solve |
+| `biases_cifar10_panel.json` | 90 | `8da6d6…` | post-`644d7c1`+B2 work | streaming improvements (don't affect `fit()`-only B1.2) |
+| `b3_strategies_*_panel.json` (3) | 70 each | `3d1c1d…` | post-`f4bc25b` / `c1d9b0a` / `cb8e1b7` | streaming Cholesky solve; clone-before-diagonal-add; `linear` activation registered |
+| `biases_*_centered/decentered_panel.json` (B7) | 90 each | `004157…` | `e5a2b7a` (B7 follow-ups) | adds centered/decentered dataset variants |
+| `b4_mlp_*_panel.json` | 60 each | `01a071…` | post-`b895794` | layers.py P0/P1 fixes (alpha guard, float64 accumulators, `_M_inv` non-persistent buffer) |
+
+Headline claims that depend on the analytical `fit()` path (H1, H6) are
+unaffected by the streaming/Woodbury fixes — verified by inspection of
+`src/leenef/layers.py:fit()` and `solvers.py`, neither of which has
+changed semantics across these commits.  Headline claims that depend on
+`continuous_fit` / Woodbury (Stream-NEF, B2) live on the `3d1c1d…`
+identity, which already incorporates the Cholesky solve and the
+clone-fix.  No re-runs are required; the per-panel `code_identity` is
+the ground truth for any future claim audit.
+
+
 ---
 
 ## Phase index
@@ -55,10 +83,13 @@ counterparts of this log; this file is the human-readable summary.
 | B1   | biases_mnist_panel    | biases_mnist    | `cell` (3×3 factorial) | H1 — encoder-type gap closure |
 | B1.1 | biases_fashion_panel  | biases_fashion  | `cell` (3×3 factorial) | H1 — Fashion-MNIST replication |
 | B1.2 | biases_cifar10_panel  | biases_cifar10  | `cell` (3×3 factorial) | H1 — CIFAR-10 replication and DC-drift discriminator |
-| B3 | b3_strategies_{mnist,fashion,cifar10} | b3_strategies_* | `cell` (7 encoder strategies) | H6 — encoder strategy ablation |
-
-Headline-claim phases (streaming sMNIST, MLP / LSTM / ESN baselines,
-etc.) will be added as the corresponding experiments are wired up.
+| B2   | streaming_smnist_{row,permuted,solve_modes,alpha_sweep} | streaming_smnist_* | `n_neurons`, `α`, `solve_mode` | H3 (Stream-NEF equivalence) + H4 (scaling) |
+| B3   | b3_strategies_{mnist,fashion,cifar10} | b3_strategies_* | `cell` (7 encoder strategies) | H6 — encoder strategy ablation |
+| B4   | b4_mlp_{mnist,fashion,cifar10}_panel | b4_mlp_* | `cell` (depth × width × lr) | H2 — gradient-trained MLP comparator |
+| B5   | b5_lstm_smnist_{row,permuted}_panel | b5_lstm_smnist_* | `cell` (hidden × layers × lr) | H4 — gradient-trained LSTM comparator on temporal sMNIST |
+| B6   | b6_esn_smnist_{row,permuted}_panel | b6_esn_smnist_* | `cell` (n × spectral_radius × leak) | H4 — gradient-free ESN reservoir comparator on temporal sMNIST |
+| B7   | biases_{cifar10_centered,mnist_decentered}_panel | biases_*_centered/decentered | `cell` (3×3 factorial) | H1 — DC-component falsifier; channel-centering vs offset injection |
+| H8   | h8_linear_collapse | h8_linear_collapse_check | `activation ∈ {linear, abs}` × n | H8 — over-representation needs nonlinearity (single-seed sanity) |
 
 ---
 
@@ -379,6 +410,135 @@ Or per-dataset:
 SEEDS=0-9 PYTHON=$PWD/venv/bin/python \
   bash benchmarks/sl_clean/sl_hp_driver.sh b3_strategies_mnist
 ```
+
+---
+
+---
+
+## B2 — streaming-NEF panels (H3 equivalence + H4 scaling)
+
+**Question.** Can the streaming (delay-line reservoir) classifier match
+batch-NEF on temporal sMNIST while staying online and gradient-free?
+Does the equivalence hold across the three solve modes (`batch`,
+`batch_acc`, `continuous`/Woodbury)?
+
+**Setup.** sMNIST-row + permuted-sMNIST × `n_neurons ∈ {1k, 2k, 4k, 8k,
+16k}` × {batch, batch_acc, continuous} × 10 seeds.  α trace-scaled
+(1e-4 nominal × tr(AᵀA)/N).  Window=10, abs activation, hypersphere
+encoders, data-driven biases.  Code identity `3d1c1d…` includes the
+Cholesky solve and the clone-fix.
+
+**Status.** Run; raw JSON in `results/sl_clean/streaming_smnist_*.json`
+and `streaming_solve_modes.json`.  Headline numbers and verdict to be
+written up in this section once the analyzer table for the final code
+identity is consolidated.
+
+---
+
+## B7 — biases follow-ups (DC-component falsifiers)
+
+**Question.** Can we confirm that the data_driven – zero gap on
+CIFAR-10 (B1.2) is driven by the dataset's DC offset?  Two predictions:
+
+1. **B7a — `biases_cifar10_centered`.** Per-channel-centered CIFAR-10
+   should *close* the gap to within 0.2 pp.
+2. **B7b — `biases_mnist_decentered`.** Adding a constant offset to
+   MNIST should *open* a +1 to +1.5 pp gap.
+
+**Setup.** Same 3×3 factorial as B1, with the dataset preprocessing
+swapped.  10 seeds × 9 cells × 2 datasets = 180 rows.  Code identity
+`004157…`.
+
+**Status.** Run; raw JSON in `results/sl_clean/biases_cifar10_centered_panel.json`
+and `biases_mnist_decentered_panel.json`.  Detailed verdict to be
+written up here once both summaries are aggregated; per the working
+synthesis (`docs/paper_insights.md` §1), the predictions hold and the
+DC-component mechanism is the load-bearing explanation for the
+CIFAR-10 anomaly.
+
+---
+
+## B4 — gradient-trained MLP comparator (H2)
+
+**Question.** Where does a properly tuned gradient-trained MLP sit
+relative to a single-layer NEF on the three SL benchmarks?
+
+**Setup.** 3×4×5 factorial: depth ∈ {1, 2}, width ∈ {256, 512, 1024},
+lr ∈ {1e-2, 3e-3, 1e-3, 3e-4, 1e-4} × 5 seeds = 60 cells × 3 datasets.
+Adam optimizer, batch=128, up to 50 epochs, early stopping with
+patience=5 on a 10% validation hold-out.  Dropout=0; weight_decay=1e-4.
+Code identity `01a071…` (post-`b895794`).
+
+**Status.** **In flight at time of writing** (driver
+`run_b4_panels.sh`, sentinel `results/sl_clean/b4_panels_done`).
+MNIST and Fashion expected within minutes; CIFAR-10 is the bottleneck
+at ~1h45m additional wall time.  Raw JSON paths:
+`results/sl_clean/b4_mlp_{mnist,fashion,cifar10}_panel.json`.
+
+The headline H2 verdict (does NEF *match* a gradient-trained MLP?
+where does it *not*?) will be written in this section once all three
+panels close and `analyze_b4_panel.py` has produced the per-dataset
+parsimony-rule winners.
+
+---
+
+## B5 — gradient-trained LSTM comparator (H4)
+
+**Question.** Where does a tuned LSTM sit on temporal sMNIST relative
+to Stream-NEF (B2)?
+
+**Setup.** Pixel-by-pixel sMNIST + permuted-sMNIST × `hidden ∈ {64,
+128, 256}` × `layers ∈ {1, 2}` × `lr ∈ {3e-3, 1e-3, 3e-4}` × 5 seeds.
+Adam, batch=64, up to 30 epochs, early stopping on a held-out fold.
+Code identity to be assigned at run time.
+
+**Status.** Scaffolded (commit `904114e`); driver
+`run_b5_panels.sh` ready; not yet launched (waiting for B4 sentinel
+to free CPU).
+
+---
+
+## B6 — ESN reservoir comparator (H4 — gradient-free)
+
+**Question.** How does a classical leaky-integrator ESN with
+ridge-regression readout compare to Stream-NEF on temporal sMNIST?
+This is the *gradient-free* ceiling for the same problem class.
+
+**Setup.** sMNIST-row + permuted-sMNIST × `n ∈ {500, 1000, 2000}` ×
+`spectral_radius ∈ {0.7, 0.95}` × `leak ∈ {0.3, 1.0}` × 5 seeds = 60
+cells per panel.  Float64 ridge solve.  Three explicit Generators per
+ESN (input-W, reservoir-W, internal sample) seeded as
+`seed * 7919 + {11, 12}`.  Sparse reservoir built via
+`randperm(n*n)[:k]` to guarantee unique non-zero positions
+(reproducibility hazard fixed during smoke testing — see
+`AGENTS.md` §"Reproducibility hazards").
+
+**Status.** Scaffolded (commit `19ed80d`); end-to-end smoke on
+sMNIST-row n=500 produced 85.3% test accuracy in 22 s, bit-exact
+across re-runs.  Driver `run_b6_panels.sh` ready; not yet launched.
+
+---
+
+## H8 — over-representation needs nonlinearity (sanity check)
+
+**Question.** Does a linear-activation NEF layer collapse to ordinary
+ridge regression regardless of `n_neurons`?  Paper I §0 claims that
+over-representation buys nothing without nonlinearity; H8 is the
+single-seed sanity that backs that opener.
+
+**Setup.** `linear` activation registered in `activations.py` (commit
+`cb8e1b7`).  MNIST, n_neurons ∈ {1000, 4000}, bias_mode ∈ {data_driven,
+zero}, α=1e-3.  Compared to plain ridge regression on raw 784-dim
+input and to abs-activation NEFLayer at n=5000.
+
+**Result.** `results/sl_clean/h8_linear_collapse.json`.  Linear
+NEFLayer plateau at 86.0–86.2% (insensitive to `n_neurons`); plain
+ridge baseline at 85.3%; abs NEFLayer at 97.08% (B1, 10-seed mean).
+The ~+11 pp delta is the entire contribution of the abs nonlinearity.
+
+**Verdict.** H8 supported.  Single-seed result; multi-seed not
+required because the headline (linear ≪ abs) is far outside seed
+noise on B1.
 
 ---
 

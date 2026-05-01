@@ -123,8 +123,12 @@ all three benchmarks while training faster** — without any gradient
 computation.  The key insight: at scale, the default regularization
 α=10⁻² over-regularizes; reducing it to a dataset-tuned value closes the
 final accuracy gap.  See the
-[technical report](docs/technical_report.md) for the full sweep results,
-analysis, and competitive context.
+[historical technical report](attic/docs/technical_report.md) for the
+earlier (single-seed) sweep results, analysis, and competitive context.
+The current rl_clean-style multi-seed program rebuilds these claims under
+the discipline described in [`AGENTS.md`](AGENTS.md), with running
+documentation in [`docs/sl_clean_sweeps.md`](docs/sl_clean_sweeps.md) and
+the synthesized story in [`docs/paper_insights.md`](docs/paper_insights.md).
 
 ## Components
 
@@ -141,5 +145,7 @@ analysis, and competitive context.
 | `src/leenef/activations.py` | Activations (`abs`, `relu`, `softplus`, `lif_rate`) |
 | `src/leenef/solvers.py` | Decoder solvers (`tikhonov`, `cholesky`, `lstsq`) plus `solve_from_normal_equations` |
 | `benchmarks/` | Feed-forward, recurrent, streaming, ConvNEF, continual learning, and RL benchmark harnesses |
-| `docs/technical_report.md` | Supervised learning technical report |
-| `docs/rl_notes.md` | RL research notes — NEF-FQI, Thompson ensembles, continual RL |
+| `docs/sl_clean_sweeps.md` | Running execution log of the rl_clean-style supervised-learning sweeps (configs, sentinels, per-phase verdicts) |
+| `docs/paper_insights.md` | Synthesized supervised-learning story (frame coefficients, DC framing, α-as-function-of-n, manifold view) |
+| `attic/docs/technical_report.md` | Pre-restart supervised-learning technical report (single-seed; archived) |
+| `attic/docs/rl_notes.md` | Pre-restart RL research notes — NEF-FQI, Thompson ensembles, continual RL (archived) |
