@@ -5,12 +5,12 @@
   "activation": "abs",
   "gain_low": 0.5,
   "gain_high": 2.0,
-  "alpha": 0.01,
+  "alpha": 0.0001,
   "solve_mode": "batch_acc",
   "batch_size": 1000,
   "data_driven_biases": true,
   "encode_max_tokens": 50000,
-  "chunk_stats": false,
+  "chunk_stats": true,
   "eval_train_accuracy": false,
   "alpha_scale": "trace"
 }

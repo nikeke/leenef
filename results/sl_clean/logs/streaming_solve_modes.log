@@ -15,3 +15,37 @@
 [2026-04-30T20:41:57]   [14/15] run    streaming_solve_modes_woodbury_s3
 [2026-04-30T20:44:17]   [15/15] run    streaming_solve_modes_woodbury_s4
 [2026-04-30T20:46:36] phase streaming_solve_modes done — 15 rows in results/sl_clean/streaming_solve_modes.json
+[2026-04-30T21:28:58] phase=streaming_solve_modes experiment=streaming_solve_modes knob=solve_mode values=['batch_acc', 'accumulate', 'woodbury'] seeds=[0, 1, 2, 3, 4] code_identity=e106fe214e5c4691754e5fd28383019d349be091
+[2026-04-30T21:28:58]   [1/15] run    streaming_solve_modes_batch_acc_s0
+[2026-04-30T21:30:49]   [2/15] run    streaming_solve_modes_batch_acc_s1
+[2026-04-30T21:32:37]   [3/15] run    streaming_solve_modes_batch_acc_s2
+[2026-04-30T21:34:27]   [4/15] run    streaming_solve_modes_batch_acc_s3
+[2026-04-30T21:36:19]   [5/15] run    streaming_solve_modes_batch_acc_s4
+[2026-04-30T21:38:12]   [6/15] run    streaming_solve_modes_accumulate_s0
+[2026-04-30T21:41:51]   [7/15] run    streaming_solve_modes_accumulate_s1
+[2026-04-30T21:45:33]   [8/15] run    streaming_solve_modes_accumulate_s2
+[2026-04-30T21:49:14]   [9/15] run    streaming_solve_modes_accumulate_s3
+[2026-04-30T21:52:54]   [10/15] run    streaming_solve_modes_accumulate_s4
+[2026-04-30T21:56:36]   [11/15] run    streaming_solve_modes_woodbury_s0
+[2026-04-30T22:02:05]   [12/15] run    streaming_solve_modes_woodbury_s1
+[2026-04-30T22:07:31]   [13/15] run    streaming_solve_modes_woodbury_s2
+[2026-04-30T22:13:01]   [14/15] run    streaming_solve_modes_woodbury_s3
+[2026-04-30T22:18:33]   [15/15] run    streaming_solve_modes_woodbury_s4
+[2026-04-30T22:24:00] phase streaming_solve_modes done — 15 rows in results/sl_clean/streaming_solve_modes.json
+[2026-05-01T03:59:07] phase=streaming_solve_modes experiment=streaming_solve_modes knob=solve_mode values=['batch_acc', 'accumulate', 'woodbury'] seeds=[0, 1, 2, 3, 4] code_identity=e106fe214e5c4691754e5fd28383019d349be091-dirty-b9fc8fbad234
+[2026-05-01T03:59:07]   [1/15] run    streaming_solve_modes_batch_acc_s0
+[2026-05-01T04:00:28]   [2/15] run    streaming_solve_modes_batch_acc_s1
+[2026-05-01T04:01:49]   [3/15] run    streaming_solve_modes_batch_acc_s2
+[2026-05-01T04:03:09]   [4/15] run    streaming_solve_modes_batch_acc_s3
+[2026-05-01T04:04:30]   [5/15] run    streaming_solve_modes_batch_acc_s4
+[2026-05-01T04:05:51]   [6/15] run    streaming_solve_modes_accumulate_s0
+[2026-05-01T04:08:25]   [7/15] run    streaming_solve_modes_accumulate_s1
+[2026-05-01T04:10:58]   [8/15] run    streaming_solve_modes_accumulate_s2
+[2026-05-01T04:13:32]   [9/15] run    streaming_solve_modes_accumulate_s3
+[2026-05-01T04:16:06]   [10/15] run    streaming_solve_modes_accumulate_s4
+[2026-05-01T04:18:39]   [11/15] run    streaming_solve_modes_woodbury_s0
+[2026-05-01T04:22:20]   [12/15] run    streaming_solve_modes_woodbury_s1
+[2026-05-01T04:26:01]   [13/15] run    streaming_solve_modes_woodbury_s2
+[2026-05-01T04:29:42]   [14/15] run    streaming_solve_modes_woodbury_s3
+[2026-05-01T04:33:23]   [15/15] run    streaming_solve_modes_woodbury_s4
+[2026-05-01T04:37:05] phase streaming_solve_modes done — 15 rows in results/sl_clean/streaming_solve_modes.json

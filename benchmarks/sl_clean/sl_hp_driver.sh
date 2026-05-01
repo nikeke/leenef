@@ -127,9 +127,28 @@ case "${EXPERIMENT}" in
     run_phase streaming_solve_modes solve_mode "${VALUES}" "${SEEDS}" "${BASE}" "${EXPERIMENT}"
     ;;
 
+  streaming_alpha_sweep)
+    # B2.alpha — calibrate regularisation: alpha_scale × alpha × n_neurons.
+    # Cells encode 'alpha_scale+alpha_nominal+n_neurons'.
+    BASE="${RESULTS_DIR}/base_config_streaming_alpha_sweep.json"
+    SEEDS="${SEEDS:-0-4}"
+    if [ -z "${VALUES:-}" ]; then
+      cells=""
+      for scale in fixed trace; do
+        for a in 1e-6 1e-5 1e-4 1e-3 1e-2; do
+          for n in 4000 8000; do
+            cells="${cells:+${cells},}${scale}+${a}+${n}"
+          done
+        done
+      done
+      VALUES="${cells}"
+    fi
+    run_phase streaming_alpha_sweep cell "${VALUES}" "${SEEDS}" "${BASE}" "${EXPERIMENT}"
+    ;;
+
   *)
     echo "unknown experiment block: ${EXPERIMENT}" >&2
-    echo "available: smoke biases_mnist biases_fashion biases_cifar10 streaming_smnist_row streaming_smnist_permuted streaming_solve_modes" >&2
+    echo "available: smoke biases_mnist biases_fashion biases_cifar10 streaming_smnist_row streaming_smnist_permuted streaming_solve_modes streaming_alpha_sweep" >&2
     exit 2
     ;;
 esac

@@ -68,6 +68,10 @@ def _classification_accuracy(
 def streaming_run(config: dict, seed: int, run_context: dict) -> dict:
     """Run one streaming sMNIST cell."""
     set_sl_seed(seed)
+    cell = config.get("cell")
+    if cell is not None:
+        scale, nominal, n = str(cell).split("+")
+        config = {**config, "alpha_scale": scale, "alpha": float(nominal), "n_neurons": int(n)}
     n_neurons = int(config["n_neurons"])
     window_size = int(config["window_size"])
     encoder_strategy = str(config["encoder_strategy"])
@@ -190,6 +194,8 @@ def streaming_run(config: dict, seed: int, run_context: dict) -> dict:
             "n_neurons": n_neurons,
             "window_size": window_size,
             "dataset": bundle.name,
+            "alpha_scale": alpha_scale,
+            "alpha_nominal": alpha,
         },
         "diagnostics": {
             "encoder_norm_mean": round(float(clf.encoders.norm(dim=1).mean()), 6),

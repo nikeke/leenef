@@ -449,3 +449,17 @@ register(
         description=_streaming.STREAMING_DESCRIPTION_MODES,
     )
 )
+
+register(
+    ExperimentSpec(
+        name="streaming_alpha_sweep",
+        run_fn=_streaming.streaming_run,
+        default_run_context=_streaming.streaming_row_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=(
+            "B2 alpha calibration: cell='alpha_scale+alpha+n_neurons'. "
+            "Diagnoses the trace-vs-fixed regularisation choice for streaming."
+        ),
+    )
+)

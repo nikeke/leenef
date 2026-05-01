@@ -1,0 +1,9 @@
+nohup: ignoring input
+[2026-05-01T03:32:46Z] panel-driver start
+[2026-05-01T03:32:46Z] launching streaming_smnist_row (sequential)
+[2026-05-01T03:59:06Z] streaming_smnist_row done
+[2026-05-01T03:59:06Z] launching streaming_smnist_permuted + streaming_solve_modes (parallel)
+[2026-05-01T03:59:06Z] permuted pid=165369 modes pid=165370
+[2026-05-01T05:51:58Z] streaming_smnist_permuted done (rc=0)
+[2026-05-01T05:51:58Z] streaming_solve_modes done (rc=0)
+[2026-05-01T05:51:58Z] panel-driver complete

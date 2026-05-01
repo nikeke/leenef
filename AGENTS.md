@@ -82,6 +82,32 @@ trio, modeled after the rl_clean infrastructure.
 
 **Live phase log:** `docs/sl_clean_sweeps.md`.
 
+## Watchdog pattern for long detached sweeps
+
+When launching multi-hour sweeps, follow this pattern so the CPU never
+silently idles and so completion auto-notifies:
+
+1. **Detach the actual work** with `setsid ... < /dev/null &; disown`.
+   Sentinel file path lives in `results/<namespace>/<phase>_done`.
+2. **Driver script** (`benchmarks/.../run_<phase>.sh`) sequences
+   sub-phases (typically: row sequential → permuted+modes parallel
+   via `& wait`).  Touches the sentinel last.
+3. **Watcher script** (`wait_for_<phase>.sh`) is launched as a
+   foreground sync bash command.  Polls the sentinel; stall-detects
+   via max(mtime) over the active log files; exits 0 on done, 1 on
+   stall.  When the sync command exits, the runtime sends a
+   completion notification — *that* is what wakes the agent up.
+4. **Parallelization rule.**  If a single phase saturates ≤ 50 % of
+   cores (BLAS-thread limited), schedule a second independent phase
+   to run alongside it.  Confirm via `ps -o pcpu` that combined
+   utilisation ≥ 80 % of available cores before walking away.
+5. **Do not rely on `nohup` alone** — the runtime kills nohup'd
+   processes on session shutdown in practice.  `setsid` survives.
+
+Reference: `benchmarks/sl_clean/{run_b2_panels.sh,
+wait_for_b2_panels.sh}` and the B2 launch in
+`docs/sl_clean_sweeps.md`.
+
 ## Reproducibility hazards (must not regress)
 
 - **Default RNG vs explicit Generator.** Every place that draws

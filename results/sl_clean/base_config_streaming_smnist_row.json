@@ -1,16 +1,16 @@
 {
-  "n_neurons": 4000,
-  "window_size": 10,
-  "encoder_strategy": "hypersphere",
   "activation": "abs",
-  "gain_low": 0.5,
-  "gain_high": 2.0,
-  "alpha": 0.01,
-  "solve_mode": "batch_acc",
+  "alpha": 0.0001,
+  "alpha_scale": "trace",
   "batch_size": 1000,
+  "chunk_stats": true,
   "data_driven_biases": true,
   "encode_max_tokens": 50000,
-  "chunk_stats": false,
+  "encoder_strategy": "hypersphere",
   "eval_train_accuracy": false,
-  "alpha_scale": "trace"
+  "gain_high": 2.0,
+  "gain_low": 0.5,
+  "n_neurons": 8000,
+  "solve_mode": "batch_acc",
+  "window_size": 10
 }
