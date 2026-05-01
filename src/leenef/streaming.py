@@ -221,6 +221,13 @@ class StreamingNEFClassifier(nn.Module):
             n = A.shape[1]
             self._M_inv = torch.eye(n, device=A.device, dtype=torch.float64) / alpha
             self._woodbury_alpha = alpha
+        elif self._woodbury_alpha != alpha:
+            raise ValueError(
+                f"continuous_fit: alpha changed mid-stream "
+                f"({self._woodbury_alpha} -> {alpha}); the cached inverse is "
+                f"invalid for the new regularizer. Call refresh_inverse() or "
+                f"reset_continuous() before changing alpha."
+            )
 
         k, n = A.shape
         if k >= n:
