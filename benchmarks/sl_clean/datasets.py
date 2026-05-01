@@ -154,6 +154,12 @@ def _load_idx_dataset(
     if preprocessing == "div255_flat":
         x_train = _preprocess_unit_interval(train_imgs)
         x_test = _preprocess_unit_interval(test_imgs)
+    elif preprocessing == "div255_flat_dc_shift":
+        # MNIST decentered: shift by +0.5 then clamp to [0, 1].  Used in
+        # the B1 follow-up "decentered MNIST" experiment to test the
+        # DC-fold mechanism (Paper I §5.1, H7).
+        x_train = (_preprocess_unit_interval(train_imgs) + 0.5).clamp_(0.0, 1.0)
+        x_test = (_preprocess_unit_interval(test_imgs) + 0.5).clamp_(0.0, 1.0)
     else:
         raise ValueError(f"unknown preprocessing {preprocessing!r}")
 
@@ -227,6 +233,22 @@ def load_cifar10(preprocessing: str = "div255_flat", root: Path | None = None) -
     if preprocessing == "div255_flat":
         x_train = (train_x.to(torch.float32) / 255.0).contiguous()
         x_test = (test_x.to(torch.float32) / 255.0).contiguous()
+    elif preprocessing == "div255_flat_per_channel_centered":
+        # CIFAR-10 per-channel centred: subtract the per-channel mean
+        # of the *training* set from both train and test.  Used in the
+        # B1 follow-up "centred CIFAR-10" experiment to test the DC-fold
+        # mechanism (Paper I §5.1, H7).  CIFAR raw layout is channel-major
+        # within each row: 1024 R, 1024 G, 1024 B.
+        x_train_raw = (train_x.to(torch.float32) / 255.0).contiguous()
+        x_test_raw = (test_x.to(torch.float32) / 255.0).contiguous()
+        means = torch.empty(3, dtype=torch.float32)
+        for c in range(3):
+            means[c] = x_train_raw[:, c * 1024 : (c + 1) * 1024].mean()
+        ch_mean = torch.zeros(3072, dtype=torch.float32)
+        for c in range(3):
+            ch_mean[c * 1024 : (c + 1) * 1024] = means[c]
+        x_train = (x_train_raw - ch_mean).contiguous()
+        x_test = (x_test_raw - ch_mean).contiguous()
     else:
         raise ValueError(f"unknown preprocessing {preprocessing!r}")
 

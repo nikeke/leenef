@@ -65,15 +65,17 @@ case "${EXPERIMENT}" in
     run_phase smoke_data_driven_bias data_driven_biases "true,false" "0,1,2,3,4" "${BASE}" smoke
     ;;
 
-  biases_mnist|biases_fashion|biases_cifar10)
+  biases_mnist|biases_fashion|biases_cifar10|biases_cifar10_centered|biases_mnist_decentered)
     # B1 — H1 panel.  Single factorial phase with 9 cells × N seeds.
     # The standard adoption analyzer does NOT run on this phase
     # (knob 'cell' is enumerative, not adoptable); the panel verdict
     # is produced by analyze_biases_panel.py instead.
     case "${EXPERIMENT}" in
-      biases_mnist)   BASE="${RESULTS_DIR}/base_config_biases_mnist.json"   ; PHASE_NAME="biases_mnist_panel"    ;;
-      biases_fashion) BASE="${RESULTS_DIR}/base_config_biases_fashion.json" ; PHASE_NAME="biases_fashion_panel"  ;;
-      biases_cifar10) BASE="${RESULTS_DIR}/base_config_biases_cifar10.json" ; PHASE_NAME="biases_cifar10_panel"  ;;
+      biases_mnist)             BASE="${RESULTS_DIR}/base_config_biases_mnist.json"             ; PHASE_NAME="biases_mnist_panel"             ;;
+      biases_fashion)           BASE="${RESULTS_DIR}/base_config_biases_fashion.json"           ; PHASE_NAME="biases_fashion_panel"           ;;
+      biases_cifar10)           BASE="${RESULTS_DIR}/base_config_biases_cifar10.json"           ; PHASE_NAME="biases_cifar10_panel"           ;;
+      biases_cifar10_centered)  BASE="${RESULTS_DIR}/base_config_biases_cifar10_centered.json"  ; PHASE_NAME="biases_cifar10_centered_panel"  ;;
+      biases_mnist_decentered)  BASE="${RESULTS_DIR}/base_config_biases_mnist_decentered.json"  ; PHASE_NAME="biases_mnist_decentered_panel"  ;;
     esac
 
     SEEDS="${SEEDS:-0-9}"
@@ -148,7 +150,7 @@ case "${EXPERIMENT}" in
 
   *)
     echo "unknown experiment block: ${EXPERIMENT}" >&2
-    echo "available: smoke biases_mnist biases_fashion biases_cifar10 streaming_smnist_row streaming_smnist_permuted streaming_solve_modes streaming_alpha_sweep" >&2
+    echo "available: smoke biases_mnist biases_fashion biases_cifar10 biases_cifar10_centered biases_mnist_decentered streaming_smnist_row streaming_smnist_permuted streaming_solve_modes streaming_alpha_sweep" >&2
     exit 2
     ;;
 esac

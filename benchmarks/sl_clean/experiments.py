@@ -347,6 +347,20 @@ def _biases_cifar10_context() -> dict:
     return _make_biases_context(dataset="CIFAR10", n_train=50000, n_test=10000, d_in=3072)()
 
 
+def _biases_cifar10_centered_context() -> dict:
+    ctx = _make_biases_context(dataset="CIFAR10", n_train=50000, n_test=10000, d_in=3072)()
+    ctx["preprocessing"] = "div255_flat_per_channel_centered"
+    ctx["experiment_kind"] = "cifar10_centered_singlelayer_biases_panel"
+    return ctx
+
+
+def _biases_mnist_decentered_context() -> dict:
+    ctx = _make_biases_context(dataset="MNIST", n_train=60000, n_test=10000, d_in=784)()
+    ctx["preprocessing"] = "div255_flat_dc_shift"
+    ctx["experiment_kind"] = "mnist_decentered_singlelayer_biases_panel"
+    return ctx
+
+
 BIASES_MNIST_BASE_CONFIG: dict[str, object] = {
     "cell": "data_driven+hypersphere",
     "n_neurons": 5000,
@@ -406,6 +420,29 @@ register(
         primary_metric="test_accuracy",
         higher_is_better=True,
         description=_BIASES_DESCRIPTION + " (CIFAR-10)",
+    )
+)
+
+register(
+    ExperimentSpec(
+        name="biases_cifar10_centered",
+        run_fn=_biases_run,
+        default_run_context=_biases_cifar10_centered_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_BIASES_DESCRIPTION
+        + " (CIFAR-10 per-channel centred — DC-fold falsification)",
+    )
+)
+
+register(
+    ExperimentSpec(
+        name="biases_mnist_decentered",
+        run_fn=_biases_run,
+        default_run_context=_biases_mnist_decentered_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_BIASES_DESCRIPTION + " (MNIST DC-shifted — DC-fold falsification)",
     )
 )
 
