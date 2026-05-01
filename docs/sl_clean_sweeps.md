@@ -55,6 +55,7 @@ counterparts of this log; this file is the human-readable summary.
 | B1   | biases_mnist_panel    | biases_mnist    | `cell` (3×3 factorial) | H1 — encoder-type gap closure |
 | B1.1 | biases_fashion_panel  | biases_fashion  | `cell` (3×3 factorial) | H1 — Fashion-MNIST replication |
 | B1.2 | biases_cifar10_panel  | biases_cifar10  | `cell` (3×3 factorial) | H1 — CIFAR-10 replication and DC-drift discriminator |
+| B3 | b3_strategies_{mnist,fashion,cifar10} | b3_strategies_* | `cell` (7 encoder strategies) | H6 — encoder strategy ablation |
 
 Headline-claim phases (streaming sMNIST, MLP / LSTM / ESN baselines,
 etc.) will be added as the corresponding experiments are wired up.
@@ -301,6 +302,82 @@ no input distribution for which switching to zero is preferable.
 ```bash
 SEEDS=0-9 PYTHON=$PWD/venv/bin/python \
   bash benchmarks/sl_clean/sl_hp_driver.sh biases_cifar10
+```
+
+---
+
+## B3 — encoder-strategy ablation (H6)
+
+**Question.** At fixed n_neurons and data-driven biases, which of the
+seven encoder strategies in `ENCODER_STRATEGIES` actually help, which
+are equivalent, and which hurt?
+
+**Setup.** Single-knob factorial: `cell ∈ {hypersphere, gaussian, sparse,
+receptive_field, whitened, class_contrast, local_pca}` × 10 seeds × 3
+datasets (MNIST, Fashion-MNIST, CIFAR-10). n_neurons=5000, abs
+activation, data-driven biases (the `centers=x_train` default kept by
+the B1 follow-ups). Per-seed sub-generators for encoder, gain,
+center_index, and (where applicable) PCA / kNN initialization.
+Per-cell wall ~25-31s on CPU; 3 panels in parallel under OMP=4 took
+~56 min total.
+
+**Results.** See `results/sl_clean/b3_strategies_*_panel_summary.json`.
+
+| Strategy | MNIST % | Fashion % | CIFAR-10 % |
+|---|---|---|---|
+| hypersphere (baseline) | 97.08 ± 0.04 | 87.75 ± 0.06 | 49.72 ± 0.08 |
+| gaussian | 97.08 ± 0.04 | 87.75 ± 0.06 | 49.72 ± 0.08 |
+| sparse | 97.08 ± 0.02 | 87.82 ± 0.04 | 49.85 ± 0.10 |
+| **receptive_field** | **97.35 ± 0.03** | **88.58 ± 0.03** | **55.10 ± 0.10** |
+| whitened | 97.46 ± 0.03 | 88.33 ± 0.04 | 50.93 ± 0.09 |
+| local_pca | 97.91 ± 0.02 | 86.78 ± 0.03 | 46.84 ± 0.08 |
+| class_contrast | 87.72 ± 0.06 | 84.61 ± 0.06 | 45.28 ± 0.11 |
+
+Δ vs hypersphere, paired-by-seed (z = Δ / SE_paired):
+
+| Strategy | MNIST Δ pp (z) | Fashion Δ pp (z) | CIFAR-10 Δ pp (z) |
+|---|---|---|---|
+| gaussian | -0.000 (0.0) | +0.000 (0.0) | -0.000 (0.0) |
+| sparse | -0.004 (-0.1) | +0.076 (+0.9) | +0.125 (+1.1) |
+| receptive_field | +0.271 (+5.8) | +0.839 (+12.8) | **+5.377 (+45.0)** |
+| whitened | +0.378 (+6.5) | +0.585 (+8.1) | +1.207 (+11.1) |
+| local_pca | +0.830 (+16.3) | -0.967 (-12.6) | -2.884 (-22.5) |
+| class_contrast | -9.355 (-179.6) | -3.140 (-40.9) | -4.439 (-37.5) |
+
+**Verdict.**
+- `hypersphere ≡ gaussian` to <0.001 pp on every dataset (the encoder
+  builder normalises Gaussian samples to the unit sphere, so this is
+  expected; we keep it as a bookkeeping check).
+- `sparse` ties `hypersphere` everywhere — cheap and equivalent.
+- **`receptive_field` is the headline win**: +5.4 pp on CIFAR-10 at
+  fixed n_neurons (49.7 → 55.1%), with consistent smaller wins on
+  MNIST/Fashion. This is the spatial-locality prior buying its keep.
+- `whitened` gives a small, consistent, dataset-aware edge
+  (+0.4 / +0.6 / +1.2 pp).
+- `local_pca` wins on MNIST but *loses* on Fashion and CIFAR-10 —
+  data adaptation isn't free.
+- `class_contrast` is a clean failure mode (-9.4 pp on MNIST). Useful
+  as a cautionary "this is what *not* to do".
+
+**Adoption rule outcome.** Project default `hypersphere` is kept as
+the "vanilla random frame" baseline. `receptive_field` is the
+recommended default for spatial inputs and is what every CIFAR-10
+headline downstream (ensembles, ConvNEF, streaming sCIFAR) should
+default to. No `base_config.json` mutation: the choice depends on
+whether the input has spatial structure.
+
+**Reproduce.**
+
+```bash
+SEEDS=0-9 PYTHON=$PWD/venv/bin/python \
+  bash benchmarks/sl_clean/run_b3_panels.sh
+```
+
+Or per-dataset:
+
+```bash
+SEEDS=0-9 PYTHON=$PWD/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh b3_strategies_mnist
 ```
 
 ---

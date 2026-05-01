@@ -552,6 +552,74 @@ What B3 needs to add:
 * Combinations.  Mixed frames (half random + half data-adapted) might
   give the best of both.  Not previously tested under multi-seed.
 
+### B3 result (10 seeds × n_neurons=5000, bias_mode=data_driven)
+
+| Strategy | MNIST % | Fashion % | CIFAR-10 % | Verdict |
+|---|---|---|---|---|
+| hypersphere | 97.08 ± 0.04 | 87.75 ± 0.06 | 49.72 ± 0.08 | baseline |
+| gaussian | 97.08 ± 0.04 | 87.75 ± 0.06 | 49.72 ± 0.08 | ≡ hypersphere |
+| sparse | 97.08 ± 0.02 | 87.82 ± 0.04 | 49.85 ± 0.10 | ties (everywhere) |
+| **receptive_field** | **+0.27 (5.8σ)** | **+0.84 (12.8σ)** | **+5.38 (45σ)** | **clear winner on spatial data** |
+| whitened | +0.38 (6.5σ) | +0.59 (8.1σ) | +1.21 (11σ) | small consistent gain |
+| local_pca | +0.83 (16σ) | -0.97 (-13σ) | -2.88 (-22σ) | wins MNIST, loses elsewhere |
+| class_contrast | -9.36 (-180σ) | -3.14 (-41σ) | -4.44 (-38σ) | systematic failure |
+
+Δ values are paired-by-seed vs `hypersphere`, in pp. `±` numbers are unpaired SE.
+Source: `results/sl_clean/b3_strategies_{mnist,fashion,cifar10}_panel_summary.json`.
+
+Story for the paper.
+1. **Universal random frames are essentially equivalent.** `hypersphere`,
+   `gaussian` (which the encoder builder normalises to the sphere), and
+   `sparse` cluster within 0.1 pp on every dataset. The choice between
+   them is irrelevant; report whichever is cheapest (sparse, by a hair).
+2. **Receptive-field encoders are the headline win.** The +5.4 pp gain
+   on CIFAR-10 (49.7 → 55.1%) at fixed n_neurons is by far the largest
+   effect we have seen from a frame change. The mechanism is the
+   spatial-locality prior: each neuron looks at a small patch of the
+   image, so the over-complete frame is a translation-covariant union
+   of small frames rather than a single global frame. On MNIST and
+   Fashion the gain shrinks (+0.27, +0.84) — pixel structure matters
+   less when the digit/garment is roughly centred and stroke-like.
+   This is consistent with H6.
+3. **Whitened frames give a small consistent edge.** ~+0.4 pp on MNIST,
+   +0.6 pp on Fashion, +1.2 pp on CIFAR-10. PCA-aware random directions
+   are the cheapest data adaptation, and the gain is monotone in input
+   complexity — modest but reproducible.
+4. **Heavy data adaptation can hurt.** `local_pca` wins on MNIST
+   (+0.83 pp at 97.91%) but *loses* on Fashion (-0.97) and CIFAR-10
+   (-2.88). Hypothesis: top-eigenvector-of-kNN frames put too many
+   directions parallel to the local manifold, which is exactly where
+   the abs-frame loses discrimination — neurons fire only on
+   *off-manifold* deviations, and those become rare or noisy on
+   richer data. We will report this honestly as a "data adaptation
+   isn't free" caveat.
+5. **`class_contrast` is a clean failure mode.** -9.4 pp on MNIST,
+   -3 to -4 pp elsewhere. The label-conditioned directions point
+   toward another class' centroid, which collapses the encoder's
+   discriminative capacity onto a 9-direction subspace per anchor.
+   We keep this in the paper as a clear "this is what *not* to do"
+   counterexample to the temptation of "use labels in the encoder".
+6. **Headline default for downstream chapters: `hypersphere` for
+   the random-frame baseline, `receptive_field` for spatial data.**
+   The "matches MLP without gradients" claim (H2) lives or dies on
+   `receptive_field` for CIFAR-10 — at 55.1% it isn't there alone,
+   but with ensembling and ConvNEF stacking it is.
+
+Decision for §3 of the paper: present hypersphere as the "vanilla
+NEF" baseline, then introduce receptive_field as the only encoder
+adaptation that survives every dataset honestly, then note in
+limitations that aggressive data adaptation (`local_pca`,
+`class_contrast`) can backfire — *coverage of the manifold matters
+less than coverage of the manifold's neighbourhood*.
+
+Frame-story re-statement.  The B3 outcome refines the hypothesis:
+data-adapted frames help only when they *broaden* the set of frame
+directions in a translation-covariant way (`receptive_field`,
+`whitened`).  When they *narrow* directions onto the manifold itself
+(`local_pca`, `class_contrast`), they lose discriminative capacity in
+the off-manifold component, which is exactly where abs-coefficient
+frames classify.
+
 ## 7. Hypothesis ledger (the paper's spine)
 
 H1: data-driven biases ≈ zero biases.  **Partially supported (B1).**

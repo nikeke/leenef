@@ -448,6 +448,269 @@ register(
 
 
 # ---------------------------------------------------------------------------
+# B3 — encoder-strategy ablation.
+#
+# Knob is ``encoder_strategy`` (the cell value), enumerating all 7
+# strategies registered in ``leenef.encoders``.  Bias mode is fixed to
+# ``data_driven`` (the project default).  Activation, gain range,
+# n_neurons, alpha, chunk_size are taken from the base config.
+#
+# Strategy-specific kwargs are wired here:
+#   - ``hypersphere`` / ``gaussian`` / ``sparse``: only ``rng``.
+#   - ``receptive_field``: needs ``image_shape`` from run_context.
+#     Default ``patch_size = 5``.
+#   - ``whitened``, ``class_contrast``, ``local_pca``: need
+#     ``train_data`` (and ``train_labels`` for class_contrast).
+#   - ``class_contrast`` / ``local_pca`` return ``(encoders, centers)``;
+#     we use those returned centers for the data-driven biases instead
+#     of fresh random samples (they are the natural reference points
+#     for those strategies).
+# ---------------------------------------------------------------------------
+
+
+_B3_STRATEGIES = (
+    "hypersphere",
+    "gaussian",
+    "sparse",
+    "receptive_field",
+    "whitened",
+    "class_contrast",
+    "local_pca",
+)
+
+
+def _b3_make_encoders_and_centers(
+    *,
+    strategy: str,
+    n_neurons: int,
+    d_in: int,
+    rng: torch.Generator,
+    x_train: torch.Tensor,
+    y_train: torch.Tensor,
+    image_shape: tuple[int, int] | None,
+    patch_size: int,
+    center_index_rng: torch.Generator,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Build encoders and per-neuron centers for a given strategy.
+
+    Centers are training samples used to derive data-driven biases via
+    ``b = -gain * (center · encoder)``.  For ``class_contrast`` and
+    ``local_pca`` we honor the centers returned by the encoder builder;
+    otherwise we sample uniformly with ``center_index_rng``.
+    """
+    kwargs: dict[str, object] = {"strategy": strategy, "rng": rng}
+    if strategy == "receptive_field":
+        if image_shape is None:
+            raise ValueError("receptive_field needs image_shape in run_context")
+        kwargs["image_shape"] = image_shape
+        kwargs["patch_size"] = patch_size
+    elif strategy in ("whitened", "local_pca"):
+        kwargs["train_data"] = x_train
+    elif strategy == "class_contrast":
+        kwargs["train_data"] = x_train
+        kwargs["train_labels"] = y_train
+
+    out = make_encoders(n_neurons, d_in, **kwargs)
+    if isinstance(out, tuple):
+        enc, centers = out
+    else:
+        enc = out
+        idx = torch.randint(len(x_train), (n_neurons,), generator=center_index_rng)
+        centers = x_train[idx]
+    return enc, centers
+
+
+def _b3_run(config: dict, seed: int, run_context: dict) -> dict:
+    set_sl_seed(seed)
+    strategy = str(config["cell"])
+    if strategy not in _B3_STRATEGIES:
+        raise ValueError(f"unknown encoder strategy {strategy!r}; have {_B3_STRATEGIES}")
+    n_neurons = int(config["n_neurons"])
+    alpha = float(config["alpha"])
+    gain_low = float(config["gain_low"])
+    gain_high = float(config["gain_high"])
+    chunk_size = int(config.get("chunk_size", 5000))
+    patch_size = int(config.get("patch_size", 5))
+
+    dataset_name = str(run_context.get("dataset", "MNIST"))
+    bundle = load_dataset(
+        dataset_name,
+        preprocessing=str(run_context.get("preprocessing", "div255_flat")),
+    )
+    x_train, y_train = bundle.x_train, bundle.y_train
+    x_test, y_test = bundle.x_test, bundle.y_test
+    d_in = int(x_train.shape[1])
+    n_classes = bundle.n_classes
+    image_shape = run_context.get("image_shape")
+    if image_shape is not None:
+        image_shape = tuple(image_shape)  # type: ignore[assignment]
+
+    rngs = _make_subrngs(seed)
+    gain = gain_low + (gain_high - gain_low) * torch.rand(n_neurons, generator=rngs["gain"])
+
+    enc, centers = _b3_make_encoders_and_centers(
+        strategy=strategy,
+        n_neurons=n_neurons,
+        d_in=d_in,
+        rng=rngs["encoder"],
+        x_train=x_train,
+        y_train=y_train,
+        image_shape=image_shape,  # type: ignore[arg-type]
+        patch_size=patch_size,
+        center_index_rng=rngs["center_index"],
+    )
+    bias = -gain * (centers * enc).sum(dim=1)
+
+    Y_oh = bundle.one_hot(y_train)
+    ATA = torch.zeros(n_neurons, n_neurons, dtype=torch.float32)
+    ATY = torch.zeros(n_neurons, n_classes, dtype=torch.float32)
+
+    t0 = time.perf_counter()
+    for s in range(0, x_train.shape[0], chunk_size):
+        e = min(s + chunk_size, x_train.shape[0])
+        z = x_train[s:e] @ enc.T
+        z.mul_(gain)
+        z.add_(bias)
+        z.abs_()
+        ATA.addmm_(z.T, z)
+        ATY.addmm_(z.T, Y_oh[s:e])
+    encode_fit_s = time.perf_counter() - t0
+
+    t0 = time.perf_counter()
+    reg = alpha * torch.trace(ATA) / n_neurons
+    ATA.diagonal().add_(torch.clamp(reg, min=alpha))
+    L = torch.linalg.cholesky(ATA)
+    D = torch.cholesky_solve(ATY, L)
+    solve_s = time.perf_counter() - t0
+
+    def _accuracy(x_split: torch.Tensor, y_split: torch.Tensor) -> float:
+        n_correct = 0
+        for s in range(0, x_split.shape[0], chunk_size):
+            e = min(s + chunk_size, x_split.shape[0])
+            z = x_split[s:e] @ enc.T
+            z.mul_(gain)
+            z.add_(bias)
+            z.abs_()
+            preds = (z @ D).argmax(dim=1)
+            n_correct += int((preds == y_split[s:e]).sum())
+        return n_correct / x_split.shape[0]
+
+    train_acc = _accuracy(x_train, y_train)
+    test_acc = _accuracy(x_test, y_test)
+
+    enc_norms = enc.norm(dim=1)
+
+    return {
+        "test_accuracy": round(test_acc, 6),
+        "train_accuracy": round(train_acc, 6),
+        "encode_fit_time_s": round(encode_fit_s, 4),
+        "solve_time_s": round(solve_s, 4),
+        "factors": {"encoder_strategy": strategy, "bias_mode": "data_driven"},
+        "diagnostics": {
+            "encoder_norm_mean": round(float(enc_norms.mean()), 6),
+            "encoder_norm_std": round(float(enc_norms.std()), 6),
+            "bias_mean": round(float(bias.mean()), 6),
+            "bias_std": round(float(bias.std()), 6),
+            "gain_mean": round(float(gain.mean()), 6),
+        },
+        "dataset_metadata": bundle.metadata(),
+    }
+
+
+def _b3_make_context(
+    *, dataset: str, n_train: int, n_test: int, d_in: int, image_shape: tuple[int, int]
+) -> Callable[[], dict]:
+    def _ctx() -> dict:
+        return {
+            "experiment_kind": f"{dataset.lower()}_singlelayer_b3_strategies_panel",
+            "dataset": dataset,
+            "preprocessing": "div255_flat",
+            "n_train": n_train,
+            "n_test": n_test,
+            "d_in": d_in,
+            "n_classes": 10,
+            "image_shape": list(image_shape),
+        }
+
+    return _ctx
+
+
+def _b3_mnist_context() -> dict:
+    return _b3_make_context(
+        dataset="MNIST", n_train=60000, n_test=10000, d_in=784, image_shape=(28, 28)
+    )()
+
+
+def _b3_fashion_context() -> dict:
+    return _b3_make_context(
+        dataset="FashionMNIST", n_train=60000, n_test=10000, d_in=784, image_shape=(28, 28)
+    )()
+
+
+def _b3_cifar10_context() -> dict:
+    return _b3_make_context(
+        dataset="CIFAR10", n_train=50000, n_test=10000, d_in=3072, image_shape=(32, 32)
+    )()
+
+
+B3_BASE_CONFIG: dict[str, object] = {
+    "cell": "hypersphere",
+    "n_neurons": 5000,
+    "activation": "abs",
+    "gain_low": 0.5,
+    "gain_high": 2.0,
+    "alpha": 1e-3,
+    "chunk_size": 5000,
+    "patch_size": 5,
+}
+
+B3_CIFAR10_BASE_CONFIG: dict[str, object] = {**B3_BASE_CONFIG, "chunk_size": 2500}
+
+
+_B3_DESCRIPTION = (
+    "B3 panel: encoder strategy ablation. Knob 'cell' enumerates the 7 "
+    "registered strategies (hypersphere, gaussian, sparse, "
+    "receptive_field, whitened, class_contrast, local_pca). "
+    "bias_mode fixed to data_driven (project default per H7). "
+    "n_neurons fixed via base config. Per-cell mean/SE reported."
+)
+
+
+register(
+    ExperimentSpec(
+        name="b3_strategies_mnist",
+        run_fn=_b3_run,
+        default_run_context=_b3_mnist_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_B3_DESCRIPTION + " (MNIST)",
+    )
+)
+
+register(
+    ExperimentSpec(
+        name="b3_strategies_fashion",
+        run_fn=_b3_run,
+        default_run_context=_b3_fashion_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_B3_DESCRIPTION + " (Fashion-MNIST)",
+    )
+)
+
+register(
+    ExperimentSpec(
+        name="b3_strategies_cifar10",
+        run_fn=_b3_run,
+        default_run_context=_b3_cifar10_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_B3_DESCRIPTION + " (CIFAR-10)",
+    )
+)
+
+
+# ---------------------------------------------------------------------------
 # B2 — streaming sMNIST.  Implementation lives in _streaming_exp.py to keep
 # this file from sprawling further.  We register the three experiments here.
 # ---------------------------------------------------------------------------

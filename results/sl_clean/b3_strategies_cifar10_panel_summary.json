@@ -1,0 +1,99 @@
+{
+  "baseline": "hypersphere",
+  "by_strategy": {
+    "class_contrast": {
+      "fit_mean": 19.700870000000002,
+      "mean": 0.45284,
+      "n": 10,
+      "se": 0.0011012316337224916
+    },
+    "gaussian": {
+      "fit_mean": 30.77637,
+      "mean": 0.49723,
+      "n": 10,
+      "se": 0.000790225003119713
+    },
+    "hypersphere": {
+      "fit_mean": 30.94835,
+      "mean": 0.49723,
+      "n": 10,
+      "se": 0.000804577183646448
+    },
+    "local_pca": {
+      "fit_mean": 16.830000000000002,
+      "mean": 0.46839,
+      "n": 10,
+      "se": 0.0007556380673899942
+    },
+    "receptive_field": {
+      "fit_mean": 30.03816,
+      "mean": 0.551,
+      "n": 10,
+      "se": 0.0009643650760992879
+    },
+    "sparse": {
+      "fit_mean": 30.08738,
+      "mean": 0.49848,
+      "n": 10,
+      "se": 0.0009619193775410148
+    },
+    "whitened": {
+      "fit_mean": 29.30725,
+      "mean": 0.5093,
+      "n": 10,
+      "se": 0.0009320228895615505
+    }
+  },
+  "raw_count": 70,
+  "results_path": "results/sl_clean/b3_strategies_cifar10_panel.json",
+  "vs_baseline": {
+    "class_contrast": {
+      "delta_pp": -4.439000000000001,
+      "n": 10,
+      "se_paired_pp": 0.11837276338377452,
+      "se_unpaired_pp": 0.13638385372013645,
+      "verdict": "strictly below hypersphere",
+      "z": -37.500180557654026
+    },
+    "gaussian": {
+      "delta_pp": -1.6653345369377348e-15,
+      "n": 10,
+      "se_paired_pp": 0.008164965809277417,
+      "se_unpaired_pp": 0.11277411050414012,
+      "verdict": "ties hypersphere",
+      "z": -2.039609933265738e-13
+    },
+    "local_pca": {
+      "delta_pp": -2.8840000000000003,
+      "n": 10,
+      "se_paired_pp": 0.12833290043217013,
+      "se_unpaired_pp": 0.11037813793198974,
+      "verdict": "strictly below hypersphere",
+      "z": -22.47280307924099
+    },
+    "receptive_field": {
+      "delta_pp": 5.377000000000001,
+      "n": 10,
+      "se_paired_pp": 0.11943431481595036,
+      "se_unpaired_pp": 0.12559237414924662,
+      "verdict": "strictly above hypersphere",
+      "z": 45.02056220849108
+    },
+    "sparse": {
+      "delta_pp": 0.12499999999999954,
+      "n": 10,
+      "se_paired_pp": 0.11127793032662844,
+      "se_unpaired_pp": 0.1254046782753077,
+      "verdict": "strictly above hypersphere",
+      "z": 1.1233134875270723
+    },
+    "whitened": {
+      "delta_pp": 1.2070000000000003,
+      "n": 10,
+      "se_paired_pp": 0.1085464570280082,
+      "se_unpaired_pp": 0.12312640298129042,
+      "verdict": "strictly above hypersphere",
+      "z": 11.119662797363883
+    }
+  }
+}

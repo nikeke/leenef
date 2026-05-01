@@ -1,0 +1,99 @@
+{
+  "baseline": "hypersphere",
+  "by_strategy": {
+    "class_contrast": {
+      "fit_mean": 25.34657,
+      "mean": 0.84605,
+      "n": 10,
+      "se": 0.0005710127455281059
+    },
+    "gaussian": {
+      "fit_mean": 25.85013,
+      "mean": 0.87745,
+      "n": 10,
+      "se": 0.0005850451074727244
+    },
+    "hypersphere": {
+      "fit_mean": 26.41705,
+      "mean": 0.87745,
+      "n": 10,
+      "se": 0.000589773968002426
+    },
+    "local_pca": {
+      "fit_mean": 25.538240000000002,
+      "mean": 0.86778,
+      "n": 10,
+      "se": 0.00026407069760451125
+    },
+    "receptive_field": {
+      "fit_mean": 25.71947,
+      "mean": 0.88584,
+      "n": 10,
+      "se": 0.0002708833287188051
+    },
+    "sparse": {
+      "fit_mean": 26.19486,
+      "mean": 0.8782099999999999,
+      "n": 10,
+      "se": 0.0004308776572944522
+    },
+    "whitened": {
+      "fit_mean": 25.47054,
+      "mean": 0.8833,
+      "n": 10,
+      "se": 0.0004131182235954583
+    }
+  },
+  "raw_count": 70,
+  "results_path": "results/sl_clean/b3_strategies_fashion_panel.json",
+  "vs_baseline": {
+    "class_contrast": {
+      "delta_pp": -3.1399999999999997,
+      "n": 10,
+      "se_paired_pp": 0.07673909622147487,
+      "se_unpaired_pp": 0.08209073570683065,
+      "verdict": "strictly below hypersphere",
+      "z": -40.91786526828152
+    },
+    "gaussian": {
+      "delta_pp": 0.0,
+      "n": 10,
+      "se_paired_pp": 0.004714045207909797,
+      "se_unpaired_pp": 0.08307292646290355,
+      "verdict": "ties hypersphere",
+      "z": 0.0
+    },
+    "local_pca": {
+      "delta_pp": -0.9669999999999979,
+      "n": 10,
+      "se_paired_pp": 0.07663840058641848,
+      "se_unpaired_pp": 0.06461939853222559,
+      "verdict": "strictly below hypersphere",
+      "z": -12.61769547120958
+    },
+    "receptive_field": {
+      "delta_pp": 0.8390000000000031,
+      "n": 10,
+      "se_paired_pp": 0.06536138853414229,
+      "se_unpaired_pp": 0.06490077897152752,
+      "verdict": "strictly above hypersphere",
+      "z": 12.836324607176017
+    },
+    "sparse": {
+      "delta_pp": 0.07600000000000051,
+      "n": 10,
+      "se_paired_pp": 0.08062533376330484,
+      "se_unpaired_pp": 0.07304032371840105,
+      "verdict": "ties hypersphere",
+      "z": 0.9426317567021414
+    },
+    "whitened": {
+      "delta_pp": 0.5850000000000022,
+      "n": 10,
+      "se_paired_pp": 0.07231489780428649,
+      "se_unpaired_pp": 0.07200694410957832,
+      "verdict": "strictly above hypersphere",
+      "z": 8.089619397420018
+    }
+  }
+}
