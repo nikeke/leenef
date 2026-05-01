@@ -1,0 +1,4502 @@
+{
+  "b4_mlp_fashion_panel_d1_w1024_lr0.001_s0": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w1024_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w1024_lr0.001_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 38,
+        "depth": 1,
+        "epochs_run": 43,
+        "fit_time_sec": 241.38068125599966,
+        "lr": 0.001,
+        "n_params": 814090,
+        "train_accuracy": 0.9662777777777778,
+        "val_accuracy": 0.9101666666666667,
+        "wall_sec": 241.4662835670024,
+        "width": 1024
+      },
+      "test_accuracy": 0.8991
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w1024_lr0.001",
+    "wall_time_s": 241.4668
+  },
+  "b4_mlp_fashion_panel_d1_w1024_lr0.001_s1": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w1024_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w1024_lr0.001_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 20,
+        "depth": 1,
+        "epochs_run": 25,
+        "fit_time_sec": 137.44590418300504,
+        "lr": 0.001,
+        "n_params": 814090,
+        "train_accuracy": 0.9382592592592592,
+        "val_accuracy": 0.9015,
+        "wall_sec": 137.53965189099836,
+        "width": 1024
+      },
+      "test_accuracy": 0.8903
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w1024_lr0.001",
+    "wall_time_s": 137.5404
+  },
+  "b4_mlp_fashion_panel_d1_w1024_lr0.001_s2": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w1024_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w1024_lr0.001_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 14,
+        "depth": 1,
+        "epochs_run": 19,
+        "fit_time_sec": 102.74500473499938,
+        "lr": 0.001,
+        "n_params": 814090,
+        "train_accuracy": 0.9252222222222222,
+        "val_accuracy": 0.895,
+        "wall_sec": 102.85278680599731,
+        "width": 1024
+      },
+      "test_accuracy": 0.8882
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w1024_lr0.001",
+    "wall_time_s": 102.8533
+  },
+  "b4_mlp_fashion_panel_d1_w1024_lr0.001_s3": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w1024_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w1024_lr0.001_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 12,
+        "depth": 1,
+        "epochs_run": 17,
+        "fit_time_sec": 88.87157241699606,
+        "lr": 0.001,
+        "n_params": 814090,
+        "train_accuracy": 0.9187222222222222,
+        "val_accuracy": 0.8995,
+        "wall_sec": 88.97633485400002,
+        "width": 1024
+      },
+      "test_accuracy": 0.8851
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w1024_lr0.001",
+    "wall_time_s": 88.9766
+  },
+  "b4_mlp_fashion_panel_d1_w1024_lr0.001_s4": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w1024_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w1024_lr0.001_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 21,
+        "depth": 1,
+        "epochs_run": 26,
+        "fit_time_sec": 128.8929007859988,
+        "lr": 0.001,
+        "n_params": 814090,
+        "train_accuracy": 0.9386111111111111,
+        "val_accuracy": 0.903,
+        "wall_sec": 128.98668252700008,
+        "width": 1024
+      },
+      "test_accuracy": 0.892
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w1024_lr0.001",
+    "wall_time_s": 128.987
+  },
+  "b4_mlp_fashion_panel_d1_w1024_lr0.003_s0": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w1024_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w1024_lr0.003_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 16,
+        "depth": 1,
+        "epochs_run": 21,
+        "fit_time_sec": 96.81653779200133,
+        "lr": 0.003,
+        "n_params": 814090,
+        "train_accuracy": 0.918537037037037,
+        "val_accuracy": 0.896,
+        "wall_sec": 96.90466066999943,
+        "width": 1024
+      },
+      "test_accuracy": 0.8833
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w1024_lr0.003",
+    "wall_time_s": 96.9049
+  },
+  "b4_mlp_fashion_panel_d1_w1024_lr0.003_s1": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w1024_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w1024_lr0.003_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 23,
+        "depth": 1,
+        "epochs_run": 28,
+        "fit_time_sec": 147.05494783399627,
+        "lr": 0.003,
+        "n_params": 814090,
+        "train_accuracy": 0.931037037037037,
+        "val_accuracy": 0.8953333333333333,
+        "wall_sec": 147.1383112879994,
+        "width": 1024
+      },
+      "test_accuracy": 0.8836
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w1024_lr0.003",
+    "wall_time_s": 147.1386
+  },
+  "b4_mlp_fashion_panel_d1_w1024_lr0.003_s2": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w1024_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w1024_lr0.003_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 15,
+        "depth": 1,
+        "epochs_run": 20,
+        "fit_time_sec": 103.98488288000226,
+        "lr": 0.003,
+        "n_params": 814090,
+        "train_accuracy": 0.9127222222222222,
+        "val_accuracy": 0.8868333333333334,
+        "wall_sec": 104.07948715599923,
+        "width": 1024
+      },
+      "test_accuracy": 0.8788
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w1024_lr0.003",
+    "wall_time_s": 104.0799
+  },
+  "b4_mlp_fashion_panel_d1_w1024_lr0.003_s3": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w1024_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w1024_lr0.003_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 12,
+        "depth": 1,
+        "epochs_run": 17,
+        "fit_time_sec": 92.4108861489949,
+        "lr": 0.003,
+        "n_params": 814090,
+        "train_accuracy": 0.9151296296296296,
+        "val_accuracy": 0.8951666666666667,
+        "wall_sec": 92.50897879200056,
+        "width": 1024
+      },
+      "test_accuracy": 0.8823
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w1024_lr0.003",
+    "wall_time_s": 92.5092
+  },
+  "b4_mlp_fashion_panel_d1_w1024_lr0.003_s4": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w1024_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w1024_lr0.003_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 9,
+        "depth": 1,
+        "epochs_run": 14,
+        "fit_time_sec": 83.96011766800075,
+        "lr": 0.003,
+        "n_params": 814090,
+        "train_accuracy": 0.9073333333333333,
+        "val_accuracy": 0.8911666666666667,
+        "wall_sec": 84.05929761299922,
+        "width": 1024
+      },
+      "test_accuracy": 0.8777
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w1024_lr0.003",
+    "wall_time_s": 84.0595
+  },
+  "b4_mlp_fashion_panel_d1_w256_lr0.001_s0": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w256_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w256_lr0.001_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 13,
+        "depth": 1,
+        "epochs_run": 18,
+        "fit_time_sec": 29.248932267000782,
+        "lr": 0.001,
+        "n_params": 203530,
+        "train_accuracy": 0.9138888888888889,
+        "val_accuracy": 0.895,
+        "wall_sec": 30.192756197000563,
+        "width": 256
+      },
+      "test_accuracy": 0.8819
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w256_lr0.001",
+    "wall_time_s": 30.7196
+  },
+  "b4_mlp_fashion_panel_d1_w256_lr0.001_s1": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w256_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w256_lr0.001_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 11,
+        "depth": 1,
+        "epochs_run": 16,
+        "fit_time_sec": 25.984452402997704,
+        "lr": 0.001,
+        "n_params": 203530,
+        "train_accuracy": 0.912425925925926,
+        "val_accuracy": 0.8908333333333334,
+        "wall_sec": 26.06455181199999,
+        "width": 256
+      },
+      "test_accuracy": 0.8816
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w256_lr0.001",
+    "wall_time_s": 26.0651
+  },
+  "b4_mlp_fashion_panel_d1_w256_lr0.001_s2": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w256_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w256_lr0.001_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 14,
+        "depth": 1,
+        "epochs_run": 19,
+        "fit_time_sec": 32.92957806400227,
+        "lr": 0.001,
+        "n_params": 203530,
+        "train_accuracy": 0.924037037037037,
+        "val_accuracy": 0.8898333333333334,
+        "wall_sec": 33.01699979400291,
+        "width": 256
+      },
+      "test_accuracy": 0.8873
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w256_lr0.001",
+    "wall_time_s": 33.0173
+  },
+  "b4_mlp_fashion_panel_d1_w256_lr0.001_s3": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w256_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w256_lr0.001_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 40,
+        "depth": 1,
+        "epochs_run": 45,
+        "fit_time_sec": 71.43234315200243,
+        "lr": 0.001,
+        "n_params": 203530,
+        "train_accuracy": 0.9578333333333333,
+        "val_accuracy": 0.9065,
+        "wall_sec": 71.51468315300008,
+        "width": 256
+      },
+      "test_accuracy": 0.896
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w256_lr0.001",
+    "wall_time_s": 71.5149
+  },
+  "b4_mlp_fashion_panel_d1_w256_lr0.001_s4": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w256_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w256_lr0.001_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 31,
+        "depth": 1,
+        "epochs_run": 36,
+        "fit_time_sec": 61.73312793399964,
+        "lr": 0.001,
+        "n_params": 203530,
+        "train_accuracy": 0.9488148148148148,
+        "val_accuracy": 0.9033333333333333,
+        "wall_sec": 61.82196441300039,
+        "width": 256
+      },
+      "test_accuracy": 0.8939
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w256_lr0.001",
+    "wall_time_s": 61.8224
+  },
+  "b4_mlp_fashion_panel_d1_w256_lr0.003_s0": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w256_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w256_lr0.003_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 16,
+        "depth": 1,
+        "epochs_run": 21,
+        "fit_time_sec": 35.776366587000666,
+        "lr": 0.003,
+        "n_params": 203530,
+        "train_accuracy": 0.9132222222222223,
+        "val_accuracy": 0.895,
+        "wall_sec": 35.857849036001426,
+        "width": 256
+      },
+      "test_accuracy": 0.88
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w256_lr0.003",
+    "wall_time_s": 35.8581
+  },
+  "b4_mlp_fashion_panel_d1_w256_lr0.003_s1": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w256_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w256_lr0.003_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 22,
+        "depth": 1,
+        "epochs_run": 27,
+        "fit_time_sec": 44.97698515999946,
+        "lr": 0.003,
+        "n_params": 203530,
+        "train_accuracy": 0.9268703703703703,
+        "val_accuracy": 0.8961666666666667,
+        "wall_sec": 45.04416930000298,
+        "width": 256
+      },
+      "test_accuracy": 0.8847
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w256_lr0.003",
+    "wall_time_s": 45.0444
+  },
+  "b4_mlp_fashion_panel_d1_w256_lr0.003_s2": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w256_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w256_lr0.003_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 36,
+        "depth": 1,
+        "epochs_run": 41,
+        "fit_time_sec": 71.48995729899616,
+        "lr": 0.003,
+        "n_params": 203530,
+        "train_accuracy": 0.9471666666666667,
+        "val_accuracy": 0.8973333333333333,
+        "wall_sec": 71.56910210500064,
+        "width": 256
+      },
+      "test_accuracy": 0.8911
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w256_lr0.003",
+    "wall_time_s": 71.5693
+  },
+  "b4_mlp_fashion_panel_d1_w256_lr0.003_s3": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w256_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w256_lr0.003_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 7,
+        "depth": 1,
+        "epochs_run": 12,
+        "fit_time_sec": 21.41554754999379,
+        "lr": 0.003,
+        "n_params": 203530,
+        "train_accuracy": 0.8991851851851852,
+        "val_accuracy": 0.8895,
+        "wall_sec": 21.505291503999615,
+        "width": 256
+      },
+      "test_accuracy": 0.8734
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w256_lr0.003",
+    "wall_time_s": 21.5055
+  },
+  "b4_mlp_fashion_panel_d1_w256_lr0.003_s4": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w256_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w256_lr0.003_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 14,
+        "depth": 1,
+        "epochs_run": 19,
+        "fit_time_sec": 32.87827179199667,
+        "lr": 0.003,
+        "n_params": 203530,
+        "train_accuracy": 0.9177407407407407,
+        "val_accuracy": 0.8916666666666667,
+        "wall_sec": 32.963493647002906,
+        "width": 256
+      },
+      "test_accuracy": 0.886
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w256_lr0.003",
+    "wall_time_s": 32.9639
+  },
+  "b4_mlp_fashion_panel_d1_w512_lr0.001_s0": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w512_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w512_lr0.001_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 26,
+        "depth": 1,
+        "epochs_run": 31,
+        "fit_time_sec": 89.43786235999869,
+        "lr": 0.001,
+        "n_params": 407050,
+        "train_accuracy": 0.9459074074074074,
+        "val_accuracy": 0.9036666666666666,
+        "wall_sec": 89.52388944899576,
+        "width": 512
+      },
+      "test_accuracy": 0.8949
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w512_lr0.001",
+    "wall_time_s": 89.5243
+  },
+  "b4_mlp_fashion_panel_d1_w512_lr0.001_s1": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w512_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w512_lr0.001_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 24,
+        "depth": 1,
+        "epochs_run": 29,
+        "fit_time_sec": 79.73351664099755,
+        "lr": 0.001,
+        "n_params": 407050,
+        "train_accuracy": 0.9435370370370371,
+        "val_accuracy": 0.8993333333333333,
+        "wall_sec": 79.81717559900426,
+        "width": 512
+      },
+      "test_accuracy": 0.8931
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w512_lr0.001",
+    "wall_time_s": 79.8175
+  },
+  "b4_mlp_fashion_panel_d1_w512_lr0.001_s2": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w512_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w512_lr0.001_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 14,
+        "depth": 1,
+        "epochs_run": 19,
+        "fit_time_sec": 53.22208944600425,
+        "lr": 0.001,
+        "n_params": 407050,
+        "train_accuracy": 0.9272222222222222,
+        "val_accuracy": 0.8956666666666667,
+        "wall_sec": 53.32458331900125,
+        "width": 512
+      },
+      "test_accuracy": 0.8876
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w512_lr0.001",
+    "wall_time_s": 53.325
+  },
+  "b4_mlp_fashion_panel_d1_w512_lr0.001_s3": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w512_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w512_lr0.001_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 25,
+        "depth": 1,
+        "epochs_run": 30,
+        "fit_time_sec": 84.75564113700239,
+        "lr": 0.001,
+        "n_params": 407050,
+        "train_accuracy": 0.9450740740740741,
+        "val_accuracy": 0.906,
+        "wall_sec": 84.85899340300239,
+        "width": 512
+      },
+      "test_accuracy": 0.8937
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w512_lr0.001",
+    "wall_time_s": 84.8595
+  },
+  "b4_mlp_fashion_panel_d1_w512_lr0.001_s4": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w512_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w512_lr0.001_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 7,
+        "depth": 1,
+        "epochs_run": 12,
+        "fit_time_sec": 35.454628097999375,
+        "lr": 0.001,
+        "n_params": 407050,
+        "train_accuracy": 0.9016851851851851,
+        "val_accuracy": 0.8895,
+        "wall_sec": 35.598007451997546,
+        "width": 512
+      },
+      "test_accuracy": 0.8746
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w512_lr0.001",
+    "wall_time_s": 35.5985
+  },
+  "b4_mlp_fashion_panel_d1_w512_lr0.003_s0": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w512_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w512_lr0.003_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 16,
+        "depth": 1,
+        "epochs_run": 21,
+        "fit_time_sec": 58.421010821999516,
+        "lr": 0.003,
+        "n_params": 407050,
+        "train_accuracy": 0.9177407407407407,
+        "val_accuracy": 0.8951666666666667,
+        "wall_sec": 58.517199447000166,
+        "width": 512
+      },
+      "test_accuracy": 0.8822
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w512_lr0.003",
+    "wall_time_s": 58.5176
+  },
+  "b4_mlp_fashion_panel_d1_w512_lr0.003_s1": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w512_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w512_lr0.003_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 22,
+        "depth": 1,
+        "epochs_run": 27,
+        "fit_time_sec": 80.17988095199689,
+        "lr": 0.003,
+        "n_params": 407050,
+        "train_accuracy": 0.9284814814814815,
+        "val_accuracy": 0.8948333333333334,
+        "wall_sec": 80.26956865999819,
+        "width": 512
+      },
+      "test_accuracy": 0.8874
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w512_lr0.003",
+    "wall_time_s": 80.27
+  },
+  "b4_mlp_fashion_panel_d1_w512_lr0.003_s2": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w512_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w512_lr0.003_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 34,
+        "depth": 1,
+        "epochs_run": 39,
+        "fit_time_sec": 113.29563019300258,
+        "lr": 0.003,
+        "n_params": 407050,
+        "train_accuracy": 0.9445740740740741,
+        "val_accuracy": 0.896,
+        "wall_sec": 113.3771823529969,
+        "width": 512
+      },
+      "test_accuracy": 0.8882
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w512_lr0.003",
+    "wall_time_s": 113.3775
+  },
+  "b4_mlp_fashion_panel_d1_w512_lr0.003_s3": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w512_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w512_lr0.003_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 10,
+        "depth": 1,
+        "epochs_run": 15,
+        "fit_time_sec": 43.348627600003965,
+        "lr": 0.003,
+        "n_params": 407050,
+        "train_accuracy": 0.9103703703703704,
+        "val_accuracy": 0.893,
+        "wall_sec": 43.43883325000206,
+        "width": 512
+      },
+      "test_accuracy": 0.8799
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w512_lr0.003",
+    "wall_time_s": 43.4391
+  },
+  "b4_mlp_fashion_panel_d1_w512_lr0.003_s4": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d1_w512_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d1_w512_lr0.003_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 15,
+        "depth": 1,
+        "epochs_run": 20,
+        "fit_time_sec": 61.91070500099886,
+        "lr": 0.003,
+        "n_params": 407050,
+        "train_accuracy": 0.9119259259259259,
+        "val_accuracy": 0.893,
+        "wall_sec": 62.01951212799759,
+        "width": 512
+      },
+      "test_accuracy": 0.8749
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d1_w512_lr0.003",
+    "wall_time_s": 62.0198
+  },
+  "b4_mlp_fashion_panel_d2_w1024_lr0.001_s0": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w1024_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w1024_lr0.001_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 19,
+        "depth": 2,
+        "epochs_run": 24,
+        "fit_time_sec": 296.0124899049988,
+        "lr": 0.001,
+        "n_params": 1863690,
+        "train_accuracy": 0.9459814814814815,
+        "val_accuracy": 0.9048333333333334,
+        "wall_sec": 296.15280565200374,
+        "width": 1024
+      },
+      "test_accuracy": 0.8937
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w1024_lr0.001",
+    "wall_time_s": 296.1533
+  },
+  "b4_mlp_fashion_panel_d2_w1024_lr0.001_s1": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w1024_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w1024_lr0.001_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 19,
+        "depth": 2,
+        "epochs_run": 24,
+        "fit_time_sec": 293.1797080630058,
+        "lr": 0.001,
+        "n_params": 1863690,
+        "train_accuracy": 0.9437037037037037,
+        "val_accuracy": 0.902,
+        "wall_sec": 293.3007835239987,
+        "width": 1024
+      },
+      "test_accuracy": 0.8919
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w1024_lr0.001",
+    "wall_time_s": 293.3011
+  },
+  "b4_mlp_fashion_panel_d2_w1024_lr0.001_s2": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w1024_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w1024_lr0.001_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 20,
+        "depth": 2,
+        "epochs_run": 25,
+        "fit_time_sec": 244.99555877498642,
+        "lr": 0.001,
+        "n_params": 1863690,
+        "train_accuracy": 0.9475370370370371,
+        "val_accuracy": 0.8995,
+        "wall_sec": 245.09560799399333,
+        "width": 1024
+      },
+      "test_accuracy": 0.8934
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w1024_lr0.001",
+    "wall_time_s": 245.096
+  },
+  "b4_mlp_fashion_panel_d2_w1024_lr0.001_s3": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w1024_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w1024_lr0.001_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 17,
+        "depth": 2,
+        "epochs_run": 22,
+        "fit_time_sec": 195.88730366999516,
+        "lr": 0.001,
+        "n_params": 1863690,
+        "train_accuracy": 0.9404259259259259,
+        "val_accuracy": 0.905,
+        "wall_sec": 195.97714070801158,
+        "width": 1024
+      },
+      "test_accuracy": 0.8937
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w1024_lr0.001",
+    "wall_time_s": 195.9773
+  },
+  "b4_mlp_fashion_panel_d2_w1024_lr0.001_s4": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w1024_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w1024_lr0.001_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 21,
+        "depth": 2,
+        "epochs_run": 26,
+        "fit_time_sec": 239.13502804499876,
+        "lr": 0.001,
+        "n_params": 1863690,
+        "train_accuracy": 0.9488888888888889,
+        "val_accuracy": 0.9026666666666666,
+        "wall_sec": 239.22111938500893,
+        "width": 1024
+      },
+      "test_accuracy": 0.8969
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w1024_lr0.001",
+    "wall_time_s": 239.2214
+  },
+  "b4_mlp_fashion_panel_d2_w1024_lr0.003_s0": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w1024_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w1024_lr0.003_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 3,
+        "depth": 2,
+        "epochs_run": 8,
+        "fit_time_sec": 70.47779100200569,
+        "lr": 0.003,
+        "n_params": 1863690,
+        "train_accuracy": 0.8873518518518518,
+        "val_accuracy": 0.8823333333333333,
+        "wall_sec": 70.58747380400018,
+        "width": 1024
+      },
+      "test_accuracy": 0.8692
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w1024_lr0.003",
+    "wall_time_s": 70.5878
+  },
+  "b4_mlp_fashion_panel_d2_w1024_lr0.003_s1": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w1024_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w1024_lr0.003_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 10,
+        "depth": 2,
+        "epochs_run": 15,
+        "fit_time_sec": 134.57149925499107,
+        "lr": 0.003,
+        "n_params": 1863690,
+        "train_accuracy": 0.9049444444444444,
+        "val_accuracy": 0.892,
+        "wall_sec": 134.69539987399185,
+        "width": 1024
+      },
+      "test_accuracy": 0.8743
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w1024_lr0.003",
+    "wall_time_s": 134.6957
+  },
+  "b4_mlp_fashion_panel_d2_w1024_lr0.003_s2": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w1024_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w1024_lr0.003_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 14,
+        "depth": 2,
+        "epochs_run": 19,
+        "fit_time_sec": 160.52667103400745,
+        "lr": 0.003,
+        "n_params": 1863690,
+        "train_accuracy": 0.9162962962962963,
+        "val_accuracy": 0.8883333333333333,
+        "wall_sec": 160.6287316730013,
+        "width": 1024
+      },
+      "test_accuracy": 0.8836
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w1024_lr0.003",
+    "wall_time_s": 160.629
+  },
+  "b4_mlp_fashion_panel_d2_w1024_lr0.003_s3": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w1024_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w1024_lr0.003_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 12,
+        "depth": 2,
+        "epochs_run": 17,
+        "fit_time_sec": 144.80753564700717,
+        "lr": 0.003,
+        "n_params": 1863690,
+        "train_accuracy": 0.9142962962962963,
+        "val_accuracy": 0.8978333333333334,
+        "wall_sec": 144.90909626601206,
+        "width": 1024
+      },
+      "test_accuracy": 0.8833
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w1024_lr0.003",
+    "wall_time_s": 144.9093
+  },
+  "b4_mlp_fashion_panel_d2_w1024_lr0.003_s4": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w1024_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w1024_lr0.003_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 9,
+        "depth": 2,
+        "epochs_run": 14,
+        "fit_time_sec": 120.00850966598955,
+        "lr": 0.003,
+        "n_params": 1863690,
+        "train_accuracy": 0.9092777777777777,
+        "val_accuracy": 0.8861666666666667,
+        "wall_sec": 120.10091728500265,
+        "width": 1024
+      },
+      "test_accuracy": 0.8765
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w1024_lr0.003",
+    "wall_time_s": 120.1015
+  },
+  "b4_mlp_fashion_panel_d2_w256_lr0.001_s0": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w256_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w256_lr0.001_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 13,
+        "depth": 2,
+        "epochs_run": 18,
+        "fit_time_sec": 42.85311231500236,
+        "lr": 0.001,
+        "n_params": 269322,
+        "train_accuracy": 0.9234444444444444,
+        "val_accuracy": 0.8975,
+        "wall_sec": 42.9647018389951,
+        "width": 256
+      },
+      "test_accuracy": 0.8893
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w256_lr0.001",
+    "wall_time_s": 42.9655
+  },
+  "b4_mlp_fashion_panel_d2_w256_lr0.001_s1": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w256_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w256_lr0.001_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 10,
+        "depth": 2,
+        "epochs_run": 15,
+        "fit_time_sec": 35.4061964769935,
+        "lr": 0.001,
+        "n_params": 269322,
+        "train_accuracy": 0.9152037037037037,
+        "val_accuracy": 0.8941666666666667,
+        "wall_sec": 35.50373568899522,
+        "width": 256
+      },
+      "test_accuracy": 0.8854
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w256_lr0.001",
+    "wall_time_s": 35.5042
+  },
+  "b4_mlp_fashion_panel_d2_w256_lr0.001_s2": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w256_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w256_lr0.001_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 14,
+        "depth": 2,
+        "epochs_run": 19,
+        "fit_time_sec": 45.85385506300372,
+        "lr": 0.001,
+        "n_params": 269322,
+        "train_accuracy": 0.9272037037037038,
+        "val_accuracy": 0.8953333333333333,
+        "wall_sec": 45.94982734101359,
+        "width": 256
+      },
+      "test_accuracy": 0.8883
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w256_lr0.001",
+    "wall_time_s": 45.9501
+  },
+  "b4_mlp_fashion_panel_d2_w256_lr0.001_s3": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w256_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w256_lr0.001_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 18,
+        "depth": 2,
+        "epochs_run": 23,
+        "fit_time_sec": 55.10339567899064,
+        "lr": 0.001,
+        "n_params": 269322,
+        "train_accuracy": 0.9372222222222222,
+        "val_accuracy": 0.9026666666666666,
+        "wall_sec": 55.17845277399465,
+        "width": 256
+      },
+      "test_accuracy": 0.8945
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w256_lr0.001",
+    "wall_time_s": 55.1787
+  },
+  "b4_mlp_fashion_panel_d2_w256_lr0.001_s4": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w256_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w256_lr0.001_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 14,
+        "depth": 2,
+        "epochs_run": 19,
+        "fit_time_sec": 45.99081842000305,
+        "lr": 0.001,
+        "n_params": 269322,
+        "train_accuracy": 0.928537037037037,
+        "val_accuracy": 0.8986666666666666,
+        "wall_sec": 46.06969139499415,
+        "width": 256
+      },
+      "test_accuracy": 0.8877
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w256_lr0.001",
+    "wall_time_s": 46.07
+  },
+  "b4_mlp_fashion_panel_d2_w256_lr0.003_s0": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w256_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w256_lr0.003_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 27,
+        "depth": 2,
+        "epochs_run": 32,
+        "fit_time_sec": 73.63231812599406,
+        "lr": 0.003,
+        "n_params": 269322,
+        "train_accuracy": 0.9384444444444444,
+        "val_accuracy": 0.9008333333333334,
+        "wall_sec": 73.73046181499376,
+        "width": 256
+      },
+      "test_accuracy": 0.8883
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w256_lr0.003",
+    "wall_time_s": 73.7308
+  },
+  "b4_mlp_fashion_panel_d2_w256_lr0.003_s1": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w256_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w256_lr0.003_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 13,
+        "depth": 2,
+        "epochs_run": 18,
+        "fit_time_sec": 45.78741848799109,
+        "lr": 0.003,
+        "n_params": 269322,
+        "train_accuracy": 0.9162222222222223,
+        "val_accuracy": 0.8893333333333333,
+        "wall_sec": 45.88505936099682,
+        "width": 256
+      },
+      "test_accuracy": 0.881
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w256_lr0.003",
+    "wall_time_s": 45.8856
+  },
+  "b4_mlp_fashion_panel_d2_w256_lr0.003_s2": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w256_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w256_lr0.003_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 14,
+        "depth": 2,
+        "epochs_run": 19,
+        "fit_time_sec": 43.79688168299617,
+        "lr": 0.003,
+        "n_params": 269322,
+        "train_accuracy": 0.9162037037037037,
+        "val_accuracy": 0.888,
+        "wall_sec": 43.89815338799963,
+        "width": 256
+      },
+      "test_accuracy": 0.8806
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w256_lr0.003",
+    "wall_time_s": 43.8985
+  },
+  "b4_mlp_fashion_panel_d2_w256_lr0.003_s3": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w256_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w256_lr0.003_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 12,
+        "depth": 2,
+        "epochs_run": 17,
+        "fit_time_sec": 91.21340952499304,
+        "lr": 0.003,
+        "n_params": 269322,
+        "train_accuracy": 0.9145,
+        "val_accuracy": 0.8965,
+        "wall_sec": 91.30719072499778,
+        "width": 256
+      },
+      "test_accuracy": 0.8841
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w256_lr0.003",
+    "wall_time_s": 91.3075
+  },
+  "b4_mlp_fashion_panel_d2_w256_lr0.003_s4": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w256_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w256_lr0.003_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 14,
+        "depth": 2,
+        "epochs_run": 19,
+        "fit_time_sec": 111.75118326400116,
+        "lr": 0.003,
+        "n_params": 269322,
+        "train_accuracy": 0.9122592592592592,
+        "val_accuracy": 0.8891666666666667,
+        "wall_sec": 111.87821074899693,
+        "width": 256
+      },
+      "test_accuracy": 0.8778
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w256_lr0.003",
+    "wall_time_s": 111.8784
+  },
+  "b4_mlp_fashion_panel_d2_w512_lr0.001_s0": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w512_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w512_lr0.001_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 14,
+        "depth": 2,
+        "epochs_run": 19,
+        "fit_time_sec": 125.15633515598893,
+        "lr": 0.001,
+        "n_params": 669706,
+        "train_accuracy": 0.9318333333333333,
+        "val_accuracy": 0.8998333333333334,
+        "wall_sec": 125.33434801999829,
+        "width": 512
+      },
+      "test_accuracy": 0.8916
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w512_lr0.001",
+    "wall_time_s": 125.3347
+  },
+  "b4_mlp_fashion_panel_d2_w512_lr0.001_s1": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w512_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w512_lr0.001_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 30,
+        "depth": 2,
+        "epochs_run": 35,
+        "fit_time_sec": 164.74932045600144,
+        "lr": 0.001,
+        "n_params": 669706,
+        "train_accuracy": 0.9672592592592593,
+        "val_accuracy": 0.904,
+        "wall_sec": 164.8447152380104,
+        "width": 512
+      },
+      "test_accuracy": 0.8965
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w512_lr0.001",
+    "wall_time_s": 164.8454
+  },
+  "b4_mlp_fashion_panel_d2_w512_lr0.001_s2": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w512_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w512_lr0.001_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 14,
+        "depth": 2,
+        "epochs_run": 19,
+        "fit_time_sec": 89.61962196600507,
+        "lr": 0.001,
+        "n_params": 669706,
+        "train_accuracy": 0.9288518518518518,
+        "val_accuracy": 0.8958333333333334,
+        "wall_sec": 89.72272966199671,
+        "width": 512
+      },
+      "test_accuracy": 0.8881
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w512_lr0.001",
+    "wall_time_s": 89.7233
+  },
+  "b4_mlp_fashion_panel_d2_w512_lr0.001_s3": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w512_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w512_lr0.001_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 24,
+        "depth": 2,
+        "epochs_run": 29,
+        "fit_time_sec": 141.3016020530049,
+        "lr": 0.001,
+        "n_params": 669706,
+        "train_accuracy": 0.9523888888888888,
+        "val_accuracy": 0.9085,
+        "wall_sec": 141.39981246599928,
+        "width": 512
+      },
+      "test_accuracy": 0.8935
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w512_lr0.001",
+    "wall_time_s": 141.4001
+  },
+  "b4_mlp_fashion_panel_d2_w512_lr0.001_s4": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w512_lr0.001",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w512_lr0.001_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 6,
+        "depth": 2,
+        "epochs_run": 11,
+        "fit_time_sec": 55.75890046999848,
+        "lr": 0.001,
+        "n_params": 669706,
+        "train_accuracy": 0.9071111111111111,
+        "val_accuracy": 0.8903333333333333,
+        "wall_sec": 55.886057559007895,
+        "width": 512
+      },
+      "test_accuracy": 0.8766
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w512_lr0.001",
+    "wall_time_s": 55.8866
+  },
+  "b4_mlp_fashion_panel_d2_w512_lr0.003_s0": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w512_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w512_lr0.003_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 8,
+        "depth": 2,
+        "epochs_run": 13,
+        "fit_time_sec": 70.47862234400236,
+        "lr": 0.003,
+        "n_params": 669706,
+        "train_accuracy": 0.9033148148148148,
+        "val_accuracy": 0.8908333333333334,
+        "wall_sec": 70.60136727200006,
+        "width": 512
+      },
+      "test_accuracy": 0.8766
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w512_lr0.003",
+    "wall_time_s": 70.6021
+  },
+  "b4_mlp_fashion_panel_d2_w512_lr0.003_s1": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w512_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w512_lr0.003_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 22,
+        "depth": 2,
+        "epochs_run": 27,
+        "fit_time_sec": 126.87427466599911,
+        "lr": 0.003,
+        "n_params": 669706,
+        "train_accuracy": 0.9307592592592593,
+        "val_accuracy": 0.8943333333333333,
+        "wall_sec": 126.99856839400309,
+        "width": 512
+      },
+      "test_accuracy": 0.885
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w512_lr0.003",
+    "wall_time_s": 126.9996
+  },
+  "b4_mlp_fashion_panel_d2_w512_lr0.003_s2": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w512_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w512_lr0.003_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 28,
+        "depth": 2,
+        "epochs_run": 33,
+        "fit_time_sec": 157.5003893539979,
+        "lr": 0.003,
+        "n_params": 669706,
+        "train_accuracy": 0.9437037037037037,
+        "val_accuracy": 0.896,
+        "wall_sec": 157.60677345699514,
+        "width": 512
+      },
+      "test_accuracy": 0.8913
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w512_lr0.003",
+    "wall_time_s": 157.607
+  },
+  "b4_mlp_fashion_panel_d2_w512_lr0.003_s3": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w512_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w512_lr0.003_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 8,
+        "depth": 2,
+        "epochs_run": 13,
+        "fit_time_sec": 62.91115218598861,
+        "lr": 0.003,
+        "n_params": 669706,
+        "train_accuracy": 0.9044074074074074,
+        "val_accuracy": 0.8921666666666667,
+        "wall_sec": 63.019369554007426,
+        "width": 512
+      },
+      "test_accuracy": 0.8735
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w512_lr0.003",
+    "wall_time_s": 63.02
+  },
+  "b4_mlp_fashion_panel_d2_w512_lr0.003_s4": {
+    "code_identity": "01a0719162a200a020672b631928abe20f90a9d7-dirty-ca3ad0c7994c",
+    "config": {
+      "activation": "relu",
+      "batch_size": 128,
+      "cell": "d2_w512_lr0.003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "patience": 5,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b4_mlp_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b4_mlp_fashion_panel_d2_w512_lr0.003_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "best_epoch": 21,
+        "depth": 2,
+        "epochs_run": 26,
+        "fit_time_sec": 131.894725287013,
+        "lr": 0.003,
+        "n_params": 669706,
+        "train_accuracy": 0.9298888888888889,
+        "val_accuracy": 0.897,
+        "wall_sec": 132.00414324099256,
+        "width": 512
+      },
+      "test_accuracy": 0.8875
+    },
+    "phase": "b4_mlp_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "FashionMNIST",
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "d2_w512_lr0.003",
+    "wall_time_s": 132.0044
+  }
+}

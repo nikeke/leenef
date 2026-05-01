@@ -1,0 +1,4682 @@
+{
+  "b6_esn_smnist_row_panel_n1000_sr0.7_leak0.3_s0": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.7_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.7_leak0.3_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.9680998889962211,
+        "collect_time_sec": 105.81103671299934,
+        "fit_time_sec": 108.81207864399767,
+        "leak_rate": 0.3,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 2.032942042002105,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.8967166543006897,
+        "wall_sec": 109.13828907700372
+      },
+      "test_accuracy": 0.8924999833106995
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.7_leak0.3",
+    "wall_time_s": 109.1386
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.7_leak0.3_s1": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.7_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.7_leak0.3_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 1.3589150149928173,
+        "collect_time_sec": 84.6160191950039,
+        "fit_time_sec": 88.2090587069979,
+        "leak_rate": 0.3,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 2.2341244970011758,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.8969166874885559,
+        "wall_sec": 88.51084952100064
+      },
+      "test_accuracy": 0.8956999778747559
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.7_leak0.3",
+    "wall_time_s": 88.5111
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.7_leak0.3_s2": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.7_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.7_leak0.3_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.8394410570035689,
+        "collect_time_sec": 113.14662184201006,
+        "fit_time_sec": 116.19507298200915,
+        "leak_rate": 0.3,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 2.209010082995519,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.8980666399002075,
+        "wall_sec": 116.55829469500168
+      },
+      "test_accuracy": 0.8916000127792358
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.7_leak0.3",
+    "wall_time_s": 116.5585
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.7_leak0.3_s3": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.7_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.7_leak0.3_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 1.0561858269938966,
+        "collect_time_sec": 111.32005339000898,
+        "fit_time_sec": 114.44183675399108,
+        "leak_rate": 0.3,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 2.065597536988207,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.8949333429336548,
+        "wall_sec": 114.82301363699662
+      },
+      "test_accuracy": 0.8878999948501587
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.7_leak0.3",
+    "wall_time_s": 114.8233
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.7_leak0.3_s4": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.7_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.7_leak0.3_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 1.216041182007757,
+        "collect_time_sec": 93.8933193039993,
+        "fit_time_sec": 97.55536211501749,
+        "leak_rate": 0.3,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 2.446001629010425,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.8990333080291748,
+        "wall_sec": 97.87626082499628
+      },
+      "test_accuracy": 0.8959000110626221
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.7_leak0.3",
+    "wall_time_s": 97.8765
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.7_leak1.0_s0": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.7_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.7_leak1.0_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 1.2749221279955236,
+        "collect_time_sec": 107.46843776099558,
+        "fit_time_sec": 111.01315743198211,
+        "leak_rate": 1.0,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 2.2697975429910002,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.6297833323478699,
+        "wall_sec": 111.38328965099936
+      },
+      "test_accuracy": 0.6169999837875366
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.7_leak1.0",
+    "wall_time_s": 111.3835
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.7_leak1.0_s1": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.7_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.7_leak1.0_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 2.2679650290083373,
+        "collect_time_sec": 94.53449393701158,
+        "fit_time_sec": 98.4855249330285,
+        "leak_rate": 1.0,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 1.683065967008588,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.6317499876022339,
+        "wall_sec": 98.83912775100907
+      },
+      "test_accuracy": 0.6172000169754028
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.7_leak1.0",
+    "wall_time_s": 98.8393
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.7_leak1.0_s2": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.7_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.7_leak1.0_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 2.1809871930017835,
+        "collect_time_sec": 105.85331270600727,
+        "fit_time_sec": 110.00779287601472,
+        "leak_rate": 1.0,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 1.9734929770056624,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.6248499751091003,
+        "wall_sec": 110.31932071899064
+      },
+      "test_accuracy": 0.6104999780654907
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.7_leak1.0",
+    "wall_time_s": 110.3196
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.7_leak1.0_s3": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.7_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.7_leak1.0_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 1.3727404550008941,
+        "collect_time_sec": 92.68227136699716,
+        "fit_time_sec": 96.2426169209939,
+        "leak_rate": 1.0,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 2.1876050989958458,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.6218666434288025,
+        "wall_sec": 96.53964661899954
+      },
+      "test_accuracy": 0.6071000099182129
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.7_leak1.0",
+    "wall_time_s": 96.54
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.7_leak1.0_s4": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.7_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.7_leak1.0_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 1.0038631329953205,
+        "collect_time_sec": 87.47306789799768,
+        "fit_time_sec": 90.81208761400194,
+        "leak_rate": 1.0,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 2.3351565830089385,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.6277666687965393,
+        "wall_sec": 91.18316898800549
+      },
+      "test_accuracy": 0.6122999787330627
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.7_leak1.0",
+    "wall_time_s": 91.1835
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.95_leak0.3_s0": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.95_leak0.3_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 1.2859421470056986,
+        "collect_time_sec": 102.82976929101278,
+        "fit_time_sec": 106.14440455602016,
+        "leak_rate": 0.3,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 2.0286931180016836,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.9129999876022339,
+        "wall_sec": 106.47264315999928
+      },
+      "test_accuracy": 0.9106000065803528
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.95_leak0.3",
+    "wall_time_s": 106.4729
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.95_leak0.3_s1": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.95_leak0.3_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 5.260800727992319,
+        "collect_time_sec": 112.63003685401054,
+        "fit_time_sec": 120.09679683200375,
+        "leak_rate": 0.3,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 2.2059592500008876,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.9130499958992004,
+        "wall_sec": 120.4591731870023
+      },
+      "test_accuracy": 0.9110000133514404
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.95_leak0.3",
+    "wall_time_s": 120.4595
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.95_leak0.3_s2": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.95_leak0.3_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 1.8254859679873334,
+        "collect_time_sec": 101.89309779199539,
+        "fit_time_sec": 105.97535722798784,
+        "leak_rate": 0.3,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 2.2567734680051217,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.9139333367347717,
+        "wall_sec": 106.35601134999888
+      },
+      "test_accuracy": 0.9068999886512756
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.95_leak0.3",
+    "wall_time_s": 106.3563
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.95_leak0.3_s3": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.95_leak0.3_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 1.603360506996978,
+        "collect_time_sec": 112.92807457500021,
+        "fit_time_sec": 116.42148889400414,
+        "leak_rate": 0.3,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 1.890053812006954,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.9097499847412109,
+        "wall_sec": 116.77348223800072
+      },
+      "test_accuracy": 0.9042999744415283
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.95_leak0.3",
+    "wall_time_s": 116.7738
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.95_leak0.3_s4": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.95_leak0.3_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 1.053484218995436,
+        "collect_time_sec": 97.05240461499488,
+        "fit_time_sec": 100.09417749500426,
+        "leak_rate": 0.3,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 1.9882886610139394,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.9143333435058594,
+        "wall_sec": 100.40659718400275
+      },
+      "test_accuracy": 0.909500002861023
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.95_leak0.3",
+    "wall_time_s": 100.4068
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.95_leak1.0_s0": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.95_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.95_leak1.0_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 1.0637447410117602,
+        "collect_time_sec": 122.47703640299733,
+        "fit_time_sec": 125.81915729700995,
+        "leak_rate": 1.0,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 2.2783761530008633,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.6760333180427551,
+        "wall_sec": 126.16566795700055
+      },
+      "test_accuracy": 0.6589000225067139
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.95_leak1.0",
+    "wall_time_s": 126.1659
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.95_leak1.0_s1": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.95_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.95_leak1.0_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.9267601840110729,
+        "collect_time_sec": 113.6576903739915,
+        "fit_time_sec": 117.42481067100016,
+        "leak_rate": 1.0,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 2.840360112997587,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.6693333387374878,
+        "wall_sec": 117.77822957299941
+      },
+      "test_accuracy": 0.6492999792098999
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.95_leak1.0",
+    "wall_time_s": 117.7787
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.95_leak1.0_s2": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.95_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.95_leak1.0_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 2.7733802269940497,
+        "collect_time_sec": 111.56977177099907,
+        "fit_time_sec": 116.41563190799206,
+        "leak_rate": 1.0,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 2.072479909998947,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.6647833585739136,
+        "wall_sec": 116.79610237499583
+      },
+      "test_accuracy": 0.647599995136261
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.95_leak1.0",
+    "wall_time_s": 116.7965
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.95_leak1.0_s3": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.95_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.95_leak1.0_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.7919111410010373,
+        "collect_time_sec": 111.68436090400792,
+        "fit_time_sec": 114.61129742801131,
+        "leak_rate": 1.0,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 2.1350253830023576,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.6633833050727844,
+        "wall_sec": 114.97871513599239
+      },
+      "test_accuracy": 0.6424999833106995
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.95_leak1.0",
+    "wall_time_s": 114.979
+  },
+  "b6_esn_smnist_row_panel_n1000_sr0.95_leak1.0_s4": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n1000_sr0.95_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n1000_sr0.95_leak1.0_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 1.1626645070064114,
+        "collect_time_sec": 99.48881857600645,
+        "fit_time_sec": 102.81556350502069,
+        "leak_rate": 1.0,
+        "n_params": 1038010,
+        "n_reservoir": 1000,
+        "solve_time_sec": 2.164080422007828,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.6733666658401489,
+        "wall_sec": 103.13933743099915
+      },
+      "test_accuracy": 0.6593000292778015
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000_sr0.95_leak1.0",
+    "wall_time_s": 103.1396
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.7_leak0.3_s0": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.7_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.7_leak0.3_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 4.4527350999997,
+        "collect_time_sec": 467.75483582499146,
+        "fit_time_sec": 477.9375586029928,
+        "leak_rate": 0.3,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 5.729987678001635,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.9295666813850403,
+        "wall_sec": 478.51915949700924
+      },
+      "test_accuracy": 0.9210000038146973
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.7_leak0.3",
+    "wall_time_s": 478.5194
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.7_leak0.3_s1": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.7_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.7_leak0.3_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 5.205727898006444,
+        "collect_time_sec": 431.55980515800184,
+        "fit_time_sec": 443.7792161080142,
+        "leak_rate": 0.3,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 7.013683052005945,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.9300833344459534,
+        "wall_sec": 444.36700784599816
+      },
+      "test_accuracy": 0.9211000204086304
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.7_leak0.3",
+    "wall_time_s": 444.3672
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.7_leak0.3_s2": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.7_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.7_leak0.3_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 4.7066117159993155,
+        "collect_time_sec": 442.21904298700974,
+        "fit_time_sec": 453.8095924320078,
+        "leak_rate": 0.3,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 6.883937728998717,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.9323166608810425,
+        "wall_sec": 454.47060114699707
+      },
+      "test_accuracy": 0.9207000136375427
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.7_leak0.3",
+    "wall_time_s": 454.4708
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.7_leak0.3_s3": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.7_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.7_leak0.3_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 4.4680440289957915,
+        "collect_time_sec": 450.20074656901124,
+        "fit_time_sec": 461.7233544620103,
+        "leak_rate": 0.3,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 7.054563864003285,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.9302666783332825,
+        "wall_sec": 462.37112153100315
+      },
+      "test_accuracy": 0.9190999865531921
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.7_leak0.3",
+    "wall_time_s": 462.3714
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.7_leak0.3_s4": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.7_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.7_leak0.3_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 4.67695933500363,
+        "collect_time_sec": 460.5696849070082,
+        "fit_time_sec": 471.635281150011,
+        "leak_rate": 0.3,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 6.388636907999171,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.9302999973297119,
+        "wall_sec": 472.1933002079895
+      },
+      "test_accuracy": 0.9194999933242798
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.7_leak0.3",
+    "wall_time_s": 472.1936
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.7_leak1.0_s0": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.7_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.7_leak1.0_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 3.95266906399047,
+        "collect_time_sec": 425.0516029080027,
+        "fit_time_sec": 436.52983696399315,
+        "leak_rate": 1.0,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 7.525564992,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.6783166527748108,
+        "wall_sec": 437.2074673439929
+      },
+      "test_accuracy": 0.6449000239372253
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.7_leak1.0",
+    "wall_time_s": 437.2078
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.7_leak1.0_s1": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.7_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.7_leak1.0_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 4.276007060005213,
+        "collect_time_sec": 424.86793177900836,
+        "fit_time_sec": 435.4435599210119,
+        "leak_rate": 1.0,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 6.299621081998339,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.6754666566848755,
+        "wall_sec": 436.1435643040022
+      },
+      "test_accuracy": 0.6456999778747559
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.7_leak1.0",
+    "wall_time_s": 436.1438
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.7_leak1.0_s2": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.7_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.7_leak1.0_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 4.794517075002659,
+        "collect_time_sec": 431.1205112230091,
+        "fit_time_sec": 443.0043817370024,
+        "leak_rate": 1.0,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 7.089353438990656,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.6809666752815247,
+        "wall_sec": 443.596927917999
+      },
+      "test_accuracy": 0.6488000154495239
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.7_leak1.0",
+    "wall_time_s": 443.5972
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.7_leak1.0_s3": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.7_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.7_leak1.0_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 7.858607914997265,
+        "collect_time_sec": 449.4152244529978,
+        "fit_time_sec": 464.33243428000424,
+        "leak_rate": 1.0,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 7.0586019120091805,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.6765166521072388,
+        "wall_sec": 464.9253725890012
+      },
+      "test_accuracy": 0.6449999809265137
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.7_leak1.0",
+    "wall_time_s": 464.9257
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.7_leak1.0_s4": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.7_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.7_leak1.0_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 5.124327061988879,
+        "collect_time_sec": 476.28682708700944,
+        "fit_time_sec": 488.0370166030043,
+        "leak_rate": 1.0,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 6.625862454005983,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.6826333403587341,
+        "wall_sec": 488.6568123699981
+      },
+      "test_accuracy": 0.6459000110626221
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.7_leak1.0",
+    "wall_time_s": 488.6571
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.95_leak0.3_s0": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.95_leak0.3_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 3.567240389995277,
+        "collect_time_sec": 441.89610627500224,
+        "fit_time_sec": 452.12067763299274,
+        "leak_rate": 0.3,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 6.657330967995222,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.944183349609375,
+        "wall_sec": 452.73768825900333
+      },
+      "test_accuracy": 0.9333000183105469
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.95_leak0.3",
+    "wall_time_s": 452.7379
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.95_leak0.3_s1": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.95_leak0.3_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 4.632973599000252,
+        "collect_time_sec": 447.2126074639964,
+        "fit_time_sec": 459.4084655149927,
+        "leak_rate": 0.3,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 7.562884451996069,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.9429500102996826,
+        "wall_sec": 459.93992461300513
+      },
+      "test_accuracy": 0.9359999895095825
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.95_leak0.3",
+    "wall_time_s": 459.9403
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.95_leak0.3_s2": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.95_leak0.3_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 4.269303252003738,
+        "collect_time_sec": 446.994717974987,
+        "fit_time_sec": 457.6117320979829,
+        "leak_rate": 0.3,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 6.3477108709921595,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.9444666504859924,
+        "wall_sec": 458.2037389449979
+      },
+      "test_accuracy": 0.9365000128746033
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.95_leak0.3",
+    "wall_time_s": 458.204
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.95_leak0.3_s3": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.95_leak0.3_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 5.105365791008808,
+        "collect_time_sec": 431.0927810639987,
+        "fit_time_sec": 442.7774620990094,
+        "leak_rate": 0.3,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 6.5793152440019185,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.9452333450317383,
+        "wall_sec": 443.3608740649943
+      },
+      "test_accuracy": 0.9361000061035156
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.95_leak0.3",
+    "wall_time_s": 443.3611
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.95_leak0.3_s4": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.95_leak0.3_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 7.936487633996876,
+        "collect_time_sec": 441.31134129599377,
+        "fit_time_sec": 455.9888127049926,
+        "leak_rate": 0.3,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 6.740983775001951,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.9432500004768372,
+        "wall_sec": 456.5744136959984
+      },
+      "test_accuracy": 0.9341999888420105
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.95_leak0.3",
+    "wall_time_s": 456.5747
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.95_leak1.0_s0": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.95_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.95_leak1.0_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 5.504071514005773,
+        "collect_time_sec": 426.73585182799434,
+        "fit_time_sec": 438.51890426799946,
+        "leak_rate": 1.0,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 6.278980925999349,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.7213833332061768,
+        "wall_sec": 439.1252032439952
+      },
+      "test_accuracy": 0.691100001335144
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.95_leak1.0",
+    "wall_time_s": 439.1255
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.95_leak1.0_s1": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.95_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.95_leak1.0_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 4.336249194006086,
+        "collect_time_sec": 418.9839960579993,
+        "fit_time_sec": 430.07959117300925,
+        "leak_rate": 1.0,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 6.759345921003842,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.7199833393096924,
+        "wall_sec": 430.7229100650002
+      },
+      "test_accuracy": 0.6840999722480774
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.95_leak1.0",
+    "wall_time_s": 430.7232
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.95_leak1.0_s2": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.95_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.95_leak1.0_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 3.2970828199904645,
+        "collect_time_sec": 425.2713205040054,
+        "fit_time_sec": 435.1329455769883,
+        "leak_rate": 1.0,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 6.564542252992396,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.7212833166122437,
+        "wall_sec": 435.8113985300006
+      },
+      "test_accuracy": 0.6894999742507935
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.95_leak1.0",
+    "wall_time_s": 435.8116
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.95_leak1.0_s3": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.95_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.95_leak1.0_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 3.6935933290078538,
+        "collect_time_sec": 427.9223478290078,
+        "fit_time_sec": 438.653035794021,
+        "leak_rate": 1.0,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 7.0370946360053495,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.7175499796867371,
+        "wall_sec": 439.3020610490057
+      },
+      "test_accuracy": 0.6901000142097473
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.95_leak1.0",
+    "wall_time_s": 439.3024
+  },
+  "b6_esn_smnist_row_panel_n2000_sr0.95_leak1.0_s4": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n2000_sr0.95_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n2000_sr0.95_leak1.0_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 7.592910074992687,
+        "collect_time_sec": 422.970996596996,
+        "fit_time_sec": 436.8912473939854,
+        "leak_rate": 1.0,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 6.327340721996734,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.722350001335144,
+        "wall_sec": 437.60770945300465
+      },
+      "test_accuracy": 0.6886000037193298
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.95_leak1.0",
+    "wall_time_s": 437.608
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.7_leak0.3_s0": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.7_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.7_leak0.3_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.04327355799614452,
+        "collect_time_sec": 5.56845088400587,
+        "fit_time_sec": 5.926196136002545,
+        "leak_rate": 0.3,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.314471694000531,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.8537833094596863,
+        "wall_sec": 6.001731329000904
+      },
+      "test_accuracy": 0.8529000282287598
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.7_leak0.3",
+    "wall_time_s": 6.2986
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.7_leak0.3_s1": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.7_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.7_leak0.3_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.06230210600188002,
+        "collect_time_sec": 26.29009302200575,
+        "fit_time_sec": 27.06059090400231,
+        "leak_rate": 0.3,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.7081957759946818,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.8553333282470703,
+        "wall_sec": 27.238386249999166
+      },
+      "test_accuracy": 0.8482999801635742
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.7_leak0.3",
+    "wall_time_s": 27.9136
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.7_leak0.3_s2": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.7_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.7_leak0.3_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.10725237498991191,
+        "collect_time_sec": 19.635071975004394,
+        "fit_time_sec": 20.395732200006023,
+        "leak_rate": 0.3,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.6534078500117175,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.8532999753952026,
+        "wall_sec": 20.53938950599695
+      },
+      "test_accuracy": 0.8489000201225281
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.7_leak0.3",
+    "wall_time_s": 20.5397
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.7_leak0.3_s3": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.7_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.7_leak0.3_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.25813444700906985,
+        "collect_time_sec": 22.504387729000882,
+        "fit_time_sec": 23.606211847014492,
+        "leak_rate": 0.3,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.8436896710045403,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.8517000079154968,
+        "wall_sec": 23.78124687798845
+      },
+      "test_accuracy": 0.8457000255584717
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.7_leak0.3",
+    "wall_time_s": 23.7815
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.7_leak0.3_s4": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.7_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.7_leak0.3_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.47600288699322846,
+        "collect_time_sec": 23.08448931601015,
+        "fit_time_sec": 24.28304362500785,
+        "leak_rate": 0.3,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.7225514220044715,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.8463500142097473,
+        "wall_sec": 24.50150772598863
+      },
+      "test_accuracy": 0.8445000052452087
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.7_leak0.3",
+    "wall_time_s": 24.5017
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.7_leak1.0_s0": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.7_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.7_leak1.0_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.6875774100044509,
+        "collect_time_sec": 26.167918937004288,
+        "fit_time_sec": 27.559522077004658,
+        "leak_rate": 1.0,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.7040257299959194,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.5808500051498413,
+        "wall_sec": 27.747067165997578
+      },
+      "test_accuracy": 0.5730999708175659
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.7_leak1.0",
+    "wall_time_s": 27.7473
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.7_leak1.0_s1": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.7_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.7_leak1.0_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.11994047799089458,
+        "collect_time_sec": 28.917856480009505,
+        "fit_time_sec": 29.761958575996687,
+        "leak_rate": 1.0,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.7241616179962875,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.5780166387557983,
+        "wall_sec": 29.90653713500069
+      },
+      "test_accuracy": 0.5730000138282776
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.7_leak1.0",
+    "wall_time_s": 29.9067
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.7_leak1.0_s2": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.7_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.7_leak1.0_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.07593337098660413,
+        "collect_time_sec": 29.672925589009537,
+        "fit_time_sec": 30.498799481996684,
+        "leak_rate": 1.0,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.7499405220005428,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.5773333311080933,
+        "wall_sec": 30.727847089990973
+      },
+      "test_accuracy": 0.5638999938964844
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.7_leak1.0",
+    "wall_time_s": 30.7281
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.7_leak1.0_s3": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.7_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.7_leak1.0_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 2.504470711995964,
+        "collect_time_sec": 24.380902689998038,
+        "fit_time_sec": 27.575441512992256,
+        "leak_rate": 1.0,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.6900681109982543,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.5773666501045227,
+        "wall_sec": 27.834504674989148
+      },
+      "test_accuracy": 0.5692999958992004
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.7_leak1.0",
+    "wall_time_s": 27.8348
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.7_leak1.0_s4": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.7_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.7_leak1.0_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.1520207819994539,
+        "collect_time_sec": 25.870926258998225,
+        "fit_time_sec": 26.61542848100362,
+        "leak_rate": 1.0,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.5924814400059404,
+        "spectral_radius": 0.7,
+        "train_accuracy": 0.5814666748046875,
+        "wall_sec": 26.842434521997347
+      },
+      "test_accuracy": 0.5699999928474426
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.7_leak1.0",
+    "wall_time_s": 26.8427
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.95_leak0.3_s0": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.95_leak0.3_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.5266995249985484,
+        "collect_time_sec": 28.36572398300632,
+        "fit_time_sec": 29.607984144007787,
+        "leak_rate": 0.3,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.7155606360029196,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.8712166547775269,
+        "wall_sec": 29.80174383999838
+      },
+      "test_accuracy": 0.8712999820709229
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.95_leak0.3",
+    "wall_time_s": 29.802
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.95_leak0.3_s1": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.95_leak0.3_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.3631222670082934,
+        "collect_time_sec": 23.666580391000025,
+        "fit_time_sec": 24.8950251720089,
+        "leak_rate": 0.3,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.8653225140005816,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.8737333416938782,
+        "wall_sec": 25.13174322299892
+      },
+      "test_accuracy": 0.8694999814033508
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.95_leak0.3",
+    "wall_time_s": 25.132
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.95_leak0.3_s2": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.95_leak0.3_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.4125067279965151,
+        "collect_time_sec": 26.330530370003544,
+        "fit_time_sec": 27.274690341000678,
+        "leak_rate": 0.3,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.5316532430006191,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.8724833130836487,
+        "wall_sec": 27.551719274997595
+      },
+      "test_accuracy": 0.8677999973297119
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.95_leak0.3",
+    "wall_time_s": 27.5519
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.95_leak0.3_s3": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.95_leak0.3_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.2615771459968528,
+        "collect_time_sec": 22.122656123989145,
+        "fit_time_sec": 23.079215996986022,
+        "leak_rate": 0.3,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.6949827270000242,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.8673666715621948,
+        "wall_sec": 23.272343986012856
+      },
+      "test_accuracy": 0.8615000247955322
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.95_leak0.3",
+    "wall_time_s": 23.2727
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.95_leak0.3_s4": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.95_leak0.3_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.13153045700164512,
+        "collect_time_sec": 21.521093076997204,
+        "fit_time_sec": 22.41766436099715,
+        "leak_rate": 0.3,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.7650408269983018,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.8658000230789185,
+        "wall_sec": 22.588417335005943
+      },
+      "test_accuracy": 0.8650000095367432
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.95_leak0.3",
+    "wall_time_s": 22.5886
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.95_leak1.0_s0": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.95_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.95_leak1.0_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.7779107719979947,
+        "collect_time_sec": 24.79178847199364,
+        "fit_time_sec": 26.28069550298096,
+        "leak_rate": 1.0,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.7109962589893257,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.6195833086967468,
+        "wall_sec": 26.441934076006874
+      },
+      "test_accuracy": 0.6110000014305115
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.95_leak1.0",
+    "wall_time_s": 26.4424
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.95_leak1.0_s1": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.95_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.95_leak1.0_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.3898681360005867,
+        "collect_time_sec": 27.63889657499385,
+        "fit_time_sec": 28.795393481996143,
+        "leak_rate": 1.0,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.7666287710017059,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.6099500060081482,
+        "wall_sec": 28.945282008004142
+      },
+      "test_accuracy": 0.6075000166893005
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.95_leak1.0",
+    "wall_time_s": 28.9456
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.95_leak1.0_s2": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.95_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.95_leak1.0_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.33493447699584067,
+        "collect_time_sec": 29.616049579999526,
+        "fit_time_sec": 30.898777035996318,
+        "leak_rate": 1.0,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.9477929790009512,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.6127166748046875,
+        "wall_sec": 31.149739234999288
+      },
+      "test_accuracy": 0.5985000133514404
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.95_leak1.0",
+    "wall_time_s": 31.1501
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.95_leak1.0_s3": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.95_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.95_leak1.0_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.975685343000805,
+        "collect_time_sec": 21.127914421012974,
+        "fit_time_sec": 22.767195589010953,
+        "leak_rate": 1.0,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.6635958249971736,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.6117166876792908,
+        "wall_sec": 22.96096825999848
+      },
+      "test_accuracy": 0.6021000146865845
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.95_leak1.0",
+    "wall_time_s": 22.9612
+  },
+  "b6_esn_smnist_row_panel_n500_sr0.95_leak1.0_s4": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "cell": "n500_sr0.95_leak1.0",
+      "chunk_size": 256,
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b6_esn_smnist_row_panel_n500_sr0.95_leak1.0_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 0.2211891010083491,
+        "collect_time_sec": 26.106011601994396,
+        "fit_time_sec": 27.00263027600886,
+        "leak_rate": 1.0,
+        "n_params": 269010,
+        "n_reservoir": 500,
+        "solve_time_sec": 0.6754295730061131,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.6175833344459534,
+        "wall_sec": 27.225454609986627
+      },
+      "test_accuracy": 0.6064000129699707
+    },
+    "phase": "b6_esn_smnist_row_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500_sr0.95_leak1.0",
+    "wall_time_s": 27.2257
+  }
+}

@@ -87,13 +87,17 @@ working against.
   than their coverage.  Random uniform directions (`hypersphere`) are
   near-optimal coverage; data-adapted directions (`whitened`,
   `local_pca`) are coverage tilted toward the data manifold.
-- **It explains the DC dependence (§1.2).**  Linear activations would
-  *absorb* the DC component into the decoder and forget.  abs doesn't,
-  because the fold point is where `e_i · x` crosses zero — and the DC
-  component decides whether x ever crosses any folds at all.  So §1.2's
-  "DC determines bias relevance" and §0's "abs is the minimal
-  nonlinearity needed for over-representation to do work" are the same
-  fact viewed from two angles.
+- **It explains where bias placement matters (§1.2).**  Linear
+  activations would *absorb* any constant offset into the decoder and
+  forget.  abs doesn't, because the fold point is where
+  `α_i (e_i · x) + b_i` crosses zero — and that fold sits in input
+  space exactly where the bias places it.  When the data centroid
+  sits far from that hinge, the data rarely crosses zero and abs is
+  effectively linear; when the data sits *on* the hinge, half the
+  mass falls on each side and abs collapses sign symmetrically.  So
+  §1.2's "where you put the hinge matters" and §0's "abs is the
+  minimal nonlinearity needed for over-representation to do work"
+  are the same fact viewed from two angles.
 - It is the cleanest answer to the obvious-skeptic question: "your
   decoder is linear; what makes this not just feature engineering plus
   linear regression?"  The honest answer is that yes, it *is* feature
@@ -169,59 +173,55 @@ fold point of `abs`:
   projection sits firmly on one side of the fold preserve their
   geometry up to a scalar.
 
-#### The DC-component framing
+#### Where the abs hinge sits relative to data (POST-B7 REFRAMING)
 
-The whole story has a clean signal-processing reading.  Decompose
-`x = μ + x̃` where `μ = E[x]` is the dataset DC component and `x̃` is
-the centred fluctuation.  Then
+The headline of B7 is geometric, not spectral.  We initially read the
+B1 split (MNIST/Fashion: data-driven bias buys nothing; CIFAR-10:
+buys ~1.4 pp) as a DC-component story — DC dominates → abs effectively
+linear → zero bias is fine; small DC → abs folds → data-driven bias
+helps.  After running the centered-CIFAR-10 and decentered-MNIST
+follow-ups (10 seeds × 9 cells each), the spectral framing is
+falsified.  The mechanism is **where the abs hinge is placed relative
+to the data centroid**, and DC is one specific instance of it.
 
-    e_i · x = (e_i · μ) + (e_i · x̃)
+|       scenario       |  DD%   | zero%  |  gap    | ‖data centroid‖ |
+|----------------------|--------|--------|---------|-----------------|
+| MNIST raw            | 97.08  | ~97.0  |  0.0    | far from 0      |
+| MNIST decentered+0.5 | 97.12  | 95.78  | **+1.3**| farther from 0  |
+| CIFAR-10 raw         | 57.79  | 56.40  |  +1.4   | moderate        |
+| CIFAR-10 centered    | 49.72  | 43.41  | **+6.3**| AT 0            |
 
-i.e. the projection has a *DC offset* `e_i · μ` and a *fluctuating
-part* `e_i · x̃`.  After the abs:
+The clean reading: with abs activation `a_i = |α_i (e_i · x) + b_i|`,
+the bias `b_i` selects where the hinge sits in input space.  Zero
+bias places every hinge through the origin.  Data-driven bias
+`b_i = -α_i (e_i · d_i)` places the i-th hinge at training sample
+`d_i`, anchored on the data manifold.
 
-- Zero bias: `a_i = |(e_i · μ) + (e_i · x̃)|`.  When `|e_i · μ|` is
-  much larger than the typical `|e_i · x̃|` (off-centre data), the
-  expression hardly ever changes sign and abs is effectively the
-  identity.  The DC dominates and the fluctuating part — which is
-  what carries the discriminative information — is added on top
-  almost linearly.  Centred input distributions (`μ ≈ 0`) flip this
-  picture: now the fluctuations regularly cross zero, abs folds, and
-  the sign of `e_i · x̃` is destroyed.
-- Data-driven bias `d_i` drawn from training data: `e_i · d_i ≈ e_i · μ
-  + e_i · ξ_i` where `ξ_i` is the sample's deviation from the
-  dataset mean.  Subtracting this removes the DC offset *plus* a
-  sample-specific shift.  The result is a frame coefficient measured
-  *relative to a manifold sample*, not relative to the origin.
-- Two ways to flatten the gap between data-driven and zero-bias
-  modes therefore exist:
-  (a) Strip the DC out of the data (per-channel mean subtraction,
-      per-image standardisation).  Now zero-bias and data-driven
-      biases see comparable fluctuating distributions; the gap
-      should shrink.
-  (b) Strip the DC out of the encoders (project each `e_i` onto the
-      orthogonal complement of `μ`).  Equivalent in linear effect to
-      (a) for the projection step.
+- If the data centroid is *at* the origin, zero bias is a worst case:
+  half the data mass falls on each side of every hinge and abs
+  collapses sign symmetrically.  CIFAR-10 centered is exactly this —
+  the +6.3 pp gap is the largest we've seen.
+- If the data centroid is *far from* the origin, zero bias is
+  accidentally sane (almost no sign flips) and the abs is effectively
+  linear in the data fluctuations.  MNIST raw is exactly this — gap
+  ≈ 0.
+- In between (CIFAR-10 raw, MNIST decentered), the gap scales
+  roughly with how often `e_i · x` actually crosses zero relative to
+  its typical magnitude.
 
-This explains the B1 split crisply: MNIST/Fashion have an overwhelming
-DC component (most pixels are background ≈ 0, the mean image is far
-from zero), so zero-bias networks effectively run a near-linear
-projection.  CIFAR-10 has a much smaller DC fraction (natural images
-fill the dynamic range), so the abs fold actually bites and data-
-driven biases — which subtract a per-neuron DC-plus-structure shift —
-buy a real ~1.4 pp.
+So **there is one axis, not three regimes.**  The original DC reading
+got the prediction direction wrong on CIFAR-10 (we expected centering
+to *close* the gap; it *opens* it the most).  The geometric reading
+predicts both halves of the table correctly: gap grows with the
+distance between zero and data mass.
 
-Two follow-up tests motivated by this story (queue, not blocking):
-
-1. **Re-run B1 on standardised CIFAR-10** (per-channel zero mean,
-   unit variance).  If the centeredness hypothesis is correct, the
-   data-driven-vs-zero gap on CIFAR-10 should narrow significantly.
-2. **Re-run B1 on de-centered MNIST** (e.g. shift pixel values by
-   −0.5 to span [−0.5, 0.5]).  If centeredness is what matters,
-   data-driven biases should now help on MNIST too.
-
-These two ablations directly test the geometric prediction of the
-frame-fold story; either outcome is informative.
+We retain the DC vocabulary in the paper as a useful introduction
+("zero-bias = hinge through origin; if the data has a non-zero mean,
+that's a constant offset that abs would fold around") but the headline
+mechanism is "the abs hinge is a hyperplane; where you put it
+matters; placing it on the data manifold is the natural choice for
+overcomplete decoding."  See `results/sl_clean/biases_*_panel.json`
+for the full B7 data and §7/H7 below for the hypothesis ledger.
 
 Connection to compressive sensing / sparse coding.  Random frames with
 enough redundancy approximately preserve geometry (Johnson-
@@ -406,19 +406,23 @@ Fashion-MNIST, CIFAR-10.  Test accuracies (mean ± SE):
 | CIFAR-10 | random_normal | 0.4885 ± 0.0006 | 0.4825 ± 0.0008 | 0.4913 ± 0.0006 |
 | CIFAR-10 | zero | 0.4834 ± 0.0007 | 0.4833 ± 0.0007 | 0.4853 ± 0.0007 |
 
-Three concrete findings, one mechanism (the DC fold of §1):
+Three concrete findings, one mechanism (the abs-hinge geometry of §1):
 
 1. **MNIST and Fashion-MNIST: bias choice does not matter** for the
    data-adapted encoder strategies.  zero ≈ data_driven within ~0.1 pp,
-   well inside seed noise.  The DC component of these datasets is so
-   dominant that the abs activation almost never folds; bias placement
+   well inside seed noise.  The data centroid sits far from the
+   origin (most pixels black), so a hinge through the origin (zero
+   bias) almost never sees `e_i · x` cross zero — abs is effectively
+   linear in the data fluctuations, and where you place the hinge
    barely changes the geometry the linear readout sees.
 2. **CIFAR-10: data-driven biases buy ~1.4 pp** over zero biases
-   (0.4972 vs 0.4834 with hypersphere, 5+ SE separation).  Natural
-   images have a smaller DC component relative to their fluctuations,
-   so the abs fold actually destroys sign information in zero-bias
-   mode; data-driven biases place the per-neuron fold point on the
-   manifold and recover what the fold would otherwise lose.
+   (0.4972 vs 0.4834 with hypersphere, 5+ SE separation).  CIFAR-10's
+   data centroid sits closer to the origin (the dataset is
+   approximately mean ≈ 0.5 per channel after rescaling, but with
+   higher variance per pixel), so zero-bias hinges fold through the
+   data more often, destroying sign information; data-driven biases
+   place each fold point on the manifold and recover what the
+   collapse would otherwise lose.
 3. **`hypersphere` + `random_normal` is a specific failure mode**:
    on every dataset it lags the corresponding `gaussian` /
    `sparse` rows by ~1 pp.  Mechanism candidate: random Gaussian
@@ -430,18 +434,14 @@ Three concrete findings, one mechanism (the DC fold of §1):
 
 Verdict on H1 (zero ≈ data_driven everywhere): **partially supported**.
 Holds on MNIST/Fashion, *fails* on CIFAR-10, and the failure has a
-clean geometric explanation.  This is more interesting than a simple
-"yes" — it gives the paper a concrete prediction to test:
-
-- **DC-removal follow-up (queued).**  Re-run B1 on per-channel-
-  centred CIFAR-10.  Predicted: data-driven and zero converge to
-  within ~0.2 pp.  If true, the new default is `bias=0` *plus*
-  per-channel data centring.  If not, there is residual structure
-  beyond DC that data-driven biases capture.
-
-The follow-up is cheap (same pipeline, one extra preprocessing step)
-and decisive about whether "centeredness is the whole story" or
-whether the manifold-local interpretation has independent bite.
+clean geometric explanation.  More interestingly, the B7 follow-ups
+falsified the original spectral DC reading (which predicted that
+*centering* CIFAR-10 should *close* the gap; it actually *opens* it
+to +6.3 pp — the largest gap we've seen).  The mechanism is
+geometric (where the abs hinge sits relative to data mass), with
+"DC offset = constant pixel mean" as one specific case.  See §1.2
+"Where the abs hinge sits relative to data" for the post-B7
+reframing.
 
 ## 5b. B2: Streaming-NEF on sMNIST — what we found
 
@@ -622,13 +622,14 @@ frames classify.
 
 ## 7. Hypothesis ledger (the paper's spine)
 
-H1: data-driven biases ≈ zero biases.  **Partially supported (B1).**
-    Holds on MNIST/Fashion (gap ≤ 0.1 pp); *fails* on CIFAR-10 by
-    ~1.4 pp in favour of data-driven biases.  Mechanism: DC component
-    determines whether the abs fold matters; off-centre datasets do
-    not need bias placement.  Follow-up planned: re-run with per-
-    channel-centred CIFAR-10 to test whether DC removal closes the
-    gap entirely.
+H1: data-driven biases ≈ zero biases.  **Partially supported, mechanism reframed (B1+B7).**
+    Holds on MNIST/Fashion raw (gap ≤ 0.1 pp); *fails* on CIFAR-10 raw
+    by ~1.4 pp.  Original DC-spectral reading falsified by B7
+    follow-ups: centering CIFAR-10 *opens* the gap to +6.3 pp (largest
+    we've seen); decentering MNIST opens a +1.3 pp gap.  Corrected
+    mechanism is geometric — the gap depends on where the abs hinge
+    sits relative to the data mass.  Zero bias hinges through origin;
+    data-driven bias hinges at training samples.  See §1.2 reframing.
 H1b: `hypersphere` encoders with random Gaussian biases are a
      specific failure mode (~1 pp drop on every dataset) — note in
      paper, do not use as default. **(B1)**.

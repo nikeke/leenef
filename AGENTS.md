@@ -150,6 +150,24 @@ Reference: `benchmarks/sl_clean/{run_b2_panels.sh,
 wait_for_b2_panels.sh}` and the B2 launch in
 `docs/sl_clean_sweeps.md`.
 
+7. **Watchdogs cannot survive CLI sandbox restarts.** The Copilot
+   CLI runs inside `bwrap --die-with-parent`, so every "detached"
+   process started from inside the sandbox dies when the CLI
+   restarts.  The actual long-running sweep workers — launched
+   on the host before the CLI session — survive, but in-sandbox
+   monitor processes do not.  Pattern: launch the sweep on the
+   host (outside the sandbox), then re-arm the watchdog from
+   inside any CLI session as needed.  Don't rely on a watchdog
+   surviving across CLI restarts.
+
+8. **Sandbox cannot see host process IDs.** `ps`, `/proc`, and
+   any PID-based tools inside the sandbox only see the ~7 procs
+   in the sandbox itself, not the actual sweep workers running
+   on the host.  Cannot kill host processes from inside.  Use
+   file-mtime-based liveness checks (the sweep JSON files mtime
+   updates on every cell completion).  Ask the user to kill
+   if needed.
+
 ## Reproducibility hazards (must not regress)
 
 - **Default RNG vs explicit Generator.** Every place that draws

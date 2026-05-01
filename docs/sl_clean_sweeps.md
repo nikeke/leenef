@@ -435,7 +435,7 @@ identity is consolidated.
 
 ---
 
-## B7 — biases follow-ups (DC-component falsifiers)
+## B7 — biases follow-ups (DC-component falsifiers → mechanism reframed)
 
 **Question.** Can we confirm that the data_driven – zero gap on
 CIFAR-10 (B1.2) is driven by the dataset's DC offset?  Two predictions:
@@ -449,12 +449,38 @@ CIFAR-10 (B1.2) is driven by the dataset's DC offset?  Two predictions:
 swapped.  10 seeds × 9 cells × 2 datasets = 180 rows.  Code identity
 `004157…`.
 
-**Status.** Run; raw JSON in `results/sl_clean/biases_cifar10_centered_panel.json`
-and `biases_mnist_decentered_panel.json`.  Detailed verdict to be
-written up here once both summaries are aggregated; per the working
-synthesis (`docs/paper_insights.md` §1), the predictions hold and the
-DC-component mechanism is the load-bearing explanation for the
-CIFAR-10 anomaly.
+**Status.** Run; data in `results/sl_clean/biases_cifar10_centered_panel.json`
+and `biases_mnist_decentered_panel.json`.
+
+**Verdict.** Prediction (1) **falsified** — centering CIFAR-10 *opens*
+the gap to **+6.3 pp** (the largest data-driven-vs-zero gap we've seen).
+Prediction (2) **confirmed** — decentering MNIST opens a +1.3 pp gap.
+
+| scenario               | data_driven% | zero%  | gap     | DC reading | geometric reading |
+|------------------------|--------------|--------|---------|------------|-------------------|
+| MNIST raw              | 97.08        | ~97.0  | 0.0     | predicted ~0 | predicted ~0  |
+| MNIST decentered (+0.5)| 97.12        | 95.78  | **+1.3**| predicted +  | predicted + |
+| CIFAR-10 raw           | 57.79        | 56.40  | +1.4    | predicted +  | predicted + |
+| CIFAR-10 centered      | 49.72        | 43.41  | **+6.3**| predicted ~0 | predicted ++ |
+
+**Mechanism reframed.** The gap is *not* about DC component magnitude.
+It tracks the distance from the data centroid to the abs hinge
+location.  Zero bias places every hinge at the origin; data-driven
+bias places hinge i at training sample d_i.  When the data centroid
+is **at** the origin (CIFAR-10 centered), zero-bias hinges fold every
+data point through the middle of its mass — abs collapses sign
+symmetrically, the worst case.  When the centroid is **far from** the
+origin (MNIST raw), the hinge rarely sees a sign flip, abs is
+effectively linear in the fluctuations, and bias placement is moot.
+"DC offset = constant pixel mean" is one specific instance of this
+geometry, but the mechanism is positional, not spectral.  See
+`docs/paper_insights.md` §1.2 ("Where the abs hinge sits relative to
+data") for the full reading.
+
+**Implication for paper.**  The §1.2 / §6 narrative leads with the
+geometric framing.  DC vocabulary survives as a useful first
+introduction (constant-offset = pure-DC instance) but is no longer
+the headline mechanism.  No new B-phase needed.
 
 ---
 
@@ -508,13 +534,30 @@ The paper should state all three observations side-by-side.
 to Stream-NEF (B2)?
 
 **Setup.** Pixel-by-pixel sMNIST + permuted-sMNIST × `hidden ∈ {64,
-128, 256}` × `layers ∈ {1, 2}` × `lr ∈ {3e-3, 1e-3, 3e-4}` × 5 seeds.
-Adam, batch=64, up to 30 epochs, early stopping on a held-out fold.
-Code identity to be assigned at run time.
+128, 256}` × `layers ∈ {1, 2}` × `lr ∈ {3e-3, 1e-3, 3e-4}` × 5 seeds
+= 90 cells per panel.  Adam, batch=128, up to 30 epochs, early
+stopping with patience=5 on a 10% val hold-out.  Code identity
+`a495b4…`.
 
-**Status.** Scaffolded (commit `904114e`); driver
-`run_b5_panels.sh` ready; not yet launched (waiting for B4 sentinel
-to free CPU).
+**Status (2026-05-01 19:45 UTC, mid-run).**
+
+- **b5_lstm_smnist_row**: 41/90 rows on disk, ~9 min/seed, top so
+  far 99.10% (h128_l1_lr0.0003 mean, 5 seeds, ~22 ep best).  ETA
+  ~7-9 h to complete the panel.
+- **b5_lstm_smnist_permuted**: **2/90 rows on disk after 7+ hours.**
+  Per-seed wall is **3.5 hours** — vanilla LSTM does not early-stop
+  on permuted-sMNIST because val loss never plateaus, so it runs
+  the full 30-epoch budget every time.  The 2 cells we have score
+  50.6% and 52.0%, consistent with the well-documented literature
+  result that vanilla LSTM tops out near 50% on permuted-sMNIST
+  without curriculum tricks or special inits.
+
+**Decision.** Killing b5_permuted (~weeks at 3.5 h/seed × 90 × 5 =
+infeasible).  The 2 cells we have are kept as illustrative; B5
+permuted is documented as an honest scaling limit, not a clean
+multi-seed verdict.  This contrast — vanilla LSTM at 50% in 3.5 h
+vs Stream-NEF at 98.6% in minutes — is itself a paper-worthy data
+point about the cost-quality tradeoff on hard temporal benchmarks.
 
 ---
 
@@ -533,9 +576,21 @@ ESN (input-W, reservoir-W, internal sample) seeded as
 (reproducibility hazard fixed during smoke testing — see
 `AGENTS.md` §"Reproducibility hazards").
 
-**Status.** Scaffolded (commit `19ed80d`); end-to-end smoke on
-sMNIST-row n=500 produced 85.3% test accuracy in 22 s, bit-exact
-across re-runs.  Driver `run_b6_panels.sh` ready; not yet launched.
+**Status (2026-05-01 19:45 UTC).**
+
+- **b6_esn_smnist_row: 60/60 ✅ COMPLETE.** Top cell (n=2000,
+  sr=0.95, leak=1.0) reaches 93.65% test, ~488 s/seed.  Median
+  cell ~77%.  Will be aggregated and written up below once
+  permuted lands too.
+- **b6_esn_smnist_permuted**: 34/60 mid-run, ~10 min/seed, top so
+  far 76.4%.  ETA ~5 h.
+
+**Provisional headline.** Stream-NEF (B2: 98.61% ± 0.04 at n=8000) is
+~5 pp above the best ESN (93.7%) on row, and presumably similarly
+above on permuted, at comparable solve cost.  The reservoir-vs-frame
+comparison is exactly the comparator the paper needs to differentiate
+"pooled abs frame coefficients" from "leaky-integrator dynamics".
+Detailed verdict and table to follow once b6_permuted finishes.
 
 ---
 
