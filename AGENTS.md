@@ -108,6 +108,15 @@ silently idles and so completion auto-notifies:
    utilisation ≥ 80 % of available cores before walking away.
 5. **Do not rely on `nohup` alone** — the runtime kills nohup'd
    processes on session shutdown in practice.  `setsid` survives.
+6. **Do NOT edit `sl_hp_driver.sh` (or any bash driver) while a run
+   that uses it is in flight.**  Bash re-reads the script file mid-
+   execution and will fail with `unexpected EOF` part-way through a
+   case clause if the file changes.  The B3 phase paid this tax once;
+   B4 went out of its way to prepare driver edits but defer them
+   until the sentinel landed.  Pattern: register new experiments in
+   Python (which workers cache after their initial import), prepare a
+   *new* `run_<phase>.sh` that doesn't reuse the live driver, or
+   simply wait for `<phase>_done` before editing the driver.
 
 Reference: `benchmarks/sl_clean/{run_b2_panels.sh,
 wait_for_b2_panels.sh}` and the B2 launch in

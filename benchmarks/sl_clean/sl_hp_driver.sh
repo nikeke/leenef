@@ -133,6 +133,37 @@ case "${EXPERIMENT}" in
         --out     "${RESULTS_DIR}/${PHASE_NAME}_summary.json"
     ;;
 
+  b4_mlp_mnist|b4_mlp_fashion|b4_mlp_cifar10)
+    # B4 — MLP baseline grid (12 cells × N seeds).
+    case "${EXPERIMENT}" in
+      b4_mlp_mnist)   BASE="${RESULTS_DIR}/base_config_b4_mlp_mnist.json"   ; PHASE_NAME="b4_mlp_mnist_panel"   ;;
+      b4_mlp_fashion) BASE="${RESULTS_DIR}/base_config_b4_mlp_fashion.json" ; PHASE_NAME="b4_mlp_fashion_panel" ;;
+      b4_mlp_cifar10) BASE="${RESULTS_DIR}/base_config_b4_mlp_cifar10.json" ; PHASE_NAME="b4_mlp_cifar10_panel" ;;
+    esac
+
+    SEEDS="${SEEDS:-0-4}"
+    CELLS="${VALUES:-d1_w256_lr0.001,d1_w256_lr0.003,d1_w512_lr0.001,d1_w512_lr0.003,d1_w1024_lr0.001,d1_w1024_lr0.003,d2_w256_lr0.001,d2_w256_lr0.003,d2_w512_lr0.001,d2_w512_lr0.003,d2_w1024_lr0.001,d2_w1024_lr0.003}"
+
+    out="${RESULTS_DIR}/${PHASE_NAME}.json"
+    log="${LOGS_DIR}/${PHASE_NAME}.log"
+    echo "================================================================"
+    echo "  PHASE ${PHASE_NAME}  exp=${EXPERIMENT}  cells=${CELLS}  seeds=${SEEDS}"
+    echo "================================================================"
+    ${PYTHON} -u -m benchmarks.sl_clean.sl_phase_runner \
+        --experiment "${EXPERIMENT}" \
+        --phase      "${PHASE_NAME}" \
+        --knob       cell \
+        --values     "${CELLS}" \
+        --seeds      "${SEEDS}" \
+        --base-config "${BASE}" \
+        --out         "${out}" \
+        --log         "${log}"
+
+    ${PYTHON} -u -m benchmarks.sl_clean.analyze_b4_panel \
+        --results "${out}" \
+        --out     "${RESULTS_DIR}/${PHASE_NAME}_summary.json"
+    ;;
+
   # New blocks land here as B-phase / C-phase experiments are written.
 
   streaming_smnist_row|streaming_smnist_permuted)
@@ -182,7 +213,7 @@ case "${EXPERIMENT}" in
 
   *)
     echo "unknown experiment block: ${EXPERIMENT}" >&2
-    echo "available: smoke biases_mnist biases_fashion biases_cifar10 biases_cifar10_centered biases_mnist_decentered b3_strategies_mnist b3_strategies_fashion b3_strategies_cifar10 streaming_smnist_row streaming_smnist_permuted streaming_solve_modes streaming_alpha_sweep" >&2
+    echo "available: smoke biases_mnist biases_fashion biases_cifar10 biases_cifar10_centered biases_mnist_decentered b3_strategies_mnist b3_strategies_fashion b3_strategies_cifar10 b4_mlp_mnist b4_mlp_fashion b4_mlp_cifar10 streaming_smnist_row streaming_smnist_permuted streaming_solve_modes streaming_alpha_sweep" >&2
     exit 2
     ;;
 esac

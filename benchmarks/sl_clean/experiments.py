@@ -763,3 +763,73 @@ register(
         ),
     )
 )
+
+
+# ---------------------------------------------------------------------------
+# B4 — MLP baselines (H2 honest comparison).  Implementation lives in
+# _b4_mlp_exp.py.  Knob is ``cell`` over a 12-config grid of
+# (depth, width, lr).
+# ---------------------------------------------------------------------------
+
+from . import _b4_mlp_exp as _b4  # noqa: E402
+
+register(
+    ExperimentSpec(
+        name="b4_mlp_mnist",
+        run_fn=_b4._b4_run,
+        default_run_context=_b4._b4_mnist_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_b4.B4_DESCRIPTION + " (MNIST)",
+    )
+)
+
+register(
+    ExperimentSpec(
+        name="b4_mlp_fashion",
+        run_fn=_b4._b4_run,
+        default_run_context=_b4._b4_fashion_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_b4.B4_DESCRIPTION + " (Fashion-MNIST)",
+    )
+)
+
+register(
+    ExperimentSpec(
+        name="b4_mlp_cifar10",
+        run_fn=_b4._b4_run,
+        default_run_context=_b4._b4_cifar10_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_b4.B4_DESCRIPTION + " (CIFAR-10)",
+    )
+)
+
+# ---------------------------------------------------------------------------
+# B5 — LSTM baseline (H4/H5).
+# ---------------------------------------------------------------------------
+
+from . import _b5_lstm_exp as _b5  # noqa: E402
+
+register(
+    ExperimentSpec(
+        name="b5_lstm_smnist_row",
+        run_fn=_b5._b5_run,
+        default_run_context=_b5._b5_smnist_row_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_b5.B5_DESCRIPTION + " (sMNIST-row)",
+    )
+)
+
+register(
+    ExperimentSpec(
+        name="b5_lstm_smnist_permuted",
+        run_fn=_b5._b5_run,
+        default_run_context=_b5._b5_smnist_permuted_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_b5.B5_DESCRIPTION + " (sMNIST-permuted-seed0)",
+    )
+)
