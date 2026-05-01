@@ -591,9 +591,13 @@ H6: encoder-strategy ranking matches frame-prior intuition (B3).
     structured inputs (CIFAR-10) but not on unstructured ones (MNIST).
 H7 (DC-fold prediction): per-channel centring CIFAR-10 closes the
     data-driven-vs-zero bias gap.  **To test (B1 follow-up).**
-H8 (linear-collapse): a linear-activation NEFLayer with n=4000 on
-    MNIST scores no better than a 784→10 linear regression.  **To
-    test (cheap sanity check); confirms §0.**
+H8 (linear-collapse): a linear-activation NEFLayer at n_neurons ≫
+    d_in scores no better than 784→10 ridge regression. **SUPPORTED.**
+    Linear NEFLayer at n=1000 and n=4000 both reach 86.0–86.2% on
+    MNIST (within 1 pp of plain ridge at 85.3%); abs NEFLayer at
+    n=5000 reaches 97.1%.  Δ ≈ 11 pp is the entire contribution of
+    the nonlinearity.  See `results/sl_clean/h8_linear_collapse.json`
+    and `benchmarks/sl_clean/h8_linear_collapse_check.py`.
 
 ## 8. Things we owe the reader
 

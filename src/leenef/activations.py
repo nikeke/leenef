@@ -33,11 +33,25 @@ class Abs(nn.Module):
         return x.abs()
 
 
+class Identity(nn.Module):
+    """Linear / identity activation.
+
+    Used as a sanity check (Paper I H8) — with linear activation, an
+    NEFLayer's analytic decoder collapses to ordinary least-squares
+    regression of `Y` on `X`, regardless of `n_neurons`.
+    """
+
+    def forward(self, x: Tensor) -> Tensor:
+        return x
+
+
 ACTIVATIONS = {
     "relu": nn.ReLU,
     "softplus": nn.Softplus,
     "lif_rate": LIFRate,
     "abs": Abs,
+    "linear": Identity,
+    "identity": Identity,
 }
 
 
