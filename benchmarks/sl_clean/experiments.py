@@ -833,3 +833,31 @@ register(
         description=_b5.B5_DESCRIPTION + " (sMNIST-permuted-seed0)",
     )
 )
+
+# ---------------------------------------------------------------------------
+# B6 — ESN baseline (gradient-free comparator on temporal tasks).
+# ---------------------------------------------------------------------------
+
+from . import _b6_esn_exp as _b6  # noqa: E402
+
+register(
+    ExperimentSpec(
+        name="b6_esn_smnist_row",
+        run_fn=_b6._b6_run,
+        default_run_context=_b6._b6_smnist_row_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_b6.B6_DESCRIPTION + " (sMNIST-row)",
+    )
+)
+
+register(
+    ExperimentSpec(
+        name="b6_esn_smnist_permuted",
+        run_fn=_b6._b6_run,
+        default_run_context=_b6._b6_smnist_permuted_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_b6.B6_DESCRIPTION + " (sMNIST-permuted-seed0)",
+    )
+)
