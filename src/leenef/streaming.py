@@ -224,7 +224,7 @@ class StreamingNEFClassifier(nn.Module):
 
         k, n = A.shape
         if k >= n:
-            M = self._ata.double()
+            M = self._ata.double().clone()
             M.diagonal().add_(alpha)
             self._M_inv = torch.linalg.inv(M)
         else:
@@ -321,7 +321,7 @@ class StreamingNEFClassifier(nn.Module):
             raise RuntimeError("No accumulated statistics — call continuous_fit() first")
         if alpha is None:
             alpha = getattr(self, "_woodbury_alpha", 1e-2)
-        M = self._ata.double()
+        M = self._ata.double().clone()
         M.diagonal().add_(alpha)
         self._M_inv = torch.linalg.inv(M)
         self._woodbury_alpha = alpha

@@ -329,7 +329,7 @@ class NEFLayer(nn.Module):
 
         k, n = A.shape
         if k >= n:
-            M = self._ata.double()
+            M = self._ata.double().clone()
             M.diagonal().add_(alpha)
             self._M_inv = torch.linalg.inv(M)
         else:
@@ -361,7 +361,7 @@ class NEFLayer(nn.Module):
                 alpha = self._woodbury_alpha
             else:
                 alpha = 1e-2
-        M = self._ata.double()
+        M = self._ata.double().clone()
         M.diagonal().add_(alpha)
         self._M_inv = torch.linalg.inv(M)
         self._woodbury_alpha = alpha
