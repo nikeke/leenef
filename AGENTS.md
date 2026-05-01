@@ -48,6 +48,11 @@ PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
     bash benchmarks/sl_clean/sl_hp_driver.sh biases_fashion
 PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
     bash benchmarks/sl_clean/sl_hp_driver.sh biases_cifar10
+# B7 follow-ups (DC-fold mechanism falsifiers)
+PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
+    bash benchmarks/sl_clean/sl_hp_driver.sh biases_cifar10_centered
+PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
+    bash benchmarks/sl_clean/sl_hp_driver.sh biases_mnist_decentered
 ```
 
 > Pre-Phase-A2 benchmark, figure-generation, and other sweep-driver

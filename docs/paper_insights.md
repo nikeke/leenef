@@ -590,7 +590,42 @@ H6: encoder-strategy ranking matches frame-prior intuition (B3).
     Specifically: data-adapted frames beat random frames on
     structured inputs (CIFAR-10) but not on unstructured ones (MNIST).
 H7 (DC-fold prediction): per-channel centring CIFAR-10 closes the
-    data-driven-vs-zero bias gap.  **To test (B1 follow-up).**
+    data-driven-vs-zero bias gap; DC-shifting MNIST opens one.
+    **PARTIALLY SUPPORTED — mechanism reframed.** B7 results
+    (10-seed × 9-cell each) refute the "remove DC ⇒ no gain" half
+    but confirm the "add DC ⇒ gain appears" half:
+
+    | scenario               | DD%   | zero%  | gap     | predicted |
+    |------------------------|-------|--------|---------|-----------|
+    | MNIST raw (B1)         | 97.08 |  ~97.0 |   0.0   |  ~0       |
+    | **MNIST decentered**   | 97.12 |  95.78 | **+1.3**|  positive |
+    | CIFAR-10 raw (B1)      | 57.79 |  56.40 |  +1.4   |  ~+1      |
+    | **CIFAR-10 centered**  | 49.72 |  43.41 | **+6.3**|  ~0       |
+
+    The corrected mechanism is geometric, not spectral: **data-driven
+    biases place each abs hinge at a training sample**; zero biases
+    place every hinge at the origin. The gap depends on how far the
+    data centroid sits from the origin.
+
+    - MNIST raw: data clusters near 0 (mostly black pixels) ⇒ zero
+      bias *is* near data ⇒ no gain.
+    - MNIST decentered (x + 0.5): data shifted ~0.5 from origin
+      ⇒ zero biases land in nearly-empty space ⇒ DD recovers.
+    - CIFAR-10 raw: mean ~0.5; zero bias not great but workable.
+    - CIFAR-10 centered: data centroid AT origin ⇒ zero bias puts
+      every abs hinge symmetrically through data mass — the worst
+      case ⇒ DD opens a 6 pp gap.
+
+    Geometric reading via the frame interpretation: with abs
+    activation a_i = |α_i (e_i · x) + b_i|, zero bias makes the
+    hinge a hyperplane through the origin; if the data is centred
+    at the origin half its mass falls on each side and the
+    activation modulus loses sign information symmetrically. Setting
+    b_i = -α_i (e_i · d) places the hinge at training sample d,
+    so the activation is "small near a known datum, growing as we
+    move away" — the natural reference frame for over-complete
+    decoding. See B7 panels in `results/sl_clean/biases_*_panel.json`.
+
 H8 (linear-collapse): a linear-activation NEFLayer at n_neurons ≫
     d_in scores no better than 784→10 ridge regression. **SUPPORTED.**
     Linear NEFLayer at n=1000 and n=4000 both reach 86.0–86.2% on
