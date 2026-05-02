@@ -33,8 +33,11 @@ on row sMNIST, within 0.7 pp of a tuned LSTM at roughly 20 × the
 wallclock saving and 5 pp above an apples-to-apples ESN baseline.
 We also report the limits honestly: gradient-free multi-layer
 stacking does not work; permuted sequence classification is bounded
-above by mean-pool's order-erasing property; gradient-trained MLPs
-beat single-layer NEF on generic image features by 1–4 pp.  The
+above by mean-pool's order-erasing property — on permuted sMNIST
+the same ESN baseline beats Stream-NEF by ~3.6 pp, locating the
+prior boundary between mean-pool and recurrent state precisely;
+gradient-trained MLPs beat single-layer NEF on generic image
+features by 1–4 pp.  The
 twist is that a `receptive_field`-encoder NEF beats the best tuned
 MLP on CIFAR-10 by +1.37 pp at a fraction of the wallclock — a good
 encoder closes the gap, a generic encoder does not.  The paper
@@ -105,7 +108,7 @@ inherit from NEF, principles 5–6 are leenef-specific.
 
 The rest of Paper I is one of these primitives applied somewhere
 new: §3 (method) is principles 1–4, §6 (streaming classifier) is
-principle 5, and the multi-layer experiments (§5.5) are the
+principle 5, and the multi-layer experiments (Appendix B) are the
 load-bearing negative result that says principle 2 does not
 extend through stacked nonlinearities — which is why we stay
 single-layer for the rest of the trilogy.
@@ -128,10 +131,16 @@ The frame `{α_i e_i}` is just an absurdly redundant
 parametrisation of a `d_in × d_out` matrix.
 
 We have verified this in a sanity-check experiment (sweep H8 in
-`docs/sl_clean_sweeps.md`): a linear-activation NEFLayer on
-MNIST plateaus at the linear-regression accuracy of `Wx`,
-unchanged across `n ∈ {500, 5000, 50 000}` to within seed noise.
-The collapse is empirical, not just algebraic.
+`docs/sl_clean_sweeps.md`, data in
+`results/sl_clean/h8_linear_collapse.json`): a linear-activation
+NEFLayer at `n ∈ {1 000, 4 000}` plateaus at **86.0–86.2 %** on
+MNIST, within 1 pp of a plain ridge regression on the raw 784-D
+input (85.3 %).  An `abs`-activation NEFLayer at `n = 5 000`
+reaches **97.08 %** under identical training data and α policy.
+The collapse is empirical, not just algebraic; the +11 pp delta
+is the entire contribution of the pointwise nonlinearity.  This
+is a single-seed sanity check; the comparator (97.08 ± 0.04 %)
+is from the 10-seed B1 panel.
 
 The minimal repair is a pointwise nonlinearity that is *not*
 representable as a linear scaling.  `abs` is the smallest such
@@ -586,15 +595,29 @@ Doubling `n` is +2.65 pp (55σ) — far from saturated.  This is
 honestly below the LSTM/TCN range (~90 %), and the gap is the
 boundary of mean-pool's reach.
 
-The ESN baseline at `n = 2 000` reached ~76 % on permuted
-sMNIST (final cells in flight at submission); the LSTM
-baseline did not converge in the budget we allotted (vanilla
-LSTM on permuted sMNIST is well-documented to need
-curriculum or initialisation tricks to escape ~50 %), and we
-report this as an honest scaling-limit observation rather than
-a multi-seed verdict.  The b5_lstm_smnist_permuted panel is
-preserved at 2 / 90 cells in `results/sl_clean/` as a
-documented compute-budget cap.
+The honest comparison is unflattering for Stream-NEF.  An ESN
+(n=2 000, sr=0.95, leak=0.3, 5 seeds) reaches **79.21 ± 0.13 %**
+on the same task — a recurrent-state architecture beats our
+delay-line + mean-pool by ~3.6 pp at half the neuron count and
+roughly the same wallclock.  Permuted sMNIST is the regime
+where sustained recurrent state matters more than what mean-
+pooling preserves: when the discriminative signal is spread
+across all 784 randomly-ordered timesteps, the ESN's leaky
+integrator visits every position with non-trivial weight, while
+our `K`-step delay-line window of length 28 sees each pixel's
+neighbourhood only once.  The LSTM baseline did not converge in
+the budget we allotted (vanilla LSTM on permuted sMNIST is
+well-documented to need curriculum or initialisation tricks to
+escape ~50 %); the b5_lstm_smnist_permuted panel is preserved
+at 2 / 90 cells in `results/sl_clean/` as a documented
+compute-budget cap.
+
+This is a good place to stop pretending Stream-NEF is the
+better architecture for every temporal task.  On row sMNIST
+(coherent slices) it dominates ESN by ~5 pp; on permuted
+sMNIST (distributed signal) ESN dominates Stream-NEF by ~3.6
+pp.  Mean-pooling and recurrent state are different priors,
+and the data picks the winner.
 
 ### §6.4 — Limits
 
