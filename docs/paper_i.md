@@ -649,7 +649,232 @@ side-by-side.
 
 ---
 
-> **(continues — §7 honest framing of novelty and replication;
-> §8 forward-look incl. calibrated uncertainty and the SGD
-> bridge; Appendix A reproducibility; Appendix B negative
-> results)**
+## §7 — What is novel, what is replication, what we honestly claim
+
+We are not in the science business.  We are not competing for
+priority, citations, or status.  Several pieces of this paper
+are replications or framings of prior work, and we name them
+plainly so that interested readers can follow the threads back
+to where the ideas originated.
+
+**Replications and re-framings.**
+
+- **Single-layer NEF on MNIST is in the same family as the
+  Extreme Learning Machine** (Huang et al., 2006).  The solver
+  is identical — Tikhonov ridge regression on fixed features —
+  and the empirical accuracies on MNIST line up with two
+  decades of ELM literature.  Our contribution at the
+  single-layer level is *the framing and the engineering*, not
+  a new family of feature extractors.
+- **Random-feature, kernel-ridge, and reservoir-computing
+  literature** has most of the theoretical machinery already.
+  Rahimi & Recht (2007) on random features; Jaeger (2001) and
+  Maass et al. (2002) on liquid-state and echo-state networks;
+  Saxe et al. (2011) on the surprising adequacy of random
+  weights.  We connect to this corpus rather than pretend
+  originality.
+- **ConvNEF** (deferred to a companion piece) is in the family
+  of Coates et al. (2011) and the broader gradient-free
+  feature-learning line.  We replicate, organise, and re-frame
+  rather than surpass.
+
+**What we believe is novel and worth presenting.**
+
+- **The frame-coefficient framing of NEF.**  Reading neural
+  activations as the magnitudes of coefficients in an
+  over-complete frame is, as far as we can tell, not the
+  standard pedagogical entry into NEF.  It cleanly explains
+  why `abs`/ReLU are sufficient (§2), why bias placement
+  matters relative to data centroid (§5.1), and why
+  data-driven biases pay off in some regimes and not in
+  others.  This is a pedagogical contribution; it lets
+  practitioners reason about the geometry rather than treat
+  the feature map as a black box.
+- **The architecture-specific α footgun-prevention story**
+  (§4).  Trace-scaling is not a new algorithm —
+  `solvers.tikhonov` has done it since the codebase was
+  written — but the cautionary baseline (fixed-α catastrophic
+  collapse at out-of-tune `n`) and the empirical observation
+  that the α multiplier itself depends on the architecture
+  (one value for `NEFLayer.fit`, a different value for
+  `StreamingNEFClassifier`) is, to our knowledge, not in the
+  literature in this exact form.  Useful for practitioners
+  who copy our recipe into different settings.
+- **Streaming-NEF** (delay-line + `abs` + mean-pool + analytic
+  readout) on sMNIST.  The strongest empirical contribution.
+  98.45 % at `n = 8 000` on row sMNIST under a fully analytic
+  fit places us within 0.7 pp of a tuned LSTM at a 20×
+  wallclock saving and 5 pp above an apples-to-apples ESN
+  baseline.  We re-validate under multi-seed and report
+  whatever comes out without inflation.
+- **A reproducibility infrastructure** (rl_clean-style) that
+  makes multi-seed analytic-readout studies cheap and
+  resumable.  Not paper-novel; lab-novel.  Every numeric claim
+  in the paper is regeneratable from a JSON file under
+  `results/sl_clean/` whose `code_identity` hash is verifiable
+  against the repository tree.
+
+**Honest negatives.**  Negative results get first-class
+treatment, not appendix burial.  They are part of the
+contribution: knowing where the primitive does not work is as
+useful as knowing where it does.  The §6.4 limit on permuted
+sequence classification, the failure of multi-layer
+gradient-free stacking (Appendix B), the systematic loss of
+`class_contrast` and `local_pca` encoders (§5.2), the bimodal
+collapse of fixed-α at out-of-tune `n` (§4) are all reported
+straightforwardly.
+
+---
+
+## §8 — Discussion
+
+### Calibrated uncertainty for free
+
+The Tikhonov solve `(AᵀA + α_eff I)⁻¹` is the inverse of the
+posterior precision matrix in a Gaussian-Bayesian reading of
+ridge regression.  The columns of the resulting decoder come
+with a closed-form covariance — `Σ_D = σ² (AᵀA + α_eff I)⁻¹`
+for a unit residual variance — and the predictive variance at
+a test input `a*` is `σ²(1 + a*ᵀ Σ_D a*)`.  Nothing about this
+is novel mathematically; what is uncommon is that we already
+have `(AᵀA + α_eff I)⁻¹` materialised as part of the
+`woodbury` solve path.  Calibrated uncertainty is therefore
+*free* in our pipeline: a single `aᵀ M⁻¹ a` per test point.
+
+We do not exploit this in Paper I — it deserves its own
+careful treatment — but it is worth flagging here for two
+reasons.  First, it points at the natural bridge to gradient-
+trained networks: an analytic-solve front-end could pass both
+its prediction *and* its calibrated uncertainty into a small
+gradient-trained network whose only job is to confirm or
+correct, with the uncertainty as a per-sample weighting on
+when to defer.  Second, it gives Paper II (continual learning)
+its primary mechanism for measuring drift without extra
+machinery.
+
+### Continual learning: a forward look
+
+Per-class additivity of `AᵀA` and `AᵀY` is the load-bearing
+property for Paper II.  Each class owns its own decoder
+column, so accumulating new task statistics never interferes
+with old columns.  In a non-stationary stream, the per-class
+sufficient statistics can be reset, decayed, or merged at the
+appropriate timescale, all through the same primitive.  No
+extra machinery — no replay buffers, no gradient regularisers,
+no penalty terms — is needed beyond the choice of how to
+combine sufficient statistics over time.
+
+### Reinforcement learning: a forward look
+
+The same accumulator handles harder targets.  `Y` becomes a
+bootstrap target rather than a label, and the per-action
+decomposition (NEF Successor Features, FQI) is again just
+additive sufficient statistics.  The sparse-reward research
+line (worktrees `leenef-sparse-reward-c` and
+`leenef-sparse-reward-g`) shows the primitive surviving on
+MountainCar and Acrobot under sparse reward.  Paper III
+develops this; we mention it here only to make the trilogy's
+shared spine visible.
+
+### A bridge to gradient-trained networks
+
+The natural marriage of analytic-solve and gradient-trained
+networks does not require either approach to surrender ground.
+Treat the analytic NEF as a fast, gradient-free front-end that
+produces both a prediction and a calibrated uncertainty per
+sample.  Pass both into a small gradient-trained network whose
+only job is to confirm the NEF's answer or correct it.  The
+gradient-trained network can be much smaller than usual
+because its input already carries the heavy lifting.  This is
+speculative; we mention it because the calibrated uncertainty
+arrives for free and the engineering composition is
+straightforward.  We have not built it.
+
+---
+
+## Appendix A — Reproducibility
+
+Every numeric claim in the paper is regeneratable from a JSON
+file under `results/sl_clean/`.  Each per-cell row carries:
+
+- `code_identity`: a content-addressed SHA computed by
+  `git ls-tree -r HEAD -- src/ benchmarks/ tests/ pyproject.toml`
+  and SHA-256-hashed.  Pure-docs commits do not bump this hash;
+  any source change does.
+- `dataset_metadata`: `raw_hashes` (SHA-256 of the on-disk
+  bytes) and `processed_hashes` (SHA-256 of the preprocessed
+  float32 tensors).
+- `seed`: the master seed passed to `_make_subrngs`, which
+  derives independent `torch.Generator()` instances for each
+  random stream (encoder construction, gain sampling, centre
+  selection, evaluation permutation).  No global RNG is read
+  in any code path.
+- `config`: the full configuration dictionary passed to the
+  experiment runner.
+- `metrics`: the per-seed scalar metrics for that
+  `(config, seed)` cell.
+- `aggregates`: mean, SE, n, and the rl_clean-style adoption
+  verdict relative to the cell's incumbent.
+
+The driver scripts (`benchmarks/sl_clean/sl_hp_driver.sh`,
+`benchmarks/sl_clean/run_<phase>.sh`) launch detached, log to
+`results/sl_clean/logs/<phase>.log`, and skip already-completed
+`(namespace, code_identity, config, seed)` cells when restarted.
+This makes the entire B-phase pipeline resumable from any
+interruption — a property that matters at our wallclock budget.
+
+The seed budget per claim is documented in
+`docs/sl_clean_sweeps.md`: 10 seeds for headline rows, 5 seeds
+for ablation tables, 3 seeds for appendix-legacy tables.
+
+---
+
+## Appendix B — Negative results
+
+**Multi-layer gradient-free stacking does not work.**  Greedy
+solves of stacked NEF layers (each layer fitted in turn against
+its successor's output target) and target-propagation variants
+(layer-local targets via NEF inverse models, no gradient flow
+between layers) both lose to a single wide layer at matched
+parameter budget on MNIST, Fashion-MNIST, and CIFAR-10.  The
+only multi-layer strategy that helps is **end-to-end SGD with
+NEF warm-start**, and it helps modestly.  This is the
+load-bearing negative result for the trilogy: it is why the
+rest of the work stays single-layer.  Paper I documents the
+result; the multi-layer experiments are reported in the
+companion technical report and not re-run under multi-seed
+discipline because the qualitative verdict is unambiguous.
+
+**Recurrent NEF (state feedback through fixed encoders)
+underperforms.**  Greedy and target-propagation variants of
+`RecurrentNEFLayer` compound state-feedback noise across
+timesteps and underperform a vanilla LSTM by 5–10 pp on
+sMNIST-row.  Only end-to-end gradient training of the same
+architecture is competitive, which defeats the purpose of an
+analytic-solve recurrent layer.  Documented; not the path
+forward.  Streaming-NEF (§6) is what replaced this line of
+work.
+
+**Permuted-sMNIST mitigations.**  We attempted four cheap
+mitigations on permuted sMNIST: larger window `K`, positional
+concatenation, max-pool replacing mean-pool, and data-adapted
+encoders (`local_pca` on permuted patches).  None cleanly
+crosses 90 % without abandoning the "honest delay-line
+streaming" frame.  The architecture's reach is genuinely
+bounded above by mean-pool's order-erasing property; the
+mitigations are reported as a map of *what does not save you*,
+not as a viable path past the limit.
+
+**`local_pca` and `class_contrast` encoders.**  Reported in
+§5.2.  `local_pca` wins MNIST (+0.83 pp) but loses on Fashion
+(-1.0 pp) and CIFAR-10 (-2.9 pp); `class_contrast` loses on
+every dataset.  Both are kept in the repository (and in the
+encoder strategy table) as documented "this is what *not* to
+do" counterexamples.
+
+**Speech Commands ceiling.**  Streaming-NEF on the Speech
+Commands v2 keyword-spotting task plateaus at ~76 % vs LSTM
+~90 %.  Mean-pooling absolute frame coefficients destroys
+order; an audio task whose discriminative information lives in
+phoneme order needs either a learned positional feature or a
+recurrent solver.  Honest scope; bridge to Paper III.
