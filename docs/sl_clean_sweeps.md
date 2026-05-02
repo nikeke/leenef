@@ -92,6 +92,7 @@ the ground truth for any future claim audit.
 | H8   | h8_linear_collapse | h8_linear_collapse_check | `activation ∈ {linear, abs}` × n | H8 — over-representation needs nonlinearity (single-seed sanity) |
 | C1   | c1_scaling_mnist_panel | c1_scaling_mnist | `cell` (`n_neurons`) | Paper I scaling figure — MNIST |
 | C1.1 | c1_scaling_fashion_panel | c1_scaling_fashion | `cell` (`n_neurons`) | Paper I scaling figure — Fashion-MNIST |
+| C1.2 | c1_scaling_cifar10_panel | c1_scaling_cifar10 | `cell` (`n_neurons`) | Paper I scaling figure — CIFAR-10 |
 | C2   | c2_activation_mnist_panel | c2_activation_mnist | `cell` (activation × gain) | Paper I activation/gain ablation — MNIST |
 | C2.1 | c2_activation_fashion_panel | c2_activation_fashion | `cell` (activation × gain) | Paper I activation/gain ablation — Fashion-MNIST |
 | C3   | c3_ensemble_cifar10_panel | c3_ensemble_cifar10 | `cell` (ensemble size × encoder) | Paper I ensemble / RF panel — CIFAR-10 |
@@ -717,6 +718,58 @@ the paper's comparisons, but it is not sitting on a true asymptote.
 ```bash
 SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
   bash benchmarks/sl_clean/sl_hp_driver.sh c1_scaling_fashion
+```
+
+---
+
+## C1.2 — CIFAR-10 neuron-count scaling
+
+**Question.** On CIFAR-10, does the default single-layer NEF keep
+benefiting from brute-force width the way MNIST and Fashion-MNIST do, or
+does the harder dataset expose a different scaling regime?
+
+**Setup.** CIFAR-10, `n_neurons ∈ {500, 1000, 2000, 5000, 10000, 20000}`
+× 10 seeds = 60 rows. Hypersphere encoders, data-driven biases, `abs`
+activation, gain `U(0.5, 2.0)`, `α=1e-3`, chunked normal-equation
+accumulation with Cholesky solve. Result:
+`results/sl_clean/c1_scaling_cifar10_panel.json`. Log:
+`results/sl_clean/logs/c1_scaling_cifar10_panel.log`. Wall time: ~64 min
+on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=10)
+
+| n_neurons | test accuracy | verdict |
+|---|---|---|
+| 500 | 43.3 ± 0.1 | clearly under-fit |
+| 1000 | 45.8 ± 0.1 | clear gain over 500 |
+| 2000 | 47.9 ± 0.1 | still climbing |
+| 5000 | 49.4 ± 0.1 | near the peak |
+| 10000 | 49.6 ± 0.1 | essentially tied with 5000 |
+| 20000 | 47.1 ± 0.1 | **sharp regression** |
+
+**Verdict.** C1.2 breaks the MNIST/Fashion pattern. CIFAR-10 improves
+steadily through `n=5000`, gains only marginally at `n=10000`, and then
+**collapses at `n=20000`**: test accuracy drops from
+`49.59% ± 0.09` at `n=10000` to `47.08% ± 0.12` at `n=20000`, a
+`−2.52 pp` change vastly larger than the combined SE. The same row
+pair's train accuracy jumps from `77.05%` to `91.82%`, so this is not a
+capacity bottleneck but a severe overfitting / generalization failure
+regime. The practical Paper I recommendation is therefore dataset-
+dependent: on CIFAR-10, **wider is not monotonically better**, and the
+useful single-layer operating range looks more like `5000–10000`
+neurons, not `20000+`.
+
+**Code / data identity.**
+
+- `code_identity` for all 60 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared CIFAR-10 raw bytes under the
+  worktree's `data/` symlink to `../leenef/data`
+
+### Reproduce
+
+```bash
+SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c1_scaling_cifar10
 ```
 
 ---
