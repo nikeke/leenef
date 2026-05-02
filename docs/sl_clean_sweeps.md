@@ -586,9 +586,20 @@ ESN (input-W, reservoir-W, internal sample) seeded as
 (reproducibility hazard fixed during smoke testing — see
 `AGENTS.md` §"Reproducibility hazards").
 
-**Status (2026-05-02 09:35 UTC).**
+**Status (2026-05-02 15:32 UTC) — PRELIMINARY, REPRO RERUN IN FLIGHT.**
 
-- **b6_esn_smnist_row: 60/60 ✅ COMPLETE.**  Top cells:
+The earlier "✅ COMPLETE" entries on this page (now removed) were
+incorrect: both B6 panels were launched while the working tree
+carried uncommitted changes, so every row was tagged
+`a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77`.
+Per the project repro rule, dirty rows are kept on disk but
+**excluded from headline aggregates**.  Numbers below are kept as
+preliminary first-pass values; the relaunch under the current clean
+identity `69b0b0bb204d77bcefd9518bff7029580991595e` is the
+authoritative source once it lands.
+
+- **b6_esn_smnist_row** — 60/60 rows on disk, **all dirty-tagged**.
+  Top dirty cells (preliminary, not for headline):
 
   | cell | mean acc | ± SE | wall/seed |
   |---|---:|---:|---:|
@@ -596,41 +607,51 @@ ESN (input-W, reservoir-W, internal sample) seeded as
   | n2000_sr0.7_leak0.3  | 92.03 % | 0.04 | 462 s |
   | n1000_sr0.95_leak0.3 | 90.85 % | 0.13 | 110 s |
 
-  Median cell ~77 %.  Stream-NEF n=8000 (98.45 %) clears best ESN by
-  ~5 pp at ~5× faster wall.
+  Clean rerun **not yet launched** — pending a decision on whether
+  the dirty diff was code-relevant (the only ESN/streaming code
+  changes between `a495b4…` and current `69b0b0…` were a single
+  defensive `ValueError` in `streaming.continuous_fit` that ESN
+  doesn't exercise, so the values are *expected* to reproduce; an
+  audit run on one cell at one seed is the cheap confirmation).
 
-- **b6_esn_smnist_permuted: 60/60 ✅ COMPLETE** (relaunched after
-  78-minute stall at cell 58/60; driver auto-resumed from sentinel).
-  Top cells (5 seeds each):
+- **b6_esn_smnist_permuted** — 57 rows on disk; 22 clean
+  (`69b0b0bb…`, n=500 cells + 1 partial n=1000 cell) and 35 dirty
+  (`a495b4b3…`, n=1000 + n=2000 cells).  Sequential relaunch
+  overwriting old rows; at cell 23/60 (n=1000_sr0.7_leak0.3 seed 2)
+  as of 15:32 UTC, ~6 h remaining at ~10 min/cell.
+
+  Preliminary dirty top cells (kept as first-pass reading, not
+  headline):
 
   | cell                        | mean acc | ± SE   |
   |-----------------------------|---------:|-------:|
-  | n=2000, sr=0.95, leak=0.3   | **79.21 %** | 0.13 |
-  | n=2000, sr=0.95, leak=1.0   |  75.96 % (2 seeds — partial) |
-  | n=1000, sr=0.95, leak=0.3   |  75.26 % | 0.59 |
-  | n=2000, sr=0.7, leak=0.3    |  60.99 % | 0.17 |
+  | n=2000, sr=0.95, leak=0.3   | 79.21 % | 0.13 |
+  | n=1000, sr=0.95, leak=0.3   | 75.26 % | 0.59 |
+  | n=2000, sr=0.7, leak=0.3    | 60.99 % | 0.17 |
 
-  **Story reversal vs row sMNIST.** On permuted sMNIST, ESN n=2000
-  (79.21 %) **beats** Stream-NEF n=4000 (75.61 %) by +3.6 pp at half
-  the reservoir size.  The mean-pool prior that wins on coherent
-  row-of-pixels slices loses to recurrent state when the
-  discriminative signal is distributed across all 784 randomly-
-  ordered timesteps.  Paper I §6.3 reframes this honestly: the
-  data picks the architecture.
+  **Preliminary reading — to be confirmed.** On permuted sMNIST,
+  ESN n=2000 sr=0.95 leak=0.3 (dirty 79.21 %) sits above
+  Stream-NEF n=4000 (75.61 %) by +3.6 pp.  The mean-pool prior
+  that helps on coherent row-of-pixels slices appears to give up
+  ground to recurrent state when the discriminative signal is
+  distributed across all 784 randomly-ordered timesteps.  Paper I
+  §6.3 currently flags this as a preliminary picture pending
+  rerun.
 
-**Headline triangle (sMNIST-row, all multi-seed):**
+**Provisional triangle (sMNIST-row, multi-seed; ESN row preliminary):**
 
-| method | best mean acc | ± SE | wall/seed | seed n |
-|---|---:|---:|---:|---:|
-| LSTM h256_l2 lr0.003          | 99.12 % | 0.09 | 1875 s | 5 |
-| Stream-NEF n=8000             | 98.45 % | 0.02 |   95 s | 10 |
-| Stream-NEF n=4000             | 97.97 % | 0.02 |   42 s | 10 |
-| ESN n=2000 sr0.95 leak0.3     | 93.52 % | 0.06 |  454 s | 5 |
-| Stream-NEF n=2000             | 97.20 % | 0.04 |   20 s | 10 |
+| method | best mean acc | ± SE | wall/seed | seed n | identity |
+|---|---:|---:|---:|---:|---|
+| LSTM h256_l2 lr0.003          | 99.12 % | 0.09 | 1875 s | 5 | clean |
+| Stream-NEF n=8000             | 98.45 % | 0.02 |   95 s | 10 | clean |
+| Stream-NEF n=4000             | 97.97 % | 0.02 |   42 s | 10 | clean |
+| ESN n=2000 sr0.95 leak0.3     | 93.52 % | 0.06 |  454 s | 5 | **dirty** |
+| Stream-NEF n=2000             | 97.20 % | 0.04 |   20 s | 10 | clean |
 
-Stream-NEF dominates the gradient-free comparator (ESN) by ~5 pp at
-~5× faster wall, and trails the gradient-trained best LSTM by 0.7 pp
-at ~20× faster wall.  This is the H4 picture Paper I §6 needs.
+Reading (provisional): Stream-NEF runs ~20× faster than the best
+LSTM and lands 0.7 pp lower; the dirty ESN values, if they
+reproduce, place Stream-NEF ~5 pp above the best ESN at ~5× lower
+wall.  Numbers will be re-verified before any "final" status.
 
 ---
 
@@ -677,8 +698,60 @@ Estimated total wall: ~32 CPU-hours on the 12-core box.
 
 None of the C-phases is expected to overturn a B-phase claim.  Any
 "⚠ surprising" commit on the delegated branch will trigger a
-re-merge here with re-aggregation.  Until then, Phase C panels are
-treated as pending data for paper figures, not for paper claims.
+re-merge here with re-aggregation.
+
+**Status (2026-05-02 from `paper-i/phase-c-experiments` branch).**
+The delegated session has landed C1, C1.1, C2, C2.1, C3, C6, C6.1,
+and C7 (8 panels, all under clean code identity
+`9bfe9d9c7eacc013c2d83a42389245e47db129fe`).  C4 (multi-layer) and
+C5 (recurrent) are still in flight on that branch.  Headline
+takeaways visible from the branch's appended sections (full text
+will be merged once the branch lands):
+
+- **C1 / C1.1 — surprising.** Single-layer scaling on MNIST and
+  Fashion-MNIST does **not** plateau by `n=20000`.  MNIST climbs
+  monotonically `97.63 → 98.03 %` from 10k → 20k (`+0.40 pp`,
+  many σ above the noise); Fashion-MNIST `88.68 → 89.28 %`
+  (`+0.60 pp`).  Practical implication for the paper: `n=5000`
+  is "good enough" for like-for-like comparisons, but the curves
+  have not reached an asymptote — the §5/§5b scaling discussion
+  has to say so honestly rather than claim saturation.
+
+- **C2 / C2.1 — softer than expected.** On 5000-neuron MNIST the
+  whole `abs`/`relu` family sits inside `96.94–97.06 %` with
+  overlapping SEs; only `tanh` is robustly worse (`–0.2…0.4 pp`).
+  Fashion-MNIST sharpens this slightly (`abs` best at
+  `87.78–87.81 %`, `relu` ≤0.1 pp behind, `tanh` clearly worse),
+  and gain range is a wash for `abs`/`relu` on both.  Paper I §5
+  has to drop any framing of `abs` as a "magic value" and
+  re-anchor the activation discussion on (a) the linear-collapse
+  argument from H8 and (b) the small-but-real `tanh` gap.
+
+- **C3 — supportive.** On CIFAR-10 the receptive_field prior beats
+  hypersphere by **5.5–6.0 pp at every ensemble size** (m=1 single
+  member: 55.1 vs 49.6 %; m=20: 60.6 vs 54.7 %).  Ensembling helps
+  both families substantially from m=1 → m=5; m=10 → m=20 yields
+  only `+0.4 pp` for receptive_field.  The paper's H2 reading
+  (RF + ensembling + α-tuning ≈ tuned MLP) is robust to seed
+  averaging.
+
+- **C6 / C6.1 — supportive but at lower numbers.** The lite
+  ConvNEF default config gives MNIST `98.38 ± 0.02 %` and
+  CIFAR-10 `65.89 ± 0.12 %` (5 seeds each).  Earlier
+  single-seed-era TR numbers in the 78 % range came from the
+  full multi-stage / multi-scale pipeline, which is not what was
+  rerun under C6.  **Paper claim must use 65.9 %, not 78 %, as
+  the multi-seed CIFAR-10 ConvNEF headline.**
+
+- **C7 — supportive.** California Housing R² climbs `0.731 →
+  0.769` from n=500 → 10k and plateaus by n=5000 (Δ=+0.002,
+  inside the SE).  Universality demo lands cleanly.
+
+C4 and C5 numbers will be folded in as soon as the branch lands
+them.  Phase C panels remain pending data for *paper figures*
+(F2/F4 etc.) until the branch is merged into main; the headline
+implications are already strong enough to act on in §5/§5b
+revisions.
 
 ---
 
