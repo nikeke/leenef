@@ -95,6 +95,7 @@ the ground truth for any future claim audit.
 | C2   | c2_activation_mnist_panel | c2_activation_mnist | `cell` (activation × gain) | Paper I activation/gain ablation — MNIST |
 | C2.1 | c2_activation_fashion_panel | c2_activation_fashion | `cell` (activation × gain) | Paper I activation/gain ablation — Fashion-MNIST |
 | C3   | c3_ensemble_cifar10_panel | c3_ensemble_cifar10 | `cell` (ensemble size × encoder) | Paper I ensemble / RF panel — CIFAR-10 |
+| C6   | c6_convnef_mnist_panel | c6_convnef_mnist | `cell` (`default`) | Paper I ConvNEF headline — MNIST |
 | C7   | c7_housing_panel | c7_housing | `cell` (`n_neurons`) | Paper I §5.6 — regression universality demo |
 
 ---
@@ -870,6 +871,47 @@ practical recommendation is therefore: if compute allows only one lever,
 ```bash
 SEEDS=0-4 PYTHON=../leenef/venv/bin/python \
   bash benchmarks/sl_clean/sl_hp_driver.sh c3_ensemble_cifar10
+```
+
+---
+
+## C6 — ConvNEF on MNIST
+
+**Question.** Does the reduced single-config ConvNEF rerun still recover
+the strong shallow-pipeline story on MNIST once we attach rl_clean-style
+seed bars, or was the earlier result overly dependent on a lucky seed?
+
+**Setup.** MNIST, ConvNEF `default` config × 5 seeds. Single PCA filter
+stage (`64` filters, `patch_size=5`, `pool_size=2`), `n_neurons=4000`,
+`pool_levels=[1,2,4]`, `standardize=True`, `abs` activation,
+hypersphere encoders, gain `U(0.5, 2.0)`, analytic decoder with
+`α=1e-2`. Result: `results/sl_clean/c6_convnef_mnist_panel.json`. Log:
+`results/sl_clean/logs/c6_convnef_mnist_panel.log`. Wall time: ~4.4 min
+on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=5)
+
+| cell | test accuracy | verdict |
+|---|---|---|
+| default | 98.38 ± 0.02 | strong and stable |
+
+**Verdict.** C6 on MNIST is cleanly supportive. The lite ConvNEF config
+reaches `98.376% ± 0.017`, with a narrow seed spread and a training time
+of `48.98 ± 0.57 s`. That places the shallow fixed-filter pipeline
+comfortably above the single-layer 5000-neuron baseline while still
+remaining fully gradient-free.
+
+**Code / data identity.**
+
+- `code_identity` for all 5 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared MNIST raw bytes under the worktree's
+  `data/` symlink to `../leenef/data`
+
+### Reproduce
+
+```bash
+SEEDS=0-4 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c6_convnef_mnist
 ```
 
 ---
