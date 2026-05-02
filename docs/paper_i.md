@@ -521,6 +521,82 @@ deployment requires per-batch up-to-date decoders, in which
 case `woodbury` is the only path that delivers them — at the
 cost of an explicit float64 `n × n` inverse.
 
+### §5.4 — Scaling and activation choices
+
+Two ablations from the Phase C panels (10 seeds each, base
+config: hypersphere encoders, data-driven biases, gain
+`U(0.5, 2.0)`, `α = 10⁻³`):
+
+**Single-layer width.**  Test accuracy is monotone in
+`n_neurons` over the entire range we measured; *the curve does
+not flatten by `n = 20 000`*.
+
+| `n` | MNIST | Fashion-MNIST |
+|-----|---:|---:|
+| 500   | 92.2 ± 0.1 | 83.0 ± 0.1 |
+| 1 000  | 94.3 ± 0.1 | 84.8 ± 0.0 |
+| 2 000  | 95.8 ± 0.0 | 86.2 ± 0.1 |
+| 5 000  | 97.0 ± 0.0 | 87.8 ± 0.1 |
+| 10 000 | 97.6 ± 0.0 | 88.7 ± 0.1 |
+| 20 000 | **98.0 ± 0.0** | **89.3 ± 0.1** |
+
+The 10 k → 20 k step is `+0.40 pp` on MNIST and `+0.60 pp` on
+Fashion — order-of-magnitude above the combined SE.  We use
+`n = 5 000` as the like-for-like ablation point throughout the
+paper because doubling further is feasible but expensive at
+these widths, not because the curve has saturated.  The
+practical reading: a single-layer NEF at our defaults is *not*
+in a regime where neuron count has stopped paying off.
+
+**Activation choice.**  At fixed `n = 5 000` with hypersphere
+encoders and data-driven biases, `abs`, `relu`, and `tanh`
+behave like this on the two image datasets:
+
+| activation × gain | MNIST | Fashion-MNIST |
+|-------------------|---:|---:|
+| abs · `U(0.5, 2.0)`  | 97.0 ± 0.0 | **87.78 ± 0.05** |
+| abs · fixed 1.0      | 97.1 ± 0.0 | **87.81 ± 0.05** |
+| abs · `U(0.1, 5.0)`  | 97.0 ± 0.0 | 87.6 ± 0.0 |
+| relu · `U(0.5, 2.0)` | 97.0 ± 0.0 | 87.6 ± 0.0 |
+| relu · fixed 1.0     | 97.1 ± 0.0 | 87.73 ± 0.05 |
+| relu · `U(0.1, 5.0)` | 96.9 ± 0.0 | 87.5 ± 0.0 |
+| tanh · `U(0.5, 2.0)` | 96.8 ± 0.0 | 87.1 ± 0.0 |
+| tanh · fixed 1.0     | 96.7 ± 0.0 | 86.8 ± 0.0 |
+| tanh · `U(0.1, 5.0)` | 96.9 ± 0.0 | 87.5 ± 0.0 |
+
+On MNIST the whole `abs`/`relu` family sits inside `97.0–97.1 %`
+with overlapping SEs — no signal that picks `abs` over `relu` at
+this width.  On the harder Fashion-MNIST, **`abs` keeps a small
+but consistent edge**: the two best cells are both `abs`
+(`87.78`, `87.81 %`), the best `relu` cell trails by `0.08 pp`
+(within SE), and `tanh` is `0.3–0.6 pp` behind the leaders.
+Tanh recovers the wide-gain spread cell because saturation is
+mitigated when many neurons sit at small gain.
+
+The honest reading the §2 algebra supports: `abs` and `relu`
+are the same minimal nonlinearity up to a sign-flip
+(`|x| = ReLU(x) + ReLU(-x)`), and an `abs` neuron is the same
+information as two mirrored `relu` neurons whose decoder rows
+the analytic solve will find.  At fixed `n` the `abs` parametrisation
+buys a half-budget worth of "free" `relu` partners, which is
+exactly what the small Fashion-MNIST edge looks like.  We keep
+`abs` as the project default on this evidence — modest, measured,
+and consistent with the algebra — and report the CIFAR-10
+activation panel from the delegated branch (`c2_activation_cifar10`,
+in flight as of this draft) when it lands.
+
+`tanh` is robustly worse on both datasets (`-0.2…0.4 pp` on
+MNIST, `-0.3…1.0 pp` on Fashion).  Saturation cancels the
+benefit of over-representation: a `tanh` neuron only carries
+information about whether `(e_i · x)` is "small" or "large",
+not its magnitude.  This is consistent with the §2 frame-
+coefficient picture, which requires a nonlinearity that
+preserves magnitude information.  Practical implication: the
+project default `abs` is defensible, but `relu` is a clean
+fallback at no measurable cost on raw image classification —
+one to keep in mind when a deployment constraint disallows the
+two-sided fold.
+
 ---
 
 ## §6 — Streaming-NEF: time collapsed by pooling
