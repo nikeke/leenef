@@ -15,17 +15,15 @@
 
 ## Abstract
 
-A single regularized least-squares solve over fixed-encoder neural
-activities — `D = (AᵀA + α_eff I)⁻¹ AᵀY` — does more than the
+NEF's single regularized least-squares solve over fixed-encoder
+neural activities — `D = (AᵀA + α_eff I)⁻¹ AᵀY` — turns out, in a
+specialization we call **leenef**, to do far more than the
 extreme-learning-machine and random-feature literature usually
-charts, provided four design choices are made: rate neurons with
-absolute-value activation (departing from NEF, which uses spiking
-LIF), data-driven biases that place each neuron's `abs` fold on the
-data manifold (a leenef extension of NEF's encoder–decoder split),
-per-neuron gain diversity (NEF-standard), and — when spatial
-structure exists — local receptive-field encoders (NEF-standard but
-not always emphasized).  This paper characterizes the primitive
-geometrically, through a frame-coefficient reading of the
+charts.  We use absolute-value activations, data-driven biases that
+place each neuron's `abs` fold on the data manifold, local
+receptive-field encoders where spatial structure exists, and
+per-neuron gain diversity.  This paper characterizes the resulting
+primitive geometrically, through a frame-coefficient reading of the
 activations, and shows that the same primitive composes — through
 the additive sufficient statistics `AᵀA` and `AᵀY` — into
 ensembles, online updates (Woodbury), GPU-friendly
@@ -38,18 +36,19 @@ the LSTM's best multi-seed cell.  Against an apples-to-apples ESN
 baseline (same family of fixed nonlinear features + linear
 readout), Stream-NEF runs **roughly 5× faster** and ends
 **~5 pp above** the best ESN cell.  We also report the limits
-honestly: gradient-free multi-layer stacking does not (yet) work;
-permuted sequence classification is bounded above by mean-pool's
-order-erasing property — a preliminary (not-yet-final) ESN
-comparator looks set to beat Stream-NEF on permuted sMNIST,
-locating the prior boundary between mean-pool and recurrent state
-precisely; gradient-trained MLPs beat single-layer NEF on generic
-image features by 1–4 pp.  The twist is that a
-`receptive_field`-encoder NEF beats the best tuned MLP on CIFAR-10
-by +1.37 pp **and runs ~11× faster** — a good encoder closes the
-gap, a generic encoder does not.  The paper opens the foundational
-trilogy that continues with continual learning (Paper II) and
-reinforcement learning (Paper III).
+honestly: purely analytic multi-layer stacking does not work
+(target propagation and end-to-end refinement recover the
+single-layer accuracy on MNIST but no more); permuted sequence
+classification is bounded above by mean-pool's order-erasing
+property — a preliminary (not-yet-final) ESN comparator looks set
+to beat Stream-NEF on permuted sMNIST, locating the prior boundary
+between mean-pool and recurrent state precisely; gradient-trained
+MLPs beat single-layer NEF on generic image features by 1–4 pp.
+The twist is that a `receptive_field`-encoder NEF beats the best
+tuned MLP on CIFAR-10 by +1.37 pp **and runs ~11× faster** — a
+good encoder closes the gap, a generic encoder does not.  The
+paper opens the foundational trilogy that continues with continual
+learning (Paper II) and reinforcement learning (Paper III).
 
 ---
 
@@ -66,18 +65,18 @@ encodes the represented quantity.  We keep the encoder–decoder
 split, the analytic least-squares fit, and the conceptual freedom
 to compose decoded signals; we depart in three places.
 
-1. We use **rate neurons with `abs` activation**, not spiking LIF.
-   `abs` is the smallest pointwise nonlinearity that escapes the
-   linear-collapse argument of §2; it is also what gives our
-   activations the frame-coefficient interpretation that the rest
-   of the paper turns on.
-2. We use **data-driven biases**.  The bias of neuron *i* is
-   `b_i = -α_i (e_i · d_i)` for a sample `d_i` drawn from the
-   training set, placing the *i*-th `abs` fold on the data
-   manifold rather than on a generic random intercept.
-3. We do not use NEF's **dynamics principle** anywhere in this
-   paper.  Streaming and recurrent variants reuse encoders and
-   decoders with pooling, not a recurrent dynamics solve.
+- We use **rate neurons with `abs` activation**, not spiking LIF.
+  `abs` is the smallest pointwise nonlinearity that escapes the
+  linear-collapse argument of §2; it is also what gives our
+  activations the frame-coefficient interpretation that the rest
+  of the paper turns on.
+- We use **data-driven biases**.  The bias of neuron *i* is
+  `b_i = -α_i (e_i · d_i)` for a sample `d_i` drawn from the
+  training set, placing the *i*-th `abs` fold on the data
+  manifold rather than on a generic random intercept.
+- We do not use NEF's **dynamics principle** anywhere in this
+  paper.  Streaming and recurrent variants reuse encoders and
+  decoders with pooling, not a recurrent dynamics solve.
 
 When this paper says "NEF" it means this *analytic-rate-`abs`
 specialization*; when distinction matters we call our local
@@ -88,35 +87,36 @@ neurons and data-driven biases."
 
 The trilogy's shared opener is six operational claims, distilled
 from the program's running code.  These are *our* distillation;
-principles 1–4 inherit from NEF, principles 5–6 are leenef-specific.
+P1–P4 inherit from NEF, P5–P6 are leenef-specific.  We refer back
+to them as **P1**, **P2**, … throughout the paper.
 
-1. **Encoders are fixed** (random or data-adapted).  Decoders are
-   the only thing we ever fit.
-2. **Decoders fall out of one analytic step:**
-   `D = (AᵀA + αI)⁻¹ AᵀY`.  No learning rate, no schedule, no
-   gradient flow between layers.
-3. **`AᵀA` and `AᵀY` are the universe.**  Continual learning,
-   streaming over time, ensembles, online updates, per-action
-   FQI — all of them are different ways of *additively combining*
-   sufficient statistics.
-4. **Targets `Y` are the only place where task structure enters.**
-   The encoder does not care what the task is; the decoder column
-   does.
-5. **Time is collapsed by pooling, not by recurrence.**  The
-   streaming classifier mean-pools delay-line activities into a
-   fixed-size representation; no BPTT, no recurrent solve.
-6. **Per-class additivity is what makes continual learning work.**
-   Each class owns its own decoder column, so accumulating new
-   task statistics never interferes with old columns.  (Forward-
-   look — owned by Paper II; we exhibit the additivity property
-   here without claiming it solves CL.)
+- **P1 — Encoders are fixed** (random or data-adapted).  Decoders
+  are the only thing we ever fit.
+- **P2 — Decoders fall out of one analytic step:**
+  `D = (AᵀA + αI)⁻¹ AᵀY`.  No learning rate, no schedule, no
+  gradient flow between layers.
+- **P3 — `AᵀA` and `AᵀY` are the universe.**  Continual learning,
+  streaming over time, ensembles, online updates, per-action
+  FQI — all of them are different ways of *additively combining*
+  sufficient statistics.
+- **P4 — Targets `Y` are the only place where task structure
+  enters.**  The encoder does not care what the task is; the
+  decoder column does.
+- **P5 — Time is collapsed by pooling, not by recurrence.**  The
+  streaming classifier mean-pools delay-line activities into a
+  fixed-size representation; no BPTT, no recurrent solve.
+- **P6 — Per-class additivity is what makes continual learning
+  work.**  Each class owns its own decoder column, so accumulating
+  new task statistics never interferes with old columns.
+  (Forward-look — owned by Paper II; we exhibit the additivity
+  property here without claiming it solves CL.)
 
 The rest of Paper I is one of these primitives applied somewhere
-new: §3 (method) is principles 1–4, §6 (streaming classifier) is
-principle 5, and the multi-layer experiments (Appendix B) are the
-load-bearing negative result that says principle 2 does not
-extend through stacked nonlinearities — which is why we stay
-single-layer for the rest of the trilogy.
+new: §3 (method) is **P1–P4**, §6 (streaming classifier) is **P5**,
+and the multi-layer experiments (Appendix B) are the load-bearing
+negative result that says **P2** does not extend cleanly through
+stacked nonlinearities — which is why we stay single-layer for the
+rest of the trilogy.
 
 ---
 
@@ -319,10 +319,13 @@ statistics.  The relevant cases for Paper I:
 
 The negative result that haunts the trilogy is the one
 composition the primitive does *not* support cleanly:
-**multi-layer gradient-free stacking**.  Greedy and target-
-propagation strategies for stacked NEF layers underperform a
-single wide layer (see Appendix B).  This is why the rest of
-the trilogy stays single-layer.
+**purely analytic multi-layer stacking**.  Greedy stacked NEF
+layers and the hybrid alternate-decoder-solve / gradient-update
+strategy underperform a single wide layer at matched parameter
+budget; only a stronger training rule — local target propagation
+or end-to-end refinement — recovers single-layer accuracy on
+MNIST, and even then it does not exceed it by much (Appendix B).
+This is why the rest of the trilogy stays single-layer.
 
 ---
 
@@ -869,8 +872,8 @@ can follow the threads back to where the ideas originated.
 treatment, not appendix burial.  They are part of the
 contribution: knowing where the primitive does not work is as
 useful as knowing where it does.  The §6.4 limit on permuted
-sequence classification, the failure of multi-layer
-gradient-free stacking (Appendix B), the systematic loss of
+sequence classification, the limited room for depth under purely
+analytic stacking (Appendix B), the systematic loss of
 `class_contrast` and `local_pca` encoders (§5.2), the bimodal
 collapse of fixed-α at out-of-tune `n` (§4) are all reported
 straightforwardly.
@@ -984,19 +987,37 @@ for ablation tables, 3 seeds for appendix-legacy tables.
 
 ## Appendix B — Negative results
 
-**Multi-layer gradient-free stacking does not work.**  Greedy
-solves of stacked NEF layers (each layer fitted in turn against
-its successor's output target) and target-propagation variants
-(layer-local targets via NEF inverse models, no gradient flow
-between layers) both lose to a single wide layer at matched
-parameter budget on MNIST, Fashion-MNIST, and CIFAR-10.  The
-only multi-layer strategy that helps is **end-to-end SGD with
-NEF warm-start**, and it helps modestly.  This is the
-load-bearing negative result for the trilogy: it is why the
-rest of the work stays single-layer.  Paper I documents the
-result; the multi-layer experiments are reported in the
-companion technical report and not re-run under multi-seed
-discipline because the qualitative verdict is unambiguous.
+**Purely analytic multi-layer stacking does not work; stronger
+training rules recover single-layer accuracy but do not exceed
+it.**  The C4 panel (`results/sl_clean/c4_multilayer_mnist_panel.json`,
+5 seeds, hidden = `[2000]`, output = 2000 neurons, `abs`,
+hypersphere encoders, data-driven biases, `α = 10⁻³`,
+`code_identity = 9bfe9d9c…`) tests five strategies on MNIST:
+
+| strategy | test accuracy (mean ± SE) | inter-layer gradients? |
+|---|---|---|
+| `greedy` | 95.37 ± 0.09 % | none |
+| `hybrid` | 94.25 ± 0.04 % | none |
+| `target_prop` | 98.54 ± 0.02 % | layer-local only |
+| `end_to_end` | 98.60 ± 0.02 % | full BPTT |
+| `hybrid_e2e` | 98.69 ± 0.01 % | full BPTT |
+
+Plain greedy stacking and the alternate-solve hybrid both lose
+3–4 pp to single-wide-layer baselines.  Target propagation, which
+uses NEF inverse models for layer-local targets and never
+propagates gradients across layer boundaries, recovers the
+single-layer headline at 98.54 % — the closest thing to a clean
+analytic two-layer result we have.  End-to-end SGD and hybrid_e2e
+push it to 98.6 %–98.7 %, a gain of only ~0.1–0.2 pp over a
+single wide layer.  The honest trilogy-level reading is:
+**the purely analytic primitive does not buy depth on its own**.
+Depth helps only once gradient flow is admitted, and even then
+the win on MNIST is small.  This is why the rest of the work
+stays single-layer.  We have not re-run multi-layer panels under
+multi-seed discipline on Fashion-MNIST or CIFAR-10; the
+qualitative ranking from the technical report (greedy/hybrid lose,
+target-prop matches, end-to-end nudges past) is consistent with
+C4 on MNIST.
 
 **Recurrent NEF (state feedback through fixed encoders)
 underperforms.**  Greedy and target-propagation variants of

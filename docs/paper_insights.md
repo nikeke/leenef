@@ -40,9 +40,17 @@ one of these principles broke.
 
 For Paper I specifically: §3 (method) is principles 1–4, §5.7
 (streaming classifier) is principle 5, and §5.5 (multi-layer) is the
-load-bearing negative result that says principle 2 does not extend
-through stacked nonlinearities — which is part of why we stay
-single-layer for the rest of the trilogy.
+load-bearing negative result.  C4 (`results/sl_clean/c4_multilayer_mnist_panel.json`,
+5 seeds, MNIST, hidden=2000, output=2000, abs, hypersphere,
+data-driven biases, α=10⁻³) refines the negative: greedy 95.37 ± 0.09 %,
+hybrid 94.25 ± 0.04 %, target_prop 98.54 ± 0.02 %,
+end_to_end 98.60 ± 0.02 %, hybrid_e2e 98.69 ± 0.01 %.  Plain
+analytic stacking (greedy/hybrid) loses 3–4 pp; layer-local
+target propagation recovers single-layer accuracy without
+inter-layer gradient flow; full E2E nudges another ~0.1 pp.
+The trilogy still stays single-layer because the depth gain is
+small, but the headline reads "purely analytic depth does not
+help" rather than "depth never helps".
 
 ## 0. Why over-representation needs nonlinearity (CORE — open the paper with this)
 
