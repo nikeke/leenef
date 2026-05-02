@@ -93,6 +93,7 @@ the ground truth for any future claim audit.
 | C1   | c1_scaling_mnist_panel | c1_scaling_mnist | `cell` (`n_neurons`) | Paper I scaling figure — MNIST |
 | C1.1 | c1_scaling_fashion_panel | c1_scaling_fashion | `cell` (`n_neurons`) | Paper I scaling figure — Fashion-MNIST |
 | C2   | c2_activation_mnist_panel | c2_activation_mnist | `cell` (activation × gain) | Paper I activation/gain ablation — MNIST |
+| C2.1 | c2_activation_fashion_panel | c2_activation_fashion | `cell` (activation × gain) | Paper I activation/gain ablation — Fashion-MNIST |
 | C7   | c7_housing_panel | c7_housing | `cell` (`n_neurons`) | Paper I §5.6 — regression universality demo |
 
 ---
@@ -764,6 +765,57 @@ ReLU.
 ```bash
 SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
   bash benchmarks/sl_clean/sl_hp_driver.sh c2_activation_mnist
+```
+
+---
+
+## C2.1 — Fashion-MNIST activation × gain ablation
+
+**Question.** Does the activation story sharpen on Fashion-MNIST — a
+harder static benchmark — enough to separate `abs` from ReLU and reveal
+whether gain diversity matters in a less overdetermined regime?
+
+**Setup.** Fashion-MNIST, `activation ∈ {abs, relu, tanh}` ×
+`gain ∈ {(0.5,2.0), (1.0,1.0), (0.1,5.0)}` × 10 seeds = 90 rows.
+Hypersphere encoders, data-driven biases, `n_neurons=5000`, `α=1e-3`,
+chunked normal-equation accumulation with Cholesky solve. Result:
+`results/sl_clean/c2_activation_fashion_panel.json`. Log:
+`results/sl_clean/logs/c2_activation_fashion_panel.log`. Wall time:
+~40 min on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=10)
+
+| cell | test accuracy | verdict |
+|---|---|---|
+| abs+g0.5_2.0 | 87.8 ± 0.1 | top tier |
+| abs+g1.0_1.0 | 87.8 ± 0.1 | top tier |
+| abs+g0.1_5.0 | 87.6 ± 0.0 | slight drop but still competitive |
+| relu+g0.5_2.0 | 87.6 ± 0.0 | close behind abs |
+| relu+g1.0_1.0 | 87.7 ± 0.1 | close behind abs |
+| relu+g0.1_5.0 | 87.5 ± 0.0 | slightly weaker |
+| tanh+g0.5_2.0 | 87.1 ± 0.0 | clearly worse |
+| tanh+g1.0_1.0 | 86.8 ± 0.0 | worst cell |
+| tanh+g0.1_5.0 | 87.5 ± 0.0 | wide gain partially rescues tanh |
+
+**Verdict.** C2.1 gives a cleaner separation than MNIST but not a huge
+one. The best cells are the two `abs` variants (`87.78% ± 0.05` and
+`87.81% ± 0.05`), with the best ReLU cell (`relu+g1.0_1.0`,
+`87.73% ± 0.05`) only a hair behind. The stronger signal is that
+**`tanh` is consistently worse**, especially with fixed gain, while a
+wider gain spread substantially helps tanh recover. For `abs` and ReLU,
+gain range still matters only marginally.
+
+**Code / data identity.**
+
+- `code_identity` for all 90 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared Fashion-MNIST raw bytes under the
+  worktree's `data/` symlink to `../leenef/data`
+
+### Reproduce
+
+```bash
+SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c2_activation_fashion
 ```
 
 ---
