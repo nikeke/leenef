@@ -90,6 +90,7 @@ the ground truth for any future claim audit.
 | B6   | b6_esn_smnist_{row,permuted}_panel | b6_esn_smnist_* | `cell` (n × spectral_radius × leak) | H4 — gradient-free ESN reservoir comparator on temporal sMNIST |
 | B7   | biases_{cifar10_centered,mnist_decentered}_panel | biases_*_centered/decentered | `cell` (3×3 factorial) | H1 — DC-component falsifier; channel-centering vs offset injection |
 | H8   | h8_linear_collapse | h8_linear_collapse_check | `activation ∈ {linear, abs}` × n | H8 — over-representation needs nonlinearity (single-seed sanity) |
+| C1   | c1_scaling_mnist_panel | c1_scaling_mnist | `cell` (`n_neurons`) | Paper I scaling figure — MNIST |
 | C7   | c7_housing_panel | c7_housing | `cell` (`n_neurons`) | Paper I §5.6 — regression universality demo |
 
 ---
@@ -615,6 +616,54 @@ The ~+11 pp delta is the entire contribution of the abs nonlinearity.
 **Verdict.** H8 supported.  Single-seed result; multi-seed not
 required because the headline (linear ≪ abs) is far outside seed
 noise on B1.
+
+---
+
+## C1 — MNIST neuron-count scaling
+
+**Question.** Does the default single-layer NEF on MNIST plateau by
+`n=5000` or `n=10000`, validating the paper-wide choice to treat the
+5000-neuron solve as safely inside the flat part of the scaling curve?
+
+**Setup.** MNIST, `n_neurons ∈ {500, 1000, 2000, 5000, 10000, 20000}` ×
+10 seeds = 60 rows. Hypersphere encoders, data-driven biases, `abs`
+activation, gain `U(0.5, 2.0)`, `α=1e-3`, chunked normal-equation
+accumulation with Cholesky solve. Result:
+`results/sl_clean/c1_scaling_mnist_panel.json`. Log:
+`results/sl_clean/logs/c1_scaling_mnist_panel.log`. Wall time: ~64 min
+on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=10)
+
+| n_neurons | test accuracy | verdict |
+|---|---|---|
+| 500 | 92.2 ± 0.1 | far from saturation |
+| 1000 | 94.3 ± 0.1 | clear gain over 500 |
+| 2000 | 95.8 ± 0.0 | still climbing |
+| 5000 | 97.0 ± 0.0 | strong but not flat |
+| 10000 | 97.6 ± 0.0 | another clear step up |
+| 20000 | 98.0 ± 0.0 | **still improving** |
+
+**Verdict.** ⚠ surprising. C1 on MNIST does **not** plateau by
+`n=20000`. Accuracy rises monotonically from `97.63% ± 0.03` at
+`n=10000` to `98.03% ± 0.03` at `n=20000`, a `+0.40 pp` gain that is
+an order of magnitude larger than the combined SE. The conservative
+reading is that MNIST is still in the upward part of the width curve at
+20k, even though the marginal gains above 5000 are much smaller than the
+gains below 5000.
+
+**Code / data identity.**
+
+- `code_identity` for all 60 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared MNIST raw bytes under the worktree's
+  `data/` symlink to `../leenef/data`
+
+### Reproduce
+
+```bash
+SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c1_scaling_mnist
+```
 
 ---
 

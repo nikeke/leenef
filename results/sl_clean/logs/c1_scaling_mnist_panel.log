@@ -1,0 +1,184 @@
+[2026-05-02T09:39:14] phase=c1_scaling_mnist_panel experiment=c1_scaling_mnist knob=cell values=['n500', 'n1000', 'n2000', 'n5000', 'n10000', 'n20000'] seeds=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] code_identity=9bfe9d9c7eacc013c2d83a42389245e47db129fe
+[2026-05-02T09:39:14]   [1/60] run    c1_scaling_mnist_panel_n500_s0
+[2026-05-02T09:39:14]   [1/60] ERROR c1_scaling_mnist_panel_n500_s0: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [2/60] run    c1_scaling_mnist_panel_n500_s1
+[2026-05-02T09:39:14]   [2/60] ERROR c1_scaling_mnist_panel_n500_s1: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [3/60] run    c1_scaling_mnist_panel_n500_s2
+[2026-05-02T09:39:14]   [3/60] ERROR c1_scaling_mnist_panel_n500_s2: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [4/60] run    c1_scaling_mnist_panel_n500_s3
+[2026-05-02T09:39:14]   [4/60] ERROR c1_scaling_mnist_panel_n500_s3: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [5/60] run    c1_scaling_mnist_panel_n500_s4
+[2026-05-02T09:39:14]   [5/60] ERROR c1_scaling_mnist_panel_n500_s4: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [6/60] run    c1_scaling_mnist_panel_n500_s5
+[2026-05-02T09:39:14]   [6/60] ERROR c1_scaling_mnist_panel_n500_s5: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [7/60] run    c1_scaling_mnist_panel_n500_s6
+[2026-05-02T09:39:14]   [7/60] ERROR c1_scaling_mnist_panel_n500_s6: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [8/60] run    c1_scaling_mnist_panel_n500_s7
+[2026-05-02T09:39:14]   [8/60] ERROR c1_scaling_mnist_panel_n500_s7: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [9/60] run    c1_scaling_mnist_panel_n500_s8
+[2026-05-02T09:39:14]   [9/60] ERROR c1_scaling_mnist_panel_n500_s8: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [10/60] run    c1_scaling_mnist_panel_n500_s9
+[2026-05-02T09:39:14]   [10/60] ERROR c1_scaling_mnist_panel_n500_s9: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [11/60] run    c1_scaling_mnist_panel_n1000_s0
+[2026-05-02T09:39:14]   [11/60] ERROR c1_scaling_mnist_panel_n1000_s0: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [12/60] run    c1_scaling_mnist_panel_n1000_s1
+[2026-05-02T09:39:14]   [12/60] ERROR c1_scaling_mnist_panel_n1000_s1: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [13/60] run    c1_scaling_mnist_panel_n1000_s2
+[2026-05-02T09:39:14]   [13/60] ERROR c1_scaling_mnist_panel_n1000_s2: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [14/60] run    c1_scaling_mnist_panel_n1000_s3
+[2026-05-02T09:39:14]   [14/60] ERROR c1_scaling_mnist_panel_n1000_s3: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [15/60] run    c1_scaling_mnist_panel_n1000_s4
+[2026-05-02T09:39:14]   [15/60] ERROR c1_scaling_mnist_panel_n1000_s4: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [16/60] run    c1_scaling_mnist_panel_n1000_s5
+[2026-05-02T09:39:14]   [16/60] ERROR c1_scaling_mnist_panel_n1000_s5: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [17/60] run    c1_scaling_mnist_panel_n1000_s6
+[2026-05-02T09:39:14]   [17/60] ERROR c1_scaling_mnist_panel_n1000_s6: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [18/60] run    c1_scaling_mnist_panel_n1000_s7
+[2026-05-02T09:39:14]   [18/60] ERROR c1_scaling_mnist_panel_n1000_s7: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [19/60] run    c1_scaling_mnist_panel_n1000_s8
+[2026-05-02T09:39:14]   [19/60] ERROR c1_scaling_mnist_panel_n1000_s8: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [20/60] run    c1_scaling_mnist_panel_n1000_s9
+[2026-05-02T09:39:14]   [20/60] ERROR c1_scaling_mnist_panel_n1000_s9: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [21/60] run    c1_scaling_mnist_panel_n2000_s0
+[2026-05-02T09:39:14]   [21/60] ERROR c1_scaling_mnist_panel_n2000_s0: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [22/60] run    c1_scaling_mnist_panel_n2000_s1
+[2026-05-02T09:39:14]   [22/60] ERROR c1_scaling_mnist_panel_n2000_s1: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [23/60] run    c1_scaling_mnist_panel_n2000_s2
+[2026-05-02T09:39:14]   [23/60] ERROR c1_scaling_mnist_panel_n2000_s2: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [24/60] run    c1_scaling_mnist_panel_n2000_s3
+[2026-05-02T09:39:14]   [24/60] ERROR c1_scaling_mnist_panel_n2000_s3: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [25/60] run    c1_scaling_mnist_panel_n2000_s4
+[2026-05-02T09:39:14]   [25/60] ERROR c1_scaling_mnist_panel_n2000_s4: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [26/60] run    c1_scaling_mnist_panel_n2000_s5
+[2026-05-02T09:39:14]   [26/60] ERROR c1_scaling_mnist_panel_n2000_s5: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [27/60] run    c1_scaling_mnist_panel_n2000_s6
+[2026-05-02T09:39:14]   [27/60] ERROR c1_scaling_mnist_panel_n2000_s6: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [28/60] run    c1_scaling_mnist_panel_n2000_s7
+[2026-05-02T09:39:14]   [28/60] ERROR c1_scaling_mnist_panel_n2000_s7: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [29/60] run    c1_scaling_mnist_panel_n2000_s8
+[2026-05-02T09:39:14]   [29/60] ERROR c1_scaling_mnist_panel_n2000_s8: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [30/60] run    c1_scaling_mnist_panel_n2000_s9
+[2026-05-02T09:39:14]   [30/60] ERROR c1_scaling_mnist_panel_n2000_s9: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [31/60] run    c1_scaling_mnist_panel_n5000_s0
+[2026-05-02T09:39:14]   [31/60] ERROR c1_scaling_mnist_panel_n5000_s0: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [32/60] run    c1_scaling_mnist_panel_n5000_s1
+[2026-05-02T09:39:14]   [32/60] ERROR c1_scaling_mnist_panel_n5000_s1: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [33/60] run    c1_scaling_mnist_panel_n5000_s2
+[2026-05-02T09:39:14]   [33/60] ERROR c1_scaling_mnist_panel_n5000_s2: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [34/60] run    c1_scaling_mnist_panel_n5000_s3
+[2026-05-02T09:39:14]   [34/60] ERROR c1_scaling_mnist_panel_n5000_s3: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [35/60] run    c1_scaling_mnist_panel_n5000_s4
+[2026-05-02T09:39:14]   [35/60] ERROR c1_scaling_mnist_panel_n5000_s4: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [36/60] run    c1_scaling_mnist_panel_n5000_s5
+[2026-05-02T09:39:14]   [36/60] ERROR c1_scaling_mnist_panel_n5000_s5: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [37/60] run    c1_scaling_mnist_panel_n5000_s6
+[2026-05-02T09:39:14]   [37/60] ERROR c1_scaling_mnist_panel_n5000_s6: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [38/60] run    c1_scaling_mnist_panel_n5000_s7
+[2026-05-02T09:39:14]   [38/60] ERROR c1_scaling_mnist_panel_n5000_s7: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [39/60] run    c1_scaling_mnist_panel_n5000_s8
+[2026-05-02T09:39:14]   [39/60] ERROR c1_scaling_mnist_panel_n5000_s8: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [40/60] run    c1_scaling_mnist_panel_n5000_s9
+[2026-05-02T09:39:14]   [40/60] ERROR c1_scaling_mnist_panel_n5000_s9: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [41/60] run    c1_scaling_mnist_panel_n10000_s0
+[2026-05-02T09:39:14]   [41/60] ERROR c1_scaling_mnist_panel_n10000_s0: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [42/60] run    c1_scaling_mnist_panel_n10000_s1
+[2026-05-02T09:39:14]   [42/60] ERROR c1_scaling_mnist_panel_n10000_s1: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [43/60] run    c1_scaling_mnist_panel_n10000_s2
+[2026-05-02T09:39:14]   [43/60] ERROR c1_scaling_mnist_panel_n10000_s2: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [44/60] run    c1_scaling_mnist_panel_n10000_s3
+[2026-05-02T09:39:14]   [44/60] ERROR c1_scaling_mnist_panel_n10000_s3: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [45/60] run    c1_scaling_mnist_panel_n10000_s4
+[2026-05-02T09:39:14]   [45/60] ERROR c1_scaling_mnist_panel_n10000_s4: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [46/60] run    c1_scaling_mnist_panel_n10000_s5
+[2026-05-02T09:39:14]   [46/60] ERROR c1_scaling_mnist_panel_n10000_s5: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [47/60] run    c1_scaling_mnist_panel_n10000_s6
+[2026-05-02T09:39:14]   [47/60] ERROR c1_scaling_mnist_panel_n10000_s6: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [48/60] run    c1_scaling_mnist_panel_n10000_s7
+[2026-05-02T09:39:14]   [48/60] ERROR c1_scaling_mnist_panel_n10000_s7: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [49/60] run    c1_scaling_mnist_panel_n10000_s8
+[2026-05-02T09:39:14]   [49/60] ERROR c1_scaling_mnist_panel_n10000_s8: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [50/60] run    c1_scaling_mnist_panel_n10000_s9
+[2026-05-02T09:39:14]   [50/60] ERROR c1_scaling_mnist_panel_n10000_s9: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [51/60] run    c1_scaling_mnist_panel_n20000_s0
+[2026-05-02T09:39:14]   [51/60] ERROR c1_scaling_mnist_panel_n20000_s0: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [52/60] run    c1_scaling_mnist_panel_n20000_s1
+[2026-05-02T09:39:14]   [52/60] ERROR c1_scaling_mnist_panel_n20000_s1: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [53/60] run    c1_scaling_mnist_panel_n20000_s2
+[2026-05-02T09:39:14]   [53/60] ERROR c1_scaling_mnist_panel_n20000_s2: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [54/60] run    c1_scaling_mnist_panel_n20000_s3
+[2026-05-02T09:39:14]   [54/60] ERROR c1_scaling_mnist_panel_n20000_s3: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [55/60] run    c1_scaling_mnist_panel_n20000_s4
+[2026-05-02T09:39:14]   [55/60] ERROR c1_scaling_mnist_panel_n20000_s4: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [56/60] run    c1_scaling_mnist_panel_n20000_s5
+[2026-05-02T09:39:14]   [56/60] ERROR c1_scaling_mnist_panel_n20000_s5: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [57/60] run    c1_scaling_mnist_panel_n20000_s6
+[2026-05-02T09:39:14]   [57/60] ERROR c1_scaling_mnist_panel_n20000_s6: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [58/60] run    c1_scaling_mnist_panel_n20000_s7
+[2026-05-02T09:39:14]   [58/60] ERROR c1_scaling_mnist_panel_n20000_s7: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [59/60] run    c1_scaling_mnist_panel_n20000_s8
+[2026-05-02T09:39:14]   [59/60] ERROR c1_scaling_mnist_panel_n20000_s8: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14]   [60/60] run    c1_scaling_mnist_panel_n20000_s9
+[2026-05-02T09:39:14]   [60/60] ERROR c1_scaling_mnist_panel_n20000_s9: FileNotFoundError: MNIST raw files not found at /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw. Place the four IDX files under /home/amnesia/Persistent/src/leenef-phase-c/data/MNIST/raw/.
+[2026-05-02T09:39:14] phase c1_scaling_mnist_panel done — 60 rows in results/sl_clean/c1_scaling_mnist_panel.json
+[2026-05-02T09:40:38] phase=c1_scaling_mnist_panel experiment=c1_scaling_mnist knob=cell values=['n500', 'n1000', 'n2000', 'n5000', 'n10000', 'n20000'] seeds=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] code_identity=9bfe9d9c7eacc013c2d83a42389245e47db129fe
+[2026-05-02T09:40:38]   [1/60] run    c1_scaling_mnist_panel_n500_s0
+[2026-05-02T09:40:41]   [2/60] run    c1_scaling_mnist_panel_n500_s1
+[2026-05-02T09:40:44]   [3/60] run    c1_scaling_mnist_panel_n500_s2
+[2026-05-02T09:40:46]   [4/60] run    c1_scaling_mnist_panel_n500_s3
+[2026-05-02T09:40:48]   [5/60] run    c1_scaling_mnist_panel_n500_s4
+[2026-05-02T09:40:50]   [6/60] run    c1_scaling_mnist_panel_n500_s5
+[2026-05-02T09:40:53]   [7/60] run    c1_scaling_mnist_panel_n500_s6
+[2026-05-02T09:40:55]   [8/60] run    c1_scaling_mnist_panel_n500_s7
+[2026-05-02T09:40:57]   [9/60] run    c1_scaling_mnist_panel_n500_s8
+[2026-05-02T09:41:00]   [10/60] run    c1_scaling_mnist_panel_n500_s9
+[2026-05-02T09:41:02]   [11/60] run    c1_scaling_mnist_panel_n1000_s0
+[2026-05-02T09:41:06]   [12/60] run    c1_scaling_mnist_panel_n1000_s1
+[2026-05-02T09:41:10]   [13/60] run    c1_scaling_mnist_panel_n1000_s2
+[2026-05-02T09:41:14]   [14/60] run    c1_scaling_mnist_panel_n1000_s3
+[2026-05-02T09:41:18]   [15/60] run    c1_scaling_mnist_panel_n1000_s4
+[2026-05-02T09:41:21]   [16/60] run    c1_scaling_mnist_panel_n1000_s5
+[2026-05-02T09:41:25]   [17/60] run    c1_scaling_mnist_panel_n1000_s6
+[2026-05-02T09:41:29]   [18/60] run    c1_scaling_mnist_panel_n1000_s7
+[2026-05-02T09:41:33]   [19/60] run    c1_scaling_mnist_panel_n1000_s8
+[2026-05-02T09:41:36]   [20/60] run    c1_scaling_mnist_panel_n1000_s9
+[2026-05-02T09:41:40]   [21/60] run    c1_scaling_mnist_panel_n2000_s0
+[2026-05-02T09:41:48]   [22/60] run    c1_scaling_mnist_panel_n2000_s1
+[2026-05-02T09:41:56]   [23/60] run    c1_scaling_mnist_panel_n2000_s2
+[2026-05-02T09:42:04]   [24/60] run    c1_scaling_mnist_panel_n2000_s3
+[2026-05-02T09:42:12]   [25/60] run    c1_scaling_mnist_panel_n2000_s4
+[2026-05-02T09:42:20]   [26/60] run    c1_scaling_mnist_panel_n2000_s5
+[2026-05-02T09:42:29]   [27/60] run    c1_scaling_mnist_panel_n2000_s6
+[2026-05-02T09:42:37]   [28/60] run    c1_scaling_mnist_panel_n2000_s7
+[2026-05-02T09:42:44]   [29/60] run    c1_scaling_mnist_panel_n2000_s8
+[2026-05-02T09:42:52]   [30/60] run    c1_scaling_mnist_panel_n2000_s9
+[2026-05-02T09:42:59]   [31/60] run    c1_scaling_mnist_panel_n5000_s0
+[2026-05-02T09:43:24]   [32/60] run    c1_scaling_mnist_panel_n5000_s1
+[2026-05-02T09:43:49]   [33/60] run    c1_scaling_mnist_panel_n5000_s2
+[2026-05-02T09:44:15]   [34/60] run    c1_scaling_mnist_panel_n5000_s3
+[2026-05-02T09:44:39]   [35/60] run    c1_scaling_mnist_panel_n5000_s4
+[2026-05-02T09:45:04]   [36/60] run    c1_scaling_mnist_panel_n5000_s5
+[2026-05-02T09:45:29]   [37/60] run    c1_scaling_mnist_panel_n5000_s6
+[2026-05-02T09:45:54]   [38/60] run    c1_scaling_mnist_panel_n5000_s7
+[2026-05-02T09:46:19]   [39/60] run    c1_scaling_mnist_panel_n5000_s8
+[2026-05-02T09:46:44]   [40/60] run    c1_scaling_mnist_panel_n5000_s9
+[2026-05-02T09:47:10]   [41/60] run    c1_scaling_mnist_panel_n10000_s0
+[2026-05-02T09:48:27]   [42/60] run    c1_scaling_mnist_panel_n10000_s1
+[2026-05-02T09:49:44]   [43/60] run    c1_scaling_mnist_panel_n10000_s2
+[2026-05-02T09:51:02]   [44/60] run    c1_scaling_mnist_panel_n10000_s3
+[2026-05-02T09:52:19]   [45/60] run    c1_scaling_mnist_panel_n10000_s4
+[2026-05-02T09:53:36]   [46/60] run    c1_scaling_mnist_panel_n10000_s5
+[2026-05-02T09:54:53]   [47/60] run    c1_scaling_mnist_panel_n10000_s6
+[2026-05-02T09:56:10]   [48/60] run    c1_scaling_mnist_panel_n10000_s7
+[2026-05-02T09:57:27]   [49/60] run    c1_scaling_mnist_panel_n10000_s8
+[2026-05-02T09:58:44]   [50/60] run    c1_scaling_mnist_panel_n10000_s9
+[2026-05-02T10:00:01]   [51/60] run    c1_scaling_mnist_panel_n20000_s0
+[2026-05-02T10:04:34]   [52/60] run    c1_scaling_mnist_panel_n20000_s1
+[2026-05-02T10:09:04]   [53/60] run    c1_scaling_mnist_panel_n20000_s2
+[2026-05-02T10:13:27]   [54/60] run    c1_scaling_mnist_panel_n20000_s3
+[2026-05-02T10:17:53]   [55/60] run    c1_scaling_mnist_panel_n20000_s4
+[2026-05-02T10:22:18]   [56/60] run    c1_scaling_mnist_panel_n20000_s5
+[2026-05-02T10:26:43]   [57/60] run    c1_scaling_mnist_panel_n20000_s6
+[2026-05-02T10:31:06]   [58/60] run    c1_scaling_mnist_panel_n20000_s7
+[2026-05-02T10:35:26]   [59/60] run    c1_scaling_mnist_panel_n20000_s8
+[2026-05-02T10:39:47]   [60/60] run    c1_scaling_mnist_panel_n20000_s9
+[2026-05-02T10:44:11] phase c1_scaling_mnist_panel done — 60 rows in results/sl_clean/c1_scaling_mnist_panel.json
