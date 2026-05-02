@@ -94,6 +94,7 @@ the ground truth for any future claim audit.
 | C1.1 | c1_scaling_fashion_panel | c1_scaling_fashion | `cell` (`n_neurons`) | Paper I scaling figure — Fashion-MNIST |
 | C2   | c2_activation_mnist_panel | c2_activation_mnist | `cell` (activation × gain) | Paper I activation/gain ablation — MNIST |
 | C2.1 | c2_activation_fashion_panel | c2_activation_fashion | `cell` (activation × gain) | Paper I activation/gain ablation — Fashion-MNIST |
+| C3   | c3_ensemble_cifar10_panel | c3_ensemble_cifar10 | `cell` (ensemble size × encoder) | Paper I ensemble / RF panel — CIFAR-10 |
 | C7   | c7_housing_panel | c7_housing | `cell` (`n_neurons`) | Paper I §5.6 — regression universality demo |
 
 ---
@@ -816,6 +817,59 @@ gain range still matters only marginally.
 ```bash
 SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
   bash benchmarks/sl_clean/sl_hp_driver.sh c2_activation_fashion
+```
+
+---
+
+## C3 — CIFAR-10 ensemble × receptive-field panel
+
+**Question.** On CIFAR-10, does ensembling close the gap between the
+default hypersphere prior and the spatially local receptive-field prior,
+or does the receptive-field advantage persist no matter how many members
+are averaged?
+
+**Setup.** CIFAR-10, `n_members ∈ {1, 5, 10, 20}` ×
+`encoder ∈ {hypersphere, receptive_field}` × 5 seeds = 40 rows.
+Each member uses `n_neurons=5000`, `abs`, data-driven biases, and
+`α=1e-3`; member logits are averaged across the ensemble. Result:
+`results/sl_clean/c3_ensemble_cifar10_panel.json`. Log:
+`results/sl_clean/logs/c3_ensemble_cifar10_panel.log`. Wall time:
+~3 h 51 min on the 12-core CPU (across the interrupted first attempt and
+the resumable rerun).
+
+### Per-cell test accuracy (mean ± SE, n=5)
+
+| cell | test accuracy | verdict |
+|---|---|---|
+| m1+hypersphere | 49.6 ± 0.1 | weakest baseline |
+| m1+receptive_field | 55.1 ± 0.1 | strong single-member gain |
+| m5+hypersphere | 53.8 ± 0.1 | ensemble helps |
+| m5+receptive_field | 59.6 ± 0.1 | clear best at moderate cost |
+| m10+hypersphere | 54.2 ± 0.1 | small gain over m5 |
+| m10+receptive_field | 60.2 ± 0.1 | best moderate-size cell |
+| m20+hypersphere | 54.7 ± 0.1 | diminishing returns |
+| m20+receptive_field | 60.6 ± 0.1 | best overall |
+
+**Verdict.** C3 strongly supports the receptive-field story. The
+receptive-field prior stays **about 5.5–6.0 pp above** hypersphere at
+every ensemble size, so ensembling does **not** erase the encoder-prior
+advantage. Ensembling itself helps both families substantially from
+`m=1` to `m=5`, but the marginal gain from `m=10` to `m=20` is small
+(`+0.5 pp` for hypersphere, `+0.4 pp` for receptive_field). The
+practical recommendation is therefore: if compute allows only one lever,
+**choose receptive-field before buying more members**.
+
+**Code / data identity.**
+
+- `code_identity` for all 40 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared CIFAR-10 raw bytes under the
+  worktree's `data/` symlink to `../leenef/data`
+
+### Reproduce
+
+```bash
+SEEDS=0-4 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c3_ensemble_cifar10
 ```
 
 ---
