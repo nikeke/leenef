@@ -95,6 +95,7 @@ the ground truth for any future claim audit.
 | C1.2 | c1_scaling_cifar10_panel | c1_scaling_cifar10 | `cell` (`n_neurons`) | Paper I scaling figure — CIFAR-10 |
 | C2   | c2_activation_mnist_panel | c2_activation_mnist | `cell` (activation × gain) | Paper I activation/gain ablation — MNIST |
 | C2.1 | c2_activation_fashion_panel | c2_activation_fashion | `cell` (activation × gain) | Paper I activation/gain ablation — Fashion-MNIST |
+| C2.2 | c2_activation_cifar10_panel | c2_activation_cifar10 | `cell` (activation × gain) | Paper I activation/gain ablation — CIFAR-10 |
 | C3   | c3_ensemble_cifar10_panel | c3_ensemble_cifar10 | `cell` (ensemble size × encoder) | Paper I ensemble / RF panel — CIFAR-10 |
 | C4   | c4_multilayer_mnist_panel | c4_multilayer_mnist | `cell` (training strategy) | Paper I multilayer strategy panel — MNIST |
 | C6   | c6_convnef_mnist_panel | c6_convnef_mnist | `cell` (`default`) | Paper I ConvNEF headline — MNIST |
@@ -873,6 +874,61 @@ gain range still matters only marginally.
 ```bash
 SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
   bash benchmarks/sl_clean/sl_hp_driver.sh c2_activation_fashion
+```
+
+---
+
+## C2.2 — CIFAR-10 activation × gain ablation
+
+**Question.** On the default 5000-neuron CIFAR-10 solve, do activation
+choice and gain spread matter more than they did on MNIST and
+Fashion-MNIST, or is the same broad "abs/ReLU tie, tanh worse" story
+still intact?
+
+**Setup.** CIFAR-10, `activation ∈ {abs, relu, tanh}` ×
+`gain ∈ {(0.5,2.0), (1.0,1.0), (0.1,5.0)}` × 10 seeds = 90 rows.
+Hypersphere encoders, data-driven biases, `n_neurons=5000`, `α=1e-3`,
+chunked normal-equation accumulation with Cholesky solve. Result:
+`results/sl_clean/c2_activation_cifar10_panel.json`. Log:
+`results/sl_clean/logs/c2_activation_cifar10_panel.log`. Wall time:
+~49 min on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=10)
+
+| cell | test accuracy | verdict |
+|---|---|---|
+| abs+g0.5_2.0 | 49.4 ± 0.1 | top tier |
+| abs+g1.0_1.0 | 49.3 ± 0.1 | close to the leaders |
+| abs+g0.1_5.0 | 49.7 ± 0.1 | best overall |
+| relu+g0.5_2.0 | 49.5 ± 0.1 | top tier |
+| relu+g1.0_1.0 | 49.3 ± 0.1 | slightly lower |
+| relu+g0.1_5.0 | 49.5 ± 0.1 | top tier |
+| tanh+g0.5_2.0 | 48.6 ± 0.1 | clearly worse |
+| tanh+g1.0_1.0 | 48.0 ± 0.1 | weakest cell |
+| tanh+g0.1_5.0 | 49.0 ± 0.1 | partially recovered, still behind |
+
+**Verdict.** C2.2 matches the earlier C2 story more than it overturns
+it. `abs` and ReLU remain effectively tied on CIFAR-10, with the best
+cells all clustered around `49.4–49.7%` and overlapping SEs. The clean
+signal is that **`tanh` remains materially worse**, especially with
+fixed gain (`47.99% ± 0.07`). The gain story is slightly stronger than
+on MNIST: the wide `g0.1_5.0` spread gives the best `abs` result and
+partly rescues `tanh`, but the effect is still modest compared with the
+activation-family gap. The practical default therefore still stands:
+**stick with `abs` or ReLU; avoid `tanh`, especially with narrow/fixed
+gain.**
+
+**Code / data identity.**
+
+- `code_identity` for all 90 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared CIFAR-10 raw bytes under the
+  worktree's `data/` symlink to `../leenef/data`
+
+### Reproduce
+
+```bash
+SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c2_activation_cifar10
 ```
 
 ---
