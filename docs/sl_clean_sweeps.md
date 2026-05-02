@@ -92,6 +92,7 @@ the ground truth for any future claim audit.
 | H8   | h8_linear_collapse | h8_linear_collapse_check | `activation ∈ {linear, abs}` × n | H8 — over-representation needs nonlinearity (single-seed sanity) |
 | C1   | c1_scaling_mnist_panel | c1_scaling_mnist | `cell` (`n_neurons`) | Paper I scaling figure — MNIST |
 | C1.1 | c1_scaling_fashion_panel | c1_scaling_fashion | `cell` (`n_neurons`) | Paper I scaling figure — Fashion-MNIST |
+| C2   | c2_activation_mnist_panel | c2_activation_mnist | `cell` (activation × gain) | Paper I activation/gain ablation — MNIST |
 | C7   | c7_housing_panel | c7_housing | `cell` (`n_neurons`) | Paper I §5.6 — regression universality demo |
 
 ---
@@ -711,6 +712,58 @@ the paper's comparisons, but it is not sitting on a true asymptote.
 ```bash
 SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
   bash benchmarks/sl_clean/sl_hp_driver.sh c1_scaling_fashion
+```
+
+---
+
+## C2 — MNIST activation × gain ablation
+
+**Question.** On the default 5000-neuron MNIST solve, does `abs`
+actually beat ReLU once seeds are averaged, and does per-neuron gain
+diversity matter enough to justify the default `U(0.5, 2.0)` range?
+
+**Setup.** MNIST, `activation ∈ {abs, relu, tanh}` ×
+`gain ∈ {(0.5,2.0), (1.0,1.0), (0.1,5.0)}` × 10 seeds = 90 rows.
+Hypersphere encoders, data-driven biases, `n_neurons=5000`, `α=1e-3`,
+chunked normal-equation accumulation with Cholesky solve. Result:
+`results/sl_clean/c2_activation_mnist_panel.json`. Log:
+`results/sl_clean/logs/c2_activation_mnist_panel.log`. Wall time: ~40
+min on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=10)
+
+| cell | test accuracy | verdict |
+|---|---|---|
+| abs+g0.5_2.0 | 97.0 ± 0.0 | top tier |
+| abs+g1.0_1.0 | 97.1 ± 0.0 | top tier |
+| abs+g0.1_5.0 | 97.0 ± 0.0 | top tier |
+| relu+g0.5_2.0 | 97.0 ± 0.0 | top tier |
+| relu+g1.0_1.0 | 97.1 ± 0.0 | top tier |
+| relu+g0.1_5.0 | 96.9 ± 0.0 | marginally below the leaders |
+| tanh+g0.5_2.0 | 96.8 ± 0.0 | consistently worse |
+| tanh+g1.0_1.0 | 96.7 ± 0.0 | consistently worse |
+| tanh+g0.1_5.0 | 96.9 ± 0.0 | consistently worse |
+
+**Verdict.** C2 on MNIST says the activation story is weaker than the
+original hypothesis suggested. The best cell is `relu+g1.0_1.0` at
+`97.06% ± 0.02`, but the whole `abs`/`relu` family sits inside a very
+tight band (`96.94%` to `97.06%`) with heavily overlapping SEs. The
+robust signal is only that **`tanh` trails by about 0.2–0.4 pp**. Gain
+range is effectively a wash on MNIST: fixed gain, project-default gain,
+and the wide-spread gain all land within seed noise for both `abs` and
+ReLU.
+
+**Code / data identity.**
+
+- `code_identity` for all 90 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared MNIST raw bytes under the worktree's
+  `data/` symlink to `../leenef/data`
+
+### Reproduce
+
+```bash
+SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c2_activation_mnist
 ```
 
 ---
