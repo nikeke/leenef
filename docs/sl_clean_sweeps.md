@@ -96,6 +96,7 @@ the ground truth for any future claim audit.
 | C2.1 | c2_activation_fashion_panel | c2_activation_fashion | `cell` (activation × gain) | Paper I activation/gain ablation — Fashion-MNIST |
 | C3   | c3_ensemble_cifar10_panel | c3_ensemble_cifar10 | `cell` (ensemble size × encoder) | Paper I ensemble / RF panel — CIFAR-10 |
 | C6   | c6_convnef_mnist_panel | c6_convnef_mnist | `cell` (`default`) | Paper I ConvNEF headline — MNIST |
+| C6.1 | c6_convnef_cifar10_panel | c6_convnef_cifar10 | `cell` (`default`) | Paper I ConvNEF headline — CIFAR-10 |
 | C7   | c7_housing_panel | c7_housing | `cell` (`n_neurons`) | Paper I §5.6 — regression universality demo |
 
 ---
@@ -912,6 +913,49 @@ remaining fully gradient-free.
 ```bash
 SEEDS=0-4 PYTHON=../leenef/venv/bin/python \
   bash benchmarks/sl_clean/sl_hp_driver.sh c6_convnef_mnist
+```
+
+---
+
+## C6.1 — ConvNEF on CIFAR-10
+
+**Question.** Does the same lite ConvNEF configuration remain competitive
+once we move from MNIST to CIFAR-10, where spatial structure matters
+much more and shallow fixed-feature pipelines are under real pressure?
+
+**Setup.** CIFAR-10, ConvNEF `default` config × 5 seeds. Single PCA
+filter stage (`96` filters, `patch_size=5`, `pool_size=2`),
+`n_neurons=4000`, `pool_levels=[1,2,4]`, `standardize=True`, `gcn=True`,
+`abs` activation, hypersphere encoders, gain `U(0.5, 2.0)`, analytic
+decoder with `α=1e-2`. Result:
+`results/sl_clean/c6_convnef_cifar10_panel.json`. Log:
+`results/sl_clean/logs/c6_convnef_cifar10_panel.log`. Wall time: ~7.5
+min on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=5)
+
+| cell | test accuracy | verdict |
+|---|---|---|
+| default | 65.89 ± 0.12 | clearly above single-layer baseline |
+
+**Verdict.** C6.1 supports the intended headline. The lite ConvNEF setup
+reaches `65.892% ± 0.118` on CIFAR-10, substantially above the plain
+single-layer CIFAR-10 numbers and comfortably above the ensemble-free
+hypersphere baseline from C3. It does not approach modern CNN territory,
+but it validates the paper's claim that a shallow, fully gradient-free,
+data-derived conv front-end can be genuinely competitive on CIFAR-10.
+
+**Code / data identity.**
+
+- `code_identity` for all 5 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared CIFAR-10 raw bytes under the
+  worktree's `data/` symlink to `../leenef/data`
+
+### Reproduce
+
+```bash
+SEEDS=0-4 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c6_convnef_cifar10
 ```
 
 ---

@@ -1,0 +1,482 @@
+{
+  "c6_convnef_cifar10_panel_default_s0": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "alpha": 0.01,
+      "cell": "default",
+      "n_neurons": 4000,
+      "pool_levels": [
+        1,
+        2,
+        4
+      ],
+      "standardize": true
+    },
+    "experiment": "c6_convnef_cifar10",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c6_convnef_cifar10_panel_default_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 3072,
+        "dataset": "CIFAR10",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 50000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        }
+      },
+      "diagnostics": {
+        "n_neurons": 4000,
+        "pool_levels": [
+          1,
+          2,
+          4
+        ],
+        "stages": [
+          {
+            "filter_strategy": "pca",
+            "n_filters": 96,
+            "patch_size": 5,
+            "pool_size": 2
+          }
+        ],
+        "standardize": true
+      },
+      "factors": {
+        "config": "default"
+      },
+      "test_accuracy": 0.6595,
+      "train_accuracy": 0.7522,
+      "train_time_s": 78.3943
+    },
+    "phase": "c6_convnef_cifar10_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CIFAR10",
+      "experiment_kind": "cifar10_convnef_c6_lite_panel",
+      "image_shape": [
+        32,
+        32
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 50000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "default",
+    "wall_time_s": 92.5585
+  },
+  "c6_convnef_cifar10_panel_default_s1": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "alpha": 0.01,
+      "cell": "default",
+      "n_neurons": 4000,
+      "pool_levels": [
+        1,
+        2,
+        4
+      ],
+      "standardize": true
+    },
+    "experiment": "c6_convnef_cifar10",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c6_convnef_cifar10_panel_default_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 3072,
+        "dataset": "CIFAR10",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 50000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        }
+      },
+      "diagnostics": {
+        "n_neurons": 4000,
+        "pool_levels": [
+          1,
+          2,
+          4
+        ],
+        "stages": [
+          {
+            "filter_strategy": "pca",
+            "n_filters": 96,
+            "patch_size": 5,
+            "pool_size": 2
+          }
+        ],
+        "standardize": true
+      },
+      "factors": {
+        "config": "default"
+      },
+      "test_accuracy": 0.6603,
+      "train_accuracy": 0.75,
+      "train_time_s": 75.7925
+    },
+    "phase": "c6_convnef_cifar10_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CIFAR10",
+      "experiment_kind": "cifar10_convnef_c6_lite_panel",
+      "image_shape": [
+        32,
+        32
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 50000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "default",
+    "wall_time_s": 89.3669
+  },
+  "c6_convnef_cifar10_panel_default_s2": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "alpha": 0.01,
+      "cell": "default",
+      "n_neurons": 4000,
+      "pool_levels": [
+        1,
+        2,
+        4
+      ],
+      "standardize": true
+    },
+    "experiment": "c6_convnef_cifar10",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c6_convnef_cifar10_panel_default_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 3072,
+        "dataset": "CIFAR10",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 50000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        }
+      },
+      "diagnostics": {
+        "n_neurons": 4000,
+        "pool_levels": [
+          1,
+          2,
+          4
+        ],
+        "stages": [
+          {
+            "filter_strategy": "pca",
+            "n_filters": 96,
+            "patch_size": 5,
+            "pool_size": 2
+          }
+        ],
+        "standardize": true
+      },
+      "factors": {
+        "config": "default"
+      },
+      "test_accuracy": 0.6623,
+      "train_accuracy": 0.753,
+      "train_time_s": 77.4749
+    },
+    "phase": "c6_convnef_cifar10_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CIFAR10",
+      "experiment_kind": "cifar10_convnef_c6_lite_panel",
+      "image_shape": [
+        32,
+        32
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 50000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "default",
+    "wall_time_s": 90.1395
+  },
+  "c6_convnef_cifar10_panel_default_s3": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "alpha": 0.01,
+      "cell": "default",
+      "n_neurons": 4000,
+      "pool_levels": [
+        1,
+        2,
+        4
+      ],
+      "standardize": true
+    },
+    "experiment": "c6_convnef_cifar10",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c6_convnef_cifar10_panel_default_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 3072,
+        "dataset": "CIFAR10",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 50000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        }
+      },
+      "diagnostics": {
+        "n_neurons": 4000,
+        "pool_levels": [
+          1,
+          2,
+          4
+        ],
+        "stages": [
+          {
+            "filter_strategy": "pca",
+            "n_filters": 96,
+            "patch_size": 5,
+            "pool_size": 2
+          }
+        ],
+        "standardize": true
+      },
+      "factors": {
+        "config": "default"
+      },
+      "test_accuracy": 0.6564,
+      "train_accuracy": 0.7534,
+      "train_time_s": 77.3939
+    },
+    "phase": "c6_convnef_cifar10_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CIFAR10",
+      "experiment_kind": "cifar10_convnef_c6_lite_panel",
+      "image_shape": [
+        32,
+        32
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 50000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "default",
+    "wall_time_s": 89.6699
+  },
+  "c6_convnef_cifar10_panel_default_s4": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "alpha": 0.01,
+      "cell": "default",
+      "n_neurons": 4000,
+      "pool_levels": [
+        1,
+        2,
+        4
+      ],
+      "standardize": true
+    },
+    "experiment": "c6_convnef_cifar10",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c6_convnef_cifar10_panel_default_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 3072,
+        "dataset": "CIFAR10",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 50000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        }
+      },
+      "diagnostics": {
+        "n_neurons": 4000,
+        "pool_levels": [
+          1,
+          2,
+          4
+        ],
+        "stages": [
+          {
+            "filter_strategy": "pca",
+            "n_filters": 96,
+            "patch_size": 5,
+            "pool_size": 2
+          }
+        ],
+        "standardize": true
+      },
+      "factors": {
+        "config": "default"
+      },
+      "test_accuracy": 0.6561,
+      "train_accuracy": 0.7446,
+      "train_time_s": 75.7552
+    },
+    "phase": "c6_convnef_cifar10_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CIFAR10",
+      "experiment_kind": "cifar10_convnef_c6_lite_panel",
+      "image_shape": [
+        32,
+        32
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 50000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "default",
+    "wall_time_s": 88.8486
+  }
+}
