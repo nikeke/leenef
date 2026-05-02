@@ -91,6 +91,7 @@ the ground truth for any future claim audit.
 | B7   | biases_{cifar10_centered,mnist_decentered}_panel | biases_*_centered/decentered | `cell` (3×3 factorial) | H1 — DC-component falsifier; channel-centering vs offset injection |
 | H8   | h8_linear_collapse | h8_linear_collapse_check | `activation ∈ {linear, abs}` × n | H8 — over-representation needs nonlinearity (single-seed sanity) |
 | C1   | c1_scaling_mnist_panel | c1_scaling_mnist | `cell` (`n_neurons`) | Paper I scaling figure — MNIST |
+| C1.1 | c1_scaling_fashion_panel | c1_scaling_fashion | `cell` (`n_neurons`) | Paper I scaling figure — Fashion-MNIST |
 | C7   | c7_housing_panel | c7_housing | `cell` (`n_neurons`) | Paper I §5.6 — regression universality demo |
 
 ---
@@ -663,6 +664,53 @@ gains below 5000.
 ```bash
 SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
   bash benchmarks/sl_clean/sl_hp_driver.sh c1_scaling_mnist
+```
+
+---
+
+## C1.1 — Fashion-MNIST neuron-count scaling
+
+**Question.** Does the same width curve on Fashion-MNIST flatten early
+enough to justify treating the 5000-neuron single-layer solve as
+"already saturated" on a harder static image benchmark?
+
+**Setup.** Fashion-MNIST, `n_neurons ∈ {500, 1000, 2000, 5000, 10000,
+20000}` × 10 seeds = 60 rows. Hypersphere encoders, data-driven biases,
+`abs` activation, gain `U(0.5, 2.0)`, `α=1e-3`, chunked normal-equation
+accumulation with Cholesky solve. Result:
+`results/sl_clean/c1_scaling_fashion_panel.json`. Log:
+`results/sl_clean/logs/c1_scaling_fashion_panel.log`. Wall time: ~65 min
+on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=10)
+
+| n_neurons | test accuracy | verdict |
+|---|---|---|
+| 500 | 83.0 ± 0.1 | far from saturation |
+| 1000 | 84.8 ± 0.0 | clear gain over 500 |
+| 2000 | 86.2 ± 0.1 | still climbing |
+| 5000 | 87.8 ± 0.1 | strong but not flat |
+| 10000 | 88.7 ± 0.1 | another clear step up |
+| 20000 | 89.3 ± 0.1 | **still improving** |
+
+**Verdict.** C1.1 matches the revised C1 story: Fashion-MNIST also does
+**not** plateau by `n=20000`. Accuracy rises monotonically from
+`88.68% ± 0.06` at `n=10000` to `89.28% ± 0.06` at `n=20000`, a
+`+0.60 pp` gain that is far outside the combined SE. The practical
+implication is the same as on MNIST: `n=5000` is good enough for most of
+the paper's comparisons, but it is not sitting on a true asymptote.
+
+**Code / data identity.**
+
+- `code_identity` for all 60 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared Fashion-MNIST raw bytes under the
+  worktree's `data/` symlink to `../leenef/data`
+
+### Reproduce
+
+```bash
+SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c1_scaling_fashion
 ```
 
 ---
