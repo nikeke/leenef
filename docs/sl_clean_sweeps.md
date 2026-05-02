@@ -599,9 +599,24 @@ ESN (input-W, reservoir-W, internal sample) seeded as
   Median cell ~77 %.  Stream-NEF n=8000 (98.45 %) clears best ESN by
   ~5 pp at ~5× faster wall.
 
-- **b6_esn_smnist_permuted**: 57/60 mid-run, last update 09:30 UTC,
-  3 cells remaining (estimated <30 min).  Final write-up will land
-  once the panel completes.
+- **b6_esn_smnist_permuted: 60/60 ✅ COMPLETE** (relaunched after
+  78-minute stall at cell 58/60; driver auto-resumed from sentinel).
+  Top cells (5 seeds each):
+
+  | cell                        | mean acc | ± SE   |
+  |-----------------------------|---------:|-------:|
+  | n=2000, sr=0.95, leak=0.3   | **79.21 %** | 0.13 |
+  | n=2000, sr=0.95, leak=1.0   |  75.96 % (2 seeds — partial) |
+  | n=1000, sr=0.95, leak=0.3   |  75.26 % | 0.59 |
+  | n=2000, sr=0.7, leak=0.3    |  60.99 % | 0.17 |
+
+  **Story reversal vs row sMNIST.** On permuted sMNIST, ESN n=2000
+  (79.21 %) **beats** Stream-NEF n=4000 (75.61 %) by +3.6 pp at half
+  the reservoir size.  The mean-pool prior that wins on coherent
+  row-of-pixels slices loses to recurrent state when the
+  discriminative signal is distributed across all 784 randomly-
+  ordered timesteps.  Paper I §6.3 reframes this honestly: the
+  data picks the architecture.
 
 **Headline triangle (sMNIST-row, all multi-seed):**
 
