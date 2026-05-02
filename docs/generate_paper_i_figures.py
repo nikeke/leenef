@@ -39,12 +39,18 @@ def _se(xs: list[float]) -> float:
     return stdev(xs) / math.sqrt(len(xs))
 
 
-def _load_rows(path: Path) -> list[dict]:
-    """Load a flat-dict-of-rows JSON; tolerate list shapes too."""
+def _load_rows(path: Path, current_only: bool = False) -> list[dict]:
+    """Load a flat-dict-of-rows JSON; tolerate list shapes too.
+
+    If ``current_only`` is set, drop rows whose code_identity carries
+    a ``-dirty-`` suffix — those are from uncommitted trees and are
+    excluded from headline aggregates per AGENTS.md repro rules.
+    """
     data = json.loads(path.read_text())
-    if isinstance(data, dict):
-        return list(data.values())
-    return list(data)
+    rows = list(data.values()) if isinstance(data, dict) else list(data)
+    if current_only:
+        rows = [r for r in rows if "-dirty-" not in r.get("code_identity", "")]
+    return rows
 
 
 def _group(rows: list[dict], key_fn) -> dict[tuple, list[dict]]:
@@ -68,9 +74,9 @@ def figure_f3() -> Path:
         families[label].append((c["n_neurons"], c["mean"], c["se"]))
 
     ordered = sorted(families.items(), key=lambda kv: -max(m for _, m, _ in kv[1]))
-    keep = [
-        f"trace α={a:g}" for a in (1e-4, 1e-3, 1e-2)
-    ] + [f"fixed α={a:g}" for a in (1e-2, 1e-4)]
+    keep = [f"trace α={a:g}" for a in (1e-4, 1e-3, 1e-2)] + [
+        f"fixed α={a:g}" for a in (1e-2, 1e-4)
+    ]
     keep_set = set(keep)
 
     fig, ax = plt.subplots(figsize=(6.4, 4.4))
@@ -89,8 +95,7 @@ def figure_f3() -> Path:
         ys = [100 * p[1] for p in points]
         ses = [100 * p[2] for p in points]
         marker, color, lw = style.get(label, ("x:", "gray", 1.0))
-        ax.errorbar(xs, ys, yerr=ses, fmt=marker, color=color, lw=lw,
-                    capsize=3, label=label)
+        ax.errorbar(xs, ys, yerr=ses, fmt=marker, color=color, lw=lw, capsize=3, label=label)
 
     ax.set_xscale("log")
     ax.set_xlabel("n_neurons")
@@ -173,15 +178,21 @@ def figure_f4() -> Path:
 def figure_f6() -> Path:
     """B3 encoder-strategy panel."""
     datasets = ("mnist", "fashion", "cifar10")
-    strategies = ("hypersphere", "gaussian", "sparse",
-                  "receptive_field", "whitened", "class_contrast", "local_pca")
+    strategies = (
+        "hypersphere",
+        "gaussian",
+        "sparse",
+        "receptive_field",
+        "whitened",
+        "class_contrast",
+        "local_pca",
+    )
 
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.5), sharey=False)
     for ax, ds in zip(axes, datasets):
         path = RESULTS / f"b3_strategies_{ds}_panel.json"
         if not path.exists():
-            ax.text(0.5, 0.5, "(no data)", ha="center", va="center",
-                    transform=ax.transAxes)
+            ax.text(0.5, 0.5, "(no data)", ha="center", va="center", transform=ax.transAxes)
             ax.set_title(ds.upper())
             continue
         rows = _load_rows(path)
@@ -219,9 +230,7 @@ def figure_f7() -> Path:
 
     fig, ax = plt.subplots(figsize=(6.4, 4.4))
     modes = ("batch_acc", "accumulate", "woodbury")
-    style = {"batch_acc": ("o-", "C0"),
-             "accumulate": ("s--", "C2"),
-             "woodbury": ("^:", "C1")}
+    style = {"batch_acc": ("o-", "C0"), "accumulate": ("s--", "C2"), "woodbury": ("^:", "C1")}
     for m in modes:
         ns = sorted({n for (mm, n) in cells if mm == m})
         if not ns:
@@ -229,8 +238,7 @@ def figure_f7() -> Path:
         ms = [mean(cells[(m, n)]) for n in ns]
         ses = [_se(cells[(m, n)]) for n in ns]
         marker, color = style[m]
-        ax.errorbar(ns, ms, yerr=ses, fmt=marker, color=color, lw=1.5,
-                    capsize=3, label=m)
+        ax.errorbar(ns, ms, yerr=ses, fmt=marker, color=color, lw=1.5, capsize=3, label=m)
     ax.set_xscale("log")
     ax.set_xlabel("n_neurons")
     ax.set_ylabel("test accuracy (%)")
@@ -281,11 +289,13 @@ def figure_f9() -> Path:
     width = 0.28
     fig, ax = plt.subplots(figsize=(7.5, 4.5))
     xs = list(range(len(datasets)))
-    for i, (label, fn, color) in enumerate([
-        ("NEF hypersphere (B1)", b1_hypersphere_dd, "C0"),
-        ("NEF receptive_field (B3)", b3_rf, "C2"),
-        ("MLP tuned (B4)", b4_best, "C3"),
-    ]):
+    for i, (label, fn, color) in enumerate(
+        [
+            ("NEF hypersphere (B1)", b1_hypersphere_dd, "C0"),
+            ("NEF receptive_field (B3)", b3_rf, "C2"),
+            ("MLP tuned (B4)", b4_best, "C3"),
+        ]
+    ):
         ms, ses = zip(*[fn(ds) for ds in datasets])
         offsets = [x + (i - 1) * width for x in xs]
         ax.bar(offsets, ms, width, yerr=ses, capsize=3, label=label, color=color)
@@ -312,8 +322,8 @@ def figure_f8() -> Path:
     nef_perm_se = {2000: 0.07, 4000: 0.05}
 
     # ESN row + permuted: pick best leak/sr cell per n
-    def _esn_best(panel_path):
-        rows = _load_rows(panel_path)
+    def _esn_best(panel_path, current_only=True):
+        rows = _load_rows(panel_path, current_only=current_only)
         cells = defaultdict(list)
         for r in rows:
             cell = r.get("config", {}).get("cell", "")
@@ -342,15 +352,32 @@ def figure_f8() -> Path:
 
     # Row panel
     ns_nef_row = sorted(nef_row.keys())
-    ax1.errorbar(ns_nef_row, [nef_row[n] for n in ns_nef_row],
-                 yerr=[nef_row_se[n] for n in ns_nef_row],
-                 marker="o", linewidth=2, label="Stream-NEF", color="C0")
+    ax1.errorbar(
+        ns_nef_row,
+        [nef_row[n] for n in ns_nef_row],
+        yerr=[nef_row_se[n] for n in ns_nef_row],
+        marker="o",
+        linewidth=2,
+        label="Stream-NEF",
+        color="C0",
+    )
     ns_esn_row = sorted(esn_row.keys())
-    ax1.errorbar(ns_esn_row, [esn_row[n][0] for n in ns_esn_row],
-                 yerr=[esn_row[n][1] for n in ns_esn_row],
-                 marker="s", linewidth=2, label="ESN (best cell)", color="C1")
-    ax1.axhline(lstm_row["acc"], color="C3", linestyle="--", linewidth=1.5,
-                label=f"LSTM tuned ({lstm_row['acc']:.2f}%)")
+    ax1.errorbar(
+        ns_esn_row,
+        [esn_row[n][0] for n in ns_esn_row],
+        yerr=[esn_row[n][1] for n in ns_esn_row],
+        marker="s",
+        linewidth=2,
+        label="ESN (best cell)",
+        color="C1",
+    )
+    ax1.axhline(
+        lstm_row["acc"],
+        color="C3",
+        linestyle="--",
+        linewidth=1.5,
+        label=f"LSTM tuned ({lstm_row['acc']:.2f}%)",
+    )
     ax1.set_xlabel("n_neurons (reservoir size)")
     ax1.set_ylabel("test accuracy (%)")
     ax1.set_title("Row sMNIST")
@@ -360,17 +387,35 @@ def figure_f8() -> Path:
 
     # Permuted panel
     ns_nef_p = sorted(nef_perm.keys())
-    ax2.errorbar(ns_nef_p, [nef_perm[n] for n in ns_nef_p],
-                 yerr=[nef_perm_se[n] for n in ns_nef_p],
-                 marker="o", linewidth=2, label="Stream-NEF", color="C0")
+    ax2.errorbar(
+        ns_nef_p,
+        [nef_perm[n] for n in ns_nef_p],
+        yerr=[nef_perm_se[n] for n in ns_nef_p],
+        marker="o",
+        linewidth=2,
+        label="Stream-NEF",
+        color="C0",
+    )
     ns_esn_p = sorted(esn_perm.keys())
-    ax2.errorbar(ns_esn_p, [esn_perm[n][0] for n in ns_esn_p],
-                 yerr=[esn_perm[n][1] for n in ns_esn_p],
-                 marker="s", linewidth=2, label="ESN (best cell)", color="C1")
-    ax2.text(0.04, 0.92, "LSTM did not converge\nin compute budget",
-             transform=ax2.transAxes, fontsize=8, color="C3",
-             verticalalignment="top",
-             bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.7))
+    ax2.errorbar(
+        ns_esn_p,
+        [esn_perm[n][0] for n in ns_esn_p],
+        yerr=[esn_perm[n][1] for n in ns_esn_p],
+        marker="s",
+        linewidth=2,
+        label="ESN (best cell)",
+        color="C1",
+    )
+    ax2.text(
+        0.04,
+        0.92,
+        "LSTM did not converge\nin compute budget\n(ESN: preliminary, rerun in flight)",
+        transform=ax2.transAxes,
+        fontsize=8,
+        color="C3",
+        verticalalignment="top",
+        bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.7),
+    )
     ax2.set_xlabel("n_neurons (reservoir size)")
     ax2.set_ylabel("test accuracy (%)")
     ax2.set_title("Permuted sMNIST")
@@ -378,7 +423,7 @@ def figure_f8() -> Path:
     ax2.grid(True, alpha=0.3)
     ax2.legend(fontsize=9, loc="lower right")
 
-    fig.suptitle("F8 — Streaming-NEF vs ESN vs LSTM: row beats ESN, permuted does not")
+    fig.suptitle("F8 — Stream-NEF vs ESN vs LSTM (right panel: ESN is preliminary)")
     out = FIG_DIR / "f8_streaming_baselines.png"
     fig.tight_layout()
     fig.savefig(out, dpi=150)
@@ -399,8 +444,12 @@ FIGURES = {
 
 def main() -> int:
     p = argparse.ArgumentParser()
-    p.add_argument("--only", action="append", default=None,
-                   help="Generate only the named figures (e.g. --only F3 --only F7)")
+    p.add_argument(
+        "--only",
+        action="append",
+        default=None,
+        help="Generate only the named figures (e.g. --only F3 --only F7)",
+    )
     args = p.parse_args()
     todo = args.only or list(FIGURES)
     for name in todo:

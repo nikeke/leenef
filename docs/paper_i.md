@@ -29,17 +29,19 @@ statistics `AᵀA` and `AᵀY` — into ensembles, online updates
 (Woodbury), GPU-friendly accumulate-and-solve, and, non-trivially,
 a streaming temporal classifier.  Under multi-seed, code-identity
 tagged evaluation, the streaming classifier reaches **98.45 ± 0.02 %**
-on row sMNIST, within 0.7 pp of a tuned LSTM at roughly 20 × the
-wallclock saving and 5 pp above an apples-to-apples ESN baseline.
-We also report the limits honestly: gradient-free multi-layer
-stacking does not work; permuted sequence classification is bounded
-above by mean-pool's order-erasing property — on permuted sMNIST
-the same ESN baseline beats Stream-NEF by ~3.6 pp, locating the
-prior boundary between mean-pool and recurrent state precisely;
-gradient-trained MLPs beat single-layer NEF on generic image
-features by 1–4 pp.  The
+on row sMNIST, roughly **20× faster** than a tuned LSTM whose
+best multi-seed cell ends 0.7 pp higher, and 5 pp above an
+apples-to-apples ESN baseline at 4× faster wall.  We also
+report the limits honestly: gradient-free multi-layer
+stacking does not work; permuted sequence classification is
+bounded above by mean-pool's order-erasing property — a
+preliminary (not-yet-final) ESN comparator looks set to beat
+Stream-NEF on permuted sMNIST, locating the prior boundary
+between mean-pool and recurrent state precisely; gradient-
+trained MLPs beat single-layer NEF on generic image features
+by 1–4 pp.  The
 twist is that a `receptive_field`-encoder NEF beats the best tuned
-MLP on CIFAR-10 by +1.37 pp at a fraction of the wallclock — a good
+MLP on CIFAR-10 by +1.37 pp **and runs ~11× faster** — a good
 encoder closes the gap, a generic encoder does not.  The paper
 opens the foundational trilogy that continues with continual
 learning (Paper II) and reinforcement learning (Paper III).
@@ -570,15 +572,18 @@ re-implemented under our seeding and code-identity discipline
 | best ESN (n = 2 000, sr 0.95, leak 0.3) | 93.52 ± 0.06 % | 454 | 5 |
 
 The triangle is concrete.  Stream-NEF *dominates* the ESN
-baseline by ~5 pp at ~5× faster wall (the apples-to-apples
+baseline by ~5 pp **and runs ~5× faster** (the apples-to-apples
 gradient-free comparison: both fit only a linear readout on
 top of fixed nonlinear features).  Stream-NEF *trails* the
-best LSTM by 0.7 pp at ~20× faster wall.  We do not present
-this as "we beat LSTM" — the recurrent literature has dozens
-of variants in the 99–99.5 % range on row sMNIST.  We present
-it as cost-vs-quality at a fixed compute envelope: a
-gradient-free analytic-solve method gets to 0.7 pp of a tuned
-LSTM at a 20× wallclock saving.
+best LSTM by 0.7 pp but **runs ~20× faster** (95 s/seed vs
+1 875 s/seed).  We do not present this as "we beat LSTM" —
+the recurrent literature has dozens of variants in the
+99–99.5 % range on row sMNIST.  We present it as cost-vs-
+quality at a fixed compute envelope: a gradient-free
+analytic-solve method gets to within 0.7 pp of a tuned LSTM
+**at one twentieth of the LSTM wallclock**, which matters
+whenever predictions have to arrive in time as well as be
+accurate.
 
 ### §6.3 — Permuted sMNIST results
 
@@ -595,29 +600,32 @@ Doubling `n` is +2.65 pp (55σ) — far from saturated.  This is
 honestly below the LSTM/TCN range (~90 %), and the gap is the
 boundary of mean-pool's reach.
 
-The honest comparison is unflattering for Stream-NEF.  An ESN
-(n=2 000, sr=0.95, leak=0.3, 5 seeds) reaches **79.21 ± 0.13 %**
-on the same task — a recurrent-state architecture beats our
-delay-line + mean-pool by ~3.6 pp at half the neuron count and
-roughly the same wallclock.  Permuted sMNIST is the regime
-where sustained recurrent state matters more than what mean-
-pooling preserves: when the discriminative signal is spread
-across all 784 randomly-ordered timesteps, the ESN's leaky
-integrator visits every position with non-trivial weight, while
-our `K`-step delay-line window of length 28 sees each pixel's
-neighbourhood only once.  The LSTM baseline did not converge in
-the budget we allotted (vanilla LSTM on permuted sMNIST is
-well-documented to need curriculum or initialisation tricks to
-escape ~50 %); the b5_lstm_smnist_permuted panel is preserved
-at 2 / 90 cells in `results/sl_clean/` as a documented
-compute-budget cap.
+The ESN-permuted comparison is in flight at submission time.
+A first-pass run (with a since-superseded `code_identity`) had
+the best ESN cell at `n = 2 000, sr = 0.95, leak = 0.3`
+delivering ~79 %, **above** Stream-NEF's 75.6 % at twice the
+neuron count.  Under the project's reproducibility rule we
+discard rows whose code identity no longer matches the
+current tree, and the rerun under the clean tag is at 22 / 60
+cells as we write this.  We expect the qualitative reading to
+hold — recurrent state has a built-in advantage when the
+discriminative signal is spread across all 784 randomly-
+ordered timesteps, while our `K`-step delay-line window of
+length 28 sees each pixel's neighbourhood only once — but we
+will not commit to a multi-seed verdict until the panel
+completes.  The LSTM baseline did not converge in the budget
+we allotted (vanilla LSTM on permuted sMNIST is well-
+documented to need curriculum or initialisation tricks to
+escape ~50 %); the b5_lstm_smnist_permuted panel is
+preserved at 2 / 90 cells in `results/sl_clean/` as a
+documented compute-budget cap.
 
-This is a good place to stop pretending Stream-NEF is the
-better architecture for every temporal task.  On row sMNIST
-(coherent slices) it dominates ESN by ~5 pp; on permuted
-sMNIST (distributed signal) ESN dominates Stream-NEF by ~3.6
-pp.  Mean-pooling and recurrent state are different priors,
-and the data picks the winner.
+What we *can* commit to honestly is that on permuted sMNIST
+Stream-NEF is below the recurrent-state literature and that
+mean-pool, not the analytic-solve property, is the limit.
+The data picks the architecture: row sMNIST (coherent slices)
+favours mean-pool; permuted sMNIST (distributed signal)
+favours recurrent state.
 
 ### §6.4 — Limits
 
@@ -672,8 +680,9 @@ a spatial prior.  B3 receptive_field NEF on CIFAR-10 reaches
 **55.10 ± 0.10 %**, beating the best B4 MLP (53.73 ± 0.22 %)
 by **+1.37 pp** at well outside seed noise.  A
 fully-gradient-free single-layer NEF *exceeds* a
-4.2 M-parameter gradient-trained MLP on CIFAR-10, in a ~25 s
-analytic solve vs a ~5 min Adam fit.
+4.2 M-parameter gradient-trained MLP on CIFAR-10, **and runs
+~11× faster** (~30 s analytic solve vs ~327 s Adam fit per
+seed).
 
 The reading we settle on: the encoder, not the decoder, is
 where representational work happens.  A good encoder closes —
@@ -746,10 +755,11 @@ to where the ideas originated.
 - **Streaming-NEF** (delay-line + `abs` + mean-pool + analytic
   readout) on sMNIST.  The strongest empirical contribution.
   98.45 % at `n = 8 000` on row sMNIST under a fully analytic
-  fit places us within 0.7 pp of a tuned LSTM at a 20×
-  wallclock saving and 5 pp above an apples-to-apples ESN
-  baseline.  We re-validate under multi-seed and report
-  whatever comes out without inflation.
+  fit lands within 0.7 pp of a tuned LSTM **and runs roughly
+  20× faster** (95 s/seed vs 1 875 s/seed); 5 pp above an
+  apples-to-apples ESN baseline at ~5× the speed.  We
+  re-validate under multi-seed and report whatever comes out
+  without inflation.
 - **A reproducibility infrastructure** (rl_clean-style) that
   makes multi-seed analytic-readout studies cheap and
   resumable.  Not paper-novel; lab-novel.  Every numeric claim
