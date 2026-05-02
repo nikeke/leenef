@@ -302,12 +302,97 @@ def figure_f9() -> Path:
     return out
 
 
+# ------------------------------------------------------------------ F8
+def figure_f8() -> Path:
+    """Streaming-NEF + ESN + LSTM on row vs permuted sMNIST."""
+    # Stream-NEF row (10 seeds): {n_neurons -> acc%}
+    nef_row = {2000: 97.20, 4000: 97.97, 8000: 98.45}
+    nef_row_se = {2000: 0.04, 4000: 0.03, 8000: 0.02}
+    nef_perm = {2000: 72.96, 4000: 75.61}
+    nef_perm_se = {2000: 0.07, 4000: 0.05}
+
+    # ESN row + permuted: pick best leak/sr cell per n
+    def _esn_best(panel_path):
+        rows = _load_rows(panel_path)
+        cells = defaultdict(list)
+        for r in rows:
+            cell = r.get("config", {}).get("cell", "")
+            n = r.get("config", {}).get("n_neurons")
+            if n is None and cell.startswith("n"):
+                try:
+                    n = int(cell.split("_")[0][1:])
+                except ValueError:
+                    continue
+            acc = r.get("metrics", {}).get("test_accuracy")
+            if acc is not None:
+                cells[(n, cell)].append(100.0 * acc)
+        # best cell per n by mean
+        by_n = defaultdict(list)
+        for (n, _), accs in cells.items():
+            by_n[n].append((mean(accs), _se(accs), len(accs)))
+        return {n: max(v, key=lambda x: x[0]) for n, v in by_n.items()}
+
+    esn_row = _esn_best(RESULTS / "b6_esn_smnist_row_panel.json")
+    esn_perm = _esn_best(RESULTS / "b6_esn_smnist_permuted_panel.json")
+
+    # LSTM row best cell (h256_l2_lr0.003 → 99.12 ± 0.09)
+    lstm_row = {"acc": 99.12, "se": 0.09}
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5), sharey=False)
+
+    # Row panel
+    ns_nef_row = sorted(nef_row.keys())
+    ax1.errorbar(ns_nef_row, [nef_row[n] for n in ns_nef_row],
+                 yerr=[nef_row_se[n] for n in ns_nef_row],
+                 marker="o", linewidth=2, label="Stream-NEF", color="C0")
+    ns_esn_row = sorted(esn_row.keys())
+    ax1.errorbar(ns_esn_row, [esn_row[n][0] for n in ns_esn_row],
+                 yerr=[esn_row[n][1] for n in ns_esn_row],
+                 marker="s", linewidth=2, label="ESN (best cell)", color="C1")
+    ax1.axhline(lstm_row["acc"], color="C3", linestyle="--", linewidth=1.5,
+                label=f"LSTM tuned ({lstm_row['acc']:.2f}%)")
+    ax1.set_xlabel("n_neurons (reservoir size)")
+    ax1.set_ylabel("test accuracy (%)")
+    ax1.set_title("Row sMNIST")
+    ax1.set_xscale("log")
+    ax1.grid(True, alpha=0.3)
+    ax1.legend(fontsize=9, loc="lower right")
+
+    # Permuted panel
+    ns_nef_p = sorted(nef_perm.keys())
+    ax2.errorbar(ns_nef_p, [nef_perm[n] for n in ns_nef_p],
+                 yerr=[nef_perm_se[n] for n in ns_nef_p],
+                 marker="o", linewidth=2, label="Stream-NEF", color="C0")
+    ns_esn_p = sorted(esn_perm.keys())
+    ax2.errorbar(ns_esn_p, [esn_perm[n][0] for n in ns_esn_p],
+                 yerr=[esn_perm[n][1] for n in ns_esn_p],
+                 marker="s", linewidth=2, label="ESN (best cell)", color="C1")
+    ax2.text(0.04, 0.92, "LSTM did not converge\nin compute budget",
+             transform=ax2.transAxes, fontsize=8, color="C3",
+             verticalalignment="top",
+             bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.7))
+    ax2.set_xlabel("n_neurons (reservoir size)")
+    ax2.set_ylabel("test accuracy (%)")
+    ax2.set_title("Permuted sMNIST")
+    ax2.set_xscale("log")
+    ax2.grid(True, alpha=0.3)
+    ax2.legend(fontsize=9, loc="lower right")
+
+    fig.suptitle("F8 — Streaming-NEF vs ESN vs LSTM: row beats ESN, permuted does not")
+    out = FIG_DIR / "f8_streaming_baselines.png"
+    fig.tight_layout()
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    return out
+
+
 # ------------------------------------------------------------------ main
 FIGURES = {
     "F3": figure_f3,
     "F4": figure_f4,
     "F6": figure_f6,
     "F7": figure_f7,
+    "F8": figure_f8,
     "F9": figure_f9,
 }
 
