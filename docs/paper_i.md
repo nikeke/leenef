@@ -15,11 +15,31 @@
 
 ## Abstract
 
-> **(stub — to be written last, after §6 numbers stabilise)**
-> Single regularised least-squares solve over fixed-encoder
-> activities, four design choices that make it work, and a streaming
-> classifier that turns the same primitive into competitive
-> sequence classification without recurrence.
+A single regularised least-squares solve over fixed-encoder neural
+activities — `D = (AᵀA + α_eff I)⁻¹ AᵀY` — does more than the
+extreme-learning-machine and random-feature literature usually
+charts, provided four NEF-grounded choices are made: rate neurons
+with `abs` activation, data-driven biases that place each neuron's
+`abs` fold on the data manifold, per-neuron gain diversity, and (when
+spatial structure exists) local receptive-field encoders.  This
+paper characterises the primitive geometrically, through a
+frame-coefficient reading of the activations, and shows that the
+same primitive composes — through the additive sufficient
+statistics `AᵀA` and `AᵀY` — into ensembles, online updates
+(Woodbury), GPU-friendly accumulate-and-solve, and, non-trivially,
+a streaming temporal classifier.  Under multi-seed, code-identity
+tagged evaluation, the streaming classifier reaches **98.45 ± 0.02 %**
+on row sMNIST, within 0.7 pp of a tuned LSTM at roughly 20 × the
+wallclock saving and 5 pp above an apples-to-apples ESN baseline.
+We also report the limits honestly: gradient-free multi-layer
+stacking does not work; permuted sequence classification is bounded
+above by mean-pool's order-erasing property; gradient-trained MLPs
+beat single-layer NEF on generic image features by 1–4 pp.  The
+twist is that a `receptive_field`-encoder NEF beats the best tuned
+MLP on CIFAR-10 by +1.37 pp at a fraction of the wallclock — a good
+encoder closes the gap, a generic encoder does not.  The paper
+opens the foundational trilogy that continues with continual
+learning (Paper II) and reinforcement learning (Paper III).
 
 ---
 
