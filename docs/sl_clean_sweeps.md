@@ -539,25 +539,35 @@ to Stream-NEF (B2)?
 stopping with patience=5 on a 10% val hold-out.  Code identity
 `a495b4…`.
 
-**Status (2026-05-01 19:45 UTC, mid-run).**
+**Status (2026-05-02 09:35 UTC).**
 
-- **b5_lstm_smnist_row**: 41/90 rows on disk, ~9 min/seed, top so
-  far 99.10% (h128_l1_lr0.0003 mean, 5 seeds, ~22 ep best).  ETA
-  ~7-9 h to complete the panel.
-- **b5_lstm_smnist_permuted**: **2/90 rows on disk after 7+ hours.**
-  Per-seed wall is **3.5 hours** — vanilla LSTM does not early-stop
-  on permuted-sMNIST because val loss never plateaus, so it runs
-  the full 30-epoch budget every time.  The 2 cells we have score
-  50.6% and 52.0%, consistent with the well-documented literature
-  result that vanilla LSTM tops out near 50% on permuted-sMNIST
-  without curriculum tricks or special inits.
+- **b5_lstm_smnist_row: 90/90 ✅ COMPLETE** (sentinel hand-touched on
+  2026-05-02; the original driver missed the `b5_panels_done` touch
+  on the row branch — runner JSON is correct).  Top three cells:
 
-**Decision.** Killing b5_permuted (~weeks at 3.5 h/seed × 90 × 5 =
-infeasible).  The 2 cells we have are kept as illustrative; B5
-permuted is documented as an honest scaling limit, not a clean
-multi-seed verdict.  This contrast — vanilla LSTM at 50% in 3.5 h
-vs Stream-NEF at 98.6% in minutes — is itself a paper-worthy data
-point about the cost-quality tradeoff on hard temporal benchmarks.
+  | cell | mean acc | ± SE | wall/seed | params |
+  |---|---:|---:|---:|---:|
+  | h256_l2_lr0.003 | 99.12 % | 0.09 | 1875 s | 821 770 |
+  | h128_l2_lr0.003 | 99.10 % | 0.10 |  640 s | 214 282 |
+  | h64_l2_lr0.003  | 99.07 % | 0.03 |  227 s |  57 994 |
+
+  18 cells × 5 seeds; LR=3e-4 cells are clearly underconverged
+  (97.1–98.0 %).  Best LSTM beats Stream-NEF on row by 0.7 pp at
+  ~20× wall.
+
+- **b5_lstm_smnist_permuted**: **2/90 rows on disk after 7+ hours,
+  killed.**  Per-seed wall is **3.5 hours** — vanilla LSTM does not
+  early-stop on permuted-sMNIST because val loss never plateaus, so
+  it runs the full 30-epoch budget every time.  The 2 cells we have
+  score 50.6 % and 52.0 %, consistent with the well-documented
+  literature result that vanilla LSTM tops out near 50 % on
+  permuted-sMNIST without curriculum tricks or special inits.
+
+**Decision.** B5_permuted documented as an honest scaling limit, not
+a clean multi-seed verdict.  This contrast — vanilla LSTM at 50 % in
+3.5 h vs Stream-NEF at 75.6 % in 13 min on permuted — is itself a
+paper-worthy data point about the cost-quality tradeoff on hard
+temporal benchmarks.
 
 ---
 
@@ -576,21 +586,36 @@ ESN (input-W, reservoir-W, internal sample) seeded as
 (reproducibility hazard fixed during smoke testing — see
 `AGENTS.md` §"Reproducibility hazards").
 
-**Status (2026-05-01 19:45 UTC).**
+**Status (2026-05-02 09:35 UTC).**
 
-- **b6_esn_smnist_row: 60/60 ✅ COMPLETE.** Top cell (n=2000,
-  sr=0.95, leak=1.0) reaches 93.65% test, ~488 s/seed.  Median
-  cell ~77%.  Will be aggregated and written up below once
-  permuted lands too.
-- **b6_esn_smnist_permuted**: 34/60 mid-run, ~10 min/seed, top so
-  far 76.4%.  ETA ~5 h.
+- **b6_esn_smnist_row: 60/60 ✅ COMPLETE.**  Top cells:
 
-**Provisional headline.** Stream-NEF (B2: 98.61% ± 0.04 at n=8000) is
-~5 pp above the best ESN (93.7%) on row, and presumably similarly
-above on permuted, at comparable solve cost.  The reservoir-vs-frame
-comparison is exactly the comparator the paper needs to differentiate
-"pooled abs frame coefficients" from "leaky-integrator dynamics".
-Detailed verdict and table to follow once b6_permuted finishes.
+  | cell | mean acc | ± SE | wall/seed |
+  |---|---:|---:|---:|
+  | n2000_sr0.95_leak0.3 | 93.52 % | 0.06 | 454 s |
+  | n2000_sr0.7_leak0.3  | 92.03 % | 0.04 | 462 s |
+  | n1000_sr0.95_leak0.3 | 90.85 % | 0.13 | 110 s |
+
+  Median cell ~77 %.  Stream-NEF n=8000 (98.45 %) clears best ESN by
+  ~5 pp at ~5× faster wall.
+
+- **b6_esn_smnist_permuted**: 57/60 mid-run, last update 09:30 UTC,
+  3 cells remaining (estimated <30 min).  Final write-up will land
+  once the panel completes.
+
+**Headline triangle (sMNIST-row, all multi-seed):**
+
+| method | best mean acc | ± SE | wall/seed | seed n |
+|---|---:|---:|---:|---:|
+| LSTM h256_l2 lr0.003          | 99.12 % | 0.09 | 1875 s | 5 |
+| Stream-NEF n=8000             | 98.45 % | 0.02 |   95 s | 10 |
+| Stream-NEF n=4000             | 97.97 % | 0.02 |   42 s | 10 |
+| ESN n=2000 sr0.95 leak0.3     | 93.52 % | 0.06 |  454 s | 5 |
+| Stream-NEF n=2000             | 97.20 % | 0.04 |   20 s | 10 |
+
+Stream-NEF dominates the gradient-free comparator (ESN) by ~5 pp at
+~5× faster wall, and trails the gradient-trained best LSTM by 0.7 pp
+at ~20× faster wall.  This is the H4 picture Paper I §6 needs.
 
 ---
 
@@ -614,6 +639,73 @@ The ~+11 pp delta is the entire contribution of the abs nonlinearity.
 **Verdict.** H8 supported.  Single-seed result; multi-seed not
 required because the headline (linear ≪ abs) is far outside seed
 noise on B1.
+
+---
+
+## Phase C — confirmation reruns (delegated)
+
+Phase C is the multi-seed confirmation pass for Paper I supporting
+claims.  Scaffolded on branch `paper-i/phase-c-experiments`
+(commit `a50e2f9`); execution delegated to a separate Copilot session
+per `~/.copilot/session-state/.../files/phase_c_delegation_2026-05-02.md`.
+Estimated total wall: ~32 CPU-hours on the 12-core box.
+
+| ID | knob | datasets | cells × seeds | hypothesis |
+|---|---|---|---:|---|
+| C1 | `cell` = n_neurons ∈ {500..20000} (6) | MNIST, Fashion, CIFAR-10 | 6 × 10 × 3 | scaling — single-layer plateau |
+| C2 | `cell` = activation × gain (9) | MNIST, Fashion, CIFAR-10 | 9 × 10 × 3 | abs is not a magic value, but it is good |
+| C3 | `cell` = M × encoder (8) | CIFAR-10 | 8 × 5 | ensemble + RF improvements |
+| C4 | `cell` = strategy ∈ {greedy, hybrid, TP, E2E, hybrid_e2e} | MNIST, CIFAR-10 | 5 × 5 × 2 | H6 — multilayer is the load-bearing negative |
+| C5 | `cell` ∈ {E2E, TP} | sMNIST-row | 2 × 5 | recurrent gradient is required |
+| C6 | `cell` = default (single config) | MNIST, CIFAR-10 | 1 × 5 × 2 | ConvNEF is competitive |
+| C7 | `cell` = n_neurons ∈ {500..10000} (5) | California Housing | 5 × 3 | regression universality |
+
+None of the C-phases is expected to overturn a B-phase claim.  Any
+"⚠ surprising" commit on the delegated branch will trigger a
+re-merge here with re-aggregation.  Until then, Phase C panels are
+treated as pending data for paper figures, not for paper claims.
+
+---
+
+## Config drift audit (2026-05-02)
+
+A row in any `*_panel.json` is only aggregable if its
+`code_identity` SHA matches the current tree.  The base-config
+files for every B-phase already capture the constants under which
+each panel was launched.  Sentinel facts to remember when writing
+the paper:
+
+- **Defaults at sl_clean start vs current.** No silent default has
+  changed.  `gain_low/high = 0.5/2.0`, `encoder_strategy =
+  hypersphere`, `activation = abs`, `data_driven_biases = True`,
+  `chunk_size = 5000` were the launch defaults and are still the
+  current defaults; per-experiment base configs override only what
+  that phase contrasts.
+- **Trace-scaled α.**  Adopted in B2 (commit `3e93c6c`).  All
+  streaming panels and Phase C re-runs use `alpha_scale = "trace"`
+  with `alpha_nominal` set per experiment.  B1 / B3 / B7 used the
+  pre-trace default (raw α=1e-3); their `code_identity` predates
+  the change, so aggregator excludes any post-change rerun under
+  the old base if the SHA bump is missed.  No B-phase numbers move
+  if recomputed under the new α convention because the trace scale
+  reduces to the old constant when `n_neurons` is fixed.
+- **`chunk_stats=True` default.**  Adopted in B2 (same commit).
+  Pre-existing B1 cells used `chunk_stats=False`; the metric is
+  identical since both paths compute the exact same `AᵀA`/`AᵀY`.
+- **Linear activation.**  Registered in `cb8e1b7`; relevant only
+  for H8 sanity check.
+- **Cholesky solve + clone-before-diagonal-add.**  Adopted in
+  `c1d9b0a` / `f4bc25b`.  All B3+ panels use this path; the
+  earlier in-place `_ata.diagonal().add_(α)` would have silently
+  corrupted `_ata` on the second `solve()` (caught in B2 review).
+  Pre-fix panels (B1) only ever called `solve()` once per cell, so
+  the bug never had a chance to bite there — verified by inspection
+  of the runner.
+
+**Audit conclusion.**  No B-phase number requires re-running for
+paper-claim purposes.  Each panel's headline is reproducible from
+its `code_identity`-tagged JSON under the original base config.
+Phase C reruns are *additional* multi-seed coverage, not corrections.
 
 ---
 

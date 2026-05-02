@@ -1,0 +1,164 @@
+{
+  "b5_lstm_smnist_permuted_panel_h64_l1_lr0.0003_s0": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "batch_size": 128,
+      "cell": "h64_l1_lr0.0003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "grad_clip": 1.0,
+      "patience": 8,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b5_lstm_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b5_lstm_smnist_permuted_panel_h64_l1_lr0.0003_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "best_epoch": 48,
+        "epochs_run": 50,
+        "fit_time_sec": 15497.968822684008,
+        "hidden": 64,
+        "layers": 1,
+        "lr": 0.0003,
+        "n_params": 17802,
+        "train_accuracy": 0.4992962962962963,
+        "val_accuracy": 0.5055,
+        "wall_sec": 15499.223885353
+      },
+      "test_accuracy": 0.4924
+    },
+    "phase": "b5_lstm_smnist_permuted_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-permuted-seed0",
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "h64_l1_lr0.0003",
+    "wall_time_s": 15500.0004
+  },
+  "b5_lstm_smnist_permuted_panel_h64_l1_lr0.0003_s1": {
+    "code_identity": "a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77",
+    "config": {
+      "batch_size": 128,
+      "cell": "h64_l1_lr0.0003",
+      "dropout": 0.0,
+      "epochs": 50,
+      "grad_clip": 1.0,
+      "patience": 8,
+      "val_fraction": 0.1,
+      "weight_decay": 0.0001
+    },
+    "experiment": "b5_lstm_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "b5_lstm_smnist_permuted_panel_h64_l1_lr0.0003_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "best_epoch": 49,
+        "epochs_run": 50,
+        "fit_time_sec": 8446.813682965992,
+        "hidden": 64,
+        "layers": 1,
+        "lr": 0.0003,
+        "n_params": 17802,
+        "train_accuracy": 0.5347407407407407,
+        "val_accuracy": 0.5385,
+        "wall_sec": 8446.886903338993
+      },
+      "test_accuracy": 0.5203
+    },
+    "phase": "b5_lstm_smnist_permuted_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-permuted-seed0",
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "h64_l1_lr0.0003",
+    "wall_time_s": 8446.8873
+  }
+}
