@@ -95,6 +95,7 @@ the ground truth for any future claim audit.
 | C2   | c2_activation_mnist_panel | c2_activation_mnist | `cell` (activation × gain) | Paper I activation/gain ablation — MNIST |
 | C2.1 | c2_activation_fashion_panel | c2_activation_fashion | `cell` (activation × gain) | Paper I activation/gain ablation — Fashion-MNIST |
 | C3   | c3_ensemble_cifar10_panel | c3_ensemble_cifar10 | `cell` (ensemble size × encoder) | Paper I ensemble / RF panel — CIFAR-10 |
+| C4   | c4_multilayer_mnist_panel | c4_multilayer_mnist | `cell` (training strategy) | Paper I multilayer strategy panel — MNIST |
 | C6   | c6_convnef_mnist_panel | c6_convnef_mnist | `cell` (`default`) | Paper I ConvNEF headline — MNIST |
 | C6.1 | c6_convnef_cifar10_panel | c6_convnef_cifar10 | `cell` (`default`) | Paper I ConvNEF headline — CIFAR-10 |
 | C7   | c7_housing_panel | c7_housing | `cell` (`n_neurons`) | Paper I §5.6 — regression universality demo |
@@ -873,6 +874,55 @@ practical recommendation is therefore: if compute allows only one lever,
 SEEDS=0-4 PYTHON=../leenef/venv/bin/python \
   bash benchmarks/sl_clean/sl_hp_driver.sh c3_ensemble_cifar10
 ```
+
+---
+
+## C4 — MNIST multilayer strategy panel
+
+**Question.** Once we allow one hidden NEF layer, do the multilayer
+training strategies actually help on MNIST, or does the paper's
+"single-layer wide solve is enough" story still dominate?
+
+**Setup.** MNIST, one hidden layer with `hidden=[2000]`, output layer
+with `output_neurons=2000`, `abs` activation, hypersphere encoders,
+data-driven biases, `α=1e-3`, and 5 seeds. The knob is
+`strategy ∈ {greedy, hybrid, target_prop, end_to_end, hybrid_e2e}`.
+Result: `results/sl_clean/c4_multilayer_mnist_panel.json`. Log:
+`results/sl_clean/logs/c4_multilayer_mnist_panel.log`. Wall time:
+~6 h 18 min on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=5)
+
+| strategy | test accuracy | verdict |
+|---|---|---|
+| greedy | 95.37 ± 0.09 | fast analytic baseline |
+| hybrid | 94.25 ± 0.04 | worse than greedy |
+| target_prop | 98.54 ± 0.02 | strong local-learning result |
+| end_to_end | 98.60 ± 0.02 | strong BPTT baseline |
+| hybrid_e2e | 98.69 ± 0.01 | best overall |
+
+**Verdict.** C4 is **not** the simple negative result the phase note
+anticipated. Purely analytic `greedy` is decent and `hybrid` is
+actually worse, but once the network gets either local target
+propagation or end-to-end refinement, performance jumps by roughly
+`+3.2–4.4 pp` over the weak multilayer baselines. `hybrid_e2e` wins at
+`98.688% ± 0.014`, `end_to_end` is close behind at
+`98.598% ± 0.017`, and `target_prop` is only another `0.06 pp` back
+while running in less than half the time of the BPTT-based variants.
+So the honest C4 story is narrower: **plain multilayer stacking fails,
+but MNIST does benefit from depth once a stronger training rule is
+allowed.**
+
+**Code / data identity.**
+
+- `code_identity` for all 25 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared MNIST raw bytes under the worktree's
+  `data/` symlink to `../leenef/data`
+- The final JSON combines the original greedy/hybrid rows with a
+  resumable same-identity recovery for the remaining strategies after
+  the first wrapper hit a strategy-specific kwarg bug; all aggregate
+  rows remain directly comparable because they share the same stamped
+  identity
 
 ---
 
