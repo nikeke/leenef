@@ -1,0 +1,992 @@
+{
+  "c7_housing_panel_n10000_s0": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "n10000",
+      "chunk_size": 4000,
+      "gain_high": 2.0,
+      "gain_low": 0.5
+    },
+    "experiment": "c7_housing",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c7_housing_panel_n10000_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 8,
+        "dataset": "CaliforniaHousing",
+        "n_test": 4128,
+        "n_train": 16512,
+        "preprocessing": "standardized_features",
+        "raw_hashes": {
+          "data_npz": "c8f43774aa27b7ec034e60db31b6124e12b4a0d42b55b0c8eb1320089e2ebc37",
+          "target_npz": "ae80bb98487c04d7383ed8aecda8e207583dfd3e66f6679fded97597c3f6c87e"
+        },
+        "split_seed_derivation": "seed * 31337 + 11",
+        "test_frac": 0.2
+      },
+      "diagnostics": {
+        "d_in": 8,
+        "n_neurons": 10000
+      },
+      "encode_fit_time_s": 12.4138,
+      "factors": {
+        "n_neurons": 10000
+      },
+      "solve_time_s": 1.4404,
+      "test_mse": 0.300415,
+      "test_r2": 0.780483,
+      "train_mse": 0.19394
+    },
+    "phase": "c7_housing_panel",
+    "primary_metric": "test_r2",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CaliforniaHousing",
+      "experiment_kind": "california_housing_c7_panel",
+      "preprocessing": "standardized_features"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n10000",
+    "wall_time_s": 14.4776
+  },
+  "c7_housing_panel_n10000_s1": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "n10000",
+      "chunk_size": 4000,
+      "gain_high": 2.0,
+      "gain_low": 0.5
+    },
+    "experiment": "c7_housing",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c7_housing_panel_n10000_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 8,
+        "dataset": "CaliforniaHousing",
+        "n_test": 4128,
+        "n_train": 16512,
+        "preprocessing": "standardized_features",
+        "raw_hashes": {
+          "data_npz": "c8f43774aa27b7ec034e60db31b6124e12b4a0d42b55b0c8eb1320089e2ebc37",
+          "target_npz": "ae80bb98487c04d7383ed8aecda8e207583dfd3e66f6679fded97597c3f6c87e"
+        },
+        "split_seed_derivation": "seed * 31337 + 11",
+        "test_frac": 0.2
+      },
+      "diagnostics": {
+        "d_in": 8,
+        "n_neurons": 10000
+      },
+      "encode_fit_time_s": 12.1068,
+      "factors": {
+        "n_neurons": 10000
+      },
+      "solve_time_s": 1.7229,
+      "test_mse": 0.304285,
+      "test_r2": 0.776664,
+      "train_mse": 0.195017
+    },
+    "phase": "c7_housing_panel",
+    "primary_metric": "test_r2",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CaliforniaHousing",
+      "experiment_kind": "california_housing_c7_panel",
+      "preprocessing": "standardized_features"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n10000",
+    "wall_time_s": 14.408
+  },
+  "c7_housing_panel_n10000_s2": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "n10000",
+      "chunk_size": 4000,
+      "gain_high": 2.0,
+      "gain_low": 0.5
+    },
+    "experiment": "c7_housing",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c7_housing_panel_n10000_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 8,
+        "dataset": "CaliforniaHousing",
+        "n_test": 4128,
+        "n_train": 16512,
+        "preprocessing": "standardized_features",
+        "raw_hashes": {
+          "data_npz": "c8f43774aa27b7ec034e60db31b6124e12b4a0d42b55b0c8eb1320089e2ebc37",
+          "target_npz": "ae80bb98487c04d7383ed8aecda8e207583dfd3e66f6679fded97597c3f6c87e"
+        },
+        "split_seed_derivation": "seed * 31337 + 11",
+        "test_frac": 0.2
+      },
+      "diagnostics": {
+        "d_in": 8,
+        "n_neurons": 10000
+      },
+      "encode_fit_time_s": 12.0977,
+      "factors": {
+        "n_neurons": 10000
+      },
+      "solve_time_s": 1.5474,
+      "test_mse": 0.325024,
+      "test_r2": 0.750055,
+      "train_mse": 0.195443
+    },
+    "phase": "c7_housing_panel",
+    "primary_metric": "test_r2",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CaliforniaHousing",
+      "experiment_kind": "california_housing_c7_panel",
+      "preprocessing": "standardized_features"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n10000",
+    "wall_time_s": 14.2306
+  },
+  "c7_housing_panel_n1000_s0": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "n1000",
+      "chunk_size": 4000,
+      "gain_high": 2.0,
+      "gain_low": 0.5
+    },
+    "experiment": "c7_housing",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c7_housing_panel_n1000_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 8,
+        "dataset": "CaliforniaHousing",
+        "n_test": 4128,
+        "n_train": 16512,
+        "preprocessing": "standardized_features",
+        "raw_hashes": {
+          "data_npz": "c8f43774aa27b7ec034e60db31b6124e12b4a0d42b55b0c8eb1320089e2ebc37",
+          "target_npz": "ae80bb98487c04d7383ed8aecda8e207583dfd3e66f6679fded97597c3f6c87e"
+        },
+        "split_seed_derivation": "seed * 31337 + 11",
+        "test_frac": 0.2
+      },
+      "diagnostics": {
+        "d_in": 8,
+        "n_neurons": 1000
+      },
+      "encode_fit_time_s": 0.1987,
+      "factors": {
+        "n_neurons": 1000
+      },
+      "solve_time_s": 0.013,
+      "test_mse": 0.336416,
+      "test_r2": 0.754177,
+      "train_mse": 0.290615
+    },
+    "phase": "c7_housing_panel",
+    "primary_metric": "test_r2",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CaliforniaHousing",
+      "experiment_kind": "california_housing_c7_panel",
+      "preprocessing": "standardized_features"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000",
+    "wall_time_s": 0.2642
+  },
+  "c7_housing_panel_n1000_s1": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "n1000",
+      "chunk_size": 4000,
+      "gain_high": 2.0,
+      "gain_low": 0.5
+    },
+    "experiment": "c7_housing",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c7_housing_panel_n1000_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 8,
+        "dataset": "CaliforniaHousing",
+        "n_test": 4128,
+        "n_train": 16512,
+        "preprocessing": "standardized_features",
+        "raw_hashes": {
+          "data_npz": "c8f43774aa27b7ec034e60db31b6124e12b4a0d42b55b0c8eb1320089e2ebc37",
+          "target_npz": "ae80bb98487c04d7383ed8aecda8e207583dfd3e66f6679fded97597c3f6c87e"
+        },
+        "split_seed_derivation": "seed * 31337 + 11",
+        "test_frac": 0.2
+      },
+      "diagnostics": {
+        "d_in": 8,
+        "n_neurons": 1000
+      },
+      "encode_fit_time_s": 0.1506,
+      "factors": {
+        "n_neurons": 1000
+      },
+      "solve_time_s": 0.0041,
+      "test_mse": 0.338173,
+      "test_r2": 0.751792,
+      "train_mse": 0.291506
+    },
+    "phase": "c7_housing_panel",
+    "primary_metric": "test_r2",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CaliforniaHousing",
+      "experiment_kind": "california_housing_c7_panel",
+      "preprocessing": "standardized_features"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000",
+    "wall_time_s": 0.2043
+  },
+  "c7_housing_panel_n1000_s2": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "n1000",
+      "chunk_size": 4000,
+      "gain_high": 2.0,
+      "gain_low": 0.5
+    },
+    "experiment": "c7_housing",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c7_housing_panel_n1000_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 8,
+        "dataset": "CaliforniaHousing",
+        "n_test": 4128,
+        "n_train": 16512,
+        "preprocessing": "standardized_features",
+        "raw_hashes": {
+          "data_npz": "c8f43774aa27b7ec034e60db31b6124e12b4a0d42b55b0c8eb1320089e2ebc37",
+          "target_npz": "ae80bb98487c04d7383ed8aecda8e207583dfd3e66f6679fded97597c3f6c87e"
+        },
+        "split_seed_derivation": "seed * 31337 + 11",
+        "test_frac": 0.2
+      },
+      "diagnostics": {
+        "d_in": 8,
+        "n_neurons": 1000
+      },
+      "encode_fit_time_s": 0.1652,
+      "factors": {
+        "n_neurons": 1000
+      },
+      "solve_time_s": 0.0038,
+      "test_mse": 0.344498,
+      "test_r2": 0.73508,
+      "train_mse": 0.291423
+    },
+    "phase": "c7_housing_panel",
+    "primary_metric": "test_r2",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CaliforniaHousing",
+      "experiment_kind": "california_housing_c7_panel",
+      "preprocessing": "standardized_features"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n1000",
+    "wall_time_s": 0.2186
+  },
+  "c7_housing_panel_n2000_s0": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "n2000",
+      "chunk_size": 4000,
+      "gain_high": 2.0,
+      "gain_low": 0.5
+    },
+    "experiment": "c7_housing",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c7_housing_panel_n2000_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 8,
+        "dataset": "CaliforniaHousing",
+        "n_test": 4128,
+        "n_train": 16512,
+        "preprocessing": "standardized_features",
+        "raw_hashes": {
+          "data_npz": "c8f43774aa27b7ec034e60db31b6124e12b4a0d42b55b0c8eb1320089e2ebc37",
+          "target_npz": "ae80bb98487c04d7383ed8aecda8e207583dfd3e66f6679fded97597c3f6c87e"
+        },
+        "split_seed_derivation": "seed * 31337 + 11",
+        "test_frac": 0.2
+      },
+      "diagnostics": {
+        "d_in": 8,
+        "n_neurons": 2000
+      },
+      "encode_fit_time_s": 0.6343,
+      "factors": {
+        "n_neurons": 2000
+      },
+      "solve_time_s": 0.0181,
+      "test_mse": 0.326729,
+      "test_r2": 0.761255,
+      "train_mse": 0.264316
+    },
+    "phase": "c7_housing_panel",
+    "primary_metric": "test_r2",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CaliforniaHousing",
+      "experiment_kind": "california_housing_c7_panel",
+      "preprocessing": "standardized_features"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000",
+    "wall_time_s": 0.7397
+  },
+  "c7_housing_panel_n2000_s1": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "n2000",
+      "chunk_size": 4000,
+      "gain_high": 2.0,
+      "gain_low": 0.5
+    },
+    "experiment": "c7_housing",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c7_housing_panel_n2000_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 8,
+        "dataset": "CaliforniaHousing",
+        "n_test": 4128,
+        "n_train": 16512,
+        "preprocessing": "standardized_features",
+        "raw_hashes": {
+          "data_npz": "c8f43774aa27b7ec034e60db31b6124e12b4a0d42b55b0c8eb1320089e2ebc37",
+          "target_npz": "ae80bb98487c04d7383ed8aecda8e207583dfd3e66f6679fded97597c3f6c87e"
+        },
+        "split_seed_derivation": "seed * 31337 + 11",
+        "test_frac": 0.2
+      },
+      "diagnostics": {
+        "d_in": 8,
+        "n_neurons": 2000
+      },
+      "encode_fit_time_s": 0.6105,
+      "factors": {
+        "n_neurons": 2000
+      },
+      "solve_time_s": 0.0195,
+      "test_mse": 0.325915,
+      "test_r2": 0.760789,
+      "train_mse": 0.261414
+    },
+    "phase": "c7_housing_panel",
+    "primary_metric": "test_r2",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CaliforniaHousing",
+      "experiment_kind": "california_housing_c7_panel",
+      "preprocessing": "standardized_features"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000",
+    "wall_time_s": 0.726
+  },
+  "c7_housing_panel_n2000_s2": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "n2000",
+      "chunk_size": 4000,
+      "gain_high": 2.0,
+      "gain_low": 0.5
+    },
+    "experiment": "c7_housing",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c7_housing_panel_n2000_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 8,
+        "dataset": "CaliforniaHousing",
+        "n_test": 4128,
+        "n_train": 16512,
+        "preprocessing": "standardized_features",
+        "raw_hashes": {
+          "data_npz": "c8f43774aa27b7ec034e60db31b6124e12b4a0d42b55b0c8eb1320089e2ebc37",
+          "target_npz": "ae80bb98487c04d7383ed8aecda8e207583dfd3e66f6679fded97597c3f6c87e"
+        },
+        "split_seed_derivation": "seed * 31337 + 11",
+        "test_frac": 0.2
+      },
+      "diagnostics": {
+        "d_in": 8,
+        "n_neurons": 2000
+      },
+      "encode_fit_time_s": 0.6522,
+      "factors": {
+        "n_neurons": 2000
+      },
+      "solve_time_s": 0.0222,
+      "test_mse": 0.331994,
+      "test_r2": 0.744695,
+      "train_mse": 0.268542
+    },
+    "phase": "c7_housing_panel",
+    "primary_metric": "test_r2",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CaliforniaHousing",
+      "experiment_kind": "california_housing_c7_panel",
+      "preprocessing": "standardized_features"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000",
+    "wall_time_s": 0.7994
+  },
+  "c7_housing_panel_n5000_s0": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "n5000",
+      "chunk_size": 4000,
+      "gain_high": 2.0,
+      "gain_low": 0.5
+    },
+    "experiment": "c7_housing",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c7_housing_panel_n5000_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 8,
+        "dataset": "CaliforniaHousing",
+        "n_test": 4128,
+        "n_train": 16512,
+        "preprocessing": "standardized_features",
+        "raw_hashes": {
+          "data_npz": "c8f43774aa27b7ec034e60db31b6124e12b4a0d42b55b0c8eb1320089e2ebc37",
+          "target_npz": "ae80bb98487c04d7383ed8aecda8e207583dfd3e66f6679fded97597c3f6c87e"
+        },
+        "split_seed_derivation": "seed * 31337 + 11",
+        "test_frac": 0.2
+      },
+      "diagnostics": {
+        "d_in": 8,
+        "n_neurons": 5000
+      },
+      "encode_fit_time_s": 3.3562,
+      "factors": {
+        "n_neurons": 5000
+      },
+      "solve_time_s": 0.2149,
+      "test_mse": 0.300609,
+      "test_r2": 0.780341,
+      "train_mse": 0.227531
+    },
+    "phase": "c7_housing_panel",
+    "primary_metric": "test_r2",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CaliforniaHousing",
+      "experiment_kind": "california_housing_c7_panel",
+      "preprocessing": "standardized_features"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n5000",
+    "wall_time_s": 3.8434
+  },
+  "c7_housing_panel_n5000_s1": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "n5000",
+      "chunk_size": 4000,
+      "gain_high": 2.0,
+      "gain_low": 0.5
+    },
+    "experiment": "c7_housing",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c7_housing_panel_n5000_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 8,
+        "dataset": "CaliforniaHousing",
+        "n_test": 4128,
+        "n_train": 16512,
+        "preprocessing": "standardized_features",
+        "raw_hashes": {
+          "data_npz": "c8f43774aa27b7ec034e60db31b6124e12b4a0d42b55b0c8eb1320089e2ebc37",
+          "target_npz": "ae80bb98487c04d7383ed8aecda8e207583dfd3e66f6679fded97597c3f6c87e"
+        },
+        "split_seed_derivation": "seed * 31337 + 11",
+        "test_frac": 0.2
+      },
+      "diagnostics": {
+        "d_in": 8,
+        "n_neurons": 5000
+      },
+      "encode_fit_time_s": 3.305,
+      "factors": {
+        "n_neurons": 5000
+      },
+      "solve_time_s": 0.2624,
+      "test_mse": 0.31193,
+      "test_r2": 0.771054,
+      "train_mse": 0.22769
+    },
+    "phase": "c7_housing_panel",
+    "primary_metric": "test_r2",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CaliforniaHousing",
+      "experiment_kind": "california_housing_c7_panel",
+      "preprocessing": "standardized_features"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n5000",
+    "wall_time_s": 3.9433
+  },
+  "c7_housing_panel_n5000_s2": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "n5000",
+      "chunk_size": 4000,
+      "gain_high": 2.0,
+      "gain_low": 0.5
+    },
+    "experiment": "c7_housing",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c7_housing_panel_n5000_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 8,
+        "dataset": "CaliforniaHousing",
+        "n_test": 4128,
+        "n_train": 16512,
+        "preprocessing": "standardized_features",
+        "raw_hashes": {
+          "data_npz": "c8f43774aa27b7ec034e60db31b6124e12b4a0d42b55b0c8eb1320089e2ebc37",
+          "target_npz": "ae80bb98487c04d7383ed8aecda8e207583dfd3e66f6679fded97597c3f6c87e"
+        },
+        "split_seed_derivation": "seed * 31337 + 11",
+        "test_frac": 0.2
+      },
+      "diagnostics": {
+        "d_in": 8,
+        "n_neurons": 5000
+      },
+      "encode_fit_time_s": 3.4504,
+      "factors": {
+        "n_neurons": 5000
+      },
+      "solve_time_s": 0.2447,
+      "test_mse": 0.326003,
+      "test_r2": 0.749302,
+      "train_mse": 0.230478
+    },
+    "phase": "c7_housing_panel",
+    "primary_metric": "test_r2",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CaliforniaHousing",
+      "experiment_kind": "california_housing_c7_panel",
+      "preprocessing": "standardized_features"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n5000",
+    "wall_time_s": 3.9652
+  },
+  "c7_housing_panel_n500_s0": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "n500",
+      "chunk_size": 4000,
+      "gain_high": 2.0,
+      "gain_low": 0.5
+    },
+    "experiment": "c7_housing",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c7_housing_panel_n500_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 8,
+        "dataset": "CaliforniaHousing",
+        "n_test": 4128,
+        "n_train": 16512,
+        "preprocessing": "standardized_features",
+        "raw_hashes": {
+          "data_npz": "c8f43774aa27b7ec034e60db31b6124e12b4a0d42b55b0c8eb1320089e2ebc37",
+          "target_npz": "ae80bb98487c04d7383ed8aecda8e207583dfd3e66f6679fded97597c3f6c87e"
+        },
+        "split_seed_derivation": "seed * 31337 + 11",
+        "test_frac": 0.2
+      },
+      "diagnostics": {
+        "d_in": 8,
+        "n_neurons": 500
+      },
+      "encode_fit_time_s": 0.0515,
+      "factors": {
+        "n_neurons": 500
+      },
+      "solve_time_s": 0.0014,
+      "test_mse": 0.360824,
+      "test_r2": 0.736341,
+      "train_mse": 0.315993
+    },
+    "phase": "c7_housing_panel",
+    "primary_metric": "test_r2",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CaliforniaHousing",
+      "experiment_kind": "california_housing_c7_panel",
+      "preprocessing": "standardized_features"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500",
+    "wall_time_s": 1.2059
+  },
+  "c7_housing_panel_n500_s1": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "n500",
+      "chunk_size": 4000,
+      "gain_high": 2.0,
+      "gain_low": 0.5
+    },
+    "experiment": "c7_housing",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c7_housing_panel_n500_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 8,
+        "dataset": "CaliforniaHousing",
+        "n_test": 4128,
+        "n_train": 16512,
+        "preprocessing": "standardized_features",
+        "raw_hashes": {
+          "data_npz": "c8f43774aa27b7ec034e60db31b6124e12b4a0d42b55b0c8eb1320089e2ebc37",
+          "target_npz": "ae80bb98487c04d7383ed8aecda8e207583dfd3e66f6679fded97597c3f6c87e"
+        },
+        "split_seed_derivation": "seed * 31337 + 11",
+        "test_frac": 0.2
+      },
+      "diagnostics": {
+        "d_in": 8,
+        "n_neurons": 500
+      },
+      "encode_fit_time_s": 0.0459,
+      "factors": {
+        "n_neurons": 500
+      },
+      "solve_time_s": 0.0011,
+      "test_mse": 0.359827,
+      "test_r2": 0.735899,
+      "train_mse": 0.318657
+    },
+    "phase": "c7_housing_panel",
+    "primary_metric": "test_r2",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CaliforniaHousing",
+      "experiment_kind": "california_housing_c7_panel",
+      "preprocessing": "standardized_features"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500",
+    "wall_time_s": 0.0761
+  },
+  "c7_housing_panel_n500_s2": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "n500",
+      "chunk_size": 4000,
+      "gain_high": 2.0,
+      "gain_low": 0.5
+    },
+    "experiment": "c7_housing",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c7_housing_panel_n500_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 8,
+        "dataset": "CaliforniaHousing",
+        "n_test": 4128,
+        "n_train": 16512,
+        "preprocessing": "standardized_features",
+        "raw_hashes": {
+          "data_npz": "c8f43774aa27b7ec034e60db31b6124e12b4a0d42b55b0c8eb1320089e2ebc37",
+          "target_npz": "ae80bb98487c04d7383ed8aecda8e207583dfd3e66f6679fded97597c3f6c87e"
+        },
+        "split_seed_derivation": "seed * 31337 + 11",
+        "test_frac": 0.2
+      },
+      "diagnostics": {
+        "d_in": 8,
+        "n_neurons": 500
+      },
+      "encode_fit_time_s": 0.0485,
+      "factors": {
+        "n_neurons": 500
+      },
+      "solve_time_s": 0.001,
+      "test_mse": 0.363388,
+      "test_r2": 0.720553,
+      "train_mse": 0.32273
+    },
+    "phase": "c7_housing_panel",
+    "primary_metric": "test_r2",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "CaliforniaHousing",
+      "experiment_kind": "california_housing_c7_panel",
+      "preprocessing": "standardized_features"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n500",
+    "wall_time_s": 0.0774
+  }
+}

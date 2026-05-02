@@ -90,6 +90,7 @@ the ground truth for any future claim audit.
 | B6   | b6_esn_smnist_{row,permuted}_panel | b6_esn_smnist_* | `cell` (n × spectral_radius × leak) | H4 — gradient-free ESN reservoir comparator on temporal sMNIST |
 | B7   | biases_{cifar10_centered,mnist_decentered}_panel | biases_*_centered/decentered | `cell` (3×3 factorial) | H1 — DC-component falsifier; channel-centering vs offset injection |
 | H8   | h8_linear_collapse | h8_linear_collapse_check | `activation ∈ {linear, abs}` × n | H8 — over-representation needs nonlinearity (single-seed sanity) |
+| C7   | c7_housing_panel | c7_housing | `cell` (`n_neurons`) | Paper I §5.6 — regression universality demo |
 
 ---
 
@@ -614,6 +615,53 @@ The ~+11 pp delta is the entire contribution of the abs nonlinearity.
 **Verdict.** H8 supported.  Single-seed result; multi-seed not
 required because the headline (linear ≪ abs) is far outside seed
 noise on B1.
+
+---
+
+## C7 — California Housing regression (universality demo)
+
+**Question.** Does the same single-layer NEF primitive used throughout
+Paper I transfer cleanly to a real-valued regression task, or does the
+analytic solve rely on classification-specific structure?
+
+**Setup.** California Housing, `n_neurons ∈ {500, 1000, 2000, 5000,
+10000}` × 3 seeds = 15 rows.  Hypersphere encoders, data-driven biases,
+`abs` activation, gain `U(0.5, 2.0)`, `α=1e-3`, chunked normal-equation
+accumulation with Cholesky solve, and a deterministic train/test split
+derived from `seed * 31337 + 11`.  Result: `results/sl_clean/c7_housing_panel.json`.
+Log: `results/sl_clean/logs/c7_housing_panel.log`.  Wall time: ~1 min on
+the 12-core CPU.
+
+### Per-cell test R² (mean ± SE, n=3)
+
+| n_neurons | test R² | verdict |
+|---|---|---|
+| 500 | 0.731 ± 0.005 | workable but clearly under-fit |
+| 1000 | 0.747 ± 0.006 | meaningful gain over 500 |
+| 2000 | 0.756 ± 0.005 | still improving |
+| 5000 | 0.767 ± 0.009 | near-plateau |
+| 10000 | 0.769 ± 0.010 | statistically tied with 5000 |
+
+**Verdict.** C7 supports the universality claim.  The same fixed-encoder
+plus analytic-decoder primitive reaches `test_r2 ≈ 0.77` on California
+Housing with no architecture change beyond `d_out=1`.  Performance
+improves monotonically with neuron count, then plateaus by roughly
+`n=5000`; `n=10000` is only `+0.002` R² above `n=5000`, well inside the
+combined SE.
+
+**Code / data identity.**
+
+- `code_identity` for all 15 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes were stable across all rows:
+  `data_npz=c8f43774aa27b7ec034e60db31b6124e12b4a0d42b55b0c8eb1320089e2ebc37`,
+  `target_npz=ae80bb98487c04d7383ed8aecda8e207583dfd3e66f6679fded97597c3f6c87e`
+
+### Reproduce
+
+```bash
+SEEDS=0-2 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c7_housing
+```
 
 ---
 

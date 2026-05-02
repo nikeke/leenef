@@ -1,0 +1,17 @@
+[2026-05-02T09:39:14] phase=c7_housing_panel experiment=c7_housing knob=cell values=['n500', 'n1000', 'n2000', 'n5000', 'n10000'] seeds=[0, 1, 2] code_identity=9bfe9d9c7eacc013c2d83a42389245e47db129fe
+[2026-05-02T09:39:14]   [1/15] run    c7_housing_panel_n500_s0
+[2026-05-02T09:39:16]   [2/15] run    c7_housing_panel_n500_s1
+[2026-05-02T09:39:16]   [3/15] run    c7_housing_panel_n500_s2
+[2026-05-02T09:39:16]   [4/15] run    c7_housing_panel_n1000_s0
+[2026-05-02T09:39:16]   [5/15] run    c7_housing_panel_n1000_s1
+[2026-05-02T09:39:16]   [6/15] run    c7_housing_panel_n1000_s2
+[2026-05-02T09:39:16]   [7/15] run    c7_housing_panel_n2000_s0
+[2026-05-02T09:39:17]   [8/15] run    c7_housing_panel_n2000_s1
+[2026-05-02T09:39:18]   [9/15] run    c7_housing_panel_n2000_s2
+[2026-05-02T09:39:19]   [10/15] run    c7_housing_panel_n5000_s0
+[2026-05-02T09:39:23]   [11/15] run    c7_housing_panel_n5000_s1
+[2026-05-02T09:39:26]   [12/15] run    c7_housing_panel_n5000_s2
+[2026-05-02T09:39:30]   [13/15] run    c7_housing_panel_n10000_s0
+[2026-05-02T09:39:45]   [14/15] run    c7_housing_panel_n10000_s1
+[2026-05-02T09:39:59]   [15/15] run    c7_housing_panel_n10000_s2
+[2026-05-02T09:40:14] phase c7_housing_panel done — 15 rows in results/sl_clean/c7_housing_panel.json
