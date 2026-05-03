@@ -1,4 +1,4 @@
-# A Sufficient-Statistics View of Fixed-Encoder Neural Learning
+# Sufficient Statistics as the Universal Primitive (Part I)
 
 ## Supervised Learning via the Neural Engineering Framework
 
@@ -19,11 +19,14 @@ sufficient-statistics primitive for supervised learning.  In a
 rate-based specialization we call **leenef**, we interpret the
 activities as magnitudes of frame coefficients and study how
 encoder choice, bias placement, activation, and regularization
-shape the resulting fixed-feature learner.  Under multi-seed,
+shape the resulting fixed-feature learner.  The resulting primitive
+composes into ensembles, online updates (Woodbury),
+GPU-friendly accumulate-and-solve, and, non-trivially, a streaming
+temporal classifier.  Under multi-seed,
 code-identity-tagged evaluation, the analytic streaming classifier
 reaches **98.45 ± 0.02 %** on row sMNIST: **0.6 pp below** a tuned
 near-best LSTM while using **2.4× less wall-clock time**, and
-**~5 pp above** a completed CPU ESN row baseline while using
+**~5 pp above** the completed ESN row panel while using
 **roughly 5× less wall-clock time**.  Static single-layer leenef
 models with generic encoders end **1–4 pp below** gradient-trained
 MLPs on image features while using **12–50× less wall-clock time**;
@@ -73,32 +76,33 @@ The trilogy's shared opener is six operational claims, distilled
 from the program's running code.  These are *our* distillation;
 P1–P4 inherit from NEF, P5–P6 are leenef-specific.
 
-- **P1 — In the fully analytic primitive, encoders are fixed**
-  (random or data-adapted).  Decoders are the fitted quantities.
+- **P1 — Encoders are fixed** (random or data-adapted).  Decoders
+  are the only thing we ever fit.
 - **P2 — Decoders fall out of one analytic step:**
-  `D = (AᵀA + αI)⁻¹ AᵀY`.  For the analytic path there is no
-  learning rate, no schedule, and no gradient flow between layers.
-- **P3 — `AᵀA` and `AᵀY` are the central state variables.**
-  Streaming over time, ensembles, online updates, and several
-  later extensions can be expressed as different ways of
-  additively combining sufficient statistics.
-- **P4 — In the task-agnostic default, targets `Y` are where task
-  structure enters.**  Data-adapted or label-aware encoders are
-  explicit departures from this default and are tested as priors
-  over frame directions.
+  `D = (AᵀA + αI)⁻¹ AᵀY`.  No learning rate, no schedule, no
+  gradient flow between layers.
+- **P3 — `AᵀA` and `AᵀY` are the universe.**  Continual learning,
+  streaming over time, ensembles, online updates, per-action
+  FQI — all of them are different ways of *additively combining*
+  sufficient statistics.
+- **P4 — Targets `Y` are the only place where task structure
+  enters.**  The encoder does not care what the task is; the
+  decoder column does.
 - **P5 — Time is collapsed by pooling, not by recurrence.**  The
   streaming classifier mean-pools delay-line activities into a
   fixed-size representation; no BPTT, no recurrent solve.
-- **P6 — Per-class sufficient statistics are the bridge to
-  continual learning.**  Class-specific target columns can be
-  accumulated, reset, decayed, or merged independently, while the
-  shared `AᵀA` term still has to be managed explicitly.  Paper II
-  owns the continual-learning algorithmic claim.
+- **P6 — Per-class additivity is what makes continual learning
+  work.**  Each class owns its own decoder column, so accumulating
+  new task statistics never interferes with old columns.
+  (Forward-look — owned by Paper II; we exhibit the additivity
+  property here without claiming it solves CL.)
 
 The rest of Paper I is one of these primitives applied somewhere
 new: §3 (method) is **P1–P4**, §6 (streaming classifier) is **P5**,
-and the multi-layer experiments (Appendix B) test where the fully
-analytic primitive stops being enough.
+and the multi-layer experiments (Appendix B) are the load-bearing
+negative result that says **P2** does not extend cleanly through
+stacked nonlinearities — which is why we stay single-layer for the
+rest of the trilogy.
 
 ---
 
@@ -123,8 +127,7 @@ MNIST, within 1 pp of a plain ridge regression on the raw 784-D
 input (85.3 %).  An `abs`-activation leenef layer at `n = 5 000`
 reaches **97.08 %** under identical training data and α policy.
 The collapse is empirical, not just algebraic; the +11 pp delta
-is the measured contribution of the pointwise nonlinearity in this
-sanity check.  This
+is the entire contribution of the pointwise nonlinearity.  This
 is a single-seed sanity check; the comparator (97.08 ± 0.04 %)
 is from the corresponding 10-seed raw-MNIST panel.
 
@@ -163,8 +166,8 @@ coefficient of `x` in the (over-complete, possibly random) frame
 a_i = |g_i · e_i · (x − d_i)|        (data-driven bias case)
 ```
 
-Each neuron then asks for a direction-projection magnitude relative
-to training sample `d_i`.  The decoder is the linear functional
+Each neuron then asks "how far is x from training sample `d_i`,
+along direction `e_i`?"  The decoder is the linear functional
 that reads off the target from these magnitudes.  This framing
 will recur throughout the paper:
 
@@ -881,7 +884,7 @@ can follow the threads back to where the ideas originated.
   fit lands 0.6–0.7 pp below tuned LSTM cells while using
   2.4–20× less wall-clock time, depending on where one reads the LSTM
   speed/accuracy Pareto front.  It is also ~5 pp above the
-  completed CPU ESN row panel at ~5× less wall-clock time.
+  completed ESN row panel at ~5× less wall-clock time.
 - **A reproducibility infrastructure** that makes multi-seed
   analytic-readout studies cheap and resumable.  This is an
   enabling contribution rather than a new learning algorithm: every
@@ -933,7 +936,7 @@ term determines how changes in representation statistics propagate
 to every decoder column.  That separation is the load-bearing
 property for Paper II: class-specific target statistics can be
 reset, decayed, or merged at one timescale while the shared activity
-statistics are managed explicitly at another.  The supervised paper
+statistics are managed explicitly at another.  This paper
 only exposes the algebraic structure; the continual-learning paper
 owns the algorithmic claim.
 
