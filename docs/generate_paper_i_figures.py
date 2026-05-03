@@ -122,7 +122,7 @@ def figure_f3() -> Path:
 
 
 def _factors(r: dict) -> dict:
-    """Per-cell factor dict — the canonical place for B1's bias_mode/encoder."""
+    """Per-cell factor dict for bias-mode and encoder analyses."""
     return r.get("metrics", {}).get("factors", {}) or r.get("config", {})
 
 
@@ -139,7 +139,7 @@ def _metric(r: dict) -> float:
 
 # ------------------------------------------------------------------ F4
 def figure_f4() -> Path:
-    """B1 abs-hinge geometry: 3 datasets × bias × encoder."""
+    """Abs-hinge geometry: 3 datasets × bias × encoder."""
     datasets = ("mnist", "fashion", "cifar10")
     bias_modes = ("data_driven", "zero", "random_normal")
     encoders = ("hypersphere", "gaussian", "sparse")
@@ -175,8 +175,8 @@ def figure_f4() -> Path:
         else:
             ax.set_ylim(40, 56)
     axes[0].legend(fontsize=8, loc="lower right", title="bias_mode")
-    fig.suptitle("Figure 2 — B1 panel: bias placement × encoder × dataset (10 seeds)")
-    out = FIG_DIR / "f2_b1_biases.png"
+    fig.suptitle("Figure 2 — Bias placement × encoder × dataset (10 seeds)")
+    out = FIG_DIR / "f2_biases.png"
     fig.tight_layout()
     fig.savefig(out, dpi=150)
     plt.close(fig)
@@ -185,7 +185,7 @@ def figure_f4() -> Path:
 
 # ------------------------------------------------------------------ F5
 def figure_f5() -> Path:
-    """B7 hinge-placement falsifier: raw/decentered/centered bias gaps."""
+    """Hinge-placement falsifier: raw/decentered/centered bias gaps."""
 
     panels = [
         (
@@ -244,8 +244,8 @@ def figure_f5() -> Path:
         ax.grid(True, axis="y", alpha=0.3)
     axes[0].set_ylabel("test accuracy (%)")
     axes[1].legend(title="bias_mode", fontsize=9, loc="lower right")
-    fig.suptitle("Figure 3 — B7 falsifier: hinge placement, not pure DC mass")
-    out = FIG_DIR / "f3_b7_hinge_falsifier.png"
+    fig.suptitle("Figure 3 — Hinge placement, not pure DC mass")
+    out = FIG_DIR / "f3_hinge_falsifier.png"
     fig.tight_layout()
     fig.savefig(out, dpi=150)
     plt.close(fig)
@@ -254,7 +254,7 @@ def figure_f5() -> Path:
 
 # ------------------------------------------------------------------ F6
 def figure_f6() -> Path:
-    """B3 encoder-strategy panel."""
+    """Encoder-strategy panel."""
     datasets = ("mnist", "fashion", "cifar10")
     strategies = (
         "hypersphere",
@@ -288,8 +288,8 @@ def figure_f6() -> Path:
         ax.set_title(ds.upper())
         ax.set_ylabel("test accuracy (%)")
         ax.grid(True, axis="y", alpha=0.3)
-    fig.suptitle("Figure 4 — B3 encoder strategy × dataset (10 seeds, n=5000)")
-    out = FIG_DIR / "f4_b3_encoders.png"
+    fig.suptitle("Figure 4 — Encoder strategy × dataset (10 seeds, n=5000)")
+    out = FIG_DIR / "f4_encoders.png"
     fig.tight_layout()
     fig.savefig(out, dpi=150)
     plt.close(fig)
@@ -297,7 +297,7 @@ def figure_f6() -> Path:
 
 
 def figure_f_scaling() -> Path:
-    """C1 single-layer width scaling across MNIST/Fashion/CIFAR-10."""
+    """Single-layer width scaling across MNIST/Fashion/CIFAR-10."""
     datasets = [
         ("MNIST", "mnist", (91.5, 98.5)),
         ("Fashion-MNIST", "fashion", (82.0, 90.0)),
@@ -331,8 +331,8 @@ def figure_f_scaling() -> Path:
         ax.set_xlabel("n_neurons")
         ax.grid(True, which="both", alpha=0.3)
     axes[0].set_ylabel("test accuracy (%)")
-    fig.suptitle("Figure 5 — Single-layer width scaling (C1, 10 seeds)")
-    out = FIG_DIR / "f5_c1_scaling.png"
+    fig.suptitle("Figure 5 — Single-layer width scaling (10 seeds)")
+    out = FIG_DIR / "f5_scaling.png"
     fig.tight_layout()
     fig.savefig(out, dpi=150)
     plt.close(fig)
@@ -341,7 +341,7 @@ def figure_f_scaling() -> Path:
 
 # ------------------------------------------------------------------ F9
 def figure_f9() -> Path:
-    """B4 MLP comparator: best-cell MLP vs B1 hypersphere NEF vs B3 RF NEF."""
+    """MLP comparator: best-cell MLP vs hypersphere/RF NEF."""
     datasets = ("mnist", "fashion", "cifar10")
 
     def b1_hypersphere_dd(ds: str) -> tuple[float, float]:
@@ -378,9 +378,9 @@ def figure_f9() -> Path:
     xs = list(range(len(datasets)))
     for i, (label, fn, color) in enumerate(
         [
-            ("NEF hypersphere (B1)", b1_hypersphere_dd, "C0"),
-            ("NEF receptive_field (B3)", b3_rf, "C2"),
-            ("MLP tuned (B4)", b4_best, "C3"),
+            ("NEF hypersphere", b1_hypersphere_dd, "C0"),
+            ("NEF receptive_field", b3_rf, "C2"),
+            ("MLP tuned", b4_best, "C3"),
         ]
     ):
         ms, ses = zip(*[fn(ds) for ds in datasets])
@@ -392,7 +392,7 @@ def figure_f9() -> Path:
     ax.set_title("Figure 8 — Single-layer comparator: NEF vs tuned MLP")
     ax.legend(fontsize=9, loc="lower left")
     ax.grid(True, axis="y", alpha=0.3)
-    out = FIG_DIR / "f8_b4_comparator.png"
+    out = FIG_DIR / "f8_mlp_comparator.png"
     fig.tight_layout()
     fig.savefig(out, dpi=150)
     plt.close(fig)

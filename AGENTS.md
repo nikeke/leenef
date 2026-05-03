@@ -4,7 +4,7 @@
 >
 > The library source (`src/leenef/`) and core tests (`tests/`) are
 > stable.  Everything else — `benchmarks/`, `docs/`, `results/`,
-> `notebooks/` — has been moved to `attic/` while a foundational
+> `notebooks/` — has been moved to `attic/` while the SSUP
 > three-paper series (Supervised → Continual → Reinforcement Learning)
 > is rebuilt with rl_clean-grade reproducibility.
 >
@@ -66,7 +66,7 @@ PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
 > commands have moved to `attic/`; only the `sl_clean` block above is
 > live.  See `docs/sl_clean_sweeps.md` for the running phase log.
 
-## Foundational paper series (Paper I — Supervised Learning)
+## SSUP paper series (Paper I — Supervised Learning)
 
 Paper I owns the `benchmarks/sl_clean/`, `results/sl_clean/`,
 `docs/sl_clean_sweeps.md` trio, modeled after the rl_clean
@@ -112,6 +112,29 @@ infrastructure.
 - Encoders + gains are derived from sub-RNGs that depend ONLY on the
   seed, never on the contrasted factor — so the same seed produces
   bit-identical encoders across e.g. all three bias modes.
+
+**Manuscript rules:**
+
+- The paper must be self-contained. Do **not** refer readers to
+  repository paths, notes files, result JSON filenames, driver scripts,
+  or other repo-internal files in the main text. Appendix A may list
+  artifact paths only when they are explicitly anchored to the GitHub
+  repository URL: `https://github.com/nikeke/leenef`.
+- Avoid internal experiment labels such as B1/B4/C5 in the manuscript
+  unless they are formally defined and reused as reader-facing protocol
+  names. Prefer descriptive phrases ("the raw-dataset bias panel",
+  "the tuned MLP grid", "the recurrent Colab panel").
+- Use "end-to-end wall-clock time" for measured timing comparisons.
+  Avoid ambiguous "runs faster" phrasing when the measured quantity is
+  fitting or training time; say "uses N× less wall-clock time" instead.
+  Use "fit" for analytic decoder solves and "train" for gradient-based
+  optimization.
+- Do not overuse "honest/honestly" as a rhetoric marker in the paper.
+  State the limitation or caveat directly; reserve honesty language for
+  places where it genuinely clarifies the methodology.
+- Use `g_i` or "gain" for per-neuron gains in the paper. Reserve `α`
+  for regularization strength and trace-scaled regularization policy so
+  §2 does not introduce a second unrelated alpha.
 
 **Live phase log:** `docs/sl_clean_sweeps.md`.
 
@@ -168,6 +191,19 @@ wait_for_b2_panels.sh}` and the B2 launch in
    updates on every cell completion).  Ask the user to kill
    if needed.
 
+9. **Watch appended logs with row counts, not completion strings.**
+   Relaunched drivers append to existing logs, so old "phase done"
+   lines can fool a naive watcher. A robust watcher should check the
+   current JSON for the expected `code_identity`, expected value set,
+   and expected row count, while using max(JSON/log mtime) only for
+   stall detection.
+
+10. **Do not assume historical worktree names still exist.** The
+    Phase-C GPU worktree was temporary and may be removed. Prefer the
+    branch/ref name (`paper-i/phase-c-experiments`, GPU-suite branch)
+    and verify with `git branch --contains` or `git worktree list`
+    before looking for a sibling directory.
+
 ## Reproducibility hazards (must not regress)
 
 - **Default RNG vs explicit Generator.** Every place that draws
@@ -213,6 +249,20 @@ wait_for_b2_panels.sh}` and the B2 launch in
   RNG** with no `generator=` kwarg.  Base configs set dropout=0; if
   you raise it for an experiment, implement explicit-Generator masks
   manually (or accept that runs become irreproducible).
+
+## Colab / GPU suite lessons
+
+- Fresh Colab runtimes do not have MNIST raw IDX files. The GPU suite
+  must download and unpack the raw files into `data/MNIST/raw` before
+  loading datasets, because the harness hashes raw bytes directly for
+  reproducibility instead of relying on torchvision's dataset object.
+- Prefer a single zipped result artifact for notebook download. Multiple
+  `files.download()` calls are fragile in Colab; bundle JSON panels,
+  logs, and exact config copies into one archive.
+- For C5-style recurrent row-sMNIST suites, G4 is the preferred Colab
+  GPU if available at the documented ~5 CU/hr rate; L4 is the fallback.
+  A100/H100 are unnecessary unless a future panel becomes genuinely
+  memory-bandwidth or memory-capacity bound.
 
 ## Technical report as design reference (ATTIC EPOCH — pending rewrite)
 

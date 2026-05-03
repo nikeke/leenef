@@ -3,13 +3,11 @@
 ## Supervised Learning via the Neural Engineering Framework
 
 > **Status: draft in progress.**  This is the working manuscript for
-> Paper I of the leenef SSUP trilogy.  Section structure
-> tracks `paper_i_outline.md`; numerical claims are sourced from
-> `results/sl_clean/` JSON files and remain in lockstep with
-> `paper_insights.md`.  Cited Eliasmith & Anderson chapters are
-> from *Neural Engineering: Computation, Representation, and
-> Dynamics in Neurobiological Systems* (MIT Press, 2003) unless
-> stated otherwise.
+> Paper I of the leenef SSUP trilogy.  Numerical claims remain under
+> active audit until the final in-flight comparator panels land.  Cited
+> Eliasmith & Anderson chapters are from *Neural Engineering:
+> Computation, Representation, and Dynamics in Neurobiological Systems*
+> (MIT Press, 2003) unless stated otherwise.
 
 ---
 
@@ -33,7 +31,7 @@ wall-clock time**.
 Against the completed CPU ESN panel (same family of fixed nonlinear
 features plus linear readout), Stream-NEF ends **~5 pp above** the
 best ESN row cell and uses **roughly 5× less wall-clock time**.
-We also report the limits honestly:
+We also report the limits plainly:
 purely analytic multi-layer stacking does not work
 (target propagation and end-to-end refinement recover the
 single-layer accuracy on MNIST but no more); permuted sequence
@@ -44,7 +42,7 @@ on permuted sMNIST, locating the likely boundary between mean-pool
 and recurrent state; generic single-layer leenef models end
 **1–4 pp below** gradient-trained MLPs on image features while
 using **12–50× less wall-clock time**.  The twist is that a
-`receptive_field`-encoder leenef model beats the best tuned MLP
+leenef model with receptive_field encoders beats the best tuned MLP
 on CIFAR-10 by **+1.37 pp** **with ~11× less wall-clock time** —
 a good encoder closes the gap, a generic encoder does not.  The
 paper opens the SSUP trilogy that continues with continual
@@ -71,7 +69,7 @@ to compose decoded signals; we depart in three places.
   activations the frame-coefficient interpretation that the rest
   of the paper turns on.
 - We use **data-driven biases**.  The bias of neuron *i* is
-  `b_i = -α_i (e_i · d_i)` for a sample `d_i` drawn from the
+  `b_i = -g_i (e_i · d_i)` for a sample `d_i` drawn from the
   training set, placing the *i*-th `abs` fold on the data
   manifold rather than on a generic random intercept.
 - We do not use NEF's **dynamics principle** anywhere in this
@@ -87,8 +85,7 @@ neurons and data-driven biases."
 
 The trilogy's shared opener is six operational claims, distilled
 from the program's running code.  These are *our* distillation;
-P1–P4 inherit from NEF, P5–P6 are leenef-specific.  We refer back
-to them as **P1**, **P2**, … throughout the paper.
+P1–P4 inherit from NEF, P5–P6 are leenef-specific.
 
 - **P1 — Encoders are fixed** (random or data-adapted).  Decoders
   are the only thing we ever fit.
@@ -123,36 +120,34 @@ rest of the trilogy.
 ## §2 — Why over-representation needs nonlinearity
 
 A linear activation collapses the entire scheme.  If
-`a_i = α_i (e_i · x)`, then for any decoder `D ∈ ℝ^{n × d_out}`,
+`a_i = g_i (e_i · x)`, then for any decoder `D ∈ ℝ^{n × d_out}`,
 
 ```
-y = Dᵀa = Dᵀ diag(α) E x = (Dᵀ diag(α) E) x = W x
+y = Dᵀa = Dᵀ diag(g) E x = (Dᵀ diag(g) E) x = W x
 ```
 
 is a single linear map, regardless of `n`.  Over-completeness
 buys **nothing**: a 100 000-neuron linear network is exactly as
 expressive as a single linear projection of input onto output.
-The frame `{α_i e_i}` is just an absurdly redundant
+The frame `{g_i e_i}` is just an absurdly redundant
 parameterization of a `d_in × d_out` matrix.
 
-We have verified this in a sanity-check experiment (sweep H8 in
-`docs/sl_clean_sweeps.md`, data in
-`results/sl_clean/h8_linear_collapse.json`): a linear-activation
-NEFLayer at `n ∈ {1 000, 4 000}` plateaus at **86.0–86.2 %** on
+We verified this in a sanity-check experiment: a linear-activation
+leenef layer at `n ∈ {1 000, 4 000}` plateaus at **86.0–86.2 %** on
 MNIST, within 1 pp of a plain ridge regression on the raw 784-D
-input (85.3 %).  An `abs`-activation NEFLayer at `n = 5 000`
+input (85.3 %).  An `abs`-activation leenef layer at `n = 5 000`
 reaches **97.08 %** under identical training data and α policy.
 The collapse is empirical, not just algebraic; the +11 pp delta
 is the entire contribution of the pointwise nonlinearity.  This
 is a single-seed sanity check; the comparator (97.08 ± 0.04 %)
-is from the 10-seed B1 panel.
+is from the corresponding 10-seed raw-MNIST panel.
 
 The minimal repair is a pointwise nonlinearity that is *not*
 representable as a linear scaling.  `abs` is the smallest such
 repair we can imagine:
 
 ```
-a_i = |α_i · e_i · x|
+a_i = |g_i · e_i · x|
 ```
 
 Geometrically, `|e_i · x|` is the **unsigned distance of x from
@@ -172,14 +167,14 @@ once the decoder is solved.
 
 ### The frame-coefficient interpretation
 
-Set `u_i = α_i e_i`.  Then
+Set `u_i = g_i e_i`.  Then
 `a_i = |u_i · x|` is the magnitude of the *i*-th frame
 coefficient of `x` in the (over-complete, possibly random) frame
 `{u_i}`.  When biases are non-zero, the frame becomes
 *manifold-local*:
 
 ```
-a_i = |α_i · e_i · (x − d_i)|        (data-driven bias case)
+a_i = |g_i · e_i · (x − d_i)|        (data-driven bias case)
 ```
 
 Each neuron then asks "how far is x from training sample `d_i`,
@@ -192,9 +187,9 @@ will recur throughout the paper:
   data-covariance-aware; receptive_field = spatial-locality-aware.
   Random, near-isotropic frames are broad but data-blind;
   data-adapted frames trade generic coverage for efficiency.
-- **Per-neuron gain `α_i`** (§5.4) rescales each frame element,
+- **Per-neuron gain `g_i`** (§5.4) rescales each frame element,
   equivalent to non-uniform measurement of `x`.  Empirically the
-  default `U(0.5, 2.0)` range and a fixed `α ≡ 1` perform within
+  default `U(0.5, 2.0)` range and a fixed `g_i ≡ 1` perform within
   seed noise on raw image classification (§5.4); we keep gain
   diversity as the project default because it is the NEF-canonical
   setting and because it pays off in the streaming variant.
@@ -239,18 +234,18 @@ falsified the spectral prediction.
 
 A leenef layer is three operations.  Given input `x ∈ ℝ^{d_in}`,
 fixed encoder matrix `E ∈ ℝ^{n × d_in}` (rows of unit norm by
-default), per-neuron gain vector `α ∈ ℝ^n`, bias vector
+default), per-neuron gain vector `g ∈ ℝ^n`, bias vector
 `b ∈ ℝ^n`, and pointwise activation `G : ℝ → ℝ`, the forward map
 is
 
 ```
-a = G(α ⊙ (E x) + b) ∈ ℝ^n.
+a = G(g ⊙ (E x) + b) ∈ ℝ^n.
 ```
 
 The default activation is `abs`; encoders are uniform on the
 unit sphere (`hypersphere`); gains are drawn `U(0.5, 2.0)`;
 biases are derived from training samples
-`b_i = -α_i (e_i · d_i)` for `d_i ∼ training set`.  The output
+`b_i = -g_i (e_i · d_i)` for `d_i ∼ training set`.  The output
 is read off by a linear decoder `D ∈ ℝ^{n × d_out}`:
 
 ```
@@ -285,7 +280,7 @@ implemented:
   Necessary for online deployments; on GPU at large `n` the
   explicit `n × n` inverse is the bottleneck.
 
-§5.3 (H3) measures all three on identical accumulated statistics
+§5.3 measures all three on identical accumulated statistics
 and shows that the resulting decoders agree to 0.000 pp on
 sMNIST.  The choice of solve mode is therefore a deployment
 concern (latency, memory, online vs batch) — not a statistical
@@ -369,10 +364,10 @@ dimensionless, architecture-portable knob.
 
 ### The α multiplier itself depends on the architecture
 
-Trace-scaling alone is not enough.  The "standard" `α = 10⁻²`
-that ships with `NEFLayer.fit` over-regularizes the streaming
-classifier by ~2 OOM.  In `NEFLayer.fit` on raw 60 000 × 784
-MNIST, the per-neuron diagonal scale is small (typical
+Trace-scaling alone is not enough.  The otherwise useful
+single-layer default `α = 10⁻²` over-regularizes the streaming
+classifier by ~2 OOM.  In the raw 60 000 × 784 MNIST solve, the
+per-neuron diagonal scale is small (typical
 `|projection|² ≈ 0.1`) and `α_eff = α · 60000 · 0.1 ≈ 60` sits
 below the data spectrum.  In streaming, mean-pooling preserves
 abs-projection magnitudes; `trace / n ≈ 11 000` and
@@ -381,8 +376,7 @@ singular components.
 
 We measured this directly with a five-by-five-by-two
 calibration sweep (5 alphas × 2 scaling modes × 2 widths × 5
-seeds = 100 cells; data in
-`results/sl_clean/streaming_alpha_sweep_summary.json`).  The
+seeds = 100 cells).  The
 best robust cross-width choice is **trace-scaled `α = 10⁻⁴`**:
 98.03 % at `n = 4 000`, 98.44 % at `n = 8 000`, SE ≤ 0.04 pp,
 gap across `n` of just +0.4 pp.  It is not the pointwise winner
@@ -413,8 +407,8 @@ is best at one `n` and catastrophic at another (fixed 10⁻² wins
 This is the **footgun-prevention claim** of the paper: any
 practitioner copying our recipe needs trace-scaled `α`, and the
 appropriate scalar multiplier depends on the architecture (one
-value for plain `NEFLayer.fit`, a different one for
-`StreamingNEFClassifier`).  Once trace-scaling is in place the
+value for a static single-layer solve, a different one for the
+streaming classifier).  Once trace-scaling is in place the
 multiplier becomes a robust dimensionless number, not a magic
 constant.
 
@@ -422,26 +416,24 @@ constant.
 
 ## §5 — Single-layer experiments
 
-Three ablations on a 5 000-neuron `NEFLayer` fit by
-`accumulate + solve`, evaluated on MNIST, Fashion-MNIST, and
-CIFAR-10.  Ten seeds throughout; data in
-`results/sl_clean/biases_*_panel.json` (B1, B7) and
-`results/sl_clean/b3_strategies_*_panel.json` (B3).
+Three ablations on a 5 000-neuron leenef layer fitted by
+accumulating sufficient statistics and solving once, evaluated on
+MNIST, Fashion-MNIST, and CIFAR-10.  Ten seeds throughout.
 
 ### §5.1 — Where the abs hinge sits relative to data
 
 The bias `b_i` selects where the *i*-th `abs` fold sits in
 input space.  Zero bias places every hinge through the origin
-of `ℝ^{d_in}`.  Data-driven bias `b_i = -α_i (e_i · d_i)`
+of `ℝ^{d_in}`.  Data-driven bias `b_i = -g_i (e_i · d_i)`
 places the *i*-th hinge at training sample `d_i`.  A naïve
 spectral reading (the "DC component" reading) predicts that the
 gap between these two choices should track how much DC mass the
 dataset carries; a clean geometric reading predicts that it
 tracks *how far the data centroid sits from the origin*.
 
-The B1 panel on raw datasets is consistent with both readings:
+The raw-dataset bias panel is consistent with both readings:
 
-![Figure 2: bias placement on raw datasets.](figures/f2_b1_biases.png)
+![Figure 2: bias placement on raw datasets.](figures/f2_biases.png)
 
 **Figure 2.**  Bias placement on raw MNIST, Fashion-MNIST, and
 CIFAR-10.  Zero and data-driven folds tie on the two mostly
@@ -455,7 +447,7 @@ mode.
 | Fashion-MNIST raw | 87.75 ± 0.06 % | 87.75 ± 0.04 % |  0.0 pp |
 | CIFAR-10 raw | 49.72 ± 0.08 % | 48.34 ± 0.07 % | +1.4 pp |
 
-The B7 follow-ups (10 seeds × 9 cells each on per-channel-
+The follow-up bias panels (10 seeds × 9 cells each on per-channel
 centered CIFAR-10 and decentered MNIST) decided between the two
 readings:
 
@@ -464,9 +456,9 @@ readings:
 | MNIST decentered (+0.5) | 97.12 % | 95.78 % | +1.3 pp | ~0 |
 | CIFAR-10 per-channel centered | 49.72 % | 43.41 % | **+6.3 pp** | ~0 |
 
-![Figure 3: B7 hinge-placement falsifier.](figures/f3_b7_hinge_falsifier.png)
+![Figure 3: hinge-placement falsifier.](figures/f3_hinge_falsifier.png)
 
-**Figure 3.**  The B7 follow-ups falsify the pure-DC reading.
+**Figure 3.**  The centering/decentering follow-ups falsify the pure-DC reading.
 Centering CIFAR-10 should have closed the data-driven-vs-zero
 gap under that story; instead it opens the largest gap in the
 series.
@@ -506,10 +498,10 @@ recommended against.
 
 ### §5.2 — Encoder strategy is mostly orthogonal to bias choice
 
-B3 sweeps seven encoder strategies with `data_driven` biases
-fixed (10 seeds, `n = 5 000`):
+The encoder-strategy sweep fixes `data_driven` biases and compares
+seven frame-direction priors (10 seeds, `n = 5 000`):
 
-![Figure 4: encoder strategy panel.](figures/f4_b3_encoders.png)
+![Figure 4: encoder strategy panel.](figures/f4_encoders.png)
 
 **Figure 4.**  Encoder strategy is a prior on frame directions.
 Receptive-field encoders provide the only large spatial-data win;
@@ -554,9 +546,9 @@ Three findings.
 
 The §3 recipe therefore takes `hypersphere` as the vanilla
 baseline and `receptive_field` as the only encoder adaptation
-that survives every dataset honestly.
+that survives every dataset in this panel.
 
-### §5.3 — Solver-numerics equivalence (H3)
+### §5.3 — Solver-numerics equivalence
 
 Streaming sMNIST at `n = 4 000`, `α = 10⁻⁴` (trace-scaled),
 five seeds:
@@ -568,8 +560,7 @@ five seeds:
 | `woodbury` | 98.03 ± 0.02 % |
 
 Worst pairwise |Δ| over seeds is **0.000 pp** to reporting
-precision.  H3 confirmed: the three solve paths reach the same
-decoder.  Practical guidance: on CPU at moderate `n`, all
+precision.  The three solve paths reach the same decoder.  Practical guidance: on CPU at moderate `n`, all
 three are fine; on GPU at large `n`, prefer `accumulate +
 solve` (memory `O(n²)` only, GEMMs in float32) unless the
 deployment requires per-batch up-to-date decoders, in which
@@ -578,8 +569,8 @@ cost of an explicit float64 `n × n` inverse.
 
 ### §5.4 — Scaling and activation choices
 
-Two ablations from the Phase C panels (10 seeds each, base
-config: hypersphere encoders, data-driven biases, gain
+Two 10-seed ablations use the same base configuration:
+hypersphere encoders, data-driven biases, gain
 `U(0.5, 2.0)`, `α = 10⁻³`):
 
 **Single-layer width.**  MNIST and Fashion-MNIST are monotone in
@@ -589,7 +580,7 @@ the generic hypersphere encoder: it improves through 10k neurons
 and then falls at 20k, which is a useful warning that "more random
 global features" is not a universal scaling law.
 
-![Figure 5: single-layer width scaling.](figures/f5_c1_scaling.png)
+![Figure 5: single-layer width scaling.](figures/f5_scaling.png)
 
 **Figure 5.**  Single-layer width scaling under the generic
 hypersphere encoder.  MNIST and Fashion-MNIST keep improving
@@ -644,8 +635,8 @@ clearly worse.  Tanh recovers part of the gap under the wide-gain
 spread because saturation is mitigated when many neurons sit at
 small gain.
 
-The honest reading the §2 algebra supports: `abs` and ReLU
-are the same minimal nonlinearity up to a sign-flip
+The reading the §2 algebra supports: `abs` and ReLU are the
+same minimal nonlinearity up to a sign-flip
 (`|x| = ReLU(x) + ReLU(-x)`), and an `abs` neuron is the same
 information as two mirrored `relu` neurons whose decoder rows
 the analytic solve will find.  At fixed `n` the `abs` parameterization
@@ -680,18 +671,18 @@ recurrence, no BPTT.
 ### §6.1 — The architecture
 
 Let `ŝ_t = (x_{t-K+1}, …, x_t) ∈ ℝ^{Kd_in}` be the delay-line
-window at time `t`.  Activate it through the same NEFLayer
+window at time `t`.  Activate it through the same leenef layer
 defined in §3; mean-pool the resulting activities over `t`:
 
 ```
-Â = (1/T) Σ_t |α ⊙ E ŝ_t + b|
+Â = (1/T) Σ_t |g ⊙ E ŝ_t + b|
 ```
 
 `Â` is a fixed-size vector regardless of `T`, so the rest of
 the pipeline is identical to §3: accumulate `ÂᵀÂ` and `ÂᵀY`,
 solve for the decoder.  The streaming variants `batch_acc`,
 `accumulate`, and `woodbury` (continuous fit) share the same
-test accuracy by H3 (§5.3).
+test accuracy (§5.3).
 
 ### §6.2 — Row sMNIST results
 
@@ -759,7 +750,7 @@ uniformly across the dataset (T = 784).  Five seeds per cell:
 | 4 000 | 75.61 ± 0.05 % | 792 |
 
 Doubling `n` is +2.65 pp (55σ) — far from saturated.  Extension
-to `n ∈ {8 000, 16 000}` with 10 seeds and an honest wall-clock
+to `n ∈ {8 000, 16 000}` with 10 seeds and a wall-clock
 budget is scheduled on the delegated branch; the analytic-solve
 property makes those cells cheap relative to a comparator LSTM
 sweep, and we will fold the larger-`n` numbers in before the
@@ -768,8 +759,8 @@ to see how high the mean-pool ceiling is in absolute terms, not
 to stitch over the §6.4 limit — that limit is structural, not
 parameter-count-driven.
 
-The honest comparison with the apples-to-apples ESN (same
-fixed-feature + linear-readout family) is in flight at
+The apples-to-apples ESN comparison (same fixed-feature +
+linear-readout family) is in flight at
 submission time.  A first-pass run (with a since-superseded
 `code_identity` and 5 seeds per cell) had the best ESN cell at
 `n = 2 000, sr = 0.95, leak = 0.3` delivering ~79 %, which is
@@ -791,12 +782,12 @@ neighborhood only once — but we will not commit to a multi-seed
 verdict until the panel completes.  The LSTM baseline did not
 converge in the budget we allotted (vanilla LSTM on permuted
 sMNIST is well-documented to need curriculum or initialization
-tricks to escape ~50 %); the b5_lstm_smnist_permuted panel is
-preserved at 2 / 90 cells in `results/sl_clean/` as a documented
-compute-budget cap.
+tricks to escape ~50 %); our attempted vanilla LSTM panel stopped
+at 2 / 90 cells and is treated as a compute-budget cap rather than
+a completed baseline.
 
-What we *can* commit to honestly is that on permuted sMNIST
-Stream-NEF is below the recurrent-state literature, and the
+What the current data already supports is that on permuted sMNIST
+Stream-NEF remains below the recurrent-state literature, and the
 partial ESN rerun already shows that an apples-to-apples
 reservoir can match Stream-NEF at smaller width.  The final ESN
 verdict waits on the in-flight `sr = 0.95` n=2 000 cells.  The
@@ -822,7 +813,7 @@ We attempted four cheap mitigations on permuted sMNIST (larger
 `K`, positional concatenation, max-pool, data-adapted
 encoders); each is reported in Appendix B with its multi-seed
 result.  The headline summary is that none of them cleanly
-crosses 90 % without abandoning the "honest delay-line
+crosses 90 % without abandoning the strict delay-line
 streaming" frame; the architecture's reach is genuinely
 bounded above by mean-pool's order-erasing property.
 
@@ -832,27 +823,28 @@ bounded above by mean-pool's order-erasing property.
 
 Before claiming that the analytic-solve primitive is competitive
 with gradient training, we owe the reader a properly tuned MLP
-baseline.  B4 is a 12-config × 3-dataset grid: depth ∈ {1, 2},
+baseline.  The MLP baseline is a 12-config × 3-dataset grid:
+depth ∈ {1, 2},
 width ∈ {256, 512, 1024}, lr ∈ {3·10⁻³, 10⁻³},
 Adam, batch 128, early-stop with patience 5 on a held-out 10 %
 validation split.  Five seeds each.
 
 Default hypersphere leenef cell (MNIST/Fashion-MNIST) and the
 best receptive-field leenef cell (CIFAR-10) vs the best
-gradient-trained MLP cell in B4's tuned grid:
+gradient-trained MLP cell in the tuned grid:
 
-![Figure 8: single-layer leenef vs tuned MLP.](figures/f8_b4_comparator.png)
+![Figure 8: single-layer leenef vs tuned MLP.](figures/f8_mlp_comparator.png)
 
 **Figure 8.**  The MLP comparison is encoder-dependent.  Generic
 hypersphere leenef trails on MNIST/Fashion and raw CIFAR-10; the
 receptive-field prior reverses the CIFAR-10 gap.
 
-| dataset | leenef cell | best MLP cell | Δ | end-to-end wall-clock time (s/seed) | speedup |
-|---------|------------------|---------------|---:|---------------|--------:|
-| MNIST | hypersphere · 97.08 ± 0.04 % | d=1, w=512, lr 3·10⁻³ · **98.10 ± 0.08 %** | +1.0 pp MLP | NEF ≈ 5 / MLP 58 | NEF **~12×** |
-| Fashion-MNIST | hypersphere · 87.74 ± 0.06 % | d=2, w=1024, lr 10⁻³ · **89.39 ± 0.08 %** | +1.6 pp MLP | NEF ≈ 5 / MLP 254 | NEF **~50×** |
-| CIFAR-10 | hypersphere · 49.72 ± 0.08 % | d=2, w=1024, lr 10⁻³ · **53.73 ± 0.22 %** | +4.0 pp MLP | NEF ≈ 16 / MLP 327 | NEF **~20×** |
-| CIFAR-10 | **receptive_field · 55.10 ± 0.10 %** | d=2, w=1024, lr 10⁻³ · 53.73 ± 0.22 % | **+1.4 pp NEF** | NEF ≈ 30 / MLP 327 | NEF **~11×** |
+| dataset | leenef cell | best MLP cell | Δ | end-to-end wall-clock time (s/seed) | wall-clock ratio |
+|---------|------------------|---------------|---:|---------------|-----------------:|
+| MNIST | hypersphere · 97.08 ± 0.04 % | d=1, w=512, lr 3·10⁻³ · **98.10 ± 0.08 %** | +1.0 pp MLP | NEF ≈ 5 / MLP ≈ 58 | NEF uses **~12× less** |
+| Fashion-MNIST | hypersphere · 87.74 ± 0.06 % | d=2, w=1024, lr 10⁻³ · **89.39 ± 0.08 %** | +1.6 pp MLP | NEF ≈ 5 / MLP ≈ 254 | NEF uses **~50× less** |
+| CIFAR-10 | hypersphere · 49.72 ± 0.08 % | d=2, w=1024, lr 10⁻³ · **53.73 ± 0.22 %** | +4.0 pp MLP | NEF ≈ 16 / MLP ≈ 327 | NEF uses **~20× less** |
+| CIFAR-10 | **receptive_field · 55.10 ± 0.10 %** | d=2, w=1024, lr 10⁻³ · 53.73 ± 0.22 % | **+1.4 pp NEF** | NEF ≈ 30 / MLP ≈ 327 | NEF uses **~11× less** |
 
 (NEF timing is `accumulate + solve` end-to-end on CPU including
 the encoder build; MLP timing is the patience-5 early-stopping
@@ -883,7 +875,7 @@ the gap again.  All three observations stand side-by-side.
 
 ---
 
-## §8 — What is novel, what is replication, what we honestly claim
+## §8 — What is novel, what is replication, what we claim
 
 Several pieces of this paper are replications or framings of
 prior work, and we name them plainly so that interested readers
@@ -925,12 +917,12 @@ can follow the threads back to where the ideas originated.
   the feature map as a black box.
 - **The architecture-specific α footgun-prevention story**
   (§4).  Trace-scaling is not a new algorithm —
-  `solvers.tikhonov` has done it since the codebase was
-  written — but the cautionary baseline (fixed-α catastrophic
+  it is already standard Tikhonov regularization bookkeeping —
+  but the cautionary baseline (fixed-α catastrophic
   collapse at out-of-tune `n`) and the empirical observation
   that the α multiplier itself depends on the architecture
-  (one value for `NEFLayer.fit`, a different value for
-  `StreamingNEFClassifier`) is, to our knowledge, not in the
+  (one value for static single-layer solves, a different value for
+  streaming solves) is, to our knowledge, not in the
   literature in this exact form.  Useful for practitioners
   who copy our recipe into different settings.
 - **Streaming-NEF** (delay-line + `abs` + mean-pool + analytic
@@ -945,11 +937,12 @@ can follow the threads back to where the ideas originated.
 - **A reproducibility infrastructure** that makes multi-seed
   analytic-readout studies cheap and resumable.  This is an
   enabling contribution rather than a new learning algorithm: every
-  numeric claim in the paper is regeneratable from a JSON file under
-  `results/sl_clean/` whose `code_identity` hash is verifiable
-  against the repository tree.
+  numeric claim in the paper is backed by preserved per-seed rows
+  with code-identity hashes, dataset hashes, and full configurations.
 
-**Honest negatives.**  Negative results get first-class
+**Negative results.**
+
+Negative results get first-class
 treatment rather than being deferred away from the main argument.
 They are part of the contribution: knowing where the primitive does
 not work is as useful as knowing where it does.  The §6.4 limit on permuted
@@ -1029,8 +1022,11 @@ composition is straightforward.  We have not built it.
 
 ## Appendix A — Reproducibility
 
-Every numeric claim in the paper is regeneratable from a JSON
-file under `results/sl_clean/`.  Each per-cell row carries:
+Every numeric claim in the paper is regeneratable from the
+accompanying repository,
+[`https://github.com/nikeke/leenef`](https://github.com/nikeke/leenef).
+Artifact paths in this appendix are relative to that repository.
+The per-cell JSON rows under `results/sl_clean/` carry:
 
 - `code_identity`: a content-addressed SHA computed by
   `git ls-tree -r HEAD -- src/ benchmarks/ tests/ pyproject.toml`
@@ -1074,10 +1070,9 @@ for ablation tables, 3 seeds for appendix-legacy tables.
 
 **Purely analytic multi-layer stacking does not work; stronger
 training rules recover single-layer accuracy but do not exceed
-it.**  The C4 panel (`results/sl_clean/c4_multilayer_mnist_panel.json`,
-5 seeds, hidden = `[2000]`, output = 2000 neurons, `abs`,
-hypersphere encoders, data-driven biases, `α = 10⁻³`,
-`code_identity = 9bfe9d9c…`) tests five strategies on MNIST:
+it.**  A five-seed MNIST panel with one 2000-neuron hidden layer,
+a 2000-neuron output layer, `abs` activation, hypersphere encoders,
+data-driven biases, and `α = 10⁻³` tests five strategies:
 
 | strategy | test accuracy (mean ± SE) | inter-layer gradients? |
 |---|---|---|
@@ -1094,12 +1089,12 @@ propagates gradients across layer boundaries, recovers the
 single-layer headline at 98.54 % — the closest thing to a clean
 analytic two-layer result we have.  End-to-end SGD and hybrid_e2e
 push it to 98.6 %–98.7 %, a gain of only ~0.1–0.2 pp over a
-single wide layer.  The honest trilogy-level reading is:
+single wide layer.  The trilogy-level reading is:
 **the purely analytic primitive does not buy depth on its own**.
 Depth helps only once gradient flow is admitted, and even then
 the win on MNIST is small.  This is why the rest of the work
 stays single-layer.  CIFAR-10 tells the same ordering more
-sharply under the same five-seed C4 protocol:
+sharply under the same five-seed protocol:
 
 | strategy | CIFAR-10 test accuracy (mean ± SE) |
 |---|---:|
@@ -1115,10 +1110,10 @@ gain comes from full end-to-end gradients.  We have not re-run
 the multi-layer panel under this protocol on Fashion-MNIST.
 
 **Recurrent NEF (state feedback through fixed encoders) is viable
-only when trained end-to-end here.**  The CPU C5 rerun was too
+only when trained end-to-end here.**  The local CPU recurrent rerun was too
 slow, so we moved this panel to Colab L4 and executed recurrent NEF
-plus same-code-identity row-sMNIST comparators under committed code
-(`c3ca3cf8e46c1d9a45be76f8626e3795cda3c5a2`).  Five-seed results:
+plus same-code-identity row-sMNIST comparators under committed code.
+Five-seed results:
 
 | method | test accuracy ± SE | end-to-end wall-clock time (L4, s/seed) |
 |--------|--------------------|------------------------------------------|
@@ -1140,7 +1135,7 @@ a replacement for the fully analytic Stream-NEF result in §6.
 mitigations on permuted sMNIST: larger window `K`, positional
 concatenation, max-pool replacing mean-pool, and data-adapted
 encoders (`local_pca` on permuted patches).  None cleanly
-crosses 90 % without abandoning the "honest delay-line
+crosses 90 % without abandoning the strict delay-line
 streaming" frame.  The architecture's reach is genuinely
 bounded above by mean-pool's order-erasing property; the
 mitigations are reported as a map of *what does not save you*,
