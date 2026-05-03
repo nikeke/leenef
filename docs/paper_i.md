@@ -389,6 +389,12 @@ in every single cell — fixed `α=10⁻²` and trace `α=10⁻⁵` tie it
 within noise at `n=4 000` — but it is the stable choice that does
 not collapse at `n=8 000`.
 
+![Figure 3: α policy by width on row sMNIST.](figures/f3_alpha_vs_n.png)
+
+**Figure 3.**  Trace-scaled `α = 10⁻⁴` is the robust cross-width
+choice.  Fixed `α = 10⁻²` is competitive at `n = 4 000` but
+collapses at `n = 8 000`.
+
 | α policy | `n=4 000` | `n=8 000` | worst-case-mean |
 |----------|-----------|-----------|-----------------|
 | trace-scaled, base 10⁻² (the `solvers.tikhonov` default) | 95.89 % | 96.92 % | 95.89 % |
@@ -397,7 +403,13 @@ not collapse at `n=8 000`.
 | fixed 10⁻² | 98.07 % | 87.27 % | 87.27 % |
 | fixed 10⁻⁴ | 95.02 % | 96.33 % | 95.02 % |
 
-(The full 100-cell α heat map is included in `streaming_alpha_sweep_summary.json`; we keep only this 5-row digest in the paper.)
+![Figure 4: full α calibration heat map.](figures/f3b_alpha_heatmap.png)
+
+**Figure 4.**  The full 100-cell α calibration.  The heat map
+shows why the table reports a robust policy, not just a single
+pointwise winner: very small fixed `α` is unstable, very large
+trace-scaled `α` under-trains, and the stable band shifts with
+architecture.
 
 Two failure modes are visible.  Trace-scaled at base 10⁻² is
 *consistent across* `n` but consistently under-trained.  Fixed-α
@@ -436,6 +448,14 @@ tracks *how far the data centroid sits from the origin*.
 
 The B1 panel on raw datasets is consistent with both readings:
 
+![Figure 5: bias placement on raw datasets.](figures/f4_b1_biases.png)
+
+**Figure 5.**  Bias placement on raw MNIST, Fashion-MNIST, and
+CIFAR-10.  Zero and data-driven folds tie on the two mostly
+background-dominated grayscale datasets; CIFAR-10 opens a
+measurable gap.  Random-normal biases are a repeatable failure
+mode.
+
 | dataset | `data_driven` | `zero` | gap |
 |---------|---------------|--------|-----|
 | MNIST raw | 97.08 ± 0.04 % | 97.12 ± 0.02 % |  0.0 pp |
@@ -450,6 +470,13 @@ readings:
 |----------|---------------|--------|-----|--------------------|
 | MNIST decentered (+0.5) | 97.12 % | 95.78 % | +1.3 pp | ~0 |
 | CIFAR-10 per-channel centered | 49.72 % | 43.41 % | **+6.3 pp** | ~0 |
+
+![Figure 6: B7 hinge-placement falsifier.](figures/f5_b7_hinge_falsifier.png)
+
+**Figure 6.**  The B7 follow-ups falsify the pure-DC reading.
+Centering CIFAR-10 should have closed the data-driven-vs-zero
+gap under that story; instead it opens the largest gap in the
+series.
 
 The spectral reading is falsified.  Centering CIFAR-10 was
 predicted to *close* the gap; it *opens* it the most we have
@@ -488,6 +515,13 @@ recommended against.
 
 B3 sweeps seven encoder strategies with `data_driven` biases
 fixed (10 seeds, `n = 5 000`):
+
+![Figure 7: encoder strategy panel.](figures/f6_b3_encoders.png)
+
+**Figure 7.**  Encoder strategy is a prior on frame directions.
+Receptive-field encoders provide the only large spatial-data win;
+label-aware and overly local manifold-tangent directions can
+backfire.
 
 | strategy | MNIST | Fashion-MNIST | CIFAR-10 | verdict |
 |----------|------:|--------------:|---------:|---------|
@@ -663,6 +697,12 @@ test accuracy by H3 (§5.3).
 Sequential MNIST with rows-as-timesteps (T = 28, K = 10).
 Ten seeds at each width, trace-scaled `α = 10⁻⁴`:
 
+![Figure 8: Stream-NEF row sMNIST solve modes.](figures/f7_streaming_row_solve_modes.png)
+
+**Figure 8.**  Row-sMNIST scaling and solver equivalence.  The
+three solver paths land on the same decoder within reporting
+precision; increasing width drives the gain.
+
 | `n_neurons` | accuracy ± SE | wall (CPU, s/seed) |
 |-------------|----------------|--------------------|
 | 2 000 | 97.20 ± 0.04 % | 20 |
@@ -674,6 +714,12 @@ at 4k → 8k — clean monotone scaling.
 
 The same task with two contemporaneous baselines re-implemented
 under our seeding and code-identity discipline:
+
+![Figure 9: Stream-NEF vs ESN and LSTM on row/permuted sMNIST.](figures/f8_streaming_baselines.png)
+
+**Figure 9.**  Stream-NEF is strong on row sMNIST and structurally
+limited on permuted sMNIST.  The right panel remains provisional
+until the clean ESN permuted rerun completes.
 
 | method | accuracy ± SE | wall (s/seed) | seeds |
 |--------|----------------|---------------|-------|
@@ -790,6 +836,12 @@ validation split.  Five seeds each.
 Default hypersphere leenef cell (MNIST/Fashion-MNIST) and the
 best receptive-field leenef cell (CIFAR-10) vs the best
 gradient-trained MLP cell in B4's tuned grid:
+
+![Figure 10: single-layer leenef vs tuned MLP.](figures/f9_b4_comparator.png)
+
+**Figure 10.**  The MLP comparison is encoder-dependent.  Generic
+hypersphere leenef trails on MNIST/Fashion and raw CIFAR-10; the
+receptive-field prior reverses the CIFAR-10 gap.
 
 | dataset | leenef cell | best MLP cell | Δ | wall (s/seed) | speedup |
 |---------|------------------|---------------|---:|---------------|--------:|

@@ -21,7 +21,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 from statistics import mean, stdev
 
@@ -51,6 +51,16 @@ def _load_rows(path: Path, current_only: bool = False) -> list[dict]:
     if current_only:
         rows = [r for r in rows if "-dirty-" not in r.get("code_identity", "")]
     return rows
+
+
+def _dominant_identity_rows(path: Path) -> list[dict]:
+    """Return clean rows from the most common code identity in a mixed panel."""
+    rows = _load_rows(path, current_only=True)
+    counts = Counter(r.get("code_identity", "") for r in rows if r.get("code_identity"))
+    if not counts:
+        return rows
+    identity, _ = counts.most_common(1)[0]
+    return [r for r in rows if r.get("code_identity") == identity]
 
 
 def _group(rows: list[dict], key_fn) -> dict[tuple, list[dict]]:
@@ -112,6 +122,46 @@ def figure_f3() -> Path:
     return out
 
 
+# ------------------------------------------------------------------ F3b
+def figure_f3b() -> Path:
+    """Full 100-cell alpha calibration as heat maps."""
+    summary = json.loads((RESULTS / "streaming_alpha_sweep_summary.json").read_text())
+    cells = summary["cells"]
+    alphas = sorted({c["alpha_nominal"] for c in cells})
+    scales = ("fixed", "trace")
+    widths = sorted({c["n_neurons"] for c in cells})
+    lookup = {(c["n_neurons"], c["alpha_scale"], c["alpha_nominal"]): 100 * c["mean"] for c in cells}
+
+    fig, axes = plt.subplots(1, len(widths), figsize=(9.8, 3.8), sharey=True, constrained_layout=True)
+    if len(widths) == 1:
+        axes = [axes]
+
+    vmin = min(lookup.values())
+    vmax = max(lookup.values())
+    for ax, n in zip(axes, widths):
+        matrix = [[lookup[(n, scale, alpha)] for alpha in alphas] for scale in scales]
+        im = ax.imshow(matrix, vmin=vmin, vmax=vmax, cmap="viridis", aspect="auto")
+        ax.set_title(f"n = {n:,}")
+        ax.set_xticks(range(len(alphas)))
+        ax.set_xticklabels([f"{a:g}" for a in alphas], rotation=30, ha="right")
+        ax.set_yticks(range(len(scales)))
+        ax.set_yticklabels(scales)
+        ax.set_xlabel("base α")
+        for y, row in enumerate(matrix):
+            for x, value in enumerate(row):
+                color = "black" if value > (vmin + vmax) / 2 else "white"
+                ax.text(x, y, f"{value:.1f}", ha="center", va="center", color=color, fontsize=8)
+
+    axes[0].set_ylabel("α policy")
+    cbar = fig.colorbar(im, ax=axes, fraction=0.035, pad=0.03)
+    cbar.set_label("test accuracy (%)")
+    fig.suptitle("F3b — Full α calibration heat map (row sMNIST, 5 seeds per cell)")
+    out = FIG_DIR / "f3b_alpha_heatmap.png"
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    return out
+
+
 def _factors(r: dict) -> dict:
     """Per-cell factor dict — the canonical place for B1's bias_mode/encoder."""
     return r.get("metrics", {}).get("factors", {}) or r.get("config", {})
@@ -168,6 +218,75 @@ def figure_f4() -> Path:
     axes[0].legend(fontsize=8, loc="lower right", title="bias_mode")
     fig.suptitle("F4 — B1 panel: bias placement × encoder × dataset (10 seeds)")
     out = FIG_DIR / "f4_b1_biases.png"
+    fig.tight_layout()
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    return out
+
+
+# ------------------------------------------------------------------ F5
+def figure_f5() -> Path:
+    """B7 hinge-placement falsifier: raw/decentered/centered bias gaps."""
+
+    panels = [
+        (
+            "MNIST",
+            [("raw", "biases_mnist_panel"), ("decentered", "biases_mnist_decentered_panel")],
+            (94.5, 97.8),
+        ),
+        (
+            "CIFAR-10",
+            [("raw", "biases_cifar10_panel"), ("centered", "biases_cifar10_centered_panel")],
+            (42.0, 51.0),
+        ),
+    ]
+    modes = ("data_driven", "zero")
+
+    fig, axes = plt.subplots(1, 2, figsize=(9.5, 4.2))
+    width = 0.34
+    for ax, (title, scenarios, ylim) in zip(axes, panels):
+        means: dict[tuple[str, str], float] = {}
+        ses: dict[tuple[str, str], float] = {}
+        for label, stem in scenarios:
+            rows = _load_rows(RESULTS / f"{stem}.json")
+            cells: dict[str, list[float]] = defaultdict(list)
+            for r in rows:
+                f = _factors(r)
+                if f.get("encoder_strategy") == "hypersphere" and f.get("bias_mode") in modes:
+                    cells[f["bias_mode"]].append(100 * _metric(r))
+            for mode in modes:
+                means[(label, mode)] = mean(cells[mode])
+                ses[(label, mode)] = _se(cells[mode])
+
+        xs = list(range(len(scenarios)))
+        for i, mode in enumerate(modes):
+            offsets = [x + (i - 0.5) * width for x in xs]
+            vals = [means[(label, mode)] for label, _ in scenarios]
+            errs = [ses[(label, mode)] for label, _ in scenarios]
+            ax.bar(
+                offsets,
+                vals,
+                width,
+                yerr=errs,
+                capsize=3,
+                label=mode,
+                color=("C0" if i == 0 else "C1"),
+            )
+
+        for x, (label, _) in zip(xs, scenarios):
+            gap = means[(label, "data_driven")] - means[(label, "zero")]
+            y = max(means[(label, mode)] for mode in modes) + 0.12
+            ax.text(x, y, f"{gap:+.1f} pp", ha="center", va="bottom", fontsize=9)
+
+        ax.set_xticks(xs)
+        ax.set_xticklabels([label for label, _ in scenarios])
+        ax.set_ylim(*ylim)
+        ax.set_title(title)
+        ax.grid(True, axis="y", alpha=0.3)
+    axes[0].set_ylabel("test accuracy (%)")
+    axes[1].legend(title="bias_mode", fontsize=9, loc="lower right")
+    fig.suptitle("F5 — B7 falsifier: hinge placement, not pure DC mass")
+    out = FIG_DIR / "f5_b7_hinge_falsifier.png"
     fig.tight_layout()
     fig.savefig(out, dpi=150)
     plt.close(fig)
@@ -322,9 +441,10 @@ def figure_f8() -> Path:
     nef_perm_se = {2000: 0.07, 4000: 0.05}
 
     # ESN row + permuted: pick best leak/sr cell per n
-    def _esn_best(panel_path, current_only=True):
-        rows = _load_rows(panel_path, current_only=current_only)
+    def _esn_best(panel_path, min_rows_per_n: int | None = None):
+        rows = _dominant_identity_rows(panel_path)
         cells = defaultdict(list)
+        rows_per_n = Counter()
         for r in rows:
             cell = r.get("config", {}).get("cell", "")
             n = r.get("config", {}).get("n_neurons")
@@ -336,14 +456,20 @@ def figure_f8() -> Path:
             acc = r.get("metrics", {}).get("test_accuracy")
             if acc is not None:
                 cells[(n, cell)].append(100.0 * acc)
+                rows_per_n[n] += 1
         # best cell per n by mean
         by_n = defaultdict(list)
         for (n, _), accs in cells.items():
+            if min_rows_per_n is not None and rows_per_n[n] < min_rows_per_n:
+                continue
             by_n[n].append((mean(accs), _se(accs), len(accs)))
         return {n: max(v, key=lambda x: x[0]) for n, v in by_n.items()}
 
     esn_row = _esn_best(RESULTS / "b6_esn_smnist_row_panel.json")
-    esn_perm = _esn_best(RESULTS / "b6_esn_smnist_permuted_panel.json")
+    # The current permuted ESN rerun is mixed with an older aborted run.
+    # Only plot completed current-identity n-tiers; the n=2000 tier is
+    # still in flight and is described in the text.
+    esn_perm = _esn_best(RESULTS / "b6_esn_smnist_permuted_panel.json", min_rows_per_n=20)
 
     # LSTM row best cell (h256_l2_lr0.003 → 99.12 ± 0.09)
     lstm_row = {"acc": 99.12, "se": 0.09}
@@ -409,7 +535,7 @@ def figure_f8() -> Path:
     ax2.text(
         0.04,
         0.92,
-        "LSTM did not converge\nin compute budget\n(ESN: preliminary, rerun in flight)",
+        "LSTM did not converge\nin compute budget\nESN n=2000 tier in flight",
         transform=ax2.transAxes,
         fontsize=8,
         color="C3",
@@ -423,7 +549,7 @@ def figure_f8() -> Path:
     ax2.grid(True, alpha=0.3)
     ax2.legend(fontsize=9, loc="lower right")
 
-    fig.suptitle("F8 — Stream-NEF vs ESN vs LSTM (right panel: ESN is preliminary)")
+    fig.suptitle("F8 — Stream-NEF vs ESN vs LSTM (right panel: ESN rerun incomplete)")
     out = FIG_DIR / "f8_streaming_baselines.png"
     fig.tight_layout()
     fig.savefig(out, dpi=150)
@@ -434,7 +560,9 @@ def figure_f8() -> Path:
 # ------------------------------------------------------------------ main
 FIGURES = {
     "F3": figure_f3,
+    "F3B": figure_f3b,
     "F4": figure_f4,
+    "F5": figure_f5,
     "F6": figure_f6,
     "F7": figure_f7,
     "F8": figure_f8,
