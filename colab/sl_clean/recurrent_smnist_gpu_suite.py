@@ -8,7 +8,8 @@ Default panels:
 
 * C5 recurrent NEF (`end_to_end`, `target_prop`) on row sMNIST.
 * Stream-NEF row sMNIST at `n={4000,8000}`.
-* Best CPU-tuned LSTM row-sMNIST cell (`h256_l2_lr0.003`).
+* Best-accuracy CPU-tuned LSTM row-sMNIST cell (`h256_l2_lr0.003`)
+  and fast near-best LSTM cell (`h64_l2_lr0.003`).
 * Best CPU-tuned ESN row-sMNIST cell (`n2000_sr0.95_leak0.3`).
 
 All four panels write separate JSON files with `"device": "cuda"` in
@@ -183,9 +184,9 @@ def run_suite(seeds: str) -> list[Path]:
     outputs.append(
         _run_phase(
             experiment="b5_lstm_smnist_row",
-            phase="gpu_b5_lstm_smnist_row_best_panel",
+            phase="gpu_b5_lstm_smnist_row_pareto_panel",
             knob="cell",
-            values="h256_l2_lr0.003",
+            values="h256_l2_lr0.003,h64_l2_lr0.003",
             seeds=seeds,
             base_config=lstm_cfg,
         )

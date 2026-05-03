@@ -9,7 +9,7 @@ C5 numbers cleanly interpretable on the same GPU:
 |------|-------|-------|--------------------|
 | `gpu_c5_recurrent_smnist_panel` | `end_to_end`, `target_prop` | 0-4 | The C5 recurrent NEF result itself. |
 | `gpu_streaming_smnist_row_panel` | Stream-NEF `n=4000,8000` | 0-4 | Same dataset, analytic/streaming reference point. |
-| `gpu_b5_lstm_smnist_row_best_panel` | LSTM `h256_l2_lr0.003` | 0-4 | Best CPU-tuned LSTM cell from B5, rerun on the same GPU. |
+| `gpu_b5_lstm_smnist_row_pareto_panel` | LSTM `h256_l2_lr0.003`, `h64_l2_lr0.003` | 0-4 | Best-accuracy and fast near-best CPU-tuned LSTM cells from B5, rerun on the same GPU. |
 | `gpu_b6_esn_smnist_row_best_panel` | ESN `n2000_sr0.95_leak0.3` | 0-4 | Best CPU-tuned ESN row cell from B6, rerun on the same GPU. |
 
 The runner is `recurrent_smnist_gpu_suite.py`.  It uses the committed
@@ -44,7 +44,7 @@ T4 is likely sufficient but slower; A100/H100 are unnecessary at these
 model sizes.
 
 Expected wall time on L4: **a few GPU hours total**.  The C5 TP cells are
-the slowest; the Stream-NEF, LSTM-best, and ESN-best comparator panels
+the slowest; the Stream-NEF, LSTM Pareto, and ESN-best comparator panels
 are included because they are small enough to rerun cleanly on the same
 device.
 
