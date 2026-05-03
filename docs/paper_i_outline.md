@@ -97,13 +97,13 @@ The B1 panel.  Run rl_clean-style: 10 seeds, multi-config.
   in input space — zero bias places the fold through the origin;
   data-driven bias `bᵢ = −α·eᵢ·dᵢ` places the i-th fold at training
   sample `dᵢ`.
-- The natural prediction (pure-DC reading): for centred datasets
+- The natural prediction (pure-DC reading): for centered datasets
   (zero data centroid), zero biases place the fold at the data
-  cloud → same as data-driven.  For off-centred datasets, fold
+  cloud → same as data-driven.  For off-centered datasets, fold
   rarely sees a sign flip → data-driven matters.
 - B1 result on raw datasets matched the prediction *direction* —
-  MNIST/Fashion gap ≤ 0.1 pp (off-centred), CIFAR-10 raw gap +1.4 pp
-  (less off-centred).
+  MNIST/Fashion gap ≤ 0.1 pp (off-centered), CIFAR-10 raw gap +1.4 pp
+  (less off-centered).
 - **B7 follow-ups falsified the spectral DC reading.**  Centering
   CIFAR-10 *opens* the gap to **+6.3 pp** — the largest data_driven
   vs zero gap we've seen, not the predicted ~0.  Decentering MNIST
@@ -130,7 +130,7 @@ The B1 panel.  Run rl_clean-style: 10 seeds, multi-config.
 - B1 result: with data-driven biases, all 7 strategies cluster
   within ~0.5 pp on MNIST and Fashion.  Receptive_field wins by a
   hair on CIFAR-10 only because it embeds spatial locality, not
-  because of analytic-solve behaviour.
+  because of analytic-solve behavior.
 - Frame-prior interpretation: each strategy is a different prior
   over `{uᵢ}` directions.  Hypersphere = isotropic; whitened =
   data-covariance-aware; receptive_field = spatial-locality-aware.
@@ -195,13 +195,13 @@ The headline empirical contribution.
   stops carrying us and recurrence becomes necessary — the bridge
   to Paper III.
 
-## §6b — Single-layer comparator: gradient-trained MLP (B4)
+## §7 — Single-layer comparator: gradient-trained MLP (B4)
 
 A separate section because it is the cleanest "where do we stand?"
 benchmark for the single-layer NEF, *before* we get to streaming.
 
-- B4 setup: 60-cell × 3-dataset grid (depth ∈ {1,2}, width ∈
-  {256,512,1024}, lr ∈ {1e-2..1e-4}) × 5 seeds.  Adam, batch=128,
+- B4 setup: 12 configs per dataset (depth ∈ {1,2}, width ∈
+  {256,512,1024}, lr ∈ {1e-3,3e-3}) × 5 seeds.  Adam, batch=128,
   early stop with patience=5 on 10% val.
 - Headline numbers (best MLP cell vs B1 hypersphere NEF n=5000):
 
@@ -235,7 +235,7 @@ benchmark for the single-layer NEF, *before* we get to streaming.
   spatial data; deeper gradient-trained models would extend the
   gap again.  We state all three observations side-by-side.
 
-## §7 — What is novel, what is replication, what we honestly claim  [insights §9]
+## §8 — What is novel, what is replication, what we honestly claim  [insights §9]
 
 - Novelty: the frame-coefficient pedagogical framing; the trace-
   scaled α footgun-prevention story; the streaming-NEF /
@@ -243,9 +243,10 @@ benchmark for the single-layer NEF, *before* we get to streaming.
 - Replication: ELM (Huang et al. 2006), random features (Rahimi &
   Recht 2007), Coates et al. 2011 (k-means features), reservoir
   computing (Jaeger 2001).
-- We are not in the science business.  No claim-pumping.
+- No claim-pumping and no hiding failures; separate replication from
+  genuine contribution.
 
-## §8 — Discussion and forward looks
+## §9 — Discussion and forward looks
 
 - Calibrated uncertainty for free from `(AᵀA + αI)⁻¹` (one
   paragraph; deferred work).
@@ -289,7 +290,7 @@ benchmark for the single-layer NEF, *before* we get to streaming.
 ## Figure list (draft)
 
 Pencilled out so we know what data we still need; numbering is
-sectional and will be normalised during synthesis (Phase D).
+sectional and will be normalized during synthesis (Phase D).
 
 - **F1 (§1).** Conceptual diagram: the six principles as a
   dependency graph (over-representation → nonlinearity → frame
@@ -309,7 +310,7 @@ sectional and will be normalised during synthesis (Phase D).
   bias_mode {data_driven, zero, random_normal} × encoder
   {hypersphere, gaussian, sparse}.  Mean ± SE bars.  Source:
   `results/sl_clean/biases_{mnist,fashion,cifar10}_panel.json`.
-- **F5 (§5.1).** B7 falsifier — centred CIFAR-10 + decentred MNIST
+- **F5 (§5.1).** B7 falsifier — centered CIFAR-10 + decentered MNIST
   re-open / reverse the gap.  4 conditions side-by-side with the
   "expected if pure-DC" baseline marked.  Source:
   `results/sl_clean/biases_{cifar10_centered,mnist_decentered}_panel.json`.
@@ -323,11 +324,11 @@ sectional and will be normalised during synthesis (Phase D).
 - **F8 (§6.3).** Stream-NEF permuted sMNIST: accuracy vs n with
   ESN ceiling (B6) and LSTM single-seed point (B5) overlaid.
   Source: `results/sl_clean/{b2,b5_lstm,b6_esn}_*.json`.
-- **F9 (§6b).** B4 single-layer comparator: best-cell MLP vs B1
+- **F9 (§7).** B4 single-layer comparator: best-cell MLP vs B1
   hypersphere NEF vs B3 RF NEF on 3 datasets.  Bar chart with CIs;
   parameter counts annotated.  Source:
   `results/sl_clean/{b1,b3_encoders,b4_mlp}_*.json`.
-- **F10 (§7 / Appendix).** Cost-vs-quality scatter: x=wall_sec
+- **F10 (§8 / Appendix).** Cost-vs-quality scatter: x=wall_sec
   (log), y=test acc.  All single-layer / streaming methods
   plotted; gradient-free vs gradient-trained marked by shape.
   Souces: aggregated.

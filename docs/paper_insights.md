@@ -81,7 +81,7 @@ ReLU is the same idea after a half-fold (drop the sign instead of fold
 about the origin).  Same expressivity story, slightly different
 geometry.  Other smooth nonlinearities (tanh, sigmoid, GELU) trade the
 sharp fold for a soft one — same theoretical universality, sometimes
-better gradient behaviour for end-to-end training, but no advantage when
+better gradient behavior for end-to-end training, but no advantage when
 training is analytic and the linear-collapse argument is what we're
 working against.
 
@@ -168,7 +168,7 @@ the ingredients above:
   data manifold itself.  Each neuron answers "how far is x from this
   particular manifold sample, *along this direction* e_i?".  This turns
   the global frame into a manifold-aware *local* frame: tangent-style
-  coordinates from many neighbourhoods at once.
+  coordinates from many neighborhoods at once.
 
 Whether *local* (data-driven) framing actually helps over *global*
 (zero-bias) framing depends on the dataset's relationship to the
@@ -239,19 +239,19 @@ introduce a manifold-local refinement on top of this.  Both threads
 converge on the same picture: **the encoder layer is a fixed manifold-
 aware frame; only the readout is task-specific**.
 
-## 2. Regularisation must scale with n_neurons (CORE)
+## 2. Regularization must scale with n_neurons (CORE)
 
 The Tikhonov solve `(AᵀA + reg I) D = AᵀY` becomes meaningless when `reg`
 is set without reference to the trace of `AᵀA`.  As n_neurons grows, the
 average diagonal mass per neuron stays roughly constant (for our
-normalised inputs and abs activations), so the *total* trace grows
+normalized inputs and abs activations), so the *total* trace grows
 ~linearly in n.  A fixed `α=1e-2` therefore becomes negligible at large
-n: the solve is effectively unregularised.
+n: the solve is effectively unregularized.
 
-What we observed (B2, fixed α=1e-2):
+What we observed (B2 α calibration, fixed α=1e-2):
 - n=2000: 97.30 ± 0.04
-- n=4000: 98.03 ± 0.03
-- n=8000: 92.6 ± 3.7   ← three of ten seeds collapsed to <0.96, one to 0.62
+- n=4000: 98.07 ± 0.03
+- n=8000: 87.27 ± 6.77, with one seed below 80% and another at 85%
 
 What every other solver in our codebase already does (`solvers.tikhonov`,
 `solve_from_normal_equations`, `normal_equations`):
@@ -264,7 +264,7 @@ behaved.
 
 This is a paper-worthy lesson:
 - **Pedagogical.**  Beginners tune α as a "magic constant" and are then
-  bitten by silent under-regularisation at scale.  Trace-scaling is the
+  bitten by silent under-regularization at scale.  Trace-scaling is the
   principled default.
 - **Negative-result evidence.**  The fixed-α baseline (preserved under
   `results/sl_clean/fixed_alpha_baseline/`) is the cautionary tale.  Our
@@ -272,7 +272,7 @@ This is a paper-worthy lesson:
 - **Connection to the frame story.**  The per-neuron diagonal of `AᵀA` is
   the squared norm of that neuron's column of activities, i.e. the
   *energy* deposited in that frame element across the dataset.  Trace-
-  scaling normalises α by the average frame-element energy, which is the
+scaling normalizes α by the average frame-element energy, which is the
   geometrically natural choice.
 
 ### 2b. The α multiplier itself depends on the architecture (CORE)
@@ -523,7 +523,7 @@ Seven strategies live in `encoders.ENCODER_STRATEGIES`:
 * `whitened`   — random direction projected through PCA-whitening (covariance-aware frame)
 * `class_contrast` — direction from one class centroid toward the
   nearest other class (label-aware, narrow problems only)
-* `local_pca`  — top eigenvector of each neuron's k-NN neighbourhood
+* `local_pca`  — top eigenvector of each neuron's k-NN neighborhood
   (manifold-tangent frame)
 
 Frame-story framing.  Each strategy is a *prior on the frame
@@ -587,7 +587,7 @@ Story for the paper.
    image, so the over-complete frame is a translation-covariant union
    of small frames rather than a single global frame. On MNIST and
    Fashion the gain shrinks (+0.27, +0.84) — pixel structure matters
-   less when the digit/garment is roughly centred and stroke-like.
+   less when the digit/garment is roughly centered and stroke-like.
    This is consistent with H6.
 3. **Whitened frames give a small consistent edge.** ~+0.4 pp on MNIST,
    +0.6 pp on Fashion, +1.2 pp on CIFAR-10. PCA-aware random directions
@@ -618,7 +618,7 @@ NEF" baseline, then introduce receptive_field as the only encoder
 adaptation that survives every dataset honestly, then note in
 limitations that aggressive data adaptation (`local_pca`,
 `class_contrast`) can backfire — *coverage of the manifold matters
-less than coverage of the manifold's neighbourhood*.
+less than coverage of the manifold's neighborhood*.
 
 Frame-story re-statement.  The B3 outcome refines the hypothesis:
 data-adapted frames help only when they *broaden* the set of frame
@@ -649,7 +649,7 @@ H4: streaming sMNIST-row scales monotonically with n_neurons.
     **SUPPORTED (B2 final panel).** With trace-scaled α=1e-4: 97.20%
     (n=2k) → 97.97% (n=4k) → 98.45% (n=8k); SE ≤ 0.04 pp; +0.77 pp
     (17σ) doubling 2k→4k, +0.48 pp (12σ) doubling 4k→8k.
-H4b: regularisation must scale with `n_neurons` somehow; fixed α at
+H4b: regularization must scale with `n_neurons` somehow; fixed α at
      a single hand-tuned value will silently break at out-of-tune n.
      **SUPPORTED** (α-sweep: fixed α=1e-2 best at n=4k = 98.07%, but
      blows up at n=8k = 87.27% ± 6.77 pp with bimodal seed collapse).
@@ -666,7 +666,7 @@ H5: streaming sMNIST-permuted is a published limit of delay-line +
 H6: encoder-strategy ranking matches frame-prior intuition (B3).
     Specifically: data-adapted frames beat random frames on
     structured inputs (CIFAR-10) but not on unstructured ones (MNIST).
-H7 (DC-fold prediction): per-channel centring CIFAR-10 closes the
+H7 (DC-fold prediction): per-channel centering CIFAR-10 closes the
     data-driven-vs-zero bias gap; DC-shifting MNIST opens one.
     **PARTIALLY SUPPORTED — mechanism reframed.** B7 results
     (10-seed × 9-cell each) refute the "remove DC ⇒ no gain" half
@@ -695,7 +695,7 @@ H7 (DC-fold prediction): per-channel centring CIFAR-10 closes the
 
     Geometric reading via the frame interpretation: with abs
     activation a_i = |α_i (e_i · x) + b_i|, zero bias makes the
-    hinge a hyperplane through the origin; if the data is centred
+    hinge a hyperplane through the origin; if the data is centered
     at the origin half its mass falls on each side and the
     activation modulus loses sign information symmetrically. Setting
     b_i = -α_i (e_i · d) places the hinge at training sample d,
@@ -736,7 +736,7 @@ H8 (linear-collapse): a linear-activation NEFLayer at n_neurons ≫
   under zero, a random vector under random_normal).  This makes
   biases a *placement* of the fold point in input space, not a free
   parameter — and clarifies why "zero biases" can be the right default
-  for centred data: the fold is already in a sensible place.
+  for centered data: the fold is already in a sensible place.
 - A short discussion of the relation to the original NEF.  We use NEF's
   encode-decode skeleton but our activation conventions and our refusal
   to use spiking/temporal coding put us closer to random feature models
@@ -750,8 +750,8 @@ H8 (linear-collapse): a linear-activation NEFLayer at n_neurons ≫
 
 ## 9. What is novel here, what is replication, what is honest framing
 
-We are *not* in the science business.  No claim-pumping; no
-hide-the-failures.  The paper should say plainly:
+Internal standard: no claim-pumping and no hiding failures.  The paper
+should say plainly:
 
 **Replication, not novelty.**
 - Single-layer NEFLayer.fit() on MNIST is roughly an Extreme Learning
@@ -763,7 +763,7 @@ hide-the-failures.  The paper should say plainly:
   of feature extractors.
 - ConvNEF on CIFAR-10 is in the same family as Coates et al. 2011
   (k-means features) and Saxe et al. 2011 (random weights are good
-  enough).  We replicate, organise, and re-frame; we do not surpass.
+  enough).  We replicate, organize, and re-frame; we do not surpass.
 - Random-feature, kernel-ridge, reservoir-computing literature has
   most of the theoretical machinery already.  We will cite Rahimi &
   Recht (2007), Jaeger (2001), Maass et al. (2002), and connect back
@@ -772,8 +772,9 @@ hide-the-failures.  The paper should say plainly:
 **What we think *is* novel and worth presenting:**
 - The frame-coefficient framing is, as far as we know, not the
   standard way of explaining NEF.  It cleanly explains why abs/ReLU
-  are sufficient (§0), why DC matters (§1.2), why data-driven biases
-  pay off only on centred data (§5).  This is a pedagogical
+  are sufficient (§0), why fold placement matters (§1.2), and why
+  data-driven biases pay off in some regimes but not others (§5).
+  This is a pedagogical
   contribution; it lets practitioners reason about the geometry
   rather than treat the feature map as a black box.
 - Streaming-NEF (delay-line + abs + mean-pool + analytic readout)
@@ -782,7 +783,7 @@ hide-the-failures.  The paper should say plainly:
   than minutes.  We re-validate under multi-seed and report whatever
   comes out without inflation; the numerical comparison to LSTMs is
   the published-style empirical contribution.
-- The trace-scaled-α regularisation story (§2 + §2b).  Not a new
+- The trace-scaled-α regularization story (§2 + §2b).  Not a new
   algorithm — `solvers.tikhonov` already does this — but the
   cautionary baseline and the architecture-specific α multiplier
   story is, we believe, not in the literature in this exact form.
@@ -866,7 +867,7 @@ their book; (b) state explicitly that we use rate-`abs` neurons, that
 our biases are data-driven, and that we do not use the dynamics
 principle; (c) name our specialization "leenef" (or, in mathematical
 prose, "the analytic-rate variant of NEF") so any later reader who
-looks for spiking-NEF behaviour does not feel misled.  This is the
+looks for spiking-NEF behavior does not feel misled.  This is the
 same way other communities cite NEF (Nengo, BCM, etc.) — as a starting
 point that is then specialized.
 
