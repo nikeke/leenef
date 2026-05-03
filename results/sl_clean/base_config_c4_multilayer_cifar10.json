@@ -1,0 +1,9 @@
+{
+  "cell": "greedy",
+  "hidden_neurons": [2000],
+  "output_neurons": 2000,
+  "alpha": 1e-3,
+  "n_iters": 30,
+  "lr": 1e-3,
+  "batch_size": 256
+}

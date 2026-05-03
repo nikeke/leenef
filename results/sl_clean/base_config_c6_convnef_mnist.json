@@ -1,0 +1,7 @@
+{
+  "cell": "default",
+  "n_neurons": 4000,
+  "alpha": 1e-2,
+  "pool_levels": [1, 2, 4],
+  "standardize": true
+}

@@ -1,0 +1,412 @@
+{
+  "gpu_b6_esn_smnist_row_best_panel_n2000_sr0.95_leak0.3_s0": {
+    "code_identity": "c3ca3cf8e46c1d9a45be76f8626e3795cda3c5a2",
+    "config": {
+      "cell": "n2000_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "device": "cuda",
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": true,
+      "cuda_device_name": "NVIDIA L4",
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "gpu_b6_esn_smnist_row_best_panel_n2000_sr0.95_leak0.3_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 1.445227880999937,
+        "collect_time_sec": 2.0086210790000223,
+        "device": "cuda",
+        "fit_time_sec": 4.784336467999765,
+        "gpu_name": "NVIDIA L4",
+        "leak_rate": 0.3,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 1.3304875079998055,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.944183349609375,
+        "wall_sec": 5.03660671300031
+      },
+      "test_accuracy": 0.9332999587059021
+    },
+    "phase": "gpu_b6_esn_smnist_row_best_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.95_leak0.3",
+    "wall_time_s": 6.1024
+  },
+  "gpu_b6_esn_smnist_row_best_panel_n2000_sr0.95_leak0.3_s1": {
+    "code_identity": "c3ca3cf8e46c1d9a45be76f8626e3795cda3c5a2",
+    "config": {
+      "cell": "n2000_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "device": "cuda",
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": true,
+      "cuda_device_name": "NVIDIA L4",
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "gpu_b6_esn_smnist_row_best_panel_n2000_sr0.95_leak0.3_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 1.3082558370001607,
+        "collect_time_sec": 1.8757660449996365,
+        "device": "cuda",
+        "fit_time_sec": 4.459283330999824,
+        "gpu_name": "NVIDIA L4",
+        "leak_rate": 0.3,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 1.275261449000027,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.9429500102996826,
+        "wall_sec": 4.537797622000198
+      },
+      "test_accuracy": 0.9359999895095825
+    },
+    "phase": "gpu_b6_esn_smnist_row_best_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.95_leak0.3",
+    "wall_time_s": 4.538
+  },
+  "gpu_b6_esn_smnist_row_best_panel_n2000_sr0.95_leak0.3_s2": {
+    "code_identity": "c3ca3cf8e46c1d9a45be76f8626e3795cda3c5a2",
+    "config": {
+      "cell": "n2000_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "device": "cuda",
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": true,
+      "cuda_device_name": "NVIDIA L4",
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "gpu_b6_esn_smnist_row_best_panel_n2000_sr0.95_leak0.3_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 1.2786563340000612,
+        "collect_time_sec": 1.876449667000088,
+        "device": "cuda",
+        "fit_time_sec": 4.430667749999884,
+        "gpu_name": "NVIDIA L4",
+        "leak_rate": 0.3,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 1.2755617489997348,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.9444666504859924,
+        "wall_sec": 4.512884549000319
+      },
+      "test_accuracy": 0.9364999532699585
+    },
+    "phase": "gpu_b6_esn_smnist_row_best_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.95_leak0.3",
+    "wall_time_s": 4.5131
+  },
+  "gpu_b6_esn_smnist_row_best_panel_n2000_sr0.95_leak0.3_s3": {
+    "code_identity": "c3ca3cf8e46c1d9a45be76f8626e3795cda3c5a2",
+    "config": {
+      "cell": "n2000_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "device": "cuda",
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": true,
+      "cuda_device_name": "NVIDIA L4",
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "gpu_b6_esn_smnist_row_best_panel_n2000_sr0.95_leak0.3_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 1.323875085999589,
+        "collect_time_sec": 1.8766105089998746,
+        "device": "cuda",
+        "fit_time_sec": 4.476999299999079,
+        "gpu_name": "NVIDIA L4",
+        "leak_rate": 0.3,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 1.2765137049996156,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.9452333450317383,
+        "wall_sec": 4.558972113999971
+      },
+      "test_accuracy": 0.9361000061035156
+    },
+    "phase": "gpu_b6_esn_smnist_row_best_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.95_leak0.3",
+    "wall_time_s": 4.5592
+  },
+  "gpu_b6_esn_smnist_row_best_panel_n2000_sr0.95_leak0.3_s4": {
+    "code_identity": "c3ca3cf8e46c1d9a45be76f8626e3795cda3c5a2",
+    "config": {
+      "cell": "n2000_sr0.95_leak0.3",
+      "chunk_size": 256,
+      "device": "cuda",
+      "input_scale": 1.0,
+      "ridge_alpha": 0.001,
+      "sparsity": 0.1,
+      "use_bias_state": true
+    },
+    "experiment": "b6_esn_smnist_row",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": true,
+      "cuda_device_name": "NVIDIA L4",
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "gpu_b6_esn_smnist_row_best_panel_n2000_sr0.95_leak0.3_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 28,
+        "d_timestep": 28,
+        "dataset": "sMNIST-row",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_row_div255",
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          28,
+          28
+        ]
+      },
+      "diagnostics": {
+        "build_time_sec": 1.3342722839997805,
+        "collect_time_sec": 1.8796495810001943,
+        "device": "cuda",
+        "fit_time_sec": 4.491072080000322,
+        "gpu_name": "NVIDIA L4",
+        "leak_rate": 0.3,
+        "n_params": 4076010,
+        "n_reservoir": 2000,
+        "solve_time_sec": 1.277150215000347,
+        "spectral_radius": 0.95,
+        "train_accuracy": 0.9432500004768372,
+        "wall_sec": 4.572734486000172
+      },
+      "test_accuracy": 0.9341999888420105
+    },
+    "phase": "gpu_b6_esn_smnist_row_best_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "dataset": "sMNIST-row",
+      "preprocessing": "smnist_row_div255"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "n2000_sr0.95_leak0.3",
+    "wall_time_s": 4.5729
+  }
+}

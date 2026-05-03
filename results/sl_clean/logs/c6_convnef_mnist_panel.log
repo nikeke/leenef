@@ -1,0 +1,7 @@
+[2026-05-02T13:36:15] phase=c6_convnef_mnist_panel experiment=c6_convnef_mnist knob=cell values=['default'] seeds=[0, 1, 2, 3, 4] code_identity=9bfe9d9c7eacc013c2d83a42389245e47db129fe
+[2026-05-02T13:36:15]   [1/5] run    c6_convnef_mnist_panel_default_s0
+[2026-05-02T13:37:10]   [2/5] run    c6_convnef_mnist_panel_default_s1
+[2026-05-02T13:38:01]   [3/5] run    c6_convnef_mnist_panel_default_s2
+[2026-05-02T13:38:55]   [4/5] run    c6_convnef_mnist_panel_default_s3
+[2026-05-02T13:39:46]   [5/5] run    c6_convnef_mnist_panel_default_s4
+[2026-05-02T13:40:40] phase c6_convnef_mnist_panel done — 5 rows in results/sl_clean/c6_convnef_mnist_panel.json

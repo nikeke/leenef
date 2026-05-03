@@ -1,0 +1,12 @@
+[2026-05-03T10:12:15] phase=gpu_c5_recurrent_smnist_panel experiment=c5_recurrent_smnist knob=cell values=['end_to_end', 'target_prop'] seeds=[0, 1, 2, 3, 4] code_identity=c3ca3cf8e46c1d9a45be76f8626e3795cda3c5a2
+[2026-05-03T10:12:15]   [1/10] run    gpu_c5_recurrent_smnist_panel_end_to_end_s0
+[2026-05-03T10:14:10]   [2/10] run    gpu_c5_recurrent_smnist_panel_end_to_end_s1
+[2026-05-03T10:15:58]   [3/10] run    gpu_c5_recurrent_smnist_panel_end_to_end_s2
+[2026-05-03T10:17:45]   [4/10] run    gpu_c5_recurrent_smnist_panel_end_to_end_s3
+[2026-05-03T10:19:32]   [5/10] run    gpu_c5_recurrent_smnist_panel_end_to_end_s4
+[2026-05-03T10:21:21]   [6/10] run    gpu_c5_recurrent_smnist_panel_target_prop_s0
+[2026-05-03T10:25:19]   [7/10] run    gpu_c5_recurrent_smnist_panel_target_prop_s1
+[2026-05-03T10:29:21]   [8/10] run    gpu_c5_recurrent_smnist_panel_target_prop_s2
+[2026-05-03T10:33:22]   [9/10] run    gpu_c5_recurrent_smnist_panel_target_prop_s3
+[2026-05-03T10:37:20]   [10/10] run    gpu_c5_recurrent_smnist_panel_target_prop_s4
+[2026-05-03T10:41:19] phase gpu_c5_recurrent_smnist_panel done — 10 rows in /content/leenef/results/sl_clean/gpu_c5_recurrent_smnist_panel.json

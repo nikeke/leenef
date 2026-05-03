@@ -1,0 +1,10 @@
+{
+  "alpha": 0.001,
+  "batch_size": 256,
+  "cell": "end_to_end",
+  "d_state": 128,
+  "device": "cuda",
+  "lr": 0.001,
+  "n_epochs": 30,
+  "n_neurons": 1500
+}

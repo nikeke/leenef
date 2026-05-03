@@ -1,7 +1,7 @@
 # sl_clean sweeps — phase log
 
 This document mirrors `attic/docs/rl_clean_sweeps.md` for the
-supervised-learning side of the foundational paper series. Every phase
+supervised-learning side of the SSUP trilogy. Every phase
 that contributes to a numeric claim in **Paper I — Sufficient Statistics
 as the Universal Primitive** lands here, with:
 
@@ -90,6 +90,19 @@ the ground truth for any future claim audit.
 | B6   | b6_esn_smnist_{row,permuted}_panel | b6_esn_smnist_* | `cell` (n × spectral_radius × leak) | H4 — gradient-free ESN reservoir comparator on temporal sMNIST |
 | B7   | biases_{cifar10_centered,mnist_decentered}_panel | biases_*_centered/decentered | `cell` (3×3 factorial) | H1 — DC-component falsifier; channel-centering vs offset injection |
 | H8   | h8_linear_collapse | h8_linear_collapse_check | `activation ∈ {linear, abs}` × n | H8 — over-representation needs nonlinearity (single-seed sanity) |
+| C1   | c1_scaling_mnist_panel | c1_scaling_mnist | `cell` (`n_neurons`) | Paper I scaling figure — MNIST |
+| C1.1 | c1_scaling_fashion_panel | c1_scaling_fashion | `cell` (`n_neurons`) | Paper I scaling figure — Fashion-MNIST |
+| C1.2 | c1_scaling_cifar10_panel | c1_scaling_cifar10 | `cell` (`n_neurons`) | Paper I scaling figure — CIFAR-10 |
+| C2   | c2_activation_mnist_panel | c2_activation_mnist | `cell` (activation × gain) | Paper I activation/gain ablation — MNIST |
+| C2.1 | c2_activation_fashion_panel | c2_activation_fashion | `cell` (activation × gain) | Paper I activation/gain ablation — Fashion-MNIST |
+| C2.2 | c2_activation_cifar10_panel | c2_activation_cifar10 | `cell` (activation × gain) | Paper I activation/gain ablation — CIFAR-10 |
+| C3   | c3_ensemble_cifar10_panel | c3_ensemble_cifar10 | `cell` (ensemble size × encoder) | Paper I ensemble / RF panel — CIFAR-10 |
+| C4   | c4_multilayer_mnist_panel | c4_multilayer_mnist | `cell` (training strategy) | Paper I multilayer strategy panel — MNIST |
+| C4.1 | c4_multilayer_cifar10_panel | c4_multilayer_cifar10 | `cell` (training strategy) | Paper I multilayer strategy panel — CIFAR-10 |
+| C5   | gpu_c5_recurrent_smnist_panel | c5_recurrent_smnist | `cell` (training strategy) | Paper I recurrent row-sMNIST panel — Colab L4 |
+| C6   | c6_convnef_mnist_panel | c6_convnef_mnist | `cell` (`default`) | Paper I ConvNEF headline — MNIST |
+| C6.1 | c6_convnef_cifar10_panel | c6_convnef_cifar10 | `cell` (`default`) | Paper I ConvNEF headline — CIFAR-10 |
+| C7   | c7_housing_panel | c7_housing | `cell` (`n_neurons`) | Paper I §5.6 — regression universality demo |
 
 ---
 
@@ -539,35 +552,25 @@ to Stream-NEF (B2)?
 stopping with patience=5 on a 10% val hold-out.  Code identity
 `a495b4…`.
 
-**Status (2026-05-02 09:35 UTC).**
+**Status (2026-05-01 19:45 UTC, mid-run).**
 
-- **b5_lstm_smnist_row: 90/90 ✅ COMPLETE** (sentinel hand-touched on
-  2026-05-02; the original driver missed the `b5_panels_done` touch
-  on the row branch — runner JSON is correct).  Top three cells:
+- **b5_lstm_smnist_row**: 41/90 rows on disk, ~9 min/seed, top so
+  far 99.10% (h128_l1_lr0.0003 mean, 5 seeds, ~22 ep best).  ETA
+  ~7-9 h to complete the panel.
+- **b5_lstm_smnist_permuted**: **2/90 rows on disk after 7+ hours.**
+  Per-seed wall is **3.5 hours** — vanilla LSTM does not early-stop
+  on permuted-sMNIST because val loss never plateaus, so it runs
+  the full 30-epoch budget every time.  The 2 cells we have score
+  50.6% and 52.0%, consistent with the well-documented literature
+  result that vanilla LSTM tops out near 50% on permuted-sMNIST
+  without curriculum tricks or special inits.
 
-  | cell | mean acc | ± SE | wall/seed | params |
-  |---|---:|---:|---:|---:|
-  | h256_l2_lr0.003 | 99.12 % | 0.09 | 1875 s | 821 770 |
-  | h128_l2_lr0.003 | 99.10 % | 0.10 |  640 s | 214 282 |
-  | h64_l2_lr0.003  | 99.07 % | 0.03 |  227 s |  57 994 |
-
-  18 cells × 5 seeds; LR=3e-4 cells are clearly underconverged
-  (97.1–98.0 %).  Best LSTM beats Stream-NEF on row by 0.7 pp at
-  ~20× wall.
-
-- **b5_lstm_smnist_permuted**: **2/90 rows on disk after 7+ hours,
-  killed.**  Per-seed wall is **3.5 hours** — vanilla LSTM does not
-  early-stop on permuted-sMNIST because val loss never plateaus, so
-  it runs the full 30-epoch budget every time.  The 2 cells we have
-  score 50.6 % and 52.0 %, consistent with the well-documented
-  literature result that vanilla LSTM tops out near 50 % on
-  permuted-sMNIST without curriculum tricks or special inits.
-
-**Decision.** B5_permuted documented as an honest scaling limit, not
-a clean multi-seed verdict.  This contrast — vanilla LSTM at 50 % in
-3.5 h vs Stream-NEF at 75.6 % in 13 min on permuted — is itself a
-paper-worthy data point about the cost-quality tradeoff on hard
-temporal benchmarks.
+**Decision.** Killing b5_permuted (~weeks at 3.5 h/seed × 90 × 5 =
+infeasible).  The 2 cells we have are kept as illustrative; B5
+permuted is documented as an honest scaling limit, not a clean
+multi-seed verdict.  This contrast — vanilla LSTM at 50% in 3.5 h
+vs Stream-NEF at 98.6% in minutes — is itself a paper-worthy data
+point about the cost-quality tradeoff on hard temporal benchmarks.
 
 ---
 
@@ -586,72 +589,21 @@ ESN (input-W, reservoir-W, internal sample) seeded as
 (reproducibility hazard fixed during smoke testing — see
 `AGENTS.md` §"Reproducibility hazards").
 
-**Status (2026-05-02 15:32 UTC) — PRELIMINARY, REPRO RERUN IN FLIGHT.**
+**Status (2026-05-01 19:45 UTC).**
 
-The earlier "✅ COMPLETE" entries on this page (now removed) were
-incorrect: both B6 panels were launched while the working tree
-carried uncommitted changes, so every row was tagged
-`a495b4b380f25b6c7a3aee8f101756ff51f8d646-dirty-5ad589835e77`.
-Per the project repro rule, dirty rows are kept on disk but
-**excluded from headline aggregates**.  Numbers below are kept as
-preliminary first-pass values; the relaunch under the current clean
-identity `69b0b0bb204d77bcefd9518bff7029580991595e` is the
-authoritative source once it lands.
+- **b6_esn_smnist_row: 60/60 ✅ COMPLETE.** Top cell (n=2000,
+  sr=0.95, leak=1.0) reaches 93.65% test, ~488 s/seed.  Median
+  cell ~77%.  Will be aggregated and written up below once
+  permuted lands too.
+- **b6_esn_smnist_permuted**: 34/60 mid-run, ~10 min/seed, top so
+  far 76.4%.  ETA ~5 h.
 
-- **b6_esn_smnist_row** — 60/60 rows on disk, **all dirty-tagged**.
-  Top dirty cells (preliminary, not for headline):
-
-  | cell | mean acc | ± SE | wall/seed |
-  |---|---:|---:|---:|
-  | n2000_sr0.95_leak0.3 | 93.52 % | 0.06 | 454 s |
-  | n2000_sr0.7_leak0.3  | 92.03 % | 0.04 | 462 s |
-  | n1000_sr0.95_leak0.3 | 90.85 % | 0.13 | 110 s |
-
-  Clean rerun **not yet launched** — pending a decision on whether
-  the dirty diff was code-relevant (the only ESN/streaming code
-  changes between `a495b4…` and current `69b0b0…` were a single
-  defensive `ValueError` in `streaming.continuous_fit` that ESN
-  doesn't exercise, so the values are *expected* to reproduce; an
-  audit run on one cell at one seed is the cheap confirmation).
-
-- **b6_esn_smnist_permuted** — 57 rows on disk; 22 clean
-  (`69b0b0bb…`, n=500 cells + 1 partial n=1000 cell) and 35 dirty
-  (`a495b4b3…`, n=1000 + n=2000 cells).  Sequential relaunch
-  overwriting old rows; at cell 23/60 (n=1000_sr0.7_leak0.3 seed 2)
-  as of 15:32 UTC, ~6 h remaining at ~10 min/cell.
-
-  Preliminary dirty top cells (kept as first-pass reading, not
-  headline):
-
-  | cell                        | mean acc | ± SE   |
-  |-----------------------------|---------:|-------:|
-  | n=2000, sr=0.95, leak=0.3   | 79.21 % | 0.13 |
-  | n=1000, sr=0.95, leak=0.3   | 75.26 % | 0.59 |
-  | n=2000, sr=0.7, leak=0.3    | 60.99 % | 0.17 |
-
-  **Preliminary reading — to be confirmed.** On permuted sMNIST,
-  ESN n=2000 sr=0.95 leak=0.3 (dirty 79.21 %) sits above
-  Stream-NEF n=4000 (75.61 %) by +3.6 pp.  The mean-pool prior
-  that helps on coherent row-of-pixels slices appears to give up
-  ground to recurrent state when the discriminative signal is
-  distributed across all 784 randomly-ordered timesteps.  Paper I
-  §6.3 currently flags this as a preliminary picture pending
-  rerun.
-
-**Provisional triangle (sMNIST-row, multi-seed; ESN row preliminary):**
-
-| method | best mean acc | ± SE | wall/seed | seed n | identity |
-|---|---:|---:|---:|---:|---|
-| LSTM h256_l2 lr0.003          | 99.12 % | 0.09 | 1875 s | 5 | clean |
-| Stream-NEF n=8000             | 98.45 % | 0.02 |   95 s | 10 | clean |
-| Stream-NEF n=4000             | 97.97 % | 0.02 |   42 s | 10 | clean |
-| ESN n=2000 sr0.95 leak0.3     | 93.52 % | 0.06 |  454 s | 5 | **dirty** |
-| Stream-NEF n=2000             | 97.20 % | 0.04 |   20 s | 10 | clean |
-
-Reading (provisional): Stream-NEF runs ~20× faster than the best
-LSTM and lands 0.7 pp lower; the dirty ESN values, if they
-reproduce, place Stream-NEF ~5 pp above the best ESN at ~5× lower
-wall.  Numbers will be re-verified before any "final" status.
+**Provisional headline.** Stream-NEF (B2: 98.61% ± 0.04 at n=8000) is
+~5 pp above the best ESN (93.7%) on row, and presumably similarly
+above on permuted, at comparable solve cost.  The reservoir-vs-frame
+comparison is exactly the comparator the paper needs to differentiate
+"pooled abs frame coefficients" from "leaky-integrator dynamics".
+Detailed verdict and table to follow once b6_permuted finishes.
 
 ---
 
@@ -678,122 +630,644 @@ noise on B1.
 
 ---
 
-## Phase C — confirmation reruns (delegated)
+## C1 — MNIST neuron-count scaling
 
-Phase C is the multi-seed confirmation pass for Paper I supporting
-claims.  Scaffolded on branch `paper-i/phase-c-experiments`
-(commit `a50e2f9`); execution delegated to a separate Copilot session
-per `~/.copilot/session-state/.../files/phase_c_delegation_2026-05-02.md`.
-Estimated total wall: ~32 CPU-hours on the 12-core box.
+**Question.** Does the default single-layer NEF on MNIST plateau by
+`n=5000` or `n=10000`, validating the paper-wide choice to treat the
+5000-neuron solve as safely inside the flat part of the scaling curve?
 
-| ID | knob | datasets | cells × seeds | hypothesis |
-|---|---|---|---:|---|
-| C1 | `cell` = n_neurons ∈ {500..20000} (6) | MNIST, Fashion, CIFAR-10 | 6 × 10 × 3 | scaling — single-layer plateau |
-| C2 | `cell` = activation × gain (9) | MNIST, Fashion, CIFAR-10 | 9 × 10 × 3 | abs is not a magic value, but it is good |
-| C3 | `cell` = M × encoder (8) | CIFAR-10 | 8 × 5 | ensemble + RF improvements |
-| C4 | `cell` = strategy ∈ {greedy, hybrid, TP, E2E, hybrid_e2e} | MNIST, CIFAR-10 | 5 × 5 × 2 | H6 — multilayer is the load-bearing negative |
-| C5 | `cell` ∈ {E2E, TP} | sMNIST-row | 2 × 5 | recurrent gradient is required |
-| C6 | `cell` = default (single config) | MNIST, CIFAR-10 | 1 × 5 × 2 | ConvNEF is competitive |
-| C7 | `cell` = n_neurons ∈ {500..10000} (5) | California Housing | 5 × 3 | regression universality |
+**Setup.** MNIST, `n_neurons ∈ {500, 1000, 2000, 5000, 10000, 20000}` ×
+10 seeds = 60 rows. Hypersphere encoders, data-driven biases, `abs`
+activation, gain `U(0.5, 2.0)`, `α=1e-3`, chunked normal-equation
+accumulation with Cholesky solve. Result:
+`results/sl_clean/c1_scaling_mnist_panel.json`. Log:
+`results/sl_clean/logs/c1_scaling_mnist_panel.log`. Wall time: ~64 min
+on the 12-core CPU.
 
-None of the C-phases is expected to overturn a B-phase claim.  Any
-"⚠ surprising" commit on the delegated branch will trigger a
-re-merge here with re-aggregation.
+### Per-cell test accuracy (mean ± SE, n=10)
 
-**Status (2026-05-02 from `paper-i/phase-c-experiments` branch).**
-The delegated session has landed C1, C1.1, C2, C2.1, C3, C6, C6.1,
-and C7 (8 panels, all under clean code identity
-`9bfe9d9c7eacc013c2d83a42389245e47db129fe`).  C4 (multi-layer) and
-C5 (recurrent) are still in flight on that branch.  Headline
-takeaways visible from the branch's appended sections (full text
-will be merged once the branch lands):
+| n_neurons | test accuracy | verdict |
+|---|---|---|
+| 500 | 92.2 ± 0.1 | far from saturation |
+| 1000 | 94.3 ± 0.1 | clear gain over 500 |
+| 2000 | 95.8 ± 0.0 | still climbing |
+| 5000 | 97.0 ± 0.0 | strong but not flat |
+| 10000 | 97.6 ± 0.0 | another clear step up |
+| 20000 | 98.0 ± 0.0 | **still improving** |
 
-- **C1 / C1.1 — surprising.** Single-layer scaling on MNIST and
-  Fashion-MNIST does **not** plateau by `n=20000`.  MNIST climbs
-  monotonically `97.63 → 98.03 %` from 10k → 20k (`+0.40 pp`,
-  many σ above the noise); Fashion-MNIST `88.68 → 89.28 %`
-  (`+0.60 pp`).  Practical implication for the paper: `n=5000`
-  is "good enough" for like-for-like comparisons, but the curves
-  have not reached an asymptote — the §5/§5b scaling discussion
-  has to say so honestly rather than claim saturation.
+**Verdict.** ⚠ surprising. C1 on MNIST does **not** plateau by
+`n=20000`. Accuracy rises monotonically from `97.63% ± 0.03` at
+`n=10000` to `98.03% ± 0.03` at `n=20000`, a `+0.40 pp` gain that is
+an order of magnitude larger than the combined SE. The conservative
+reading is that MNIST is still in the upward part of the width curve at
+20k, even though the marginal gains above 5000 are much smaller than the
+gains below 5000.
 
-- **C2 / C2.1 — softer than expected.** On 5000-neuron MNIST the
-  whole `abs`/`relu` family sits inside `96.94–97.06 %` with
-  overlapping SEs; only `tanh` is robustly worse (`–0.2…0.4 pp`).
-  Fashion-MNIST sharpens this slightly (`abs` best at
-  `87.78–87.81 %`, `relu` ≤0.1 pp behind, `tanh` clearly worse),
-  and gain range is a wash for `abs`/`relu` on both.  Paper I §5
-  has to drop any framing of `abs` as a "magic value" and
-  re-anchor the activation discussion on (a) the linear-collapse
-  argument from H8 and (b) the small-but-real `tanh` gap.
+**Code / data identity.**
 
-- **C3 — supportive.** On CIFAR-10 the receptive_field prior beats
-  hypersphere by **5.5–6.0 pp at every ensemble size** (m=1 single
-  member: 55.1 vs 49.6 %; m=20: 60.6 vs 54.7 %).  Ensembling helps
-  both families substantially from m=1 → m=5; m=10 → m=20 yields
-  only `+0.4 pp` for receptive_field.  The paper's H2 reading
-  (RF + ensembling + α-tuning ≈ tuned MLP) is robust to seed
-  averaging.
+- `code_identity` for all 60 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared MNIST raw bytes under the worktree's
+  `data/` symlink to `../leenef/data`
 
-- **C6 / C6.1 — supportive but at lower numbers.** The lite
-  ConvNEF default config gives MNIST `98.38 ± 0.02 %` and
-  CIFAR-10 `65.89 ± 0.12 %` (5 seeds each).  Earlier
-  single-seed-era TR numbers in the 78 % range came from the
-  full multi-stage / multi-scale pipeline, which is not what was
-  rerun under C6.  **Paper claim must use 65.9 %, not 78 %, as
-  the multi-seed CIFAR-10 ConvNEF headline.**
+### Reproduce
 
-- **C7 — supportive.** California Housing R² climbs `0.731 →
-  0.769` from n=500 → 10k and plateaus by n=5000 (Δ=+0.002,
-  inside the SE).  Universality demo lands cleanly.
-
-C4 and C5 numbers will be folded in as soon as the branch lands
-them.  Phase C panels remain pending data for *paper figures*
-(F2/F4 etc.) until the branch is merged into main; the headline
-implications are already strong enough to act on in §5/§5b
-revisions.
+```bash
+SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c1_scaling_mnist
+```
 
 ---
 
-## Config drift audit (2026-05-02)
+## C1.1 — Fashion-MNIST neuron-count scaling
 
-A row in any `*_panel.json` is only aggregable if its
-`code_identity` SHA matches the current tree.  The base-config
-files for every B-phase already capture the constants under which
-each panel was launched.  Sentinel facts to remember when writing
-the paper:
+**Question.** Does the same width curve on Fashion-MNIST flatten early
+enough to justify treating the 5000-neuron single-layer solve as
+"already saturated" on a harder static image benchmark?
 
-- **Defaults at sl_clean start vs current.** No silent default has
-  changed.  `gain_low/high = 0.5/2.0`, `encoder_strategy =
-  hypersphere`, `activation = abs`, `data_driven_biases = True`,
-  `chunk_size = 5000` were the launch defaults and are still the
-  current defaults; per-experiment base configs override only what
-  that phase contrasts.
-- **Trace-scaled α.**  Adopted in B2 (commit `3e93c6c`).  All
-  streaming panels and Phase C re-runs use `alpha_scale = "trace"`
-  with `alpha_nominal` set per experiment.  B1 / B3 / B7 used the
-  pre-trace default (raw α=1e-3); their `code_identity` predates
-  the change, so aggregator excludes any post-change rerun under
-  the old base if the SHA bump is missed.  No B-phase numbers move
-  if recomputed under the new α convention because the trace scale
-  reduces to the old constant when `n_neurons` is fixed.
-- **`chunk_stats=True` default.**  Adopted in B2 (same commit).
-  Pre-existing B1 cells used `chunk_stats=False`; the metric is
-  identical since both paths compute the exact same `AᵀA`/`AᵀY`.
-- **Linear activation.**  Registered in `cb8e1b7`; relevant only
-  for H8 sanity check.
-- **Cholesky solve + clone-before-diagonal-add.**  Adopted in
-  `c1d9b0a` / `f4bc25b`.  All B3+ panels use this path; the
-  earlier in-place `_ata.diagonal().add_(α)` would have silently
-  corrupted `_ata` on the second `solve()` (caught in B2 review).
-  Pre-fix panels (B1) only ever called `solve()` once per cell, so
-  the bug never had a chance to bite there — verified by inspection
-  of the runner.
+**Setup.** Fashion-MNIST, `n_neurons ∈ {500, 1000, 2000, 5000, 10000,
+20000}` × 10 seeds = 60 rows. Hypersphere encoders, data-driven biases,
+`abs` activation, gain `U(0.5, 2.0)`, `α=1e-3`, chunked normal-equation
+accumulation with Cholesky solve. Result:
+`results/sl_clean/c1_scaling_fashion_panel.json`. Log:
+`results/sl_clean/logs/c1_scaling_fashion_panel.log`. Wall time: ~65 min
+on the 12-core CPU.
 
-**Audit conclusion.**  No B-phase number requires re-running for
-paper-claim purposes.  Each panel's headline is reproducible from
-its `code_identity`-tagged JSON under the original base config.
-Phase C reruns are *additional* multi-seed coverage, not corrections.
+### Per-cell test accuracy (mean ± SE, n=10)
+
+| n_neurons | test accuracy | verdict |
+|---|---|---|
+| 500 | 83.0 ± 0.1 | far from saturation |
+| 1000 | 84.8 ± 0.0 | clear gain over 500 |
+| 2000 | 86.2 ± 0.1 | still climbing |
+| 5000 | 87.8 ± 0.1 | strong but not flat |
+| 10000 | 88.7 ± 0.1 | another clear step up |
+| 20000 | 89.3 ± 0.1 | **still improving** |
+
+**Verdict.** C1.1 matches the revised C1 story: Fashion-MNIST also does
+**not** plateau by `n=20000`. Accuracy rises monotonically from
+`88.68% ± 0.06` at `n=10000` to `89.28% ± 0.06` at `n=20000`, a
+`+0.60 pp` gain that is far outside the combined SE. The practical
+implication is the same as on MNIST: `n=5000` is good enough for most of
+the paper's comparisons, but it is not sitting on a true asymptote.
+
+**Code / data identity.**
+
+- `code_identity` for all 60 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared Fashion-MNIST raw bytes under the
+  worktree's `data/` symlink to `../leenef/data`
+
+### Reproduce
+
+```bash
+SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c1_scaling_fashion
+```
+
+---
+
+## C1.2 — CIFAR-10 neuron-count scaling
+
+**Question.** On CIFAR-10, does the default single-layer NEF keep
+benefiting from brute-force width the way MNIST and Fashion-MNIST do, or
+does the harder dataset expose a different scaling regime?
+
+**Setup.** CIFAR-10, `n_neurons ∈ {500, 1000, 2000, 5000, 10000, 20000}`
+× 10 seeds = 60 rows. Hypersphere encoders, data-driven biases, `abs`
+activation, gain `U(0.5, 2.0)`, `α=1e-3`, chunked normal-equation
+accumulation with Cholesky solve. Result:
+`results/sl_clean/c1_scaling_cifar10_panel.json`. Log:
+`results/sl_clean/logs/c1_scaling_cifar10_panel.log`. Wall time: ~64 min
+on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=10)
+
+| n_neurons | test accuracy | verdict |
+|---|---|---|
+| 500 | 43.3 ± 0.1 | clearly under-fit |
+| 1000 | 45.8 ± 0.1 | clear gain over 500 |
+| 2000 | 47.9 ± 0.1 | still climbing |
+| 5000 | 49.4 ± 0.1 | near the peak |
+| 10000 | 49.6 ± 0.1 | essentially tied with 5000 |
+| 20000 | 47.1 ± 0.1 | **sharp regression** |
+
+**Verdict.** C1.2 breaks the MNIST/Fashion pattern. CIFAR-10 improves
+steadily through `n=5000`, gains only marginally at `n=10000`, and then
+**collapses at `n=20000`**: test accuracy drops from
+`49.59% ± 0.09` at `n=10000` to `47.08% ± 0.12` at `n=20000`, a
+`−2.52 pp` change vastly larger than the combined SE. The same row
+pair's train accuracy jumps from `77.05%` to `91.82%`, so this is not a
+capacity bottleneck but a severe overfitting / generalization failure
+regime. The practical Paper I recommendation is therefore dataset-
+dependent: on CIFAR-10, **wider is not monotonically better**, and the
+useful single-layer operating range looks more like `5000–10000`
+neurons, not `20000+`.
+
+**Code / data identity.**
+
+- `code_identity` for all 60 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared CIFAR-10 raw bytes under the
+  worktree's `data/` symlink to `../leenef/data`
+
+### Reproduce
+
+```bash
+SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c1_scaling_cifar10
+```
+
+---
+
+## C2 — MNIST activation × gain ablation
+
+**Question.** On the default 5000-neuron MNIST solve, does `abs`
+actually beat ReLU once seeds are averaged, and does per-neuron gain
+diversity matter enough to justify the default `U(0.5, 2.0)` range?
+
+**Setup.** MNIST, `activation ∈ {abs, relu, tanh}` ×
+`gain ∈ {(0.5,2.0), (1.0,1.0), (0.1,5.0)}` × 10 seeds = 90 rows.
+Hypersphere encoders, data-driven biases, `n_neurons=5000`, `α=1e-3`,
+chunked normal-equation accumulation with Cholesky solve. Result:
+`results/sl_clean/c2_activation_mnist_panel.json`. Log:
+`results/sl_clean/logs/c2_activation_mnist_panel.log`. Wall time: ~40
+min on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=10)
+
+| cell | test accuracy | verdict |
+|---|---|---|
+| abs+g0.5_2.0 | 97.0 ± 0.0 | top tier |
+| abs+g1.0_1.0 | 97.1 ± 0.0 | top tier |
+| abs+g0.1_5.0 | 97.0 ± 0.0 | top tier |
+| relu+g0.5_2.0 | 97.0 ± 0.0 | top tier |
+| relu+g1.0_1.0 | 97.1 ± 0.0 | top tier |
+| relu+g0.1_5.0 | 96.9 ± 0.0 | marginally below the leaders |
+| tanh+g0.5_2.0 | 96.8 ± 0.0 | consistently worse |
+| tanh+g1.0_1.0 | 96.7 ± 0.0 | consistently worse |
+| tanh+g0.1_5.0 | 96.9 ± 0.0 | consistently worse |
+
+**Verdict.** C2 on MNIST says the activation story is weaker than the
+original hypothesis suggested. The best cell is `relu+g1.0_1.0` at
+`97.06% ± 0.02`, but the whole `abs`/`relu` family sits inside a very
+tight band (`96.94%` to `97.06%`) with heavily overlapping SEs. The
+robust signal is only that **`tanh` trails by about 0.2–0.4 pp**. Gain
+range is effectively a wash on MNIST: fixed gain, project-default gain,
+and the wide-spread gain all land within seed noise for both `abs` and
+ReLU.
+
+**Code / data identity.**
+
+- `code_identity` for all 90 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared MNIST raw bytes under the worktree's
+  `data/` symlink to `../leenef/data`
+
+### Reproduce
+
+```bash
+SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c2_activation_mnist
+```
+
+---
+
+## C2.1 — Fashion-MNIST activation × gain ablation
+
+**Question.** Does the activation story sharpen on Fashion-MNIST — a
+harder static benchmark — enough to separate `abs` from ReLU and reveal
+whether gain diversity matters in a less overdetermined regime?
+
+**Setup.** Fashion-MNIST, `activation ∈ {abs, relu, tanh}` ×
+`gain ∈ {(0.5,2.0), (1.0,1.0), (0.1,5.0)}` × 10 seeds = 90 rows.
+Hypersphere encoders, data-driven biases, `n_neurons=5000`, `α=1e-3`,
+chunked normal-equation accumulation with Cholesky solve. Result:
+`results/sl_clean/c2_activation_fashion_panel.json`. Log:
+`results/sl_clean/logs/c2_activation_fashion_panel.log`. Wall time:
+~40 min on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=10)
+
+| cell | test accuracy | verdict |
+|---|---|---|
+| abs+g0.5_2.0 | 87.8 ± 0.1 | top tier |
+| abs+g1.0_1.0 | 87.8 ± 0.1 | top tier |
+| abs+g0.1_5.0 | 87.6 ± 0.0 | slight drop but still competitive |
+| relu+g0.5_2.0 | 87.6 ± 0.0 | close behind abs |
+| relu+g1.0_1.0 | 87.7 ± 0.1 | close behind abs |
+| relu+g0.1_5.0 | 87.5 ± 0.0 | slightly weaker |
+| tanh+g0.5_2.0 | 87.1 ± 0.0 | clearly worse |
+| tanh+g1.0_1.0 | 86.8 ± 0.0 | worst cell |
+| tanh+g0.1_5.0 | 87.5 ± 0.0 | wide gain partially rescues tanh |
+
+**Verdict.** C2.1 gives a cleaner separation than MNIST but not a huge
+one. The best cells are the two `abs` variants (`87.78% ± 0.05` and
+`87.81% ± 0.05`), with the best ReLU cell (`relu+g1.0_1.0`,
+`87.73% ± 0.05`) only a hair behind. The stronger signal is that
+**`tanh` is consistently worse**, especially with fixed gain, while a
+wider gain spread substantially helps tanh recover. For `abs` and ReLU,
+gain range still matters only marginally.
+
+**Code / data identity.**
+
+- `code_identity` for all 90 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared Fashion-MNIST raw bytes under the
+  worktree's `data/` symlink to `../leenef/data`
+
+### Reproduce
+
+```bash
+SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c2_activation_fashion
+```
+
+---
+
+## C2.2 — CIFAR-10 activation × gain ablation
+
+**Question.** On the default 5000-neuron CIFAR-10 solve, do activation
+choice and gain spread matter more than they did on MNIST and
+Fashion-MNIST, or is the same broad "abs/ReLU tie, tanh worse" story
+still intact?
+
+**Setup.** CIFAR-10, `activation ∈ {abs, relu, tanh}` ×
+`gain ∈ {(0.5,2.0), (1.0,1.0), (0.1,5.0)}` × 10 seeds = 90 rows.
+Hypersphere encoders, data-driven biases, `n_neurons=5000`, `α=1e-3`,
+chunked normal-equation accumulation with Cholesky solve. Result:
+`results/sl_clean/c2_activation_cifar10_panel.json`. Log:
+`results/sl_clean/logs/c2_activation_cifar10_panel.log`. Wall time:
+~49 min on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=10)
+
+| cell | test accuracy | verdict |
+|---|---|---|
+| abs+g0.5_2.0 | 49.4 ± 0.1 | top tier |
+| abs+g1.0_1.0 | 49.3 ± 0.1 | close to the leaders |
+| abs+g0.1_5.0 | 49.7 ± 0.1 | best overall |
+| relu+g0.5_2.0 | 49.5 ± 0.1 | top tier |
+| relu+g1.0_1.0 | 49.3 ± 0.1 | slightly lower |
+| relu+g0.1_5.0 | 49.5 ± 0.1 | top tier |
+| tanh+g0.5_2.0 | 48.6 ± 0.1 | clearly worse |
+| tanh+g1.0_1.0 | 48.0 ± 0.1 | weakest cell |
+| tanh+g0.1_5.0 | 49.0 ± 0.1 | partially recovered, still behind |
+
+**Verdict.** C2.2 matches the earlier C2 story more than it overturns
+it. `abs` and ReLU remain effectively tied on CIFAR-10, with the best
+cells all clustered around `49.4–49.7%` and overlapping SEs. The clean
+signal is that **`tanh` remains materially worse**, especially with
+fixed gain (`47.99% ± 0.07`). The gain story is slightly stronger than
+on MNIST: the wide `g0.1_5.0` spread gives the best `abs` result and
+partly rescues `tanh`, but the effect is still modest compared with the
+activation-family gap. The practical default therefore still stands:
+**stick with `abs` or ReLU; avoid `tanh`, especially with narrow/fixed
+gain.**
+
+**Code / data identity.**
+
+- `code_identity` for all 90 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared CIFAR-10 raw bytes under the
+  worktree's `data/` symlink to `../leenef/data`
+
+### Reproduce
+
+```bash
+SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c2_activation_cifar10
+```
+
+---
+
+## C3 — CIFAR-10 ensemble × receptive-field panel
+
+**Question.** On CIFAR-10, does ensembling close the gap between the
+default hypersphere prior and the spatially local receptive-field prior,
+or does the receptive-field advantage persist no matter how many members
+are averaged?
+
+**Setup.** CIFAR-10, `n_members ∈ {1, 5, 10, 20}` ×
+`encoder ∈ {hypersphere, receptive_field}` × 5 seeds = 40 rows.
+Each member uses `n_neurons=5000`, `abs`, data-driven biases, and
+`α=1e-3`; member logits are averaged across the ensemble. Result:
+`results/sl_clean/c3_ensemble_cifar10_panel.json`. Log:
+`results/sl_clean/logs/c3_ensemble_cifar10_panel.log`. Wall time:
+~3 h 51 min on the 12-core CPU (across the interrupted first attempt and
+the resumable rerun).
+
+### Per-cell test accuracy (mean ± SE, n=5)
+
+| cell | test accuracy | verdict |
+|---|---|---|
+| m1+hypersphere | 49.6 ± 0.1 | weakest baseline |
+| m1+receptive_field | 55.1 ± 0.1 | strong single-member gain |
+| m5+hypersphere | 53.8 ± 0.1 | ensemble helps |
+| m5+receptive_field | 59.6 ± 0.1 | clear best at moderate cost |
+| m10+hypersphere | 54.2 ± 0.1 | small gain over m5 |
+| m10+receptive_field | 60.2 ± 0.1 | best moderate-size cell |
+| m20+hypersphere | 54.7 ± 0.1 | diminishing returns |
+| m20+receptive_field | 60.6 ± 0.1 | best overall |
+
+**Verdict.** C3 strongly supports the receptive-field story. The
+receptive-field prior stays **about 5.5–6.0 pp above** hypersphere at
+every ensemble size, so ensembling does **not** erase the encoder-prior
+advantage. Ensembling itself helps both families substantially from
+`m=1` to `m=5`, but the marginal gain from `m=10` to `m=20` is small
+(`+0.5 pp` for hypersphere, `+0.4 pp` for receptive_field). The
+practical recommendation is therefore: if compute allows only one lever,
+**choose receptive-field before buying more members**.
+
+**Code / data identity.**
+
+- `code_identity` for all 40 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared CIFAR-10 raw bytes under the
+  worktree's `data/` symlink to `../leenef/data`
+
+### Reproduce
+
+```bash
+SEEDS=0-4 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c3_ensemble_cifar10
+```
+
+---
+
+## C4 — MNIST multilayer strategy panel
+
+**Question.** Once we allow one hidden NEF layer, do the multilayer
+training strategies actually help on MNIST, or does the paper's
+"single-layer wide solve is enough" story still dominate?
+
+**Setup.** MNIST, one hidden layer with `hidden=[2000]`, output layer
+with `output_neurons=2000`, `abs` activation, hypersphere encoders,
+data-driven biases, `α=1e-3`, and 5 seeds. The knob is
+`strategy ∈ {greedy, hybrid, target_prop, end_to_end, hybrid_e2e}`.
+Result: `results/sl_clean/c4_multilayer_mnist_panel.json`. Log:
+`results/sl_clean/logs/c4_multilayer_mnist_panel.log`. Wall time:
+~6 h 18 min on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=5)
+
+| strategy | test accuracy | verdict |
+|---|---|---|
+| greedy | 95.37 ± 0.09 | fast analytic baseline |
+| hybrid | 94.25 ± 0.04 | worse than greedy |
+| target_prop | 98.54 ± 0.02 | strong local-learning result |
+| end_to_end | 98.60 ± 0.02 | strong BPTT baseline |
+| hybrid_e2e | 98.69 ± 0.01 | best overall |
+
+**Verdict.** C4 is **not** the simple negative result the phase note
+anticipated. Purely analytic `greedy` is decent and `hybrid` is
+actually worse, but once the network gets either local target
+propagation or end-to-end refinement, performance jumps by roughly
+`+3.2–4.4 pp` over the weak multilayer baselines. `hybrid_e2e` wins at
+`98.688% ± 0.014`, `end_to_end` is close behind at
+`98.598% ± 0.017`, and `target_prop` is only another `0.06 pp` back
+while running in less than half the time of the BPTT-based variants.
+So the honest C4 story is narrower: **plain multilayer stacking fails,
+but MNIST does benefit from depth once a stronger training rule is
+allowed.**
+
+**Code / data identity.**
+
+- `code_identity` for all 25 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared MNIST raw bytes under the worktree's
+  `data/` symlink to `../leenef/data`
+- The final JSON combines the original greedy/hybrid rows with a
+  resumable same-identity recovery for the remaining strategies after
+  the first wrapper hit a strategy-specific kwarg bug; all aggregate
+  rows remain directly comparable because they share the same stamped
+  identity
+
+---
+
+## C4.1 — CIFAR-10 multilayer strategy panel
+
+**Question.** Does the same one-hidden-layer NEF stack help on CIFAR-10,
+or does the harder dataset expose a much sharper split between weak
+local/analytic training rules and full end-to-end refinement?
+
+**Setup.** CIFAR-10, one hidden layer with `hidden=[2000]`, output layer
+with `output_neurons=2000`, `abs` activation, hypersphere encoders,
+data-driven biases, `α=1e-3`, and 5 seeds. The knob is
+`strategy ∈ {greedy, hybrid, target_prop, end_to_end, hybrid_e2e}`.
+Result: `results/sl_clean/c4_multilayer_cifar10_panel.json`. Log:
+`results/sl_clean/logs/c4_multilayer_cifar10_panel.log`. Wall time:
+~5 h 17 min on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=5)
+
+| strategy | test accuracy | verdict |
+|---|---|---|
+| greedy | 46.08 ± 0.13 | modest baseline |
+| hybrid | 36.37 ± 0.17 | catastrophic failure |
+| target_prop | 50.59 ± 0.15 | modest gain over greedy |
+| end_to_end | 59.20 ± 0.04 | clear best |
+| hybrid_e2e | 58.47 ± 0.16 | strong but below pure E2E |
+
+**Verdict.** C4.1 is much harsher than MNIST. `target_prop` helps over
+the plain greedy stack, but only by about `+4.5 pp`, leaving it far
+below the good CIFAR-10 front-runners. The real jump comes only from
+full end-to-end training: `end_to_end` reaches `59.200% ± 0.044`, while
+`hybrid_e2e` lands at `58.470% ± 0.164`. Unlike MNIST, `hybrid_e2e`
+does **not** beat pure E2E here, and plain `hybrid` collapses badly to
+`36.374% ± 0.170`. So the CIFAR-10 multilayer story is genuinely
+negative for non-E2E training: **depth helps only when the model is
+allowed to behave like a conventionally trained network; the purely
+analytic/local variants remain uncompetitive.**
+
+**Code / data identity.**
+
+- `code_identity` for all 25 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared CIFAR-10 raw bytes under the
+  worktree's `data/` symlink to `../leenef/data`
+- This panel was run directly through the same-identity recovery runner
+  to avoid the known stock-wrapper kwarg bug, so all rows still live in a
+  single clean aggregate
+
+---
+
+## C5 — recurrent row-sMNIST panel (Colab L4)
+
+**Question.** On row-sMNIST, does the lite recurrent NEF become genuinely
+competitive once it is run on a GPU budget that makes the recurrent
+panel practical, and does recurrent target propagation through time
+recover that performance without BPTT?
+
+**Setup.** Colab L4 GPU, row-sMNIST, 5 seeds, `n_neurons=1500`,
+`d_state=128`, `n_epochs=30`, `batch_size=256`, `lr=1e-3`, `α=1e-3`,
+and `relu` recurrent activation. The knob is
+`strategy ∈ {end_to_end, target_prop}`. Authoritative panel:
+`results/sl_clean/gpu_c5_recurrent_smnist_panel.json`. Log:
+`results/sl_clean/logs/gpu_c5_recurrent_smnist_panel.log`. Companion
+same-code-identity L4 comparator panels landed alongside it:
+`gpu_streaming_smnist_row_panel.json`,
+`gpu_b5_lstm_smnist_row_pareto_panel.json`, and
+`gpu_b6_esn_smnist_row_best_panel.json`, with exact Colab configs under
+`results/sl_clean/colab_gpu_configs/`. Wall time for the C5 panel:
+~29 min on the L4.
+
+### Per-cell test accuracy (mean ± SE, n=5)
+
+| strategy | test accuracy | verdict |
+|---|---|---|
+| end_to_end | 98.83 ± 0.03 | competitive and stable |
+| target_prop | 23.82 ± 0.11 | catastrophic failure |
+
+**Verdict.** C5 strongly reinforces the old recurrent story instead of
+softening it. `end_to_end` reaches `98.834% ± 0.029` on the L4 and does
+so quickly (`108.30 ± 1.33 s` per seed), which makes the recurrent NEF
+fully viable as a GPU benchmark. But `target_prop` through time fails
+completely: `23.824% ± 0.106` test accuracy, `25.10%` train accuracy,
+and **more than 2× slower** than `end_to_end` (`239.12 ± 0.67 s` per
+seed). The companion L4 panels make the ranking clear:
+
+- best LSTM pareto cells: `99.08 ± 0.11` and `99.07 ± 0.05`
+- Stream-NEF row panel: `98.44 ± 0.04` at `n=8000`
+- ESN best row cell: `93.52 ± 0.06`
+
+So recurrent NEF with end-to-end training is **better than the streaming
+row panel and vastly better than the ESN**, but still trails the best
+LSTM by about `0.23 pp`. The practical conclusion is unchanged:
+**only end-to-end recurrent NEF is competitive; target propagation is
+not a viable recurrent training rule here.** The other practical lesson
+is operational: this panel belongs on GPU/Colab, not on the local CPU.
+
+**Code / data identity.**
+
+- `code_identity` for all rows in the C5 and companion GPU panels:
+  `c3ca3cf8e46c1d9a45be76f8626e3795cda3c5a2`
+- Hardware stamped on all rows: `cuda_available=true`,
+  `cuda_device_name='NVIDIA L4'`
+- The companion GPU panels share the same code identity, so the
+  cross-model row-sMNIST comparison above is apples-to-apples
+
+---
+
+## C6 — ConvNEF on MNIST
+
+**Question.** Does the reduced single-config ConvNEF rerun still recover
+the strong shallow-pipeline story on MNIST once we attach rl_clean-style
+seed bars, or was the earlier result overly dependent on a lucky seed?
+
+**Setup.** MNIST, ConvNEF `default` config × 5 seeds. Single PCA filter
+stage (`64` filters, `patch_size=5`, `pool_size=2`), `n_neurons=4000`,
+`pool_levels=[1,2,4]`, `standardize=True`, `abs` activation,
+hypersphere encoders, gain `U(0.5, 2.0)`, analytic decoder with
+`α=1e-2`. Result: `results/sl_clean/c6_convnef_mnist_panel.json`. Log:
+`results/sl_clean/logs/c6_convnef_mnist_panel.log`. Wall time: ~4.4 min
+on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=5)
+
+| cell | test accuracy | verdict |
+|---|---|---|
+| default | 98.38 ± 0.02 | strong and stable |
+
+**Verdict.** C6 on MNIST is cleanly supportive. The lite ConvNEF config
+reaches `98.376% ± 0.017`, with a narrow seed spread and a training time
+of `48.98 ± 0.57 s`. That places the shallow fixed-filter pipeline
+comfortably above the single-layer 5000-neuron baseline while still
+remaining fully gradient-free.
+
+**Code / data identity.**
+
+- `code_identity` for all 5 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared MNIST raw bytes under the worktree's
+  `data/` symlink to `../leenef/data`
+
+### Reproduce
+
+```bash
+SEEDS=0-4 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c6_convnef_mnist
+```
+
+---
+
+## C6.1 — ConvNEF on CIFAR-10
+
+**Question.** Does the same lite ConvNEF configuration remain competitive
+once we move from MNIST to CIFAR-10, where spatial structure matters
+much more and shallow fixed-feature pipelines are under real pressure?
+
+**Setup.** CIFAR-10, ConvNEF `default` config × 5 seeds. Single PCA
+filter stage (`96` filters, `patch_size=5`, `pool_size=2`),
+`n_neurons=4000`, `pool_levels=[1,2,4]`, `standardize=True`, `gcn=True`,
+`abs` activation, hypersphere encoders, gain `U(0.5, 2.0)`, analytic
+decoder with `α=1e-2`. Result:
+`results/sl_clean/c6_convnef_cifar10_panel.json`. Log:
+`results/sl_clean/logs/c6_convnef_cifar10_panel.log`. Wall time: ~7.5
+min on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=5)
+
+| cell | test accuracy | verdict |
+|---|---|---|
+| default | 65.89 ± 0.12 | clearly above single-layer baseline |
+
+**Verdict.** C6.1 supports the intended headline. The lite ConvNEF setup
+reaches `65.892% ± 0.118` on CIFAR-10, substantially above the plain
+single-layer CIFAR-10 numbers and comfortably above the ensemble-free
+hypersphere baseline from C3. It does not approach modern CNN territory,
+but it validates the paper's claim that a shallow, fully gradient-free,
+data-derived conv front-end can be genuinely competitive on CIFAR-10.
+
+**Code / data identity.**
+
+- `code_identity` for all 5 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared CIFAR-10 raw bytes under the
+  worktree's `data/` symlink to `../leenef/data`
+
+### Reproduce
+
+```bash
+SEEDS=0-4 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c6_convnef_cifar10
+```
+
+---
+
+## C7 — California Housing regression (universality demo)
+
+**Question.** Does the same single-layer NEF primitive used throughout
+Paper I transfer cleanly to a real-valued regression task, or does the
+analytic solve rely on classification-specific structure?
+
+**Setup.** California Housing, `n_neurons ∈ {500, 1000, 2000, 5000,
+10000}` × 3 seeds = 15 rows.  Hypersphere encoders, data-driven biases,
+`abs` activation, gain `U(0.5, 2.0)`, `α=1e-3`, chunked normal-equation
+accumulation with Cholesky solve, and a deterministic train/test split
+derived from `seed * 31337 + 11`.  Result: `results/sl_clean/c7_housing_panel.json`.
+Log: `results/sl_clean/logs/c7_housing_panel.log`.  Wall time: ~1 min on
+the 12-core CPU.
+
+### Per-cell test R² (mean ± SE, n=3)
+
+| n_neurons | test R² | verdict |
+|---|---|---|
+| 500 | 0.731 ± 0.005 | workable but clearly under-fit |
+| 1000 | 0.747 ± 0.006 | meaningful gain over 500 |
+| 2000 | 0.756 ± 0.005 | still improving |
+| 5000 | 0.767 ± 0.009 | near-plateau |
+| 10000 | 0.769 ± 0.010 | statistically tied with 5000 |
+
+**Verdict.** C7 supports the universality claim.  The same fixed-encoder
+plus analytic-decoder primitive reaches `test_r2 ≈ 0.77` on California
+Housing with no architecture change beyond `d_out=1`.  Performance
+improves monotonically with neuron count, then plateaus by roughly
+`n=5000`; `n=10000` is only `+0.002` R² above `n=5000`, well inside the
+combined SE.
+
+**Code / data identity.**
+
+- `code_identity` for all 15 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes were stable across all rows:
+  `data_npz=c8f43774aa27b7ec034e60db31b6124e12b4a0d42b55b0c8eb1320089e2ebc37`,
+  `target_npz=ae80bb98487c04d7383ed8aecda8e207583dfd3e66f6679fded97597c3f6c87e`
+
+### Reproduce
+
+```bash
+SEEDS=0-2 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/sl_hp_driver.sh c7_housing
+```
 
 ---
 
