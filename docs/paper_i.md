@@ -384,10 +384,10 @@ winner at every width is **trace-scaled `α = 10⁻⁴`**: 98.03 % at
 | α policy | `n=4 000` | `n=8 000` | worst-case-mean |
 |----------|-----------|-----------|-----------------|
 | trace-scaled, base 10⁻² (the `solvers.tikhonov` default) | 95.89 % | 96.92 % | 95.89 % |
-| trace-scaled, base 10⁻³ | 97.97 % | 98.41 % | 97.97 % |
+| trace-scaled, base 10⁻³ | 97.57 % | 98.14 % | 97.57 % |
 | **trace-scaled, base 10⁻⁴** (winner) | **98.03 %** | **98.44 %** | **98.03 %** |
 | fixed 10⁻² | 98.07 % | 87.27 % | 87.27 % |
-| fixed 10⁻⁴ | 95.20 % | 97.45 % | 95.20 % |
+| fixed 10⁻⁴ | 95.02 % | 96.33 % | 95.02 % |
 
 (The full 100-cell α heat map is included in `streaming_alpha_sweep_summary.json`; we keep only this 5-row digest in the paper.)
 
@@ -443,7 +443,7 @@ readings:
 | MNIST decentered (+0.5) | 97.12 % | 95.78 % | +1.3 pp | ~0 |
 | CIFAR-10 per-channel centered | 49.72 % | 43.41 % | **+6.3 pp** | ~0 |
 
-The spectral reading is falsified.  Centring CIFAR-10 was
+The spectral reading is falsified.  Centering CIFAR-10 was
 predicted to *close* the gap; it *opens* it the most we have
 seen.  The geometric reading explains both halves of both
 tables: the gap grows with the distance between *zero* and
@@ -492,7 +492,7 @@ All cells are 10-seed means ± SE in percent test accuracy.
 Three findings.
 
 1. **Universal random frames are equivalent.**  `hypersphere`,
-   `gaussian` (which the encoder builder normalises to the
+   `gaussian` (which the encoder builder normalizes to the
    sphere), and `sparse` cluster within 0.1 pp on every dataset.
 2. **Receptive-field encoders are the headline win.**  +5.4 pp
    on CIFAR-10 (49.7 → 55.1 %) at fixed `n_neurons` is the
@@ -543,53 +543,61 @@ Two ablations from the Phase C panels (10 seeds each, base
 config: hypersphere encoders, data-driven biases, gain
 `U(0.5, 2.0)`, `α = 10⁻³`):
 
-**Single-layer width.**  Test accuracy is monotone in
-`n_neurons` over the entire range we measured; *the curve does
-not flatten by `n = 20 000`*.
+**Single-layer width.**  MNIST and Fashion-MNIST are monotone in
+`n_neurons` over the entire range we measured; *their curves do
+not flatten by `n = 20 000`*.  CIFAR-10 behaves differently under
+the generic hypersphere encoder: it improves through 10k neurons
+and then falls at 20k, which is a useful warning that "more random
+global features" is not a universal scaling law.
 
-| `n` | MNIST | Fashion-MNIST |
-|-----|---:|---:|
-| 500   | 92.2 ± 0.1 | 83.0 ± 0.1 |
-| 1 000  | 94.3 ± 0.1 | 84.8 ± 0.0 |
-| 2 000  | 95.8 ± 0.0 | 86.2 ± 0.1 |
-| 5 000  | 97.0 ± 0.0 | 87.8 ± 0.1 |
-| 10 000 | 97.6 ± 0.0 | 88.7 ± 0.1 |
-| 20 000 | **98.0 ± 0.0** | **89.3 ± 0.1** |
+| `n` | MNIST | Fashion-MNIST | CIFAR-10 |
+|-----|---:|---:|---:|
+| 500   | 92.2 ± 0.1 | 83.0 ± 0.1 | 43.3 ± 0.1 |
+| 1 000  | 94.3 ± 0.1 | 84.8 ± 0.0 | 45.8 ± 0.1 |
+| 2 000  | 95.8 ± 0.0 | 86.2 ± 0.1 | 47.9 ± 0.1 |
+| 5 000  | 97.0 ± 0.0 | 87.8 ± 0.1 | 49.5 ± 0.1 |
+| 10 000 | 97.6 ± 0.0 | 88.7 ± 0.1 | **49.6 ± 0.1** |
+| 20 000 | **98.0 ± 0.0** | **89.3 ± 0.1** | 47.1 ± 0.1 |
 
 The 10 k → 20 k step is `+0.40 pp` on MNIST and `+0.60 pp` on
-Fashion — order-of-magnitude above the combined SE.  We use
-`n = 5 000` as the like-for-like ablation point throughout the
-paper because doubling further is feasible but expensive at
-these widths, not because the curve has saturated.  The
-practical reading: a single-layer NEF at our defaults is *not*
-in a regime where neuron count has stopped paying off.
+Fashion — order-of-magnitude above the combined SE — but `-2.51 pp`
+on CIFAR-10.  We use `n = 5 000` as the like-for-like ablation
+point throughout the paper because it is the shared, stable point
+across all three datasets; doubling further is still valuable on
+MNIST/Fashion, while CIFAR-10 needs a better encoder prior rather
+than more generic global neurons.  The practical reading: scaling
+helps until the representation, not the solver, becomes the
+bottleneck.
 
 **Activation choice.**  At fixed `n = 5 000` with hypersphere
 encoders and data-driven biases, `abs`, `relu`, and `tanh`
-behave like this on the two image datasets:
+behave like this:
 
-| activation × gain | MNIST | Fashion-MNIST |
-|-------------------|---:|---:|
-| abs · `U(0.5, 2.0)`  | 97.0 ± 0.0 | **87.78 ± 0.05** |
-| abs · fixed 1.0      | 97.1 ± 0.0 | **87.81 ± 0.05** |
-| abs · `U(0.1, 5.0)`  | 97.0 ± 0.0 | 87.6 ± 0.0 |
-| relu · `U(0.5, 2.0)` | 97.0 ± 0.0 | 87.6 ± 0.0 |
-| relu · fixed 1.0     | 97.1 ± 0.0 | 87.73 ± 0.05 |
-| relu · `U(0.1, 5.0)` | 96.9 ± 0.0 | 87.5 ± 0.0 |
-| tanh · `U(0.5, 2.0)` | 96.8 ± 0.0 | 87.1 ± 0.0 |
-| tanh · fixed 1.0     | 96.7 ± 0.0 | 86.8 ± 0.0 |
-| tanh · `U(0.1, 5.0)` | 96.9 ± 0.0 | 87.5 ± 0.0 |
+| activation × gain | MNIST | Fashion-MNIST | CIFAR-10 |
+|-------------------|---:|---:|---:|
+| abs · `U(0.5, 2.0)`  | 97.04 ± 0.01 | **87.78 ± 0.05** | 49.45 ± 0.11 |
+| abs · fixed 1.0      | 97.05 ± 0.02 | **87.81 ± 0.05** | 49.32 ± 0.09 |
+| abs · `U(0.1, 5.0)`  | 96.99 ± 0.02 | 87.64 ± 0.05 | **49.66 ± 0.11** |
+| relu · `U(0.5, 2.0)` | 97.05 ± 0.03 | 87.65 ± 0.05 | 49.45 ± 0.07 |
+| relu · fixed 1.0     | 97.06 ± 0.02 | 87.73 ± 0.05 | 49.26 ± 0.07 |
+| relu · `U(0.1, 5.0)` | 96.94 ± 0.02 | 87.48 ± 0.03 | 49.51 ± 0.11 |
+| tanh · `U(0.5, 2.0)` | 96.77 ± 0.02 | 87.11 ± 0.05 | 48.60 ± 0.09 |
+| tanh · fixed 1.0     | 96.70 ± 0.03 | 86.81 ± 0.03 | 47.99 ± 0.07 |
+| tanh · `U(0.1, 5.0)` | 96.89 ± 0.03 | 87.51 ± 0.04 | 49.02 ± 0.09 |
 
-On MNIST the whole `abs`/`relu` family sits inside `97.0–97.1 %`
-with overlapping SEs — no signal that picks `abs` over `relu` at
+On MNIST the whole `abs`/ReLU family sits inside `96.94–97.06 %`
+with overlapping SEs — no signal that picks `abs` over ReLU at
 this width.  On the harder Fashion-MNIST, **`abs` keeps a small
 but consistent edge**: the two best cells are both `abs`
-(`87.78`, `87.81 %`), the best `relu` cell trails by `0.08 pp`
-(within SE), and `tanh` is `0.3–0.6 pp` behind the leaders.
-Tanh recovers the wide-gain spread cell because saturation is
-mitigated when many neurons sit at small gain.
+(`87.78`, `87.81 %`), the best ReLU cell trails by `0.08 pp`
+(within SE), and `tanh` is `0.3–1.0 pp` behind the leaders.  On
+CIFAR-10, `abs` and ReLU again overlap, while the best cell is the
+wide-gain `abs` configuration and narrow/fixed-gain `tanh` is
+clearly worse.  Tanh recovers part of the gap under the wide-gain
+spread because saturation is mitigated when many neurons sit at
+small gain.
 
-The honest reading the §2 algebra supports: `abs` and `relu`
+The honest reading the §2 algebra supports: `abs` and ReLU
 are the same minimal nonlinearity up to a sign-flip
 (`|x| = ReLU(x) + ReLU(-x)`), and an `abs` neuron is the same
 information as two mirrored `relu` neurons whose decoder rows
@@ -597,20 +605,18 @@ the analytic solve will find.  At fixed `n` the `abs` parameterization
 buys a half-budget worth of "free" `relu` partners, which is
 exactly what the small Fashion-MNIST edge looks like.  We keep
 `abs` as the project default on this evidence — modest, measured,
-and consistent with the algebra — and report the CIFAR-10
-activation panel from the delegated branch (`c2_activation_cifar10`,
-in flight as of this draft) when it lands.
+and consistent with the algebra.
 
-`tanh` is robustly worse on both datasets (`-0.2…0.4 pp` on
-MNIST, `-0.3…1.0 pp` on Fashion).  Saturation cancels the
-benefit of over-representation: a `tanh` neuron only carries
-information about whether `(e_i · x)` is "small" or "large",
-not its magnitude.  This is consistent with the §2 frame-
-coefficient picture, which requires a nonlinearity that
-preserves magnitude information.  Practical implication: the
-project default `abs` is defensible, but `relu` is a clean
-fallback at no measurable cost on raw image classification —
-one to keep in mind when a deployment constraint disallows the
+`tanh` is robustly worse across the panel (`-0.2…0.4 pp` on
+MNIST, `-0.3…1.0 pp` on Fashion, `-0.5…1.7 pp` on CIFAR-10).
+Saturation cancels the benefit of over-representation: a `tanh`
+neuron only carries information about whether `(e_i · x)` is
+"small" or "large", not its magnitude.  This is consistent with
+the §2 frame-coefficient picture, which requires a nonlinearity
+that preserves magnitude information.  Practical implication:
+the project default `abs` is defensible, but `relu` is a clean
+fallback at no measurable cost on raw image classification — one
+to keep in mind when a deployment constraint disallows the
 two-sided fold.
 
 ---
@@ -707,10 +713,12 @@ submission time.  A first-pass run (with a since-superseded
 Stream-NEF at *double* `n` (Stream-NEF n=4 000 reaches 75.6 %).
 Under the project's reproducibility rule we discard rows whose
 code identity no longer matches the current tree.  The rerun
-under the clean tag is at 43 / 60 cells as we write this; the
+under the clean tag is at 45 / 60 cells as we write this; the
 n = 1 000 tier is already complete (best cell `sr = 0.95,
 leak = 0.3` at 75.26 ± 0.59 %, statistically matching
-Stream-NEF n = 4 000), and the n = 2 000 tier is in flight.
+Stream-NEF n = 4 000), and the first completed n = 2 000 cell
+(`sr = 0.7, leak = 0.3`) is worse at 60.99 ± 0.17 %.  The
+load-bearing `sr = 0.95` cells are still in flight.
 We expect the qualitative reading to hold — recurrent state
 has a built-in advantage when the discriminative signal is
 spread across all 784 randomly-ordered timesteps, while our
