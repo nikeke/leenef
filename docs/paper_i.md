@@ -19,11 +19,8 @@ NEF's single regularized least-squares solve over fixed-encoder
 neural activities — `D = (AᵀA + α_eff I)⁻¹ AᵀY` — turns out, in a
 specialization we call **leenef**, to do far more than the
 extreme-learning-machine and random-feature literature usually
-charts.  We use absolute-value activations, data-driven biases that
-place each neuron's `abs` fold on the data manifold, local
-receptive-field encoders where spatial structure exists, and
-per-neuron gain diversity.  This paper characterizes the resulting
-primitive geometrically, through a frame-coefficient reading of the
+charts.  This paper characterizes the resulting primitive
+geometrically, through a frame-coefficient reading of the
 activations, and shows that the same primitive composes — through
 the additive sufficient statistics `AᵀA` and `AᵀY` — into
 ensembles, online updates (Woodbury), GPU-friendly
@@ -392,7 +389,7 @@ winner at every width is **trace-scaled `α = 10⁻⁴`**: 98.03 % at
 | fixed 10⁻² | 98.07 % | 87.27 % | 87.27 % |
 | fixed 10⁻⁴ | 95.20 % | 97.45 % | 95.20 % |
 
-(α heat map for the full 100-cell sweep is in Appendix A.)
+(The full 100-cell α heat map is included in `streaming_alpha_sweep_summary.json`; we keep only this 5-row digest in the paper.)
 
 Two failure modes are visible.  Trace-scaled at base 10⁻² is
 *consistent across* `n` but consistently under-trained.  Fixed-α
@@ -676,7 +673,7 @@ the recurrent literature has dozens of variants in the
 99–99.5 % range on row sMNIST.  We present it as cost-vs-
 quality at a fixed compute envelope: a gradient-free
 analytic-solve method gets to within 0.7 pp of a tuned LSTM
-**at one twentieth of the LSTM wallclock**, which matters
+**while running 20× faster**, which matters
 whenever predictions have to arrive in time as well as be
 accurate.
 
@@ -709,18 +706,21 @@ submission time.  A first-pass run (with a since-superseded
 **3.4 pp above Stream-NEF at the matched `n`** and 3.4 pp above
 Stream-NEF at *double* `n` (Stream-NEF n=4 000 reaches 75.6 %).
 Under the project's reproducibility rule we discard rows whose
-code identity no longer matches the current tree, and the rerun
-under the clean tag is at 22 / 60 cells as we write this.  We
-expect the qualitative reading to hold — recurrent state has a
-built-in advantage when the discriminative signal is spread
-across all 784 randomly-ordered timesteps, while our `K`-step
-delay-line window of length 28 sees each pixel's neighborhood
-only once — but we will not commit to a multi-seed verdict
-until the panel completes.  The LSTM baseline did not converge
-in the budget we allotted (vanilla LSTM on permuted sMNIST is
-well-documented to need curriculum or initialization tricks to
-escape ~50 %); the b5_lstm_smnist_permuted panel is preserved
-at 2 / 90 cells in `results/sl_clean/` as a documented
+code identity no longer matches the current tree.  The rerun
+under the clean tag is at 43 / 60 cells as we write this; the
+n = 1 000 tier is already complete (best cell `sr = 0.95,
+leak = 0.3` at 75.26 ± 0.59 %, statistically matching
+Stream-NEF n = 4 000), and the n = 2 000 tier is in flight.
+We expect the qualitative reading to hold — recurrent state
+has a built-in advantage when the discriminative signal is
+spread across all 784 randomly-ordered timesteps, while our
+`K`-step delay-line window of length 28 sees each pixel's
+neighborhood only once — but we will not commit to a multi-seed
+verdict until the panel completes.  The LSTM baseline did not
+converge in the budget we allotted (vanilla LSTM on permuted
+sMNIST is well-documented to need curriculum or initialization
+tricks to escape ~50 %); the b5_lstm_smnist_permuted panel is
+preserved at 2 / 90 cells in `results/sl_clean/` as a documented
 compute-budget cap.
 
 What we *can* commit to honestly is that on permuted sMNIST
@@ -790,17 +790,12 @@ generic-encoder hypersphere NEF on CIFAR-10 (49.7 %) loses
 the spatial prior in `receptive_field`, not the analytic
 solver, that buys the gap.
 
-This is the right framing for the trilogy.  It points
-naturally at Paper II (continual learning, where the
-analytic-solve property *is* the win, regardless of encoder
-choice) and Paper III (RL, where the same accumulator handles
-harder targets).  It also calibrates our claims for the rest
-of this paper: we do not claim NEF beats deep convnets, or
-that NEF is universally faster than gradient training.  Tuned
-MLPs beat hypersphere NEF on raw image features; a good prior
-closes the gap and on spatial data reverses it; deeper
-gradient-trained models would extend the gap again.  All
-three observations stand side-by-side.
+The disclaimer for the rest of the paper: we do not claim NEF
+beats deep convnets, or that NEF is universally faster than
+gradient training.  Tuned MLPs beat hypersphere NEF on raw
+image features; a good prior closes the gap and on spatial
+data reverses it; deeper gradient-trained models would extend
+the gap again.  All three observations stand side-by-side.
 
 ---
 
