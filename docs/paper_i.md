@@ -3,7 +3,7 @@
 ## Supervised Learning via the Neural Engineering Framework
 
 > **Status: draft in progress.**  This is the working manuscript for
-> Paper I of the leenef foundational trilogy.  Section structure
+> Paper I of the leenef SSUP trilogy.  Section structure
 > tracks `paper_i_outline.md`; numerical claims are sourced from
 > `results/sl_clean/` JSON files and remain in lockstep with
 > `paper_insights.md`.  Cited Eliasmith & Anderson chapters are
@@ -28,11 +28,12 @@ accumulate-and-solve, and, non-trivially, a streaming temporal
 classifier.  Under multi-seed, code-identity-tagged evaluation,
 the streaming classifier reaches **98.45 ± 0.02 %** on row sMNIST.
 Two comparators frame this number.  Against a tuned near-best LSTM,
-Stream-NEF ends **0.6 pp below** while running **2.4× faster**.
+Stream-NEF ends **0.6 pp below** while using **2.4× less
+wall-clock time**.
 Against the completed CPU ESN panel (same family of fixed nonlinear
 features plus linear readout), Stream-NEF ends **~5 pp above** the
-best ESN row cell and runs **roughly 5× faster**.  We also report
-the limits honestly:
+best ESN row cell and uses **roughly 5× less wall-clock time**.
+We also report the limits honestly:
 purely analytic multi-layer stacking does not work
 (target propagation and end-to-end refinement recover the
 single-layer accuracy on MNIST but no more); permuted sequence
@@ -42,11 +43,11 @@ suggests that reservoir state can match Stream-NEF at smaller width
 on permuted sMNIST, locating the likely boundary between mean-pool
 and recurrent state; generic single-layer leenef models end
 **1–4 pp below** gradient-trained MLPs on image features while
-running **12–50× faster**.  The twist is that a
+using **12–50× less wall-clock time**.  The twist is that a
 `receptive_field`-encoder leenef model beats the best tuned MLP
-on CIFAR-10 by **+1.37 pp** **and runs ~11× faster** — a good
-encoder closes the gap, a generic encoder does not.  The
-paper opens the foundational trilogy that continues with continual
+on CIFAR-10 by **+1.37 pp** **with ~11× less wall-clock time** —
+a good encoder closes the gap, a generic encoder does not.  The
+paper opens the SSUP trilogy that continues with continual
 learning (Paper II) and reinforcement learning (Paper III).
 
 ---
@@ -697,7 +698,7 @@ test accuracy by H3 (§5.3).
 Sequential MNIST with rows-as-timesteps (T = 28, K = 10).
 Ten seeds at each width, trace-scaled `α = 10⁻⁴`:
 
-| `n_neurons` | accuracy ± SE | wall-clock time (CPU, s/seed) |
+| `n_neurons` | accuracy ± SE | end-to-end wall-clock time (CPU, s/seed) |
 |-------------|----------------|--------------------|
 | 2 000 | 97.20 ± 0.04 % | 20 |
 | 4 000 | 97.97 ± 0.02 % | 42 |
@@ -722,7 +723,7 @@ The fastest Stream-NEF cells are lower-accuracy, but the
 8 000-neuron cell sits above the ESN panel and below the LSTM
 frontier at substantially lower wall-clock time.
 
-| method | accuracy ± SE | wall-clock time (s/seed) | seeds |
+| method | accuracy ± SE | end-to-end wall-clock time (s/seed) | seeds |
 |--------|----------------|---------------|-------|
 | Stream-NEF (n = 8 000) | 98.45 ± 0.02 % | 95 | 10 |
 | **best-accuracy LSTM** (h256, l2, lr 3e-3) | **99.12 ± 0.09 %** | 1 875 | 5 |
@@ -730,14 +731,16 @@ frontier at substantially lower wall-clock time.
 | best ESN (n = 2 000, sr 0.95, leak 0.3) | 93.52 ± 0.06 % | 454 | 5 |
 
 The triangle is concrete.  Stream-NEF *dominates* the ESN
-baseline by ~5 pp **and runs ~5× faster** (the apples-to-apples
-gradient-free comparison: both fit only a linear readout on
-top of fixed nonlinear features).  Stream-NEF *trails* the
-highest-accuracy LSTM cell by 0.7 pp but **runs ~20× faster**
+baseline by ~5 pp **with ~5× less wall-clock time** (the
+apples-to-apples gradient-free comparison: both fit only a linear
+readout on top of fixed nonlinear features).  Stream-NEF *trails*
+the highest-accuracy LSTM cell by 0.7 pp but uses **~20× less
+wall-clock time**
 (95 s/seed vs 1 875 s/seed).  The speed/accuracy Pareto picture
 is less dramatic, and more useful: a smaller near-best LSTM
-reaches 99.07 % in 227 s/seed, so Stream-NEF is ~2.4× faster and
-~0.6 pp lower relative to that cell.  We do not present this as
+reaches 99.07 % in 227 s/seed, so Stream-NEF uses ~2.4× less
+wall-clock time and is ~0.6 pp lower relative to that cell.  We do
+not present this as
 "we beat LSTM" — the recurrent literature has dozens of variants
 in the 99–99.5 % range on row sMNIST.  We present it as
 cost-vs-quality at a fixed compute envelope: a gradient-free
@@ -750,13 +753,13 @@ Permuted sMNIST destroys spatial locality: each pixel becomes
 its own timestep with a fixed random permutation applied
 uniformly across the dataset (T = 784).  Five seeds per cell:
 
-| `n_neurons` | Stream-NEF accuracy ± SE | wall-clock time (CPU, s/seed) |
+| `n_neurons` | Stream-NEF accuracy ± SE | end-to-end wall-clock time (CPU, s/seed) |
 |-------------|--------------------------|--------------------|
 | 2 000 | 72.96 ± 0.07 % | 611 |
 | 4 000 | 75.61 ± 0.05 % | 792 |
 
 Doubling `n` is +2.65 pp (55σ) — far from saturated.  Extension
-to `n ∈ {8 000, 16 000}` with 10 seeds and an honest wall-time
+to `n ∈ {8 000, 16 000}` with 10 seeds and an honest wall-clock
 budget is scheduled on the delegated branch; the analytic-solve
 property makes those cells cheap relative to a comparator LSTM
 sweep, and we will fold the larger-`n` numbers in before the
@@ -844,25 +847,26 @@ gradient-trained MLP cell in B4's tuned grid:
 hypersphere leenef trails on MNIST/Fashion and raw CIFAR-10; the
 receptive-field prior reverses the CIFAR-10 gap.
 
-| dataset | leenef cell | best MLP cell | Δ | wall-clock time (s/seed) | speedup |
+| dataset | leenef cell | best MLP cell | Δ | end-to-end wall-clock time (s/seed) | speedup |
 |---------|------------------|---------------|---:|---------------|--------:|
 | MNIST | hypersphere · 97.08 ± 0.04 % | d=1, w=512, lr 3·10⁻³ · **98.10 ± 0.08 %** | +1.0 pp MLP | NEF ≈ 5 / MLP 58 | NEF **~12×** |
 | Fashion-MNIST | hypersphere · 87.74 ± 0.06 % | d=2, w=1024, lr 10⁻³ · **89.39 ± 0.08 %** | +1.6 pp MLP | NEF ≈ 5 / MLP 254 | NEF **~50×** |
 | CIFAR-10 | hypersphere · 49.72 ± 0.08 % | d=2, w=1024, lr 10⁻³ · **53.73 ± 0.22 %** | +4.0 pp MLP | NEF ≈ 16 / MLP 327 | NEF **~20×** |
 | CIFAR-10 | **receptive_field · 55.10 ± 0.10 %** | d=2, w=1024, lr 10⁻³ · 53.73 ± 0.22 % | **+1.4 pp NEF** | NEF ≈ 30 / MLP 327 | NEF **~11×** |
 
-(NEF wall is `accumulate + solve` end-to-end on CPU including
-the encoder build; MLP wall is the patience-5 early-stopping
+(NEF timing is `accumulate + solve` end-to-end on CPU including
+the encoder build; MLP timing is the patience-5 early-stopping
 Adam fit on identical hardware.)
 
 The reading we settle on: the encoder, not the decoder, is
 where representational work happens.  On MNIST and Fashion-MNIST
 the gradient-trained MLP is **~1 pp** better at **10–50× the
-wall time**; whether that trade-off is acceptable is a
+wall-clock time**; whether that trade-off is acceptable is a
 deployment call, not a methodology claim.  On CIFAR-10 the
 right encoder *reverses* the gap: a fully gradient-free
 single-layer leenef model at 5 000 neurons exceeds a 4.2 M-parameter
-gradient-trained MLP by +1.4 pp **and runs ~11× faster**.  The
+gradient-trained MLP by +1.4 pp **with ~11× less wall-clock time**.
+The
 generic-encoder hypersphere NEF on CIFAR-10 (49.7 %) loses
 4 pp to the same MLP, so the win is doing real work — it is
 the spatial prior in `receptive_field`, not the analytic
@@ -870,7 +874,8 @@ solver, that buys the gap.
 
 The disclaimer for the rest of the paper: we do not claim leenef
 beats deep convnets, or that this rate-`abs` NEF specialization
-is universally faster than gradient training.  Tuned MLPs beat
+universally uses less wall-clock time than gradient training.
+Tuned MLPs beat
 hypersphere leenef on raw
 image features; a good prior closes the gap and on spatial
 data reverses it; deeper gradient-trained models would extend
@@ -931,10 +936,10 @@ can follow the threads back to where the ideas originated.
 - **Streaming-NEF** (delay-line + `abs` + mean-pool + analytic
   readout) on sMNIST.  The strongest empirical contribution.
   98.45 % at `n = 8 000` on row sMNIST under a fully analytic
-  fit lands 0.6–0.7 pp below tuned LSTM cells while running
-  2.4–20× faster, depending on where one reads the LSTM
+  fit lands 0.6–0.7 pp below tuned LSTM cells while using
+  2.4–20× less wall-clock time, depending on where one reads the LSTM
   speed/accuracy Pareto front.  It is also ~5 pp above the
-  completed CPU ESN row panel at ~5× the speed.  The permuted-ESN
+  completed CPU ESN row panel at ~5× less wall-clock time.  The permuted-ESN
   counterpart remains in flight; its final numbers will be reported
   without inflation.
 - **A reproducibility infrastructure** that makes multi-seed
@@ -1057,7 +1062,7 @@ The driver scripts (`benchmarks/sl_clean/sl_hp_driver.sh`,
 `results/sl_clean/logs/<phase>.log`, and skip already-completed
 `(namespace, code_identity, config, seed)` cells when restarted.
 This makes the entire B-phase pipeline resumable from any
-interruption — a property that matters at our wallclock budget.
+interruption — a property that matters at our wall-clock budget.
 
 The seed budget per claim is documented in
 `docs/sl_clean_sweeps.md`: 10 seeds for headline rows, 5 seeds
@@ -1109,17 +1114,27 @@ of the greedy loss — but on the harder image task the decisive
 gain comes from full end-to-end gradients.  We have not re-run
 the multi-layer panel under this protocol on Fashion-MNIST.
 
-**Recurrent NEF (state feedback through fixed encoders) remains
-pending under the clean protocol.**  Earlier technical-report
-results suggested that greedy and target-propagation variants of
-`RecurrentNEFLayer` compound state-feedback noise across
-timesteps and underperform a vanilla LSTM by 5–10 pp on
-sMNIST-row, while end-to-end gradient training of the same
-architecture is competitive.  The CPU C5 rerun was too slow; the
-Colab GPU suite now runs C5 plus same-device row comparators
-under committed code.  Until those rows land, Streaming-NEF (§6)
-is the clean temporal result and recurrent NEF stays a pending
-negative/contrastive line rather than a final claim.
+**Recurrent NEF (state feedback through fixed encoders) is viable
+only when trained end-to-end here.**  The CPU C5 rerun was too
+slow, so we moved this panel to Colab L4 and executed recurrent NEF
+plus same-code-identity row-sMNIST comparators under committed code
+(`c3ca3cf8e46c1d9a45be76f8626e3795cda3c5a2`).  Five-seed results:
+
+| method | test accuracy ± SE | end-to-end wall-clock time (L4, s/seed) |
+|--------|--------------------|------------------------------------------|
+| recurrent NEF, end-to-end | 98.834 ± 0.029 % | 109 |
+| recurrent NEF, target_prop | 23.824 ± 0.106 % | 240 |
+| Stream-NEF, n = 8 000 | 98.438 ± 0.041 % | 4 |
+| LSTM, best Pareto cell | 99.080 ± 0.113 % | 48 |
+| ESN, best row cell | 93.522 ± 0.062 % | 5 |
+
+This reinforces rather than softens the earlier story:
+target propagation through time collapses, while ordinary
+end-to-end gradient training makes the recurrent NEF competitive.
+It edges above the same-device Stream-NEF row cell but uses far
+more wall-clock time; it remains about 0.25 pp below the LSTM
+cell.  The result is therefore a clean contrastive data point, not
+a replacement for the fully analytic Stream-NEF result in §6.
 
 **Permuted-sMNIST mitigations.**  We attempted four cheap
 mitigations on permuted sMNIST: larger window `K`, positional
