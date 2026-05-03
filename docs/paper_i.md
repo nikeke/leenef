@@ -1,10 +1,10 @@
-# Sufficient Statistics as the Universal Primitive
+# A Sufficient-Statistics View of Fixed-Encoder Neural Learning
 
 ## Supervised Learning via the Neural Engineering Framework
 
 > **Status: draft in progress.**  This is the working manuscript for
 > Paper I of the leenef SSUP trilogy.  Numerical claims remain under
-> active audit until the final in-flight comparator panels land.  Cited
+> active audit until the final comparator panels land.  Cited
 > Eliasmith & Anderson chapters are from *Neural Engineering:
 > Computation, Representation, and Dynamics in Neurobiological Systems*
 > (MIT Press, 2003) unless stated otherwise.
@@ -13,40 +13,26 @@
 
 ## Abstract
 
-NEF's single regularized least-squares solve over fixed-encoder
-neural activities — `D = (AᵀA + α_eff I)⁻¹ AᵀY` — turns out, in a
-specialization we call **leenef**, to do far more than the
-extreme-learning-machine and random-feature literature usually
-charts.  This paper characterizes the resulting primitive
-geometrically, through a frame-coefficient reading of the
-activations, and shows that the same primitive composes — through
-the additive sufficient statistics `AᵀA` and `AᵀY` — into
-ensembles, online updates (Woodbury), GPU-friendly
-accumulate-and-solve, and, non-trivially, a streaming temporal
-classifier.  Under multi-seed, code-identity-tagged evaluation,
-the streaming classifier reaches **98.45 ± 0.02 %** on row sMNIST.
-Two comparators frame this number.  Against a tuned near-best LSTM,
-Stream-NEF ends **0.6 pp below** while using **2.4× less
-wall-clock time**.
-Against the completed CPU ESN panel (same family of fixed nonlinear
-features plus linear readout), Stream-NEF ends **~5 pp above** the
-best ESN row cell and uses **roughly 5× less wall-clock time**.
-We also report the limits plainly:
-purely analytic multi-layer stacking does not work
-(target propagation and end-to-end refinement recover the
-single-layer accuracy on MNIST but no more); permuted sequence
-classification is bounded by mean-pool's order-erasing
-property — the clean ESN rerun is still in flight, but already
-suggests that reservoir state can match Stream-NEF at smaller width
-on permuted sMNIST, locating the likely boundary between mean-pool
-and recurrent state; generic single-layer leenef models end
-**1–4 pp below** gradient-trained MLPs on image features while
-using **12–50× less wall-clock time**.  The twist is that a
-leenef model with receptive_field encoders beats the best tuned MLP
-on CIFAR-10 by **+1.37 pp** **with ~11× less wall-clock time** —
-a good encoder closes the gap, a generic encoder does not.  The
-paper opens the SSUP trilogy that continues with continual
-learning (Paper II) and reinforcement learning (Paper III).
+NEF's regularized least-squares solve over fixed-encoder neural
+activities — `D = (AᵀA + α_eff I)⁻¹ AᵀY` — gives a compact
+sufficient-statistics primitive for supervised learning.  In a
+rate-based specialization we call **leenef**, we interpret the
+activities as magnitudes of frame coefficients and study how
+encoder choice, bias placement, activation, and regularization
+shape the resulting fixed-feature learner.  Under multi-seed,
+code-identity-tagged evaluation, the analytic streaming classifier
+reaches **98.45 ± 0.02 %** on row sMNIST: **0.6 pp below** a tuned
+near-best LSTM while using **2.4× less wall-clock time**, and
+**~5 pp above** a completed CPU ESN row baseline while using
+**roughly 5× less wall-clock time**.  Static single-layer leenef
+models with generic encoders end **1–4 pp below** gradient-trained
+MLPs on image features while using **12–50× less wall-clock time**;
+on CIFAR-10, adding a receptive-field encoder reverses that gap
+(**+1.37 pp**) with **~11× less wall-clock time**.  The same
+evidence also marks clear limits: generic fixed encoders are not a
+substitute for spatial priors, purely analytic depth does not buy
+accuracy on its own, and mean-pooled delay-line features lose the
+long-range order information needed for harder sequence tasks.
 
 ---
 
@@ -87,33 +73,32 @@ The trilogy's shared opener is six operational claims, distilled
 from the program's running code.  These are *our* distillation;
 P1–P4 inherit from NEF, P5–P6 are leenef-specific.
 
-- **P1 — Encoders are fixed** (random or data-adapted).  Decoders
-  are the only thing we ever fit.
+- **P1 — In the fully analytic primitive, encoders are fixed**
+  (random or data-adapted).  Decoders are the fitted quantities.
 - **P2 — Decoders fall out of one analytic step:**
-  `D = (AᵀA + αI)⁻¹ AᵀY`.  No learning rate, no schedule, no
-  gradient flow between layers.
-- **P3 — `AᵀA` and `AᵀY` are the universe.**  Continual learning,
-  streaming over time, ensembles, online updates, per-action
-  FQI — all of them are different ways of *additively combining*
-  sufficient statistics.
-- **P4 — Targets `Y` are the only place where task structure
-  enters.**  The encoder does not care what the task is; the
-  decoder column does.
+  `D = (AᵀA + αI)⁻¹ AᵀY`.  For the analytic path there is no
+  learning rate, no schedule, and no gradient flow between layers.
+- **P3 — `AᵀA` and `AᵀY` are the central state variables.**
+  Streaming over time, ensembles, online updates, and several
+  later extensions can be expressed as different ways of
+  additively combining sufficient statistics.
+- **P4 — In the task-agnostic default, targets `Y` are where task
+  structure enters.**  Data-adapted or label-aware encoders are
+  explicit departures from this default and are tested as priors
+  over frame directions.
 - **P5 — Time is collapsed by pooling, not by recurrence.**  The
   streaming classifier mean-pools delay-line activities into a
   fixed-size representation; no BPTT, no recurrent solve.
-- **P6 — Per-class additivity is what makes continual learning
-  work.**  Each class owns its own decoder column, so accumulating
-  new task statistics never interferes with old columns.
-  (Forward-look — owned by Paper II; we exhibit the additivity
-  property here without claiming it solves CL.)
+- **P6 — Per-class sufficient statistics are the bridge to
+  continual learning.**  Class-specific target columns can be
+  accumulated, reset, decayed, or merged independently, while the
+  shared `AᵀA` term still has to be managed explicitly.  Paper II
+  owns the continual-learning algorithmic claim.
 
 The rest of Paper I is one of these primitives applied somewhere
 new: §3 (method) is **P1–P4**, §6 (streaming classifier) is **P5**,
-and the multi-layer experiments (Appendix B) are the load-bearing
-negative result that says **P2** does not extend cleanly through
-stacked nonlinearities — which is why we stay single-layer for the
-rest of the trilogy.
+and the multi-layer experiments (Appendix B) test where the fully
+analytic primitive stops being enough.
 
 ---
 
@@ -138,7 +123,8 @@ MNIST, within 1 pp of a plain ridge regression on the raw 784-D
 input (85.3 %).  An `abs`-activation leenef layer at `n = 5 000`
 reaches **97.08 %** under identical training data and α policy.
 The collapse is empirical, not just algebraic; the +11 pp delta
-is the entire contribution of the pointwise nonlinearity.  This
+is the measured contribution of the pointwise nonlinearity in this
+sanity check.  This
 is a single-seed sanity check; the comparator (97.08 ± 0.04 %)
 is from the corresponding 10-seed raw-MNIST panel.
 
@@ -150,20 +136,20 @@ repair we can imagine:
 a_i = |g_i · e_i · x|
 ```
 
-Geometrically, `|e_i · x|` is the **unsigned distance of x from
-the hyperplane `{e_i · z = 0}`**.  Each neuron measures one such
-unsigned distance.  A linear readout over `n` unsigned-distance
-measurements is a sum of folded half-planes — a piecewise-linear
-function with up to `n` fold lines.  With translated folds
-(non-zero biases), an intercept, and enough directions, this is
-the familiar piecewise-linear universal approximation story on
-compact subsets of ℝ^d.  With zero bias alone the class is more
-restricted — homogeneous and even — which is exactly why bias
-placement becomes a load-bearing empirical question in §5.1.
-ReLU is the same idea after a half-fold (drop the sign instead
-of folding about the origin); `|x| = ReLU(x) + ReLU(-x)`, so an
-`abs` neuron is two mirrored ReLU neurons whose spans coincide
-once the decoder is solved.
+With unit encoders, `|e_i · x|` is the **unsigned distance of x
+from the hyperplane `{e_i · z = 0}`**.  With gains,
+`|g_i e_i · x|` is the same distance scaled by `g_i`.  A linear
+readout over `n` such folded projections is a piecewise-linear
+function with up to `n` fold lines.  Translated folds (non-zero
+biases) and enough directions give the familiar expressive family
+of absolute-value and ReLU networks; zero-bias folds alone are
+more restricted — homogeneous and even — which is exactly why
+bias placement becomes a load-bearing empirical question in §5.1.
+ReLU is the same idea after a half-fold (drop the sign instead of
+folding about the origin); the identity `|x| = ReLU(x) + ReLU(-x)`
+means that one `abs` feature spans the same scalar function as a
+mirrored pair of ReLU features, although the fixed-neuron-budget
+parameterization is not identical.
 
 ### The frame-coefficient interpretation
 
@@ -177,8 +163,8 @@ coefficient of `x` in the (over-complete, possibly random) frame
 a_i = |g_i · e_i · (x − d_i)|        (data-driven bias case)
 ```
 
-Each neuron then asks "how far is x from training sample `d_i`,
-along direction `e_i`?"  The decoder is the linear functional
+Each neuron then asks for a direction-projection magnitude relative
+to training sample `d_i`.  The decoder is the linear functional
 that reads off the target from these magnitudes.  This framing
 will recur throughout the paper:
 
@@ -219,14 +205,15 @@ data:
 - If the data centroid is *at* the origin, zero bias is a worst
   case: half the data mass falls on each side of every fold and
   `abs` collapses sign symmetrically.
-- If the data centroid is *far from* the origin, zero bias is
-  accidentally sane (sign rarely flips) and `abs` is effectively
-  linear in the data fluctuations.
+- If the data cloud mostly lies on one side of the origin along
+  many encoder directions, zero bias is accidentally sane (sign
+  rarely flips) and `abs` is effectively linear in those local
+  fluctuations.
 
-This single geometric axis predicts both halves of the §5.1
-ablation table; we resisted reading it spectrally (as a
-DC-component story) once the centered-CIFAR-10 follow-up (§5.1)
-falsified the spectral prediction.
+This geometric reading predicts the direction of the §5.1 ablations
+better than the simple DC-component reading: centering or decentering
+changes where folds cut through the data cloud, not just the amount
+of constant pixel mass.
 
 ---
 
@@ -315,8 +302,8 @@ statistics.  The relevant cases for Paper I:
   foreground-to-background ratio in one fit, and is exploited
   heavily by the per-action FQI of Paper III.
 
-The negative result that haunts the trilogy is the one
-composition the primitive does *not* support cleanly:
+The central negative result is the one composition the primitive
+does *not* support cleanly:
 **purely analytic multi-layer stacking**.  Greedy stacked NEF
 layers and the hybrid alternate-decoder-solve / gradient-update
 strategy underperform a single wide layer at matched parameter
@@ -329,13 +316,15 @@ This is why the rest of the trilogy stays single-layer.
 
 ## §4 — Regularization scales with the encoder span
 
-The Tikhonov solve is meaningless when `α_eff` is set without
-reference to the trace of `AᵀA`.  As `n_neurons` grows, the
-average diagonal mass per neuron stays roughly constant (for
-normalized inputs and `abs` activations), so the *total* trace
-grows roughly linearly in `n`.  A scalar `α = 10⁻²` therefore
-becomes negligible at large `n`: the solve is effectively
-unregularized.
+The Tikhonov scale is hard to set portably when `α_eff` is chosen
+without reference to the magnitude of `AᵀA`.  In our normal-equation
+implementation `AᵀA` is a **sum** over samples, not an average; its
+trace therefore changes with both dataset size and representation
+scale.  As `n_neurons` grows, the average diagonal mass per neuron
+is approximately stable for normalized inputs and `abs` activations,
+so the total trace grows roughly linearly in `n`.  A fixed scalar
+`α = 10⁻²` can therefore land in a useful range at one width and a
+poor range at another.
 
 We saw this empirically on streaming sMNIST:
 
@@ -345,22 +334,19 @@ We saw this empirically on streaming sMNIST:
 | 4 000 | 98.03 ± 0.03 |
 | 8 000 | 87.27 ± 6.77 (one seed collapsed below 80 %, another fell to 85 %) |
 
-The variance at `n=8 000` is the give-away: the solve has lost
-all stiffness, and individual seeds bifurcate.  The
-architectural fix — used everywhere else in the codebase
-(`solvers.tikhonov`, `solve_from_normal_equations`,
-`normal_equations`) — is to scale `α_eff` by the trace per
-neuron:
+The variance at `n=8 000` is the giveaway: individual seeds
+bifurcate under the same fixed `α`.  The architectural fix is to
+scale `α_eff` by the trace per neuron:
 
 ```
 α_eff = max(α · trace(AᵀA) / n_neurons, α).
 ```
 
-Geometrically, `trace(AᵀA) / n_neurons` is the average squared
-column norm of `A` — the average *energy* deposited in each
-frame element across the dataset.  Scaling by it puts `α_eff`
-on the same footing as the encoder span: `α` becomes a
-dimensionless, architecture-portable knob.
+Here `trace(AᵀA) / n_neurons` is the average squared column norm
+of `A` — the average activity energy deposited in each frame
+element across the dataset.  Scaling by it puts `α_eff` on the
+same footing as the encoder span: `α` becomes a dimensionless
+multiplier rather than an absolute diagonal value.
 
 ### The α multiplier itself depends on the architecture
 
@@ -368,11 +354,11 @@ Trace-scaling alone is not enough.  The otherwise useful
 single-layer default `α = 10⁻²` over-regularizes the streaming
 classifier by ~2 OOM.  In the raw 60 000 × 784 MNIST solve, the
 per-neuron diagonal scale is small (typical
-`|projection|² ≈ 0.1`) and `α_eff = α · 60000 · 0.1 ≈ 60` sits
-below the data spectrum.  In streaming, mean-pooling preserves
-abs-projection magnitudes; `trace / n ≈ 11 000` and
-`α_eff ≈ α · 11 000 ≈ 110` is large enough to bite the leading
-singular components.
+`|projection|² ≈ 0.1`), giving `α_eff = α · 60000 · 0.1 ≈ 60`.
+In streaming, mean-pooling preserves abs-projection magnitudes;
+`trace / n ≈ 11 000`, so the same base `α = 10⁻²` gives
+`α_eff ≈ 110`, which regularizes the leading components much more
+strongly.
 
 We measured this directly with a five-by-five-by-two
 calibration sweep (5 alphas × 2 scaling modes × 2 widths × 5
@@ -404,7 +390,7 @@ is best at one `n` and catastrophic at another (fixed 10⁻² wins
 4k by 0.04 pp, then collapses 11 pp at 8k).  Trace-scaled base
 10⁻⁴ is simultaneously the best and the most stable across `n`.
 
-This is the **footgun-prevention claim** of the paper: any
+This is the practical regularization claim of the paper: any
 practitioner copying our recipe needs trace-scaled `α`, and the
 appropriate scalar multiplier depends on the architecture (one
 value for a static single-layer solve, a different one for the
@@ -458,14 +444,14 @@ readings:
 
 ![Figure 3: hinge-placement falsifier.](figures/f3_hinge_falsifier.png)
 
-**Figure 3.**  The centering/decentering follow-ups falsify the pure-DC reading.
+**Figure 3.**  The centering/decentering follow-ups challenge the pure-DC reading.
 Centering CIFAR-10 should have closed the data-driven-vs-zero
 gap under that story; instead it opens the largest gap in the
 series.
 
-The spectral reading is falsified.  Centering CIFAR-10 was
+The spectral reading is insufficient.  Centering CIFAR-10 was
 predicted to *close* the gap; it *opens* it the most we have
-seen.  The geometric reading explains both halves of both
+seen.  The geometric reading explains the direction of both
 tables: the gap grows with the distance between *zero* and
 *data mass*.  CIFAR-10 centered has its centroid at the origin,
 which is the worst case — every hinge cuts symmetrically
@@ -704,8 +690,8 @@ under our seeding and code-identity discipline:
 ![Figure 6: Stream-NEF vs ESN and LSTM on row/permuted sMNIST.](figures/f6_streaming_accuracy.png)
 
 **Figure 6.**  Stream-NEF is strong on row sMNIST and structurally
-limited on permuted sMNIST.  The right panel remains provisional
-until the clean ESN permuted rerun completes.
+limited on permuted sMNIST.  The permuted panel reports only
+completed Stream-NEF and ESN rows.
 
 ![Figure 7: row-sMNIST wall-clock/accuracy trade-off.](figures/f7_streaming_wall_accuracy.png)
 
@@ -750,50 +736,14 @@ uniformly across the dataset (T = 784).  Five seeds per cell:
 | 4 000 | 75.61 ± 0.05 % | 792 |
 
 Doubling `n` is +2.65 pp (55σ) — far from saturated.  Extension
-to `n ∈ {8 000, 16 000}` with 10 seeds and a wall-clock
-budget is scheduled on the delegated branch; the analytic-solve
-property makes those cells cheap relative to a comparator LSTM
-sweep, and we will fold the larger-`n` numbers in before the
-paper's final pass.  The intent of the larger-`n` extension is
-to see how high the mean-pool ceiling is in absolute terms, not
-to stitch over the §6.4 limit — that limit is structural, not
-parameter-count-driven.
-
-The apples-to-apples ESN comparison (same fixed-feature +
-linear-readout family) is in flight at
-submission time.  A first-pass run (with a since-superseded
-`code_identity` and 5 seeds per cell) had the best ESN cell at
-`n = 2 000, sr = 0.95, leak = 0.3` delivering ~79 %, which is
-**3.4 pp above Stream-NEF at the matched `n`** and 3.4 pp above
-Stream-NEF at *double* `n` (Stream-NEF n=4 000 reaches 75.6 %).
-Under the project's reproducibility rule we discard rows whose
-code identity no longer matches the current tree.  The rerun
-under the clean tag is at 45 / 60 cells as we write this; the
-n = 1 000 tier is already complete (best cell `sr = 0.95,
-leak = 0.3` at 75.26 ± 0.59 %, statistically matching
-Stream-NEF n = 4 000), and the first completed n = 2 000 cell
-(`sr = 0.7, leak = 0.3`) is worse at 60.99 ± 0.17 %.  The
-load-bearing `sr = 0.95` cells are still in flight.
-We expect the qualitative reading to hold — recurrent state
-has a built-in advantage when the discriminative signal is
-spread across all 784 randomly-ordered timesteps, while our
-`K`-step delay-line window of length 10 sees each pixel's
-neighborhood only once — but we will not commit to a multi-seed
-verdict until the panel completes.  The LSTM baseline did not
-converge in the budget we allotted (vanilla LSTM on permuted
-sMNIST is well-documented to need curriculum or initialization
-tricks to escape ~50 %); our attempted vanilla LSTM panel stopped
-at 2 / 90 cells and is treated as a compute-budget cap rather than
-a completed baseline.
-
-What the current data already supports is that on permuted sMNIST
-Stream-NEF remains below the recurrent-state literature, and the
-partial ESN rerun already shows that an apples-to-apples
-reservoir can match Stream-NEF at smaller width.  The final ESN
-verdict waits on the in-flight `sr = 0.95` n=2 000 cells.  The
-likely limit is **mean-pool, not the analytic-solve property**:
-row sMNIST (coherent slices) favors mean-pool; permuted sMNIST
-(distributed signal) favors recurrent state.
+to `n ∈ {8 000, 16 000}` is the natural next measurement, because
+these two cells are still far from saturation and inexpensive
+relative to gradient-trained recurrent sweeps.  We do not include
+unfinished comparator rows in the claim table.  The current
+paper-level conclusion is therefore deliberately narrow:
+permuted sMNIST exposes the mean-pool limitation of Stream-NEF, and
+the final ranking against reservoir-state baselines should be read
+only after the completed ESN panel is available.
 
 ### §6.4 — Limits
 
@@ -915,7 +865,7 @@ can follow the threads back to where the ideas originated.
   others.  This is a pedagogical contribution; it lets
   practitioners reason about the geometry rather than treat
   the feature map as a black box.
-- **The architecture-specific α footgun-prevention story**
+- **The architecture-specific α-scaling story**
   (§4).  Trace-scaling is not a new algorithm —
   it is already standard Tikhonov regularization bookkeeping —
   but the cautionary baseline (fixed-α catastrophic
@@ -931,9 +881,7 @@ can follow the threads back to where the ideas originated.
   fit lands 0.6–0.7 pp below tuned LSTM cells while using
   2.4–20× less wall-clock time, depending on where one reads the LSTM
   speed/accuracy Pareto front.  It is also ~5 pp above the
-  completed CPU ESN row panel at ~5× less wall-clock time.  The permuted-ESN
-  counterpart remains in flight; its final numbers will be reported
-  without inflation.
+  completed CPU ESN row panel at ~5× less wall-clock time.
 - **A reproducibility infrastructure** that makes multi-seed
   analytic-readout studies cheap and resumable.  This is an
   enabling contribution rather than a new learning algorithm: every
@@ -956,7 +904,7 @@ straightforwardly.
 
 ## §9 — Discussion
 
-### Calibrated uncertainty for free
+### Closed-form uncertainty estimates
 
 The Tikhonov solve `(AᵀA + α_eff I)⁻¹` is the inverse of the
 posterior precision matrix in a Gaussian-Bayesian reading of
@@ -966,8 +914,10 @@ for a unit residual variance — and the predictive variance at
 a test input `a*` is `σ² + a*ᵀ Σ_D a*`.  Nothing about this
 is novel mathematically; what is uncommon is that we already
 have `(AᵀA + α_eff I)⁻¹` materialized as part of the
-`woodbury` solve path.  Calibrated uncertainty is therefore
-*free* in our pipeline: a single `aᵀ M⁻¹ a` per test point.
+`woodbury` solve path.  The resulting uncertainty estimate is
+computationally cheap: a single `aᵀ M⁻¹ a` per test point.  Whether
+it is empirically calibrated is a separate question that we do not
+claim to settle here.
 
 We do not exploit this in Paper I — it deserves its own
 careful treatment — but two consequences are worth flagging
@@ -978,15 +928,14 @@ gradient-trained-network bridge sketched below.
 
 ### Continual learning: a forward look
 
-Per-class additivity of `AᵀA` and `AᵀY` is the load-bearing
-property for Paper II.  Each class owns its own decoder
-column, so accumulating new task statistics never interferes
-with old columns.  In a non-stationary stream, the per-class
-sufficient statistics can be reset, decayed, or merged at the
-appropriate timescale, all through the same primitive.  No
-extra machinery — no replay buffers, no gradient regularizers,
-no penalty terms — is needed beyond the choice of how to
-combine sufficient statistics over time.
+Per-class columns of `AᵀY` are additive, while the shared `AᵀA`
+term determines how changes in representation statistics propagate
+to every decoder column.  That separation is the load-bearing
+property for Paper II: class-specific target statistics can be
+reset, decayed, or merged at one timescale while the shared activity
+statistics are managed explicitly at another.  The supervised paper
+only exposes the algebraic structure; the continual-learning paper
+owns the algorithmic claim.
 
 ### Reinforcement learning: a forward look
 
@@ -1008,14 +957,14 @@ visible.
 The natural marriage of analytic-solve and gradient-trained
 networks does not require either approach to surrender ground.
 Treat the analytic NEF as a fast, gradient-free front-end that
-produces both a prediction and the calibrated uncertainty
+produces both a prediction and the uncertainty estimate
 discussed above.  Pass both into a small gradient-trained
-network whose only job is to confirm the NEF's answer or
+network whose only job is to confirm the NEF answer or
 correct it.  The gradient-trained network can be much smaller
 than usual because its input already carries the heavy
 lifting, and the per-sample uncertainty is a natural weight on
 when to defer.  This is speculative; we mention it because the
-calibrated uncertainty arrives for free and the engineering
+uncertainty estimate is already available and the engineering
 composition is straightforward.  We have not built it.
 
 ---
@@ -1112,7 +1061,7 @@ the multi-layer panel under this protocol on Fashion-MNIST.
 **Recurrent NEF (state feedback through fixed encoders) is viable
 only when trained end-to-end here.**  The local CPU recurrent rerun was too
 slow, so we moved this panel to Colab L4 and executed recurrent NEF
-plus same-code-identity row-sMNIST comparators under committed code.
+plus row-sMNIST comparators under the same committed code.
 Five-seed results:
 
 | method | test accuracy ± SE | end-to-end wall-clock time (L4, s/seed) |
