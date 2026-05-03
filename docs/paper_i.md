@@ -28,20 +28,21 @@ accumulate-and-solve, and, non-trivially, a streaming temporal
 classifier.  Under multi-seed, code-identity-tagged evaluation,
 the streaming classifier reaches **98.45 ± 0.02 %** on row sMNIST.
 Two comparators frame this number.  Against a tuned LSTM,
-Stream-NEF runs **roughly 20× faster** and ends **0.7 pp below**
-the LSTM's best multi-seed cell.  Against an apples-to-apples ESN
-baseline (same family of fixed nonlinear features + linear
-readout), Stream-NEF runs **roughly 5× faster** and ends
-**~5 pp above** the best ESN cell.  We also report the limits
-honestly: purely analytic multi-layer stacking does not work
+Stream-NEF ends **0.6–0.7 pp below**: it is **roughly 20× faster**
+than the highest-accuracy LSTM cell, and **roughly 2.4× faster**
+than a smaller near-best cell.  Against the completed CPU ESN
+panel (same family of fixed nonlinear features + linear readout),
+Stream-NEF runs **roughly 5× faster** and ends **~5 pp above**
+the best ESN row cell.  We also report the limits honestly:
+purely analytic multi-layer stacking does not work
 (target propagation and end-to-end refinement recover the
 single-layer accuracy on MNIST but no more); permuted sequence
 classification is bounded above by mean-pool's order-erasing
 property — a preliminary (not-yet-final) ESN comparator looks set
 to beat Stream-NEF on permuted sMNIST, locating the prior boundary
 between mean-pool and recurrent state precisely; gradient-trained
-MLPs beat single-layer NEF on generic image features by 1–4 pp.
-The twist is that a `receptive_field`-encoder NEF beats the best
+MLPs beat generic single-layer leenef on image features by 1–4 pp.
+The twist is that a `receptive_field`-encoder leenef model beats the best
 tuned MLP on CIFAR-10 by +1.37 pp **and runs ~11× faster** — a
 good encoder closes the gap, a generic encoder does not.  The
 paper opens the foundational trilogy that continues with continual
@@ -156,13 +157,16 @@ Geometrically, `|e_i · x|` is the **unsigned distance of x from
 the hyperplane `{e_i · z = 0}`**.  Each neuron measures one such
 unsigned distance.  A linear readout over `n` unsigned-distance
 measurements is a sum of folded half-planes — a piecewise-linear
-function with up to `n` fold lines.  With `n` large and `e_i`
-covering directions densely enough, this function class is
-universal on compact subsets of ℝ^d.  ReLU is the same idea
-after a half-fold (drop the sign instead of folding about the
-origin); `|x| = ReLU(x) + ReLU(-x)`, so an `abs` neuron is two
-mirrored ReLU neurons whose spans coincide once the decoder is
-solved.
+function with up to `n` fold lines.  With translated folds
+(non-zero biases), an intercept, and enough directions, this is
+the familiar piecewise-linear universal approximation story on
+compact subsets of ℝ^d.  With zero bias alone the class is more
+restricted — homogeneous and even — which is exactly why bias
+placement becomes a load-bearing empirical question in §5.1.
+ReLU is the same idea after a half-fold (drop the sign instead
+of folding about the origin); `|x| = ReLU(x) + ReLU(-x)`, so an
+`abs` neuron is two mirrored ReLU neurons whose spans coincide
+once the decoder is solved.
 
 ### The frame-coefficient interpretation
 
@@ -184,8 +188,8 @@ will recur throughout the paper:
 - **Encoder strategies** (§5.2) are different priors over the
   frame directions `{u_i}`: hypersphere = isotropic; whitened =
   data-covariance-aware; receptive_field = spatial-locality-aware.
-  Random, near-isotropic frames are universal but data-blind;
-  data-adapted frames trade universality for efficiency.
+  Random, near-isotropic frames are broad but data-blind;
+  data-adapted frames trade generic coverage for efficiency.
 - **Per-neuron gain `α_i`** (§5.4) rescales each frame element,
   equivalent to non-uniform measurement of `x`.  Empirically the
   default `U(0.5, 2.0)` range and a fixed `α ≡ 1` perform within
@@ -342,7 +346,7 @@ We saw this empirically on streaming sMNIST:
 |-------------|------------------------------------|
 | 2 000 | 97.30 ± 0.04 |
 | 4 000 | 98.03 ± 0.03 |
-| 8 000 | 87.27 ± 6.77 (3 / 5 seeds collapsed below 80 %) |
+| 8 000 | 87.27 ± 6.77 (one seed collapsed below 80 %, another fell to 85 %) |
 
 The variance at `n=8 000` is the give-away: the solve has lost
 all stiffness, and individual seeds bifurcate.  The
@@ -377,9 +381,12 @@ We measured this directly with a five-by-five-by-two
 calibration sweep (5 alphas × 2 scaling modes × 2 widths × 5
 seeds = 100 cells; data in
 `results/sl_clean/streaming_alpha_sweep_summary.json`).  The
-winner at every width is **trace-scaled `α = 10⁻⁴`**: 98.03 % at
-`n = 4 000`, 98.44 % at `n = 8 000`, SE ≤ 0.04 pp, gap across
-`n` of just +0.4 pp.
+best robust cross-width choice is **trace-scaled `α = 10⁻⁴`**:
+98.03 % at `n = 4 000`, 98.44 % at `n = 8 000`, SE ≤ 0.04 pp,
+gap across `n` of just +0.4 pp.  It is not the pointwise winner
+in every single cell — fixed `α=10⁻²` and trace `α=10⁻⁵` tie it
+within noise at `n=4 000` — but it is the stable choice that does
+not collapse at `n=8 000`.
 
 | α policy | `n=4 000` | `n=8 000` | worst-case-mean |
 |----------|-----------|-----------|-----------------|
@@ -465,12 +472,16 @@ essential.
 
 A secondary finding from the same panel: **`hypersphere`
 encoders with `random_normal` biases are a specific failure
-mode** — they cost ~1 pp on every dataset relative to the
-`data_driven` and `zero` rows for the same encoder.  Random
-Gaussian biases on unit-norm encoders place fold points at
-random distances from the data, frequently inside the data
-distribution where the fold maximally destroys information.
-The mode is documented and recommended against.
+mode**.  They cost ~1 pp relative to the `data_driven`
+hypersphere row on every dataset; on MNIST and Fashion-MNIST
+they are also ~1 pp worse than the `zero` row.  On raw CIFAR-10
+they roughly match zero bias, which is the useful caveat: random
+normal biases are not uniformly worse than zero, but they never
+beat data-driven biases in this panel.  Random Gaussian biases on
+unit-norm encoders place fold points at random distances from the
+data, frequently inside the data distribution where the fold
+maximally destroys information.  The mode is documented and
+recommended against.
 
 ### §5.2 — Encoder strategy is mostly orthogonal to bias choice
 
@@ -624,10 +635,11 @@ two-sided fold.
 ## §6 — Streaming-NEF: time collapsed by pooling
 
 The headline empirical contribution.  Given a temporal sequence
-`x_1, …, x_T`, we apply a fixed encoder to each timestep,
-take the absolute value, mean-pool the activations across a
-delay-line window of size `K`, then `accumulate + solve` over
-windows.  No recurrence, no BPTT.
+`x_1, …, x_T`, we form a `K`-step delay-line feature at each
+timestep, apply a fixed encoder to that feature, take the
+absolute value, mean-pool the resulting activities over sequence
+positions, then `accumulate + solve` over examples.  No
+recurrence, no BPTT.
 
 ### §6.1 — The architecture
 
@@ -647,7 +659,7 @@ test accuracy by H3 (§5.3).
 
 ### §6.2 — Row sMNIST results
 
-Sequential MNIST with rows-as-timesteps (T = 28, K = window).
+Sequential MNIST with rows-as-timesteps (T = 28, K = 10).
 Ten seeds at each width, trace-scaled `α = 10⁻⁴`:
 
 | `n_neurons` | accuracy ± SE | wall (CPU, s/seed) |
@@ -666,22 +678,24 @@ re-implemented under our seeding and code-identity discipline
 | method | accuracy ± SE | wall (s/seed) | seeds |
 |--------|----------------|---------------|-------|
 | Stream-NEF (n = 8 000) | 98.45 ± 0.02 % | 95 | 10 |
-| **best LSTM** (h256, l2, lr 3e-3) | **99.12 ± 0.09 %** | 1 875 | 5 |
+| **best-accuracy LSTM** (h256, l2, lr 3e-3) | **99.12 ± 0.09 %** | 1 875 | 5 |
+| fast near-best LSTM (h64, l2, lr 3e-3) | 99.07 ± 0.03 % | 227 | 5 |
 | best ESN (n = 2 000, sr 0.95, leak 0.3) | 93.52 ± 0.06 % | 454 | 5 |
 
 The triangle is concrete.  Stream-NEF *dominates* the ESN
 baseline by ~5 pp **and runs ~5× faster** (the apples-to-apples
 gradient-free comparison: both fit only a linear readout on
 top of fixed nonlinear features).  Stream-NEF *trails* the
-best LSTM by 0.7 pp but **runs ~20× faster** (95 s/seed vs
-1 875 s/seed).  We do not present this as "we beat LSTM" —
-the recurrent literature has dozens of variants in the
-99–99.5 % range on row sMNIST.  We present it as cost-vs-
-quality at a fixed compute envelope: a gradient-free
-analytic-solve method gets to within 0.7 pp of a tuned LSTM
-**while running 20× faster**, which matters
-whenever predictions have to arrive in time as well as be
-accurate.
+highest-accuracy LSTM cell by 0.7 pp but **runs ~20× faster**
+(95 s/seed vs 1 875 s/seed).  The speed/accuracy Pareto picture
+is less dramatic, and more useful: a smaller near-best LSTM
+reaches 99.07 % in 227 s/seed, so Stream-NEF is ~2.4× faster and
+~0.6 pp lower relative to that cell.  We do not present this as
+"we beat LSTM" — the recurrent literature has dozens of variants
+in the 99–99.5 % range on row sMNIST.  We present it as
+cost-vs-quality at a fixed compute envelope: a gradient-free
+analytic-solve method gets close enough to make time-to-result
+part of the scientific comparison.
 
 ### §6.3 — Permuted sMNIST results
 
@@ -722,7 +736,7 @@ load-bearing `sr = 0.95` cells are still in flight.
 We expect the qualitative reading to hold — recurrent state
 has a built-in advantage when the discriminative signal is
 spread across all 784 randomly-ordered timesteps, while our
-`K`-step delay-line window of length 28 sees each pixel's
+`K`-step delay-line window of length 10 sees each pixel's
 neighborhood only once — but we will not commit to a multi-seed
 verdict until the panel completes.  The LSTM baseline did not
 converge in the budget we allotted (vanilla LSTM on permuted
@@ -732,11 +746,13 @@ preserved at 2 / 90 cells in `results/sl_clean/` as a documented
 compute-budget cap.
 
 What we *can* commit to honestly is that on permuted sMNIST
-Stream-NEF is below the recurrent-state literature and below
-the apples-to-apples ESN baseline, and that **mean-pool, not
-the analytic-solve property, is the limit**.  The data picks
-the architecture: row sMNIST (coherent slices) favors mean-pool;
-permuted sMNIST (distributed signal) favors recurrent state.
+Stream-NEF is below the recurrent-state literature, and the
+partial ESN rerun already shows that an apples-to-apples
+reservoir can match Stream-NEF at smaller width.  The final ESN
+verdict waits on the in-flight `sr = 0.95` n=2 000 cells.  The
+likely limit is **mean-pool, not the analytic-solve property**:
+row sMNIST (coherent slices) favors mean-pool; permuted sMNIST
+(distributed signal) favors recurrent state.
 
 ### §6.4 — Limits
 
@@ -766,16 +782,16 @@ bounded above by mean-pool's order-erasing property.
 
 Before claiming that the analytic-solve primitive is competitive
 with gradient training, we owe the reader a properly tuned MLP
-baseline.  B4 is a 60-cell × 3-dataset grid: depth ∈ {1, 2},
-width ∈ {256, 512, 1024}, lr ∈ {10⁻², 3·10⁻³, 10⁻³, 3·10⁻⁴},
+baseline.  B4 is a 12-config × 3-dataset grid: depth ∈ {1, 2},
+width ∈ {256, 512, 1024}, lr ∈ {3·10⁻³, 10⁻³},
 Adam, batch 128, early-stop with patience 5 on a held-out 10 %
 validation split.  Five seeds each.
 
-Best gradient-free leenef cell vs best gradient-trained MLP cell,
-both at single hidden layer, 5 000 NEF neurons vs B4's tuned-grid
-winner:
+Default hypersphere leenef cell (MNIST/Fashion-MNIST) and the
+best receptive-field leenef cell (CIFAR-10) vs the best
+gradient-trained MLP cell in B4's tuned grid:
 
-| dataset | best leenef cell | best MLP cell | Δ | wall (s/seed) | speedup |
+| dataset | leenef cell | best MLP cell | Δ | wall (s/seed) | speedup |
 |---------|------------------|---------------|---:|---------------|--------:|
 | MNIST | hypersphere · 97.08 ± 0.04 % | d=1, w=512, lr 3·10⁻³ · **98.10 ± 0.08 %** | +1.0 pp MLP | NEF ≈ 5 / MLP 58 | NEF **~12×** |
 | Fashion-MNIST | hypersphere · 87.74 ± 0.06 % | d=2, w=1024, lr 10⁻³ · **89.39 ± 0.08 %** | +1.6 pp MLP | NEF ≈ 5 / MLP 254 | NEF **~50×** |
@@ -791,16 +807,17 @@ the gradient-trained MLP is **~1 pp** better at **10–50× the
 wall time**; whether that trade-off is acceptable is a
 deployment call, not a methodology claim.  On CIFAR-10 the
 right encoder *reverses* the gap: a fully gradient-free
-single-layer NEF at 5 000 neurons exceeds a 4.2 M-parameter
+single-layer leenef model at 5 000 neurons exceeds a 4.2 M-parameter
 gradient-trained MLP by +1.4 pp **and runs ~11× faster**.  The
 generic-encoder hypersphere NEF on CIFAR-10 (49.7 %) loses
 4 pp to the same MLP, so the win is doing real work — it is
 the spatial prior in `receptive_field`, not the analytic
 solver, that buys the gap.
 
-The disclaimer for the rest of the paper: we do not claim NEF
-beats deep convnets, or that NEF is universally faster than
-gradient training.  Tuned MLPs beat hypersphere NEF on raw
+The disclaimer for the rest of the paper: we do not claim leenef
+beats deep convnets, or that this rate-`abs` NEF specialization
+is universally faster than gradient training.  Tuned MLPs beat
+hypersphere leenef on raw
 image features; a good prior closes the gap and on spatial
 data reverses it; deeper gradient-trained models would extend
 the gap again.  All three observations stand side-by-side.
@@ -831,7 +848,7 @@ can follow the threads back to where the ideas originated.
   originality.
 - **ConvNEF** (deferred to a companion piece) is in the family
   of Coates et al. (2011) and the broader gradient-free
-  feature-learning line.  We replicate, organise, and re-frame
+  feature-learning line.  We replicate, organize, and re-frame
   rather than surpass.
 
 **What we believe is novel and worth presenting.**
@@ -860,11 +877,12 @@ can follow the threads back to where the ideas originated.
 - **Streaming-NEF** (delay-line + `abs` + mean-pool + analytic
   readout) on sMNIST.  The strongest empirical contribution.
   98.45 % at `n = 8 000` on row sMNIST under a fully analytic
-  fit lands within 0.7 pp of a tuned LSTM **and runs roughly
-  20× faster** (95 s/seed vs 1 875 s/seed); 5 pp above an
-  apples-to-apples ESN baseline at ~5× the speed.  We
-  re-validate under multi-seed and report whatever comes out
-  without inflation.
+  fit lands 0.6–0.7 pp below tuned LSTM cells while running
+  2.4–20× faster, depending on where one reads the LSTM
+  speed/accuracy Pareto front.  It is also ~5 pp above the
+  completed CPU ESN row panel at ~5× the speed.  We re-validate
+  under multi-seed and report whatever comes out without
+  inflation.
 - **A reproducibility infrastructure** that makes multi-seed
   analytic-readout studies cheap and resumable.  Not paper-novel;
   lab-novel.  Every numeric claim in the paper is regeneratable
@@ -892,7 +910,7 @@ posterior precision matrix in a Gaussian-Bayesian reading of
 ridge regression.  The columns of the resulting decoder come
 with a closed-form covariance — `Σ_D = σ² (AᵀA + α_eff I)⁻¹`
 for a unit residual variance — and the predictive variance at
-a test input `a*` is `σ²(1 + a*ᵀ Σ_D a*)`.  Nothing about this
+a test input `a*` is `σ² + a*ᵀ Σ_D a*`.  Nothing about this
 is novel mathematically; what is uncommon is that we already
 have `(AᵀA + α_eff I)⁻¹` materialized as part of the
 `woodbury` solve path.  Calibrated uncertainty is therefore
@@ -963,9 +981,13 @@ file under `results/sl_clean/`.  Each per-cell row carries:
   float32 tensors).
 - `seed`: the master seed passed to `_make_subrngs`, which
   derives independent `torch.Generator()` instances for each
-  random stream (encoder construction, gain sampling, centre
-  selection, evaluation permutation).  No global RNG is read
-  in any code path.
+  experiment-relevant random stream (encoder construction, gain
+  sampling, center selection, evaluation permutation).  A few
+  PyTorch module constructors still consume the global RNG before
+  deterministic re-initialization overwrites their weights; those
+  draws do not affect the reported configurations, and the
+  remaining cleanup is tracked as a reproducibility hardening
+  task rather than hidden.
 - `config`: the full configuration dictionary passed to the
   experiment runner.
 - `metrics`: the per-seed scalar metrics for that
@@ -1016,21 +1038,33 @@ single wide layer.  The honest trilogy-level reading is:
 **the purely analytic primitive does not buy depth on its own**.
 Depth helps only once gradient flow is admitted, and even then
 the win on MNIST is small.  This is why the rest of the work
-stays single-layer.  We have not re-run multi-layer panels under
-multi-seed discipline on Fashion-MNIST or CIFAR-10; the
-qualitative ranking from the technical report (greedy/hybrid lose,
-target-prop matches, end-to-end nudges past) is consistent with
-C4 on MNIST.
+stays single-layer.  CIFAR-10 tells the same ordering more
+sharply under the same five-seed C4 protocol:
 
-**Recurrent NEF (state feedback through fixed encoders)
-underperforms.**  Greedy and target-propagation variants of
+| strategy | CIFAR-10 test accuracy (mean ± SE) |
+|---|---:|
+| `greedy` | 46.08 ± 0.13 % |
+| `hybrid` | 36.37 ± 0.17 % |
+| `target_prop` | 50.59 ± 0.15 % |
+| `end_to_end` | 59.20 ± 0.04 % |
+| `hybrid_e2e` | 58.47 ± 0.16 % |
+
+Target propagation is not a blanket failure — it recovers much
+of the greedy loss — but on the harder image task the decisive
+gain comes from full end-to-end gradients.  We have not re-run
+the multi-layer panel under this protocol on Fashion-MNIST.
+
+**Recurrent NEF (state feedback through fixed encoders) remains
+pending under the clean protocol.**  Earlier technical-report
+results suggested that greedy and target-propagation variants of
 `RecurrentNEFLayer` compound state-feedback noise across
 timesteps and underperform a vanilla LSTM by 5–10 pp on
-sMNIST-row.  Only end-to-end gradient training of the same
-architecture is competitive, which defeats the purpose of an
-analytic-solve recurrent layer.  Documented; not the path
-forward.  Streaming-NEF (§6) is what replaced this line of
-work.
+sMNIST-row, while end-to-end gradient training of the same
+architecture is competitive.  The CPU C5 rerun was too slow; the
+Colab GPU suite now runs C5 plus same-device row comparators
+under committed code.  Until those rows land, Streaming-NEF (§6)
+is the clean temporal result and recurrent NEF stays a pending
+negative/contrastive line rather than a final claim.
 
 **Permuted-sMNIST mitigations.**  We attempted four cheap
 mitigations on permuted sMNIST: larger window `K`, positional
