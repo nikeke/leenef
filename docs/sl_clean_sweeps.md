@@ -604,21 +604,32 @@ ESN (input-W, reservoir-W, internal sample) seeded as
 (reproducibility hazard fixed during smoke testing — see
 `AGENTS.md` §"Reproducibility hazards").
 
-**Status (2026-05-01 19:45 UTC).**
+**Status (2026-05-03 22:38 UTC) — COMPLETE.**
 
-- **b6_esn_smnist_row: 60/60 ✅ COMPLETE.** Top cell (n=2000,
-  sr=0.95, leak=1.0) reaches 93.65% test, ~488 s/seed.  Median
-  cell ~77%.  Will be aggregated and written up below once
-  permuted lands too.
-- **b6_esn_smnist_permuted**: 34/60 mid-run, ~10 min/seed, top so
-  far 76.4%.  ETA ~5 h.
+- **b6_esn_smnist_row: 60/60 ✅.** Best cell (n=2000, sr=0.95,
+  leak=1.0) 93.52 ± 0.06 % test, ~454 s/seed.  Stream-NEF
+  (98.45 ± 0.02 % at n=8000) is ~5 pp above and ~5× faster.  An
+  earlier dirty-tagged version of the same panel was reproduced
+  bit-exactly under the clean identity by the row audit — no
+  decoder/state was lost; this row decision is firm.
+- **b6_esn_smnist_permuted: 60/60 ✅.** Best cell per `n` under
+  identity `69b0b0bb204d`:
 
-**Provisional headline.** Stream-NEF (B2: 98.61% ± 0.04 at n=8000) is
-~5 pp above the best ESN (93.7%) on row, and presumably similarly
-above on permuted, at comparable solve cost.  The reservoir-vs-frame
-comparison is exactly the comparator the paper needs to differentiate
-"pooled abs frame coefficients" from "leaky-integrator dynamics".
-Detailed verdict and table to follow once b6_permuted finishes.
+  | `n_reservoir` | best cell | accuracy ± SE | wall (s/seed) |
+  |---------------|-----------|----------------|----------------|
+  |   500 | sr=0.95, leak=0.3 | 70.64 ± 0.53 % |   529 |
+  | 1 000 | sr=0.95, leak=0.3 | 75.26 ± 0.59 % | 2 073 |
+  | 2 000 | sr=0.95, leak=0.3 | **79.21 ± 0.13 %** | 3 785 |
+
+**Headline.** On row sMNIST Stream-NEF dominates the ESN
+(coherent-slice geometry favors mean pool); on permuted sMNIST
+the two methods converge: ESN at `n = 2 000` matches Stream-NEF
+at `n = 16 000` to within the joint SE (79.21 vs 79.44 pp),
+which is the recurrent-state advantage on distributed-signal
+data showing up as parameter efficiency.  Vanilla LSTM did not
+converge in the budget on permuted (2 / 90 cells); we report it
+as a compute cap, not a finished baseline.  See Paper I §6.3
+for the full discussion.
 
 ---
 
