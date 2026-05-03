@@ -130,9 +130,13 @@ def figure_f3b() -> Path:
     alphas = sorted({c["alpha_nominal"] for c in cells})
     scales = ("fixed", "trace")
     widths = sorted({c["n_neurons"] for c in cells})
-    lookup = {(c["n_neurons"], c["alpha_scale"], c["alpha_nominal"]): 100 * c["mean"] for c in cells}
+    lookup = {
+        (c["n_neurons"], c["alpha_scale"], c["alpha_nominal"]): 100 * c["mean"] for c in cells
+    }
 
-    fig, axes = plt.subplots(1, len(widths), figsize=(9.8, 3.8), sharey=True, constrained_layout=True)
+    fig, axes = plt.subplots(
+        1, len(widths), figsize=(9.8, 3.8), sharey=True, constrained_layout=True
+    )
     if len(widths) == 1:
         axes = [axes]
 
