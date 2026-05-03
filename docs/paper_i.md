@@ -27,25 +27,25 @@ ensembles, online updates (Woodbury), GPU-friendly
 accumulate-and-solve, and, non-trivially, a streaming temporal
 classifier.  Under multi-seed, code-identity-tagged evaluation,
 the streaming classifier reaches **98.45 ± 0.02 %** on row sMNIST.
-Two comparators frame this number.  Against a tuned LSTM,
-Stream-NEF ends **0.6–0.7 pp below**: it is **roughly 20× faster**
-than the highest-accuracy LSTM cell, and **roughly 2.4× faster**
-than a smaller near-best cell.  Against the completed CPU ESN
-panel (same family of fixed nonlinear features + linear readout),
-Stream-NEF runs **roughly 5× faster** and ends **~5 pp above**
-the best ESN row cell.  We also report the limits honestly:
+Two comparators frame this number.  Against a tuned near-best LSTM,
+Stream-NEF ends **0.6 pp below** while running **2.4× faster**.
+Against the completed CPU ESN panel (same family of fixed nonlinear
+features plus linear readout), Stream-NEF ends **~5 pp above** the
+best ESN row cell and runs **roughly 5× faster**.  We also report
+the limits honestly:
 purely analytic multi-layer stacking does not work
 (target propagation and end-to-end refinement recover the
 single-layer accuracy on MNIST but no more); permuted sequence
-classification is bounded above by mean-pool's order-erasing
+classification is bounded by mean-pool's order-erasing
 property — the clean ESN rerun is still in flight, but already
 suggests that reservoir state can match Stream-NEF at smaller width
 on permuted sMNIST, locating the likely boundary between mean-pool
-and recurrent state; gradient-trained MLPs beat generic
-single-layer leenef on image features by 1–4 pp.  The twist is
-that a `receptive_field`-encoder leenef model beats the best
-tuned MLP on CIFAR-10 by +1.37 pp **and runs ~11× faster** — a
-good encoder closes the gap, a generic encoder does not.  The
+and recurrent state; generic single-layer leenef models end
+**1–4 pp below** gradient-trained MLPs on image features while
+running **12–50× faster**.  The twist is that a
+`receptive_field`-encoder leenef model beats the best tuned MLP
+on CIFAR-10 by **+1.37 pp** **and runs ~11× faster** — a good
+encoder closes the gap, a generic encoder does not.  The
 paper opens the foundational trilogy that continues with continual
 learning (Paper II) and reinforcement learning (Paper III).
 
@@ -389,9 +389,9 @@ in every single cell — fixed `α=10⁻²` and trace `α=10⁻⁵` tie it
 within noise at `n=4 000` — but it is the stable choice that does
 not collapse at `n=8 000`.
 
-![Figure 3: α policy by width on row sMNIST.](figures/f3_alpha_vs_n.png)
+![Figure 1: α policy by width on row sMNIST.](figures/f1_alpha_vs_n.png)
 
-**Figure 3.**  Trace-scaled `α = 10⁻⁴` is the robust cross-width
+**Figure 1.**  Trace-scaled `α = 10⁻⁴` is the robust cross-width
 choice.  Fixed `α = 10⁻²` is competitive at `n = 4 000` but
 collapses at `n = 8 000`.
 
@@ -402,14 +402,6 @@ collapses at `n = 8 000`.
 | **trace-scaled, base 10⁻⁴** (winner) | **98.03 %** | **98.44 %** | **98.03 %** |
 | fixed 10⁻² | 98.07 % | 87.27 % | 87.27 % |
 | fixed 10⁻⁴ | 95.02 % | 96.33 % | 95.02 % |
-
-![Figure 4: full α calibration heat map.](figures/f3b_alpha_heatmap.png)
-
-**Figure 4.**  The full 100-cell α calibration.  The heat map
-shows why the table reports a robust policy, not just a single
-pointwise winner: very small fixed `α` is unstable, very large
-trace-scaled `α` under-trains, and the stable band shifts with
-architecture.
 
 Two failure modes are visible.  Trace-scaled at base 10⁻² is
 *consistent across* `n` but consistently under-trained.  Fixed-α
@@ -448,9 +440,9 @@ tracks *how far the data centroid sits from the origin*.
 
 The B1 panel on raw datasets is consistent with both readings:
 
-![Figure 5: bias placement on raw datasets.](figures/f4_b1_biases.png)
+![Figure 2: bias placement on raw datasets.](figures/f2_b1_biases.png)
 
-**Figure 5.**  Bias placement on raw MNIST, Fashion-MNIST, and
+**Figure 2.**  Bias placement on raw MNIST, Fashion-MNIST, and
 CIFAR-10.  Zero and data-driven folds tie on the two mostly
 background-dominated grayscale datasets; CIFAR-10 opens a
 measurable gap.  Random-normal biases are a repeatable failure
@@ -471,9 +463,9 @@ readings:
 | MNIST decentered (+0.5) | 97.12 % | 95.78 % | +1.3 pp | ~0 |
 | CIFAR-10 per-channel centered | 49.72 % | 43.41 % | **+6.3 pp** | ~0 |
 
-![Figure 6: B7 hinge-placement falsifier.](figures/f5_b7_hinge_falsifier.png)
+![Figure 3: B7 hinge-placement falsifier.](figures/f3_b7_hinge_falsifier.png)
 
-**Figure 6.**  The B7 follow-ups falsify the pure-DC reading.
+**Figure 3.**  The B7 follow-ups falsify the pure-DC reading.
 Centering CIFAR-10 should have closed the data-driven-vs-zero
 gap under that story; instead it opens the largest gap in the
 series.
@@ -516,9 +508,9 @@ recommended against.
 B3 sweeps seven encoder strategies with `data_driven` biases
 fixed (10 seeds, `n = 5 000`):
 
-![Figure 7: encoder strategy panel.](figures/f6_b3_encoders.png)
+![Figure 4: encoder strategy panel.](figures/f4_b3_encoders.png)
 
-**Figure 7.**  Encoder strategy is a prior on frame directions.
+**Figure 4.**  Encoder strategy is a prior on frame directions.
 Receptive-field encoders provide the only large spatial-data win;
 label-aware and overly local manifold-tangent directions can
 backfire.
@@ -595,6 +587,14 @@ not flatten by `n = 20 000`*.  CIFAR-10 behaves differently under
 the generic hypersphere encoder: it improves through 10k neurons
 and then falls at 20k, which is a useful warning that "more random
 global features" is not a universal scaling law.
+
+![Figure 5: single-layer width scaling.](figures/f5_c1_scaling.png)
+
+**Figure 5.**  Single-layer width scaling under the generic
+hypersphere encoder.  MNIST and Fashion-MNIST keep improving
+through 20 000 neurons; CIFAR-10 peaks near 10 000 and then
+falls, showing that more global random features are not a
+substitute for the right spatial prior.
 
 | `n` | MNIST | Fashion-MNIST | CIFAR-10 |
 |-----|---:|---:|---:|
@@ -697,13 +697,7 @@ test accuracy by H3 (§5.3).
 Sequential MNIST with rows-as-timesteps (T = 28, K = 10).
 Ten seeds at each width, trace-scaled `α = 10⁻⁴`:
 
-![Figure 8: Stream-NEF row sMNIST solve modes.](figures/f7_streaming_row_solve_modes.png)
-
-**Figure 8.**  Row-sMNIST scaling and solver equivalence.  The
-three solver paths land on the same decoder within reporting
-precision; increasing width drives the gain.
-
-| `n_neurons` | accuracy ± SE | wall (CPU, s/seed) |
+| `n_neurons` | accuracy ± SE | wall-clock time (CPU, s/seed) |
 |-------------|----------------|--------------------|
 | 2 000 | 97.20 ± 0.04 % | 20 |
 | 4 000 | 97.97 ± 0.02 % | 42 |
@@ -715,13 +709,20 @@ at 4k → 8k — clean monotone scaling.
 The same task with two contemporaneous baselines re-implemented
 under our seeding and code-identity discipline:
 
-![Figure 9: Stream-NEF vs ESN and LSTM on row/permuted sMNIST.](figures/f8_streaming_baselines.png)
+![Figure 6: Stream-NEF vs ESN and LSTM on row/permuted sMNIST.](figures/f6_streaming_accuracy.png)
 
-**Figure 9.**  Stream-NEF is strong on row sMNIST and structurally
+**Figure 6.**  Stream-NEF is strong on row sMNIST and structurally
 limited on permuted sMNIST.  The right panel remains provisional
 until the clean ESN permuted rerun completes.
 
-| method | accuracy ± SE | wall (s/seed) | seeds |
+![Figure 7: row-sMNIST wall-clock/accuracy trade-off.](figures/f7_streaming_wall_accuracy.png)
+
+**Figure 7.**  Wall-clock time versus accuracy on row sMNIST.
+The fastest Stream-NEF cells are lower-accuracy, but the
+8 000-neuron cell sits above the ESN panel and below the LSTM
+frontier at substantially lower wall-clock time.
+
+| method | accuracy ± SE | wall-clock time (s/seed) | seeds |
 |--------|----------------|---------------|-------|
 | Stream-NEF (n = 8 000) | 98.45 ± 0.02 % | 95 | 10 |
 | **best-accuracy LSTM** (h256, l2, lr 3e-3) | **99.12 ± 0.09 %** | 1 875 | 5 |
@@ -749,7 +750,7 @@ Permuted sMNIST destroys spatial locality: each pixel becomes
 its own timestep with a fixed random permutation applied
 uniformly across the dataset (T = 784).  Five seeds per cell:
 
-| `n_neurons` | Stream-NEF accuracy ± SE | wall (CPU, s/seed) |
+| `n_neurons` | Stream-NEF accuracy ± SE | wall-clock time (CPU, s/seed) |
 |-------------|--------------------------|--------------------|
 | 2 000 | 72.96 ± 0.07 % | 611 |
 | 4 000 | 75.61 ± 0.05 % | 792 |
@@ -837,16 +838,17 @@ Default hypersphere leenef cell (MNIST/Fashion-MNIST) and the
 best receptive-field leenef cell (CIFAR-10) vs the best
 gradient-trained MLP cell in B4's tuned grid:
 
-![Figure 10: single-layer leenef vs tuned MLP.](figures/f9_b4_comparator.png)
+![Figure 8: single-layer leenef vs tuned MLP.](figures/f8_b4_comparator.png)
 
-**Figure 10.**  The MLP comparison is encoder-dependent.  Generic
+**Figure 8.**  The MLP comparison is encoder-dependent.  Generic
 hypersphere leenef trails on MNIST/Fashion and raw CIFAR-10; the
 receptive-field prior reverses the CIFAR-10 gap.
 
-| dataset | leenef cell | best MLP cell | Δ | wall (s/seed) | speedup |
+| dataset | leenef cell | best MLP cell | Δ | wall-clock time (s/seed) | speedup |
 |---------|------------------|---------------|---:|---------------|--------:|
 | MNIST | hypersphere · 97.08 ± 0.04 % | d=1, w=512, lr 3·10⁻³ · **98.10 ± 0.08 %** | +1.0 pp MLP | NEF ≈ 5 / MLP 58 | NEF **~12×** |
 | Fashion-MNIST | hypersphere · 87.74 ± 0.06 % | d=2, w=1024, lr 10⁻³ · **89.39 ± 0.08 %** | +1.6 pp MLP | NEF ≈ 5 / MLP 254 | NEF **~50×** |
+| CIFAR-10 | hypersphere · 49.72 ± 0.08 % | d=2, w=1024, lr 10⁻³ · **53.73 ± 0.22 %** | +4.0 pp MLP | NEF ≈ 16 / MLP 327 | NEF **~20×** |
 | CIFAR-10 | **receptive_field · 55.10 ± 0.10 %** | d=2, w=1024, lr 10⁻³ · 53.73 ± 0.22 % | **+1.4 pp NEF** | NEF ≈ 30 / MLP 327 | NEF **~11×** |
 
 (NEF wall is `accumulate + solve` end-to-end on CPU including

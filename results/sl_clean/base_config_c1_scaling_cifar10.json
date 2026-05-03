@@ -1,0 +1,10 @@
+{
+  "cell": "n5000",
+  "alpha": 1e-3,
+  "gain_low": 0.5,
+  "gain_high": 2.0,
+  "chunk_size": 2500,
+  "activation": "abs",
+  "encoder_strategy": "hypersphere",
+  "patch_size": 5
+}

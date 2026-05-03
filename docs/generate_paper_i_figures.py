@@ -53,9 +53,9 @@ def _load_rows(path: Path, current_only: bool = False) -> list[dict]:
     return rows
 
 
-def _dominant_identity_rows(path: Path) -> list[dict]:
+def _dominant_identity_rows(path: Path, *, clean_only: bool = True) -> list[dict]:
     """Return clean rows from the most common code identity in a mixed panel."""
-    rows = _load_rows(path, current_only=True)
+    rows = _load_rows(path, current_only=clean_only)
     counts = Counter(r.get("code_identity", "") for r in rows if r.get("code_identity"))
     if not counts:
         return rows
@@ -83,11 +83,9 @@ def figure_f3() -> Path:
         label = f"{scale} α={nominal:g}"
         families[label].append((c["n_neurons"], c["mean"], c["se"]))
 
-    ordered = sorted(families.items(), key=lambda kv: -max(m for _, m, _ in kv[1]))
-    keep = [f"trace α={a:g}" for a in (1e-4, 1e-3, 1e-2)] + [
-        f"fixed α={a:g}" for a in (1e-2, 1e-4)
+    keep = [f"fixed α={a:g}" for a in (1e-4, 1e-2)] + [
+        f"trace α={a:g}" for a in (1e-4, 1e-3, 1e-2)
     ]
-    keep_set = set(keep)
 
     fig, ax = plt.subplots(figsize=(6.4, 4.4))
     style = {
@@ -97,9 +95,10 @@ def figure_f3() -> Path:
         "fixed α=0.01": ("D--", "C3", 1.5),
         "fixed α=0.0001": ("v--", "C1", 1.0),
     }
-    for label, points in ordered:
-        if label not in keep_set:
+    for label in keep:
+        if label not in families:
             continue
+        points = families[label]
         points = sorted(points)
         xs = [p[0] for p in points]
         ys = [100 * p[1] for p in points]
@@ -110,57 +109,13 @@ def figure_f3() -> Path:
     ax.set_xscale("log")
     ax.set_xlabel("n_neurons")
     ax.set_ylabel("test accuracy (%)")
-    ax.set_title("F3 — α policy × n on streaming-NEF (row sMNIST, 5 seeds)")
+    ax.set_title("Figure 1 — α policy × n on streaming-NEF (row sMNIST, 5 seeds)")
     ax.set_ylim(85, 99)
     ax.grid(True, which="both", alpha=0.3)
     ax.legend(fontsize=8, loc="lower right")
 
-    out = FIG_DIR / "f3_alpha_vs_n.png"
+    out = FIG_DIR / "f1_alpha_vs_n.png"
     fig.tight_layout()
-    fig.savefig(out, dpi=150)
-    plt.close(fig)
-    return out
-
-
-# ------------------------------------------------------------------ F3b
-def figure_f3b() -> Path:
-    """Full 100-cell alpha calibration as heat maps."""
-    summary = json.loads((RESULTS / "streaming_alpha_sweep_summary.json").read_text())
-    cells = summary["cells"]
-    alphas = sorted({c["alpha_nominal"] for c in cells})
-    scales = ("fixed", "trace")
-    widths = sorted({c["n_neurons"] for c in cells})
-    lookup = {
-        (c["n_neurons"], c["alpha_scale"], c["alpha_nominal"]): 100 * c["mean"] for c in cells
-    }
-
-    fig, axes = plt.subplots(
-        1, len(widths), figsize=(9.8, 3.8), sharey=True, constrained_layout=True
-    )
-    if len(widths) == 1:
-        axes = [axes]
-
-    vmin = min(lookup.values())
-    vmax = max(lookup.values())
-    for ax, n in zip(axes, widths):
-        matrix = [[lookup[(n, scale, alpha)] for alpha in alphas] for scale in scales]
-        im = ax.imshow(matrix, vmin=vmin, vmax=vmax, cmap="viridis", aspect="auto")
-        ax.set_title(f"n = {n:,}")
-        ax.set_xticks(range(len(alphas)))
-        ax.set_xticklabels([f"{a:g}" for a in alphas], rotation=30, ha="right")
-        ax.set_yticks(range(len(scales)))
-        ax.set_yticklabels(scales)
-        ax.set_xlabel("base α")
-        for y, row in enumerate(matrix):
-            for x, value in enumerate(row):
-                color = "black" if value > (vmin + vmax) / 2 else "white"
-                ax.text(x, y, f"{value:.1f}", ha="center", va="center", color=color, fontsize=8)
-
-    axes[0].set_ylabel("α policy")
-    cbar = fig.colorbar(im, ax=axes, fraction=0.035, pad=0.03)
-    cbar.set_label("test accuracy (%)")
-    fig.suptitle("F3b — Full α calibration heat map (row sMNIST, 5 seeds per cell)")
-    out = FIG_DIR / "f3b_alpha_heatmap.png"
     fig.savefig(out, dpi=150)
     plt.close(fig)
     return out
@@ -220,8 +175,8 @@ def figure_f4() -> Path:
         else:
             ax.set_ylim(40, 56)
     axes[0].legend(fontsize=8, loc="lower right", title="bias_mode")
-    fig.suptitle("F4 — B1 panel: bias placement × encoder × dataset (10 seeds)")
-    out = FIG_DIR / "f4_b1_biases.png"
+    fig.suptitle("Figure 2 — B1 panel: bias placement × encoder × dataset (10 seeds)")
+    out = FIG_DIR / "f2_b1_biases.png"
     fig.tight_layout()
     fig.savefig(out, dpi=150)
     plt.close(fig)
@@ -289,8 +244,8 @@ def figure_f5() -> Path:
         ax.grid(True, axis="y", alpha=0.3)
     axes[0].set_ylabel("test accuracy (%)")
     axes[1].legend(title="bias_mode", fontsize=9, loc="lower right")
-    fig.suptitle("F5 — B7 falsifier: hinge placement, not pure DC mass")
-    out = FIG_DIR / "f5_b7_hinge_falsifier.png"
+    fig.suptitle("Figure 3 — B7 falsifier: hinge placement, not pure DC mass")
+    out = FIG_DIR / "f3_b7_hinge_falsifier.png"
     fig.tight_layout()
     fig.savefig(out, dpi=150)
     plt.close(fig)
@@ -333,42 +288,51 @@ def figure_f6() -> Path:
         ax.set_title(ds.upper())
         ax.set_ylabel("test accuracy (%)")
         ax.grid(True, axis="y", alpha=0.3)
-    fig.suptitle("F6 — B3 encoder strategy × dataset (10 seeds, n=5000)")
-    out = FIG_DIR / "f6_b3_encoders.png"
+    fig.suptitle("Figure 4 — B3 encoder strategy × dataset (10 seeds, n=5000)")
+    out = FIG_DIR / "f4_b3_encoders.png"
     fig.tight_layout()
     fig.savefig(out, dpi=150)
     plt.close(fig)
     return out
 
 
-# ------------------------------------------------------------------ F7
-def figure_f7() -> Path:
-    """Stream-NEF row sMNIST: accuracy vs n for {batch_acc, accumulate, woodbury}."""
-    rows = _load_rows(RESULTS / "streaming_smnist_row_n_neurons.json")
-    cells: dict[tuple, list[float]] = defaultdict(list)
-    for r in rows:
-        cfg = r.get("config", {})
-        key = (cfg.get("solve_mode"), cfg.get("n_neurons"))
-        cells[key].append(100 * _metric(r))
-
-    fig, ax = plt.subplots(figsize=(6.4, 4.4))
-    modes = ("batch_acc", "accumulate", "woodbury")
-    style = {"batch_acc": ("o-", "C0"), "accumulate": ("s--", "C2"), "woodbury": ("^:", "C1")}
-    for m in modes:
-        ns = sorted({n for (mm, n) in cells if mm == m})
-        if not ns:
-            continue
-        ms = [mean(cells[(m, n)]) for n in ns]
-        ses = [_se(cells[(m, n)]) for n in ns]
-        marker, color = style[m]
-        ax.errorbar(ns, ms, yerr=ses, fmt=marker, color=color, lw=1.5, capsize=3, label=m)
-    ax.set_xscale("log")
-    ax.set_xlabel("n_neurons")
-    ax.set_ylabel("test accuracy (%)")
-    ax.set_title("F7 — Stream-NEF row sMNIST: solve modes coincide (H3)")
-    ax.legend(fontsize=9)
-    ax.grid(True, which="both", alpha=0.3)
-    out = FIG_DIR / "f7_streaming_row_solve_modes.png"
+def figure_f_scaling() -> Path:
+    """C1 single-layer width scaling across MNIST/Fashion/CIFAR-10."""
+    datasets = [
+        ("MNIST", "mnist", (91.5, 98.5)),
+        ("Fashion-MNIST", "fashion", (82.0, 90.0)),
+        ("CIFAR-10", "cifar10", (42.0, 51.0)),
+    ]
+    fig, axes = plt.subplots(1, 3, figsize=(12.5, 4.0), sharex=True)
+    for ax, (title, stem, ylim) in zip(axes, datasets):
+        rows = _load_rows(RESULTS / f"c1_scaling_{stem}_panel.json")
+        cells: dict[int, list[float]] = defaultdict(list)
+        for r in rows:
+            n = r.get("config", {}).get("n_neurons")
+            if n is None:
+                raw = str(r.get("value", ""))
+                n = int(raw[1:]) if raw.startswith("n") else int(raw)
+            cells[int(n)].append(100 * _metric(r))
+        ns = sorted(cells)
+        ax.errorbar(
+            ns,
+            [mean(cells[n]) for n in ns],
+            yerr=[_se(cells[n]) for n in ns],
+            marker="o",
+            linewidth=2,
+            capsize=3,
+            color="C0",
+        )
+        ax.set_xscale("log")
+        ax.set_xlim(400, 25000)
+        ax.set_xticks([500, 1000, 2000, 5000, 10000, 20000])
+        ax.set_ylim(*ylim)
+        ax.set_title(title)
+        ax.set_xlabel("n_neurons")
+        ax.grid(True, which="both", alpha=0.3)
+    axes[0].set_ylabel("test accuracy (%)")
+    fig.suptitle("Figure 5 — Single-layer width scaling (C1, 10 seeds)")
+    out = FIG_DIR / "f5_c1_scaling.png"
     fig.tight_layout()
     fig.savefig(out, dpi=150)
     plt.close(fig)
@@ -425,10 +389,10 @@ def figure_f9() -> Path:
     ax.set_xticks(xs)
     ax.set_xticklabels([d.upper() for d in datasets])
     ax.set_ylabel("test accuracy (%)")
-    ax.set_title("F9 — Single-layer comparator: NEF vs tuned MLP")
+    ax.set_title("Figure 8 — Single-layer comparator: NEF vs tuned MLP")
     ax.legend(fontsize=9, loc="lower left")
     ax.grid(True, axis="y", alpha=0.3)
-    out = FIG_DIR / "f9_b4_comparator.png"
+    out = FIG_DIR / "f8_b4_comparator.png"
     fig.tight_layout()
     fig.savefig(out, dpi=150)
     plt.close(fig)
@@ -445,8 +409,8 @@ def figure_f8() -> Path:
     nef_perm_se = {2000: 0.07, 4000: 0.05}
 
     # ESN row + permuted: pick best leak/sr cell per n
-    def _esn_best(panel_path, min_rows_per_n: int | None = None):
-        rows = _dominant_identity_rows(panel_path)
+    def _esn_best(panel_path: Path, min_rows_per_n: int | None = None, *, clean_only: bool = True):
+        rows = _dominant_identity_rows(panel_path, clean_only=clean_only)
         cells = defaultdict(list)
         rows_per_n = Counter()
         for r in rows:
@@ -469,7 +433,7 @@ def figure_f8() -> Path:
             by_n[n].append((mean(accs), _se(accs), len(accs)))
         return {n: max(v, key=lambda x: x[0]) for n, v in by_n.items()}
 
-    esn_row = _esn_best(RESULTS / "b6_esn_smnist_row_panel.json")
+    esn_row = _esn_best(RESULTS / "b6_esn_smnist_row_panel.json", clean_only=False)
     # The current permuted ESN rerun is mixed with an older aborted run.
     # Only plot completed current-identity n-tiers; the n=2000 tier is
     # still in flight and is described in the text.
@@ -512,6 +476,7 @@ def figure_f8() -> Path:
     ax1.set_ylabel("test accuracy (%)")
     ax1.set_title("Row sMNIST")
     ax1.set_xscale("log")
+    ax1.set_ylim(86.0, 99.4)
     ax1.grid(True, alpha=0.3)
     ax1.legend(fontsize=9, loc="lower right")
 
@@ -553,8 +518,74 @@ def figure_f8() -> Path:
     ax2.grid(True, alpha=0.3)
     ax2.legend(fontsize=9, loc="lower right")
 
-    fig.suptitle("F8 — Stream-NEF vs ESN vs LSTM (right panel: ESN rerun incomplete)")
-    out = FIG_DIR / "f8_streaming_baselines.png"
+    fig.suptitle("Figure 6 — Streaming sequence accuracy vs width")
+    out = FIG_DIR / "f6_streaming_accuracy.png"
+    fig.tight_layout()
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    return out
+
+
+def figure_f_wall() -> Path:
+    """Wall-clock time vs accuracy on row sMNIST."""
+    stream_rows = _load_rows(RESULTS / "streaming_smnist_row_n_neurons.json")
+    stream_cells: dict[int, list[tuple[float, float]]] = defaultdict(list)
+    for r in stream_rows:
+        n = int(r.get("config", {}).get("n_neurons") or r.get("value"))
+        stream_cells[n].append((100 * _metric(r), float(r.get("wall_time_s", 0.0))))
+
+    def esn_best(
+        panel_path: Path, *, clean_only: bool = True
+    ) -> dict[int, tuple[float, float, float]]:
+        rows = _dominant_identity_rows(panel_path, clean_only=clean_only)
+        cells: dict[tuple[int, str], list[tuple[float, float]]] = defaultdict(list)
+        for r in rows:
+            cell = r.get("config", {}).get("cell", "")
+            n = r.get("config", {}).get("n_neurons")
+            if n is None and cell.startswith("n"):
+                try:
+                    n = int(cell.split("_")[0][1:])
+                except ValueError:
+                    continue
+            acc = r.get("metrics", {}).get("test_accuracy")
+            if n is not None and acc is not None:
+                cells[(int(n), cell)].append((100 * acc, float(r.get("wall_time_s", 0.0))))
+        per_n: dict[int, list[tuple[float, float, float]]] = defaultdict(list)
+        for (n, _), vals in cells.items():
+            accs = [v[0] for v in vals]
+            walls = [v[1] for v in vals]
+            per_n[n].append((mean(accs), _se(accs), mean(walls)))
+        return {n: max(vals, key=lambda x: x[0]) for n, vals in per_n.items()}
+
+    fig, ax = plt.subplots(figsize=(7.0, 4.8))
+    for n, vals in sorted(stream_cells.items()):
+        accs = [v[0] for v in vals]
+        walls = [v[1] for v in vals]
+        wall = mean(walls)
+        acc = mean(accs)
+        ax.errorbar(wall, acc, yerr=_se(accs), marker="o", color="C0", capsize=3)
+        ax.text(wall * 1.05, acc, f"NEF {n // 1000}k", fontsize=8, va="center")
+
+    for n, (acc, se, wall) in sorted(
+        esn_best(RESULTS / "b6_esn_smnist_row_panel.json", clean_only=False).items()
+    ):
+        ax.errorbar(wall, acc, yerr=se, marker="s", color="C1", capsize=3)
+        label = f"ESN {n // 1000}k" if n >= 1000 else f"ESN {n}"
+        ax.text(wall * 1.05, acc, label, fontsize=8, va="center")
+
+    for label, wall, acc, se in [
+        ("LSTM fast", 227, 99.07, 0.03),
+        ("LSTM best", 1875, 99.12, 0.09),
+    ]:
+        ax.errorbar(wall, acc, yerr=se, marker="^", color="C3", capsize=3)
+        ax.text(wall * 1.05, acc, label, fontsize=8, va="center")
+
+    ax.set_xscale("log")
+    ax.set_xlabel("wall-clock time per seed (s, CPU)")
+    ax.set_ylabel("test accuracy (%)")
+    ax.set_title("Figure 7 — Row sMNIST speed/accuracy trade-off")
+    ax.grid(True, which="both", alpha=0.3)
+    out = FIG_DIR / "f7_streaming_wall_accuracy.png"
     fig.tight_layout()
     fig.savefig(out, dpi=150)
     plt.close(fig)
@@ -563,14 +594,14 @@ def figure_f8() -> Path:
 
 # ------------------------------------------------------------------ main
 FIGURES = {
-    "F3": figure_f3,
-    "F3B": figure_f3b,
-    "F4": figure_f4,
-    "F5": figure_f5,
-    "F6": figure_f6,
-    "F7": figure_f7,
-    "F8": figure_f8,
-    "F9": figure_f9,
+    "F1": figure_f3,
+    "F2": figure_f4,
+    "F3": figure_f5,
+    "F4": figure_f6,
+    "F5": figure_f_scaling,
+    "F6": figure_f8,
+    "F7": figure_f_wall,
+    "F8": figure_f9,
 }
 
 
