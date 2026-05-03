@@ -1,0 +1,12 @@
+[2026-05-03T10:41:58] phase=gpu_b5_lstm_smnist_row_pareto_panel experiment=b5_lstm_smnist_row knob=cell values=['h256_l2_lr0.003', 'h64_l2_lr0.003'] seeds=[0, 1, 2, 3, 4] code_identity=c3ca3cf8e46c1d9a45be76f8626e3795cda3c5a2
+[2026-05-03T10:41:58]   [1/10] run    gpu_b5_lstm_smnist_row_pareto_panel_h256_l2_lr0.003_s0
+[2026-05-03T10:43:02]   [2/10] run    gpu_b5_lstm_smnist_row_pareto_panel_h256_l2_lr0.003_s1
+[2026-05-03T10:43:54]   [3/10] run    gpu_b5_lstm_smnist_row_pareto_panel_h256_l2_lr0.003_s2
+[2026-05-03T10:44:19]   [4/10] run    gpu_b5_lstm_smnist_row_pareto_panel_h256_l2_lr0.003_s3
+[2026-05-03T10:45:11]   [5/10] run    gpu_b5_lstm_smnist_row_pareto_panel_h256_l2_lr0.003_s4
+[2026-05-03T10:45:56]   [6/10] run    gpu_b5_lstm_smnist_row_pareto_panel_h64_l2_lr0.003_s0
+[2026-05-03T10:46:28]   [7/10] run    gpu_b5_lstm_smnist_row_pareto_panel_h64_l2_lr0.003_s1
+[2026-05-03T10:47:04]   [8/10] run    gpu_b5_lstm_smnist_row_pareto_panel_h64_l2_lr0.003_s2
+[2026-05-03T10:47:39]   [9/10] run    gpu_b5_lstm_smnist_row_pareto_panel_h64_l2_lr0.003_s3
+[2026-05-03T10:48:09]   [10/10] run    gpu_b5_lstm_smnist_row_pareto_panel_h64_l2_lr0.003_s4
+[2026-05-03T10:48:37] phase gpu_b5_lstm_smnist_row_pareto_panel done — 10 rows in /content/leenef/results/sl_clean/gpu_b5_lstm_smnist_row_pareto_panel.json

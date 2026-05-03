@@ -99,6 +99,7 @@ the ground truth for any future claim audit.
 | C3   | c3_ensemble_cifar10_panel | c3_ensemble_cifar10 | `cell` (ensemble size × encoder) | Paper I ensemble / RF panel — CIFAR-10 |
 | C4   | c4_multilayer_mnist_panel | c4_multilayer_mnist | `cell` (training strategy) | Paper I multilayer strategy panel — MNIST |
 | C4.1 | c4_multilayer_cifar10_panel | c4_multilayer_cifar10 | `cell` (training strategy) | Paper I multilayer strategy panel — CIFAR-10 |
+| C5   | gpu_c5_recurrent_smnist_panel | c5_recurrent_smnist | `cell` (training strategy) | Paper I recurrent row-sMNIST panel — Colab L4 |
 | C6   | c6_convnef_mnist_panel | c6_convnef_mnist | `cell` (`default`) | Paper I ConvNEF headline — MNIST |
 | C6.1 | c6_convnef_cifar10_panel | c6_convnef_cifar10 | `cell` (`default`) | Paper I ConvNEF headline — CIFAR-10 |
 | C7   | c7_housing_panel | c7_housing | `cell` (`n_neurons`) | Paper I §5.6 — regression universality demo |
@@ -1079,6 +1080,63 @@ analytic/local variants remain uncompetitive.**
 - This panel was run directly through the same-identity recovery runner
   to avoid the known stock-wrapper kwarg bug, so all rows still live in a
   single clean aggregate
+
+---
+
+## C5 — recurrent row-sMNIST panel (Colab L4)
+
+**Question.** On row-sMNIST, does the lite recurrent NEF become genuinely
+competitive once it is run on a GPU budget that makes the recurrent
+panel practical, and does recurrent target propagation through time
+recover that performance without BPTT?
+
+**Setup.** Colab L4 GPU, row-sMNIST, 5 seeds, `n_neurons=1500`,
+`d_state=128`, `n_epochs=30`, `batch_size=256`, `lr=1e-3`, `α=1e-3`,
+and `relu` recurrent activation. The knob is
+`strategy ∈ {end_to_end, target_prop}`. Authoritative panel:
+`results/sl_clean/gpu_c5_recurrent_smnist_panel.json`. Log:
+`results/sl_clean/logs/gpu_c5_recurrent_smnist_panel.log`. Companion
+same-code-identity L4 comparator panels landed alongside it:
+`gpu_streaming_smnist_row_panel.json`,
+`gpu_b5_lstm_smnist_row_pareto_panel.json`, and
+`gpu_b6_esn_smnist_row_best_panel.json`, with exact Colab configs under
+`results/sl_clean/colab_gpu_configs/`. Wall time for the C5 panel:
+~29 min on the L4.
+
+### Per-cell test accuracy (mean ± SE, n=5)
+
+| strategy | test accuracy | verdict |
+|---|---|---|
+| end_to_end | 98.83 ± 0.03 | competitive and stable |
+| target_prop | 23.82 ± 0.11 | catastrophic failure |
+
+**Verdict.** C5 strongly reinforces the old recurrent story instead of
+softening it. `end_to_end` reaches `98.834% ± 0.029` on the L4 and does
+so quickly (`108.30 ± 1.33 s` per seed), which makes the recurrent NEF
+fully viable as a GPU benchmark. But `target_prop` through time fails
+completely: `23.824% ± 0.106` test accuracy, `25.10%` train accuracy,
+and **more than 2× slower** than `end_to_end` (`239.12 ± 0.67 s` per
+seed). The companion L4 panels make the ranking clear:
+
+- best LSTM pareto cells: `99.08 ± 0.11` and `99.07 ± 0.05`
+- Stream-NEF row panel: `98.44 ± 0.04` at `n=8000`
+- ESN best row cell: `93.52 ± 0.06`
+
+So recurrent NEF with end-to-end training is **better than the streaming
+row panel and vastly better than the ESN**, but still trails the best
+LSTM by about `0.23 pp`. The practical conclusion is unchanged:
+**only end-to-end recurrent NEF is competitive; target propagation is
+not a viable recurrent training rule here.** The other practical lesson
+is operational: this panel belongs on GPU/Colab, not on the local CPU.
+
+**Code / data identity.**
+
+- `code_identity` for all rows in the C5 and companion GPU panels:
+  `c3ca3cf8e46c1d9a45be76f8626e3795cda3c5a2`
+- Hardware stamped on all rows: `cuda_available=true`,
+  `cuda_device_name='NVIDIA L4'`
+- The companion GPU panels share the same code identity, so the
+  cross-model row-sMNIST comparison above is apples-to-apples
 
 ---
 
