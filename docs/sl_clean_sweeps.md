@@ -442,9 +442,7 @@ encoders, data-driven biases.  Code identity `3d1c1d…` includes the
 Cholesky solve and the clone-fix.
 
 **Status.** Run; raw JSON in `results/sl_clean/streaming_smnist_*.json`
-and `streaming_solve_modes.json`.  Headline numbers and verdict to be
-written up in this section once the analyzer table for the final code
-identity is consolidated.
+and `streaming_solve_modes.json`.
 
 ---
 
@@ -597,6 +595,15 @@ ESN (input-W, reservoir-W, internal sample) seeded as
   permuted lands too.
 - **b6_esn_smnist_permuted**: 34/60 mid-run, ~10 min/seed, top so
   far 76.4%.  ETA ~5 h.
+
+**Audit addendum 2026-05-03.** A clean-tree re-run of the row-panel cell
+`n=2000, sr=0.95, leak=0.3, seed=0` reproduces the stored dirty-row value
+**exactly**: `93.33000183105469%` test accuracy in both the original
+panel and `results/sl_clean/b6_esn_smnist_row_audit.json`. The original
+panel row lives under dirty identity `a495b4…`; the audit row under clean
+identity `9bfe9d…`. Because the numeric match is bit-exact, the
+row-panel JSON is treated as **audited** and does **not** need a full
+60-cell rerun.
 
 **Provisional headline.** Stream-NEF (B2: 98.61% ± 0.04 at n=8000) is
 ~5 pp above the best ESN (93.7%) on row, and presumably similarly

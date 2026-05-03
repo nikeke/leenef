@@ -1,0 +1,3 @@
+[2026-05-02T22:51:23] phase=b6_esn_smnist_row_audit experiment=b6_esn_smnist_row knob=cell values=['n2000_sr0.95_leak0.3'] seeds=[0] code_identity=9bfe9d9c7eacc013c2d83a42389245e47db129fe
+[2026-05-02T22:51:23]   [1/1] run    b6_esn_smnist_row_audit_n2000_sr0.95_leak0.3_s0
+[2026-05-02T22:59:51] phase b6_esn_smnist_row_audit done — 1 rows in results/sl_clean/b6_esn_smnist_row_audit.json
