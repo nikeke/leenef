@@ -672,9 +672,8 @@ Ten seeds at each width, trace-scaled `α = 10⁻⁴`:
 Doubling `n` is +0.77 pp (17σ) at 2k → 4k and +0.48 pp (12σ)
 at 4k → 8k — clean monotone scaling.
 
-The same task with two contemporaneous gradient-free baselines
-re-implemented under our seeding and code-identity discipline
-(see Appendix A):
+The same task with two contemporaneous baselines re-implemented
+under our seeding and code-identity discipline:
 
 | method | accuracy ± SE | wall (s/seed) | seeds |
 |--------|----------------|---------------|-------|
@@ -845,8 +844,8 @@ can follow the threads back to where the ideas originated.
   Rahimi & Recht (2007) on random features; Jaeger (2001) and
   Maass et al. (2002) on liquid-state and echo-state networks;
   Saxe et al. (2011) on the surprising adequacy of random
-  weights.  We connect to this corpus rather than pretend
-  originality.
+  weights.  We connect to this corpus directly rather than
+  presenting old machinery as new.
 - **ConvNEF** (deferred to a companion piece) is in the family
   of Coates et al. (2011) and the broader gradient-free
   feature-learning line.  We replicate, organize, and re-frame
@@ -881,19 +880,20 @@ can follow the threads back to where the ideas originated.
   fit lands 0.6–0.7 pp below tuned LSTM cells while running
   2.4–20× faster, depending on where one reads the LSTM
   speed/accuracy Pareto front.  It is also ~5 pp above the
-  completed CPU ESN row panel at ~5× the speed.  We re-validate
-  under multi-seed and report whatever comes out without
-  inflation.
+  completed CPU ESN row panel at ~5× the speed.  The permuted-ESN
+  counterpart remains in flight; its final numbers will be reported
+  without inflation.
 - **A reproducibility infrastructure** that makes multi-seed
-  analytic-readout studies cheap and resumable.  Not paper-novel;
-  lab-novel.  Every numeric claim in the paper is regeneratable
-  from a JSON file under `results/sl_clean/` whose `code_identity`
-  hash is verifiable against the repository tree.
+  analytic-readout studies cheap and resumable.  This is an
+  enabling contribution rather than a new learning algorithm: every
+  numeric claim in the paper is regeneratable from a JSON file under
+  `results/sl_clean/` whose `code_identity` hash is verifiable
+  against the repository tree.
 
 **Honest negatives.**  Negative results get first-class
-treatment, not appendix burial.  They are part of the
-contribution: knowing where the primitive does not work is as
-useful as knowing where it does.  The §6.4 limit on permuted
+treatment rather than being deferred away from the main argument.
+They are part of the contribution: knowing where the primitive does
+not work is as useful as knowing where it does.  The §6.4 limit on permuted
 sequence classification, the limited room for depth under purely
 analytic stacking (Appendix B), the systematic loss of
 `class_contrast` and `local_pca` encoders (§5.2), the bimodal
