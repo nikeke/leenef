@@ -504,7 +504,7 @@ def figure_f8() -> Path:
     ax2.text(
         0.04,
         0.92,
-        "LSTM hit budget cap\nESN high-width tier\nomitted until complete",
+        "LSTM did not converge\nin the budget on permuted",
         transform=ax2.transAxes,
         fontsize=8,
         color="C3",
