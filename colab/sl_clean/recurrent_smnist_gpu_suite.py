@@ -1,6 +1,6 @@
 """GPU suite for the recurrent sMNIST comparison panel.
 
-Run from a CUDA Colab runtime on the `paper-i/phase-c-experiments`
+Run from a CUDA Colab runtime on the `paper-i/phase-c-gpu-suite`
 branch.  The suite intentionally uses committed benchmark code and the
 standard `sl_phase_runner`; no runtime monkey-patching is involved.
 
@@ -19,18 +19,29 @@ their configs, so GPU rows cannot be confused with the CPU panels.
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
+import shutil
 import statistics
 import subprocess
 import sys
+import urllib.request
 from pathlib import Path
 
 import torch
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+DATA_DIR = REPO_ROOT / "data"
 RESULTS_DIR = REPO_ROOT / "results" / "sl_clean"
 LOGS_DIR = RESULTS_DIR / "logs"
 GPU_CONFIG_DIR = RESULTS_DIR / "colab_gpu_configs"
+
+MNIST_URLS = {
+    "train-images-idx3-ubyte": "https://storage.googleapis.com/cvdf-datasets/mnist/train-images-idx3-ubyte.gz",
+    "train-labels-idx1-ubyte": "https://storage.googleapis.com/cvdf-datasets/mnist/train-labels-idx1-ubyte.gz",
+    "t10k-images-idx3-ubyte": "https://storage.googleapis.com/cvdf-datasets/mnist/t10k-images-idx3-ubyte.gz",
+    "t10k-labels-idx1-ubyte": "https://storage.googleapis.com/cvdf-datasets/mnist/t10k-labels-idx1-ubyte.gz",
+}
 
 
 def _verify_cuda() -> None:
@@ -47,6 +58,25 @@ def _verify_cuda() -> None:
         f"capability {props.major}.{props.minor}",
         flush=True,
     )
+
+
+def _ensure_mnist_raw() -> None:
+    """Populate data/MNIST/raw with the uncompressed IDX files our loader hashes."""
+    raw_dir = DATA_DIR / "MNIST" / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    missing = [name for name in MNIST_URLS if not (raw_dir / name).exists()]
+    if not missing:
+        print(f"[gpu-suite] MNIST raw files already present at {raw_dir}", flush=True)
+        return
+
+    print(f"[gpu-suite] downloading MNIST raw IDX files to {raw_dir}", flush=True)
+    for name in missing:
+        url = MNIST_URLS[name]
+        gz_path = raw_dir / f"{name}.gz"
+        print(f"[gpu-suite]   {name}", flush=True)
+        urllib.request.urlretrieve(url, gz_path)
+        with gzip.open(gz_path, "rb") as src, open(raw_dir / name, "wb") as dst:
+            shutil.copyfileobj(src, dst)
 
 
 def _write_gpu_config(src_name: str, dst_name: str) -> Path:
@@ -216,6 +246,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     _verify_cuda()
+    _ensure_mnist_raw()
     outputs = run_suite(args.seeds)
     for path in outputs:
         _summarize(path)
