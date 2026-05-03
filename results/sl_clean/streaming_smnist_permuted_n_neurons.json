@@ -1,4 +1,1034 @@
 {
+  "streaming_smnist_permuted_n_neurons_16000_s0": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 16000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_16000_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.427083973,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": -0.000301,
+        "bias_std": 0.44564,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.247906
+      },
+      "eval_time_s": 549.7401,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 16000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 4210.6441,
+      "test_accuracy": 0.7942,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 16000,
+    "wall_time_s": 4760.6432
+  },
+  "streaming_smnist_permuted_n_neurons_16000_s1": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 16000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_16000_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.40951378,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": 0.000381,
+        "bias_std": 0.441994,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.255057
+      },
+      "eval_time_s": 552.0188,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 16000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 4187.6364,
+      "test_accuracy": 0.796,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 16000,
+    "wall_time_s": 4739.9139
+  },
+  "streaming_smnist_permuted_n_neurons_16000_s2": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 16000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_16000_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.426309084,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": -0.005046,
+        "bias_std": 0.445764,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.244656
+      },
+      "eval_time_s": 547.8036,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 16000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 4248.7717,
+      "test_accuracy": 0.7939,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 16000,
+    "wall_time_s": 4796.8403
+  },
+  "streaming_smnist_permuted_n_neurons_16000_s3": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 16000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_16000_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.391880407,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": -0.001123,
+        "bias_std": 0.438183,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.24668
+      },
+      "eval_time_s": 543.9471,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 16000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 4321.3631,
+      "test_accuracy": 0.7951,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 16000,
+    "wall_time_s": 4865.5749
+  },
+  "streaming_smnist_permuted_n_neurons_16000_s4": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 16000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_16000_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.381551872,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": 0.001118,
+        "bias_std": 0.434657,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.24631
+      },
+      "eval_time_s": 534.4724,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 16000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 4277.665,
+      "test_accuracy": 0.7943,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 16000,
+    "wall_time_s": 4812.3982
+  },
+  "streaming_smnist_permuted_n_neurons_16000_s5": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 16000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_16000_s5",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.425389932,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": -0.001773,
+        "bias_std": 0.444049,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.251618
+      },
+      "eval_time_s": 544.0973,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 16000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 4242.6518,
+      "test_accuracy": 0.7935,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 5,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 16000,
+    "wall_time_s": 4787.0138
+  },
+  "streaming_smnist_permuted_n_neurons_16000_s6": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 16000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_16000_s6",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.41017241,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": 0.004739,
+        "bias_std": 0.440768,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.252637
+      },
+      "eval_time_s": 543.206,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 16000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 4274.5251,
+      "test_accuracy": 0.7954,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 6,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 16000,
+    "wall_time_s": 4818.0164
+  },
+  "streaming_smnist_permuted_n_neurons_16000_s7": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 16000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_16000_s7",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.419643675,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": -0.005606,
+        "bias_std": 0.442401,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.25653
+      },
+      "eval_time_s": 532.0559,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 16000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 4242.3445,
+      "test_accuracy": 0.7934,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 7,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 16000,
+    "wall_time_s": 4774.6738
+  },
+  "streaming_smnist_permuted_n_neurons_16000_s8": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 16000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_16000_s8",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.397284287,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": -0.000517,
+        "bias_std": 0.438573,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.251147
+      },
+      "eval_time_s": 531.2065,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 16000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 4174.5696,
+      "test_accuracy": 0.7942,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 8,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 16000,
+    "wall_time_s": 4706.0394
+  },
+  "streaming_smnist_permuted_n_neurons_16000_s9": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 16000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_16000_s9",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.407425956,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": 2.7e-05,
+        "bias_std": 0.441305,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.246704
+      },
+      "eval_time_s": 529.6254,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 16000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 4203.6039,
+      "test_accuracy": 0.7939,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 9,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 16000,
+    "wall_time_s": 4733.4916
+  },
   "streaming_smnist_permuted_n_neurons_2000_s0": {
     "code_identity": "e106fe214e5c4691754e5fd28383019d349be091-dirty-b9fc8fbad234",
     "config": {
@@ -1028,5 +2058,1035 @@
     },
     "value": 4000,
     "wall_time_s": 792.4891
+  },
+  "streaming_smnist_permuted_n_neurons_8000_s0": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 8000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_8000_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.417581615,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": -0.002834,
+        "bias_std": 0.44293,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.249123
+      },
+      "eval_time_s": 346.1602,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 8000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 2416.0706,
+      "test_accuracy": 0.7777,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 8000,
+    "wall_time_s": 2763.5131
+  },
+  "streaming_smnist_permuted_n_neurons_8000_s1": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 8000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_8000_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.403548214,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": -0.007076,
+        "bias_std": 0.440681,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.25642
+      },
+      "eval_time_s": 345.1648,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 8000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 2447.6568,
+      "test_accuracy": 0.779,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 8000,
+    "wall_time_s": 2793.0132
+  },
+  "streaming_smnist_permuted_n_neurons_8000_s2": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 8000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_8000_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.43304842,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": -0.000816,
+        "bias_std": 0.446392,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.243507
+      },
+      "eval_time_s": 347.7013,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 8000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 2448.5389,
+      "test_accuracy": 0.7758,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 8000,
+    "wall_time_s": 2796.5038
+  },
+  "streaming_smnist_permuted_n_neurons_8000_s3": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 8000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_8000_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.435031713,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": 0.005537,
+        "bias_std": 0.446612,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.248545
+      },
+      "eval_time_s": 349.1915,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 8000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 2448.5739,
+      "test_accuracy": 0.7747,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 8000,
+    "wall_time_s": 2798.0242
+  },
+  "streaming_smnist_permuted_n_neurons_8000_s4": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 8000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_8000_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.413359778,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": -0.00263,
+        "bias_std": 0.442117,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.249821
+      },
+      "eval_time_s": 348.0455,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 8000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 2439.9448,
+      "test_accuracy": 0.777,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 8000,
+    "wall_time_s": 2788.2494
+  },
+  "streaming_smnist_permuted_n_neurons_8000_s5": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 8000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_8000_s5",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.437991008,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": 0.00366,
+        "bias_std": 0.444954,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.254417
+      },
+      "eval_time_s": 263.4979,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 8000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 1987.5888,
+      "test_accuracy": 0.7763,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 5,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 8000,
+    "wall_time_s": 2251.3051
+  },
+  "streaming_smnist_permuted_n_neurons_8000_s6": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 8000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_8000_s6",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.453909931,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": 0.003617,
+        "bias_std": 0.448522,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.251651
+      },
+      "eval_time_s": 262.6305,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 8000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 1815.3589,
+      "test_accuracy": 0.7767,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 6,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 8000,
+    "wall_time_s": 2078.1001
+  },
+  "streaming_smnist_permuted_n_neurons_8000_s7": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 8000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_8000_s7",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.445311026,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": -0.006351,
+        "bias_std": 0.449114,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.257146
+      },
+      "eval_time_s": 262.9212,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 8000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 1816.3962,
+      "test_accuracy": 0.7757,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 7,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 8000,
+    "wall_time_s": 2079.426
+  },
+  "streaming_smnist_permuted_n_neurons_8000_s8": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 8000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_8000_s8",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.403658494,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": -0.001039,
+        "bias_std": 0.438233,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.252423
+      },
+      "eval_time_s": 262.3754,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 8000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 1814.5111,
+      "test_accuracy": 0.7775,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 8,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 8000,
+    "wall_time_s": 2076.9934
+  },
+  "streaming_smnist_permuted_n_neurons_8000_s9": {
+    "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.0001,
+      "alpha_scale": "trace",
+      "batch_size": 1000,
+      "chunk_stats": true,
+      "data_driven_biases": true,
+      "encode_max_tokens": 50000,
+      "encoder_strategy": "hypersphere",
+      "eval_train_accuracy": false,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 8000,
+      "solve_mode": "batch_acc",
+      "window_size": 10
+    },
+    "experiment": "streaming_smnist_permuted",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "streaming_smnist_permuted_n_neurons_8000_s9",
+    "metrics": {
+      "dataset_metadata": {
+        "T": 784,
+        "d_timestep": 1,
+        "dataset": "sMNIST-permuted",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "smnist_permuted_div255_seed=0",
+        "processed_hashes": {
+          "permutation": "270deb57c4870003ce4534865b0f04e317928a27ad60fbb85f672e2b3b340d86",
+          "x_test": "9a7da4206fe87fcbfd8a30453c03a47a924ada2372646ff8d11edfc031ea1f42",
+          "x_train": "20d1ade25e9c69b8eeaa236cfcf9dd2b2a8e4d60abb273ff812fb79e0d917724",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "sequence_shape": [
+          784,
+          1
+        ]
+      },
+      "diagnostics": {
+        "alpha_eff": 1.441795278,
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "bias_mean": 0.001167,
+        "bias_std": 0.45115,
+        "encoder_norm_mean": 1.0,
+        "encoder_norm_std": 0.0,
+        "gain_mean": 1.247727
+      },
+      "eval_time_s": 262.3074,
+      "factors": {
+        "alpha_nominal": 0.0001,
+        "alpha_scale": "trace",
+        "dataset": "sMNIST-permuted",
+        "n_neurons": 8000,
+        "solve_mode": "batch_acc",
+        "window_size": 10
+      },
+      "fit_time_s": 1814.1365,
+      "test_accuracy": 0.7772,
+      "train_accuracy": null
+    },
+    "phase": "streaming_smnist_permuted_n_neurons",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "T": 784,
+      "d_timestep": 1,
+      "dataset": "sMNIST-permuted",
+      "experiment_kind": "smnist_permuted_streaming",
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "perm_seed": 0,
+      "preprocessing": "smnist_permuted_div255_seed=0"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 9,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 8000,
+    "wall_time_s": 2076.5535
   }
 }
