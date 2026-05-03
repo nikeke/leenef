@@ -38,11 +38,12 @@ purely analytic multi-layer stacking does not work
 (target propagation and end-to-end refinement recover the
 single-layer accuracy on MNIST but no more); permuted sequence
 classification is bounded above by mean-pool's order-erasing
-property — a preliminary (not-yet-final) ESN comparator looks set
-to beat Stream-NEF on permuted sMNIST, locating the prior boundary
-between mean-pool and recurrent state precisely; gradient-trained
-MLPs beat generic single-layer leenef on image features by 1–4 pp.
-The twist is that a `receptive_field`-encoder leenef model beats the best
+property — the clean ESN rerun is still in flight, but already
+suggests that reservoir state can match Stream-NEF at smaller width
+on permuted sMNIST, locating the likely boundary between mean-pool
+and recurrent state; gradient-trained MLPs beat generic
+single-layer leenef on image features by 1–4 pp.  The twist is
+that a `receptive_field`-encoder leenef model beats the best
 tuned MLP on CIFAR-10 by +1.37 pp **and runs ~11× faster** — a
 good encoder closes the gap, a generic encoder does not.  The
 paper opens the foundational trilogy that continues with continual
