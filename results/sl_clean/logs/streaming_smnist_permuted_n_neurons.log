@@ -18,3 +18,25 @@
 [2026-05-01T05:25:21]   [9/10] run    streaming_smnist_permuted_n_neurons_4000_s3
 [2026-05-01T05:38:43]   [10/10] run    streaming_smnist_permuted_n_neurons_4000_s4
 [2026-05-01T05:51:56] phase streaming_smnist_permuted_n_neurons done — 10 rows in results/sl_clean/streaming_smnist_permuted_n_neurons.json
+[2026-05-02T22:51:22] phase=streaming_smnist_permuted_n_neurons experiment=streaming_smnist_permuted knob=n_neurons values=[8000, 16000] seeds=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] code_identity=9bfe9d9c7eacc013c2d83a42389245e47db129fe
+[2026-05-02T22:51:22]   [1/20] run    streaming_smnist_permuted_n_neurons_8000_s0
+[2026-05-02T23:37:26]   [2/20] run    streaming_smnist_permuted_n_neurons_8000_s1
+[2026-05-03T00:23:59]   [3/20] run    streaming_smnist_permuted_n_neurons_8000_s2
+[2026-05-03T01:10:35]   [4/20] run    streaming_smnist_permuted_n_neurons_8000_s3
+[2026-05-03T01:57:13]   [5/20] run    streaming_smnist_permuted_n_neurons_8000_s4
+[2026-05-03T02:43:42]   [6/20] run    streaming_smnist_permuted_n_neurons_8000_s5
+[2026-05-03T03:21:13]   [7/20] run    streaming_smnist_permuted_n_neurons_8000_s6
+[2026-05-03T03:55:51]   [8/20] run    streaming_smnist_permuted_n_neurons_8000_s7
+[2026-05-03T04:30:30]   [9/20] run    streaming_smnist_permuted_n_neurons_8000_s8
+[2026-05-03T05:05:07]   [10/20] run    streaming_smnist_permuted_n_neurons_8000_s9
+[2026-05-03T05:39:44]   [11/20] run    streaming_smnist_permuted_n_neurons_16000_s0
+[2026-05-03T06:59:05]   [12/20] run    streaming_smnist_permuted_n_neurons_16000_s1
+[2026-05-03T08:18:05]   [13/20] run    streaming_smnist_permuted_n_neurons_16000_s2
+[2026-05-03T09:38:01]   [14/20] run    streaming_smnist_permuted_n_neurons_16000_s3
+[2026-05-03T10:59:07]   [15/20] run    streaming_smnist_permuted_n_neurons_16000_s4
+[2026-05-03T12:19:19]   [16/20] run    streaming_smnist_permuted_n_neurons_16000_s5
+[2026-05-03T13:39:06]   [17/20] run    streaming_smnist_permuted_n_neurons_16000_s6
+[2026-05-03T14:59:24]   [18/20] run    streaming_smnist_permuted_n_neurons_16000_s7
+[2026-05-03T16:18:59]   [19/20] run    streaming_smnist_permuted_n_neurons_16000_s8
+[2026-05-03T17:37:25]   [20/20] run    streaming_smnist_permuted_n_neurons_16000_s9
+[2026-05-03T18:56:19] phase streaming_smnist_permuted_n_neurons done — 30 rows in results/sl_clean/streaming_smnist_permuted_n_neurons.json

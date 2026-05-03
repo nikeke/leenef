@@ -728,22 +728,22 @@ part of the scientific comparison.
 
 Permuted sMNIST destroys spatial locality: each pixel becomes
 its own timestep with a fixed random permutation applied
-uniformly across the dataset (T = 784).  Five seeds per cell:
+uniformly across the dataset (T = 784):
 
-| `n_neurons` | Stream-NEF accuracy ± SE | end-to-end wall-clock time (CPU, s/seed) |
-|-------------|--------------------------|--------------------|
-| 2 000 | 72.96 ± 0.07 % | 611 |
-| 4 000 | 75.61 ± 0.05 % | 792 |
+| `n_neurons` | seeds | Stream-NEF accuracy ± SE | end-to-end wall-clock time (CPU, s/seed) |
+|-------------|-------|--------------------------|--------------------|
+| 2000 | 5 | 72.96 ± 0.07 % | 611 |
+| 4000 | 5 | 75.61 ± 0.05 % | 792 |
+| 8000 | 10 | 77.68 ± 0.04 % | 2450 |
+| 16000 | 10 | 79.44 ± 0.03 % | 4780 |
 
-Doubling `n` is +2.65 pp (55σ) — far from saturated.  Extension
-to `n ∈ {8 000, 16 000}` is the natural next measurement, because
-these two cells are still far from saturation and inexpensive
-relative to gradient-trained recurrent sweeps.  We do not include
-unfinished comparator rows in the claim table.  The current
-paper-level conclusion is therefore deliberately narrow:
-permuted sMNIST exposes the mean-pool limitation of Stream-NEF, and
-the final ranking against reservoir-state baselines should be read
-only after the completed ESN panel is available.
+Scaling remains monotone: +2.65 pp from 2000 to 4000 neurons,
++2.07 pp from 4000 to 8000, and +1.76 pp from 8000 to
+16000.  The larger cells raise the ceiling but do not remove the
+qualitative limitation: permuted sMNIST exposes the **mean-pool
+limitation of Stream-NEF**, and the final ranking against
+reservoir-state baselines should be read only after the completed
+ESN panel is available.
 
 ### §6.4 — Limits
 

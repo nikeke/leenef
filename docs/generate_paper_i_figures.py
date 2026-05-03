@@ -405,8 +405,8 @@ def figure_f8() -> Path:
     # Stream-NEF row (10 seeds): {n_neurons -> acc%}
     nef_row = {2000: 97.20, 4000: 97.97, 8000: 98.45}
     nef_row_se = {2000: 0.04, 4000: 0.03, 8000: 0.02}
-    nef_perm = {2000: 72.96, 4000: 75.61}
-    nef_perm_se = {2000: 0.07, 4000: 0.05}
+    nef_perm = {2000: 72.96, 4000: 75.61, 8000: 77.68, 16000: 79.44}
+    nef_perm_se = {2000: 0.07, 4000: 0.05, 8000: 0.04, 16000: 0.03}
 
     # ESN row + permuted: pick best leak/sr cell per n
     def _esn_best(panel_path: Path, min_rows_per_n: int | None = None, *, clean_only: bool = True):
@@ -504,7 +504,7 @@ def figure_f8() -> Path:
     ax2.text(
         0.04,
         0.92,
-        "LSTM did not converge\nin compute budget\nESN n=2000 tier in flight",
+        "LSTM hit budget cap\nESN high-width tier\nomitted until complete",
         transform=ax2.transAxes,
         fontsize=8,
         color="C3",

@@ -442,9 +442,24 @@ encoders, data-driven biases.  Code identity `3d1c1d…` includes the
 Cholesky solve and the clone-fix.
 
 **Status.** Run; raw JSON in `results/sl_clean/streaming_smnist_*.json`
-and `streaming_solve_modes.json`.  Headline numbers and verdict to be
-written up in this section once the analyzer table for the final code
-identity is consolidated.
+and `streaming_solve_modes.json`.
+
+**Addendum 2026-05-03 — permuted scaling extension.** A clean-tree follow-on
+extended `streaming_smnist_permuted_n_neurons.json` to
+`n_neurons ∈ {8000, 16000}` with 10 seeds each under code identity
+`9bfe9d9c7eacc013c2d83a42389245e47db129fe` (the older `2000/4000` rows in
+that JSON remain under dirty identity `e106fe…`). The new clean rows are:
+
+| n_neurons | test accuracy | verdict |
+|---|---|---|
+| 8000 | 77.68 ± 0.04 | strong gain over the old 4k regime |
+| 16000 | 79.44 ± 0.03 | still improving, but still far from row-sMNIST |
+
+The `16000` row beats `8000` by `+1.76 pp`, far outside the combined SE
+(`0.05 pp`). So the permuted mean-pool story is now clearer: scale helps
+materially all the way to 16k, but the extension **does not break the
+ceiling**. Even at 16k, permuted Stream-NEF remains in the high-70s —
+nowhere near the row-sMNIST regime where streaming reaches the high-90s.
 
 ---
 
