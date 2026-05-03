@@ -39,25 +39,30 @@ of the same committed tree can reproduce the identity.
 
 ## GPU recommendation
 
-Per `AGENTS.md`, **L4** is the recommended Colab GPU for this suite.
-T4 is likely sufficient but slower; A100/H100 are unnecessary at these
-model sizes.
+Per `AGENTS.md`, **G4** is the preferred Colab GPU for this suite if it
+is available at the documented ~5 CU/hr rate: it has much more VRAM and
+substantially higher FP32 throughput than L4 for roughly the same Colab
+cost.  **L4** is the fallback.  T4 is likely sufficient but slower;
+A100/H100 are unnecessary at these model sizes unless G4/L4 are
+unavailable or unexpectedly memory-bound.
 
-Expected wall time on L4: **a few GPU hours total**.  The C5 TP cells are
-the slowest; the Stream-NEF, LSTM Pareto, and ESN-best comparator panels
-are included because they are small enough to rerun cleanly on the same
-device.
+Expected wall time on G4/L4: **a few GPU hours total**.  The C5 TP cells
+are the slowest; the Stream-NEF, LSTM Pareto, and ESN-best comparator
+panels are included because they are small enough to rerun cleanly on
+the same device.
 
 ## Running in Colab
 
 1. Open `recurrent_smnist_gpu_suite.ipynb`.
-2. Runtime -> Change runtime type -> GPU -> L4.
+2. Runtime -> Change runtime type -> GPU -> G4 if available, otherwise L4.
 3. Run all cells.
-4. Download the four JSON files printed by the final cell and commit them
-   back to the Phase-C branch.
+4. Download the zip file produced by the final cell and commit the JSON
+   and log files back to the Phase-C branch.
 
-The notebook clones `paper-i/phase-c-experiments`, so that branch must
-contain this GPU-suite commit before the notebook is run.
+The notebook currently clones `paper-i/phase-c-gpu-suite`, the temporary
+branch that preserves this GPU-suite commit while the long CPU Phase-C
+run finishes on `paper-i/phase-c-experiments`.  Switch the notebook back
+to `paper-i/phase-c-experiments` after the branches are merged.
 
 ## What this suite does *not* replace
 
