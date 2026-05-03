@@ -98,6 +98,7 @@ the ground truth for any future claim audit.
 | C2.2 | c2_activation_cifar10_panel | c2_activation_cifar10 | `cell` (activation × gain) | Paper I activation/gain ablation — CIFAR-10 |
 | C3   | c3_ensemble_cifar10_panel | c3_ensemble_cifar10 | `cell` (ensemble size × encoder) | Paper I ensemble / RF panel — CIFAR-10 |
 | C4   | c4_multilayer_mnist_panel | c4_multilayer_mnist | `cell` (training strategy) | Paper I multilayer strategy panel — MNIST |
+| C4.1 | c4_multilayer_cifar10_panel | c4_multilayer_cifar10 | `cell` (training strategy) | Paper I multilayer strategy panel — CIFAR-10 |
 | C6   | c6_convnef_mnist_panel | c6_convnef_mnist | `cell` (`default`) | Paper I ConvNEF headline — MNIST |
 | C6.1 | c6_convnef_cifar10_panel | c6_convnef_cifar10 | `cell` (`default`) | Paper I ConvNEF headline — CIFAR-10 |
 | C7   | c7_housing_panel | c7_housing | `cell` (`n_neurons`) | Paper I §5.6 — regression universality demo |
@@ -1032,6 +1033,52 @@ allowed.**
   the first wrapper hit a strategy-specific kwarg bug; all aggregate
   rows remain directly comparable because they share the same stamped
   identity
+
+---
+
+## C4.1 — CIFAR-10 multilayer strategy panel
+
+**Question.** Does the same one-hidden-layer NEF stack help on CIFAR-10,
+or does the harder dataset expose a much sharper split between weak
+local/analytic training rules and full end-to-end refinement?
+
+**Setup.** CIFAR-10, one hidden layer with `hidden=[2000]`, output layer
+with `output_neurons=2000`, `abs` activation, hypersphere encoders,
+data-driven biases, `α=1e-3`, and 5 seeds. The knob is
+`strategy ∈ {greedy, hybrid, target_prop, end_to_end, hybrid_e2e}`.
+Result: `results/sl_clean/c4_multilayer_cifar10_panel.json`. Log:
+`results/sl_clean/logs/c4_multilayer_cifar10_panel.log`. Wall time:
+~5 h 17 min on the 12-core CPU.
+
+### Per-cell test accuracy (mean ± SE, n=5)
+
+| strategy | test accuracy | verdict |
+|---|---|---|
+| greedy | 46.08 ± 0.13 | modest baseline |
+| hybrid | 36.37 ± 0.17 | catastrophic failure |
+| target_prop | 50.59 ± 0.15 | modest gain over greedy |
+| end_to_end | 59.20 ± 0.04 | clear best |
+| hybrid_e2e | 58.47 ± 0.16 | strong but below pure E2E |
+
+**Verdict.** C4.1 is much harsher than MNIST. `target_prop` helps over
+the plain greedy stack, but only by about `+4.5 pp`, leaving it far
+below the good CIFAR-10 front-runners. The real jump comes only from
+full end-to-end training: `end_to_end` reaches `59.200% ± 0.044`, while
+`hybrid_e2e` lands at `58.470% ± 0.164`. Unlike MNIST, `hybrid_e2e`
+does **not** beat pure E2E here, and plain `hybrid` collapses badly to
+`36.374% ± 0.170`. So the CIFAR-10 multilayer story is genuinely
+negative for non-E2E training: **depth helps only when the model is
+allowed to behave like a conventionally trained network; the purely
+analytic/local variants remain uncompetitive.**
+
+**Code / data identity.**
+
+- `code_identity` for all 25 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- Dataset hashes match the shared CIFAR-10 raw bytes under the
+  worktree's `data/` symlink to `../leenef/data`
+- This panel was run directly through the same-identity recovery runner
+  to avoid the known stock-wrapper kwarg bug, so all rows still live in a
+  single clean aggregate
 
 ---
 
