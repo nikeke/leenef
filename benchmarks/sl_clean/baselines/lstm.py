@@ -178,6 +178,8 @@ def train_lstm(
             epochs_no_improve += 1
             if epochs_no_improve >= cfg.patience:
                 break
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
     elapsed = time.perf_counter() - t0
 
     return {

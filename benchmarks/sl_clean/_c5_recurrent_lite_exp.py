@@ -29,6 +29,16 @@ from ._phase_c_shared import (
 C5_CELLS: tuple[str, ...] = ("end_to_end", "target_prop")
 
 
+def _resolve_device(config: dict) -> torch.device:
+    requested = str(config.get("device", "cuda"))
+    if requested == "auto":
+        requested = "cuda" if torch.cuda.is_available() else "cpu"
+    device = torch.device(requested)
+    if device.type == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("C5 requested CUDA but torch.cuda.is_available() is false")
+    return device
+
+
 def _c5_run(config: dict, seed: int, run_context: dict) -> dict:
     set_sl_seed(seed)
     strategy = str(config["cell"])
@@ -41,17 +51,21 @@ def _c5_run(config: dict, seed: int, run_context: dict) -> dict:
     lr = float(config.get("lr", 1e-3))
     batch_size = int(config.get("batch_size", 256))
     alpha = float(config.get("alpha", 1e-3))
+    device = _resolve_device(config)
 
     bundle = load_dataset_for_phase_c(run_context)
-    x_train, y_train = bundle.x_train, bundle.y_train  # (N, T, d)
-    x_test, y_test = bundle.x_test, bundle.y_test
-    Y_oh = bundle.one_hot(y_train).float()
+    x_train_cpu, y_train_cpu = bundle.x_train, bundle.y_train  # (N, T, d)
+    x_test_cpu, y_test_cpu = bundle.x_test, bundle.y_test
+    Y_oh_cpu = bundle.one_hot(y_train_cpu).float()
 
     rngs = _make_subrngs_phase_c(seed)
     init_rng = rngs["init"]
 
+    # Construct on CPU so explicit-Generator draws for encoders, gains,
+    # and center indices stay bit-identical to the CPU reference.  The
+    # model and tensors then move together to the requested device.
     layer = RecurrentNEFLayer(
-        d_in=int(x_train.shape[2]),
+        d_in=int(x_train_cpu.shape[2]),
         n_neurons=n_neurons,
         d_out=bundle.n_classes,
         d_state=d_state,
@@ -59,8 +73,14 @@ def _c5_run(config: dict, seed: int, run_context: dict) -> dict:
         encoder_strategy="hypersphere",
         gain=(0.5, 2.0),
         rng=init_rng,
-        centers=x_train,
-    )
+        centers=x_train_cpu,
+    ).to(device)
+
+    x_train = x_train_cpu.to(device)
+    y_train = y_train_cpu.to(device)
+    x_test = x_test_cpu.to(device)
+    y_test = y_test_cpu.to(device)
+    Y_oh = Y_oh_cpu.to(device)
 
     t0 = time.perf_counter()
     if strategy == "end_to_end":
@@ -82,6 +102,8 @@ def _c5_run(config: dict, seed: int, run_context: dict) -> dict:
             batch_size=batch_size,
             alpha=alpha,
         )
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
     train_time = time.perf_counter() - t0
 
     @torch.no_grad()
@@ -106,6 +128,8 @@ def _c5_run(config: dict, seed: int, run_context: dict) -> dict:
             "d_state": d_state,
             "n_epochs": n_epochs,
             "batch_size": batch_size,
+            "device": str(device),
+            "gpu_name": torch.cuda.get_device_name(device) if device.type == "cuda" else None,
         },
         "dataset_metadata": bundle.metadata(),
     }
@@ -127,6 +151,7 @@ C5_BASE_CONFIG: dict[str, object] = {
     "lr": 1e-3,
     "batch_size": 256,
     "alpha": 1e-3,
+    "device": "cuda",
 }
 
 

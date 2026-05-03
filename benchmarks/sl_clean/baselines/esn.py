@@ -160,6 +160,8 @@ def train_esn(
     states_test = _collect_final_states(
         x_test, W_in, W, cfg.leak_rate, cfg.chunk_size, cfg.use_bias_state
     )
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
     collect_time = time.perf_counter() - t0
 
     Y = torch.zeros(y_train.shape[0], n_classes, device=device)
@@ -167,6 +169,8 @@ def train_esn(
 
     t0 = time.perf_counter()
     W_out = _ridge_solve(states_train, Y, cfg.ridge_alpha)
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
     solve_time = time.perf_counter() - t0
 
     pred_train = (states_train.double() @ W_out).argmax(dim=1)
