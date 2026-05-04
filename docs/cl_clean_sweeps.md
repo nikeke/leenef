@@ -43,6 +43,50 @@ Sentinel: `results/cl_clean/<panel>_done` for each of the four
 datasets.  Verdict gate: `max_abs_gap` between `nef_accumulate` and
 `nef_joint` ≤ 0.05 pp on every panel.
 
+#### 2026-05-04 — Split-MNIST (`nef_continual_split_mnist`)
+
+* Code identity: `ed891a3d7bbefb532fe876847b635a1fb871aa43`.
+* Command family: `PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python SEEDS=0-9 bash benchmarks/cl_clean/cl_hp_driver.sh nef_continual_split_mnist`.
+* Thread caps at launch: `OMP_NUM_THREADS=4`, `MKL_NUM_THREADS=4`,
+  `OPENBLAS_NUM_THREADS=4`, `NUMEXPR_NUM_THREADS=4`.
+* Base config: `results/cl_clean/base_config_nef_continual_split_mnist.json`
+  (`n_neurons=5000`, `alpha=1e-3`, `centers_mode=first_task`,
+  `fit_chunk_size=4096`).
+* Cells: `nef_accumulate`, `nef_joint`, `nef_reset`, `mlp_finetune`,
+  `mlp_joint`, `mlp_ewc`, `mlp_er`; seeds 0-9; 70 rows complete.
+* Sentinel: `results/cl_clean/nef_continual_split_mnist_panel_done`.
+
+Per-cell summary (`test_accuracy`, mean ± SE; `fit_time_s`, mean ± SE):
+
+| Cell | n | Accuracy | Fit time |
+| --- | ---: | ---: | ---: |
+| `nef_accumulate` | 10 | 97.022% ± 0.034% | 31.13s ± 0.27s |
+| `nef_joint` | 10 | 97.022% ± 0.034% | 31.87s ± 0.21s |
+| `nef_reset` | 10 | 19.811% ± 0.224% | 7.07s ± 0.10s |
+| `mlp_finetune` | 10 | 19.737% ± 0.229% | 9.22s ± 0.18s |
+| `mlp_joint` | 10 | 98.056% ± 0.048% | 54.40s ± 1.71s |
+| `mlp_ewc` | 10 | 19.979% ± 0.266% | 20.33s ± 0.21s |
+| `mlp_er` | 10 | 86.533% ± 0.616% | 13.98s ± 0.17s |
+
+Joint-equivalence summary:
+
+* `mean_signed_gap(accumulate - joint) = +0.0000 pp`
+* `max_abs_gap(accumulate - joint) = 0.0000 pp`
+* `n = 10`
+* Verdict: **joint-equivalence supported (≤ 0.05 pp)**.
+
+Cross-method / forgetting summary:
+
+* Forgetting-gap proxy (`accumulate - reset`): `+77.211 ± 0.213 pp`.
+* `mlp_finetune` and `mlp_ewc` both collapse to ~20% final accuracy on
+  the class-incremental split; replay rescues performance to 86.5%, but
+  still trails `nef_accumulate` by 10.5 pp.
+* `nef_accumulate` trails `mlp_joint` by 1.034 pp while using 1.75× less
+  end-to-end wall-clock fitting time (`31.13s` vs `54.40s`).
+* Adoption verdicts: **H1 supported strongly** on Split-MNIST; **H5
+  supported against finetune/EWC**, with replay competitive but clearly
+  below the NEF accumulate/joint pair.
+
 ### B2 — Cross-method panel (H5)
 
 Same panel; the MLP cells produce the H5 comparison.

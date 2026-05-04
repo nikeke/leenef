@@ -38,6 +38,16 @@ Three things make this paper interesting (and not just an "of course"):
 ## Story so far (to be filled in as panels land)
 
 * Phase A scaffolding committed on `paper-ii/cl-scaffold`.
-* No multi-seed numbers exist yet under `cl_clean/`.  All numbers
-  in `attic/docs/continual_learning_notes.md` are single-seed and
-  must be re-validated before the manuscript cites them.
+* Split-MNIST is the first multi-seed validation point, and it sharpens
+  the paper's central claim immediately: over 10 seeds,
+  `nef_accumulate` and `nef_joint` are numerically identical
+  (`max|Δ| = 0.0000 pp`), so the "no forgetting by construction"
+  statement survives contact with the actual benchmark rather than just
+  the algebra.
+* The baseline picture is harsher than the old single-seed notes
+  suggested.  On the class-incremental split, `mlp_finetune` and
+  `mlp_ewc` both collapse to ~20.0% final accuracy, while replay climbs
+  back to 86.5% but still trails the NEF pair by 10.5 pp.  That is a
+  cleaner story than "NEF forgets less": on this regime, sufficient-
+  statistics accumulation lands on the joint solution exactly, while
+  Fisher-style protection does not remain competitive.
