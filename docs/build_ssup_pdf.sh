@@ -44,10 +44,25 @@ fi
 
 mkdir -p "$(dirname "$OUT")"
 
-tmp_header="$(mktemp)"
-trap 'rm -f "$tmp_header"' EXIT
+tmpdir="$(mktemp -d)"
+tmp_header="$tmpdir/header.tex"
+tmp_tex="$tmpdir/SSUP-I.tex"
+tmp_log="$tmpdir/xelatex.log"
+trap 'rm -rf "$tmpdir"' EXIT
+
+font_args=()
+if command -v fc-match >/dev/null 2>&1; then
+    if fc-match "DejaVu Serif" >/dev/null 2>&1; then
+        font_args+=(-V "mainfont=DejaVu Serif" -V "sansfont=DejaVu Sans")
+    fi
+    if fc-match "DejaVu Sans Mono" >/dev/null 2>&1; then
+        font_args+=(-V "monofont=DejaVu Sans Mono")
+    fi
+fi
 
 cat >"$tmp_header" <<'EOF'
+\usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{microtype}
 \usepackage{bookmark}
 \usepackage{longtable}
@@ -60,13 +75,14 @@ cat >"$tmp_header" <<'EOF'
 \setlength{\emergencystretch}{3em}
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 EOF
+printf '\\graphicspath{{%s/}{%s/figures/}}\n' "$ROOT/docs" "$ROOT/docs" >>"$tmp_header"
 
 pandoc \
     "$DOC" \
     --from=markdown+tex_math_dollars+footnotes+pipe_tables+table_captions+raw_tex \
-    --to=pdf \
-    --pdf-engine=xelatex \
+    --to=latex \
     --standalone \
+    --lua-filter="$ROOT/docs/ssup_math.lua" \
     --resource-path="$ROOT:$ROOT/docs:$ROOT/docs/figures" \
     --include-in-header="$tmp_header" \
     --variable=geometry:margin=1in \
@@ -75,6 +91,19 @@ pandoc \
     --variable=colorlinks:true \
     --variable=linkcolor:blue \
     --variable=urlcolor:blue \
-    --output="$OUT"
+    "${font_args[@]}" \
+    --output="$tmp_tex"
+
+if ! xelatex -halt-on-error -interaction=nonstopmode -output-directory "$tmpdir" "$tmp_tex" >"$tmp_log" 2>&1; then
+    cat "$tmp_log" >&2
+    exit 1
+fi
+
+if ! xelatex -halt-on-error -interaction=nonstopmode -output-directory "$tmpdir" "$tmp_tex" >"$tmp_log" 2>&1; then
+    cat "$tmp_log" >&2
+    exit 1
+fi
+
+cp "$tmpdir/SSUP-I.pdf" "$OUT"
 
 echo "wrote $OUT"
