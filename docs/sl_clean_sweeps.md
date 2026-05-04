@@ -503,7 +503,7 @@ origin (MNIST raw), the hinge rarely sees a sign flip, abs is
 effectively linear in the fluctuations, and bias placement is moot.
 "DC offset = constant pixel mean" is one specific instance of this
 geometry, but the mechanism is positional, not spectral.  See
-`docs/paper_insights.md` §1.2 ("Where the abs hinge sits relative to
+`attic/docs/paper_insights.md` §1.2 ("Where the abs hinge sits relative to
 data") for the full reading.
 
 **Implication for paper.**  The §1.2 / §6 narrative leads with the

@@ -8,12 +8,12 @@
 > three-paper series (Supervised → Continual → Reinforcement Learning)
 > is rebuilt with rl_clean-grade reproducibility.
 >
-> The active paper outline lives in
-> [`docs/paper_i_outline.md`](docs/paper_i_outline.md); the synthesized
-> insights story in [`docs/paper_insights.md`](docs/paper_insights.md);
+> The paper outline lives in
+> [`attic/docs/paper_i_outline.md`](attic/docs/paper_i_outline.md); the synthesized
+> insights story in [`attic/docs/paper_insights.md`](attic/docs/paper_insights.md);
 > the running sweep execution log in
 > [`docs/sl_clean_sweeps.md`](docs/sl_clean_sweeps.md); follow-up
-> experiment specs in [`docs/b1_followups.md`](docs/b1_followups.md).
+> experiment specs in [`attic/docs/b1_followups.md`](attic/docs/b1_followups.md).
 > Per-session work-in-progress notes live under
 > `~/.copilot/session-state/<session>/` (gitignored, may be wiped on
 > compaction); anything that should outlast a session must be migrated
@@ -74,14 +74,14 @@ infrastructure.
 
 **Documents you should read before non-trivial work:**
 
-- [`docs/paper_i_outline.md`](docs/paper_i_outline.md) — paper structure
+- [`attic/docs/paper_i_outline.md`](attic/docs/paper_i_outline.md) — paper structure
   (the six principles, §-by-§ skeleton).
-- [`docs/paper_insights.md`](docs/paper_insights.md) — synthesized
+- [`attic/docs/paper_insights.md`](attic/docs/paper_insights.md) — synthesized
   story (frame coefficients, DC framing, α-as-function-of-n, manifold
   view, H8 linear collapse).  This is the **spine** of Paper I.
 - [`docs/sl_clean_sweeps.md`](docs/sl_clean_sweeps.md) — chronological
   execution log of B-phases (configs, sentinels, dates, raw verdicts).
-- [`docs/b1_followups.md`](docs/b1_followups.md) — queued
+- [`attic/docs/b1_followups.md`](attic/docs/b1_followups.md) — queued
   H1-completion experiment specs (B1.4 / B1.5 DC-mechanism falsifiers).
 - [`attic/docs/technical_report.md`](attic/docs/technical_report.md) —
   pre-restart single-seed TR.  Useful for understanding earlier
