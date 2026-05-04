@@ -1,84 +1,94 @@
 # leenef
 
-Machine learning with the Neural Engineering Framework (NEF) of
-Eliasmith and Anderson, using rate-based neurons on PyTorch.
+Machine learning with a rate-based specialization of the Neural
+Engineering Framework (NEF) in PyTorch.
 
-> **Repository status — clean restart in progress.**  The library
-> source (`src/leenef/`) and core tests (`tests/`) are stable, but
-> `benchmarks/`, `docs/`, `results/`, and the historical technical
-> report have been moved to `attic/` while a foundational three-paper
-> series is rebuilt with rl_clean-grade reproducibility.  The historical
-> technical report (`attic/docs/technical_report.md`) and RL notes
-> (`attic/docs/rl_notes.md`) remain available for reference, but their
-> claims and tables predate the new multi-seed protocol and should not
-> be cited as current results.
+> **Repository status — SSUP trilogy rebuild.** The stable core lives in
+> `src/leenef/` and `tests/`.  Active supervised-learning experiments and
+> preserved artifacts live under `benchmarks/sl_clean/`,
+> `results/sl_clean/`, and `docs/SSUP-I.md`; older pre-restart
+> infrastructure remains in `attic/` for reference.
 
 ## Overview
 
-A standard neural network trains all weights with gradient descent.  NEF
-takes a different approach: input weights (encoders) are fixed,
-and output weights (decoders) are solved analytically via regularized
-least-squares.  No gradient descent, no epochs, no learning rate — a single
-layer trains in under 2 seconds on a laptop CPU.
+leenef keeps the NEF encoder/decoder split but uses rate neurons and an
+analytic decoder solve for machine learning:
 
-Each neuron computes `activity = |gain · ((x − d) · e)|`, where **e** is a
-fixed direction (often random, but potentially data-adapted), **d** is a
-reference point sampled from training data, and **gain** controls
-sensitivity.  The neuron measures unsigned deviation from a known
-reference along one direction.
+```text
+a = G(g ⊙ (E x) + b)
+D = (AᵀA + α_eff I)⁻¹ AᵀY
+y = Dᵀa
+```
 
-The library provides:
-- `NEFLayer` — single-layer analytical solve
-- `NEFEnsemble` — ensemble of independent NEFLayers
-- `NEFNetwork` — multi-layer with six training strategies
-- `RecurrentNEFLayer` — temporal sequence models
-- `StreamingNEFClassifier` — delay-line reservoir temporal classifier
-- `ConvNEFStage`, `ConvNEFPipeline`, `ConvNEFEnsemble` — gradient-free
-  convolutional feature extraction and ensembles
-- `NEFFQIAgent` — RL via Fitted Q-Iteration with analytical solve
-- `NEFFQIEnsemble` — RL ensemble with Thompson sampling / UCB exploration
+The practical consequence is that the expensive part of training is not
+backpropagation through all weights, but accumulation of the sufficient
+statistics `AᵀA` and `AᵀY`.  The same primitive supports:
 
-All supervised modules support incremental / online learning via
-`partial_fit` + `solve_accumulated`, enabling **continual learning**
-without replay buffers, regularization penalties, or gradient descent.
+- single-layer supervised learning with `NEFLayer`
+- ensembles with `NEFEnsemble`
+- online / continuous updates via `partial_fit`, `solve_accumulated`,
+  and Woodbury-style inverse updates
+- temporal classification with `StreamingNEFClassifier`
+- multi-layer and recurrent variants for controlled comparisons
+- reinforcement-learning agents built on the same analytic solve
+
+The current supervised-learning paper is
+[`docs/SSUP-I.md`](docs/SSUP-I.md).  It is the authoritative source for
+the repository's present claims, numbers, and caveats.
+
+### What the default supervised cell is
+
+Paper I's default image-classification cell is:
+
+- `abs` activation
+- `hypersphere` encoders
+- per-neuron gain `U(0.5, 2.0)`
+- data-driven biases via `centers=x_train`
+- trace-scaled Tikhonov regularization
+
+That default is strong on raw MNIST / Fashion-MNIST, but the paper's
+main empirical message is not "one default beats everything."  The
+important levers are encoder choice, bias placement, and regularization
+scale.
 
 ## Quick start
 
 ```python
 from leenef.layers import NEFLayer
 from leenef.ensemble import NEFEnsemble
+from leenef.networks import NEFNetwork
 
-# Single layer — 2 seconds, 95.7% MNIST
-layer = NEFLayer(d_in=784, n_neurons=2000, d_out=10, centers=x_train)
+# Single layer: fixed encoders, analytic decoder solve
+layer = NEFLayer(d_in=784, n_neurons=5000, d_out=10, centers=x_train)
 layer.fit(x_train, y_train)
 predictions = layer(x_test)
 
-# Ensemble with local receptive fields — 28 seconds, 96.5% MNIST
-ens = NEFEnsemble(d_in=784, n_neurons=2000, d_out=10,
-                  n_members=10, encoder_strategy="receptive_field",
-                  encoder_kwargs={"image_shape": (28, 28)},
-                  centers=x_train)
+# Incremental / online accumulation
+online = NEFLayer(d_in=784, n_neurons=5000, d_out=10, centers=x_train)
+for batch_x, batch_y in data_stream:
+    online.partial_fit(batch_x, batch_y)
+online.solve_accumulated(alpha=1e-3)
+
+# Ensemble of independent feature banks
+ens = NEFEnsemble(
+    d_in=784,
+    n_neurons=3000,
+    d_out=10,
+    n_members=10,
+    encoder_strategy="receptive_field",
+    encoder_kwargs={"image_shape": (28, 28)},
+    centers=x_train,
+)
 ens.fit(x_train, y_train)
 
-# Incremental / online learning
-layer = NEFLayer(d_in=784, n_neurons=2000, d_out=10, centers=x_train)
-for batch_x, batch_y in data_stream:
-    layer.partial_fit(batch_x, batch_y)
-layer.solve_accumulated(alpha=1e-2)
-
-# Multi-layer — six training strategies
-from leenef.networks import NEFNetwork
-net = NEFNetwork(d_in=784, d_out=10, hidden_neurons=[1000],
-                 output_neurons=2000, centers=x_train)
-net.fit_hybrid_e2e(x, targets)  # warm-started hybrid + end-to-end variant
+# Multi-layer comparison model with six training strategies
+net = NEFNetwork(d_in=784, d_out=10, hidden_neurons=[1000], output_neurons=2000)
+net.fit_hybrid_e2e(x_train, y_train)
 ```
 
 ## Setup
 
 Requires Python 3.12+.
-
-The repository uses a standard `src/` layout; the main package lives in
-`src/leenef/`.
 
 ```bash
 python3 -m venv venv
@@ -89,63 +99,77 @@ pip install -e '.[dev]'
 ## Tests
 
 ```bash
-pytest                                     # full suite
-pytest -k test_fit_identity -q             # single test
+source venv/bin/activate
+pytest
+pytest -k test_fit_identity -q
+ruff check src/leenef/ tests/ benchmarks/
+ruff format --check src/leenef/ tests/ benchmarks/
 ```
 
-## Benchmarks
+## Benchmarks and paper artifacts
 
-> All timings: CPU-only, AMD Ryzen 5 PRO 5650U, no GPU.
+The active supervised-learning harness is the `sl_clean` stack used for
+Paper I.  Example launches:
 
 ```bash
-python benchmarks/run.py --datasets mnist fashion_mnist cifar10 \
-       --neurons 500 1000 2000 5000 --regression --seed 0
-python benchmarks/run.py --neurons 2000 --multi --mlp --seed 0
-python benchmarks/run.py --neurons 2000 --ensemble --ensemble-members 10 \
-       --ensemble-receptive-field --seed 0
-python benchmarks/run_recurrent.py --mode row --seed 0
+source venv/bin/activate
+
+PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
+    bash benchmarks/sl_clean/sl_hp_driver.sh biases_mnist
+PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
+    bash benchmarks/sl_clean/sl_hp_driver.sh biases_fashion
+PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
+    bash benchmarks/sl_clean/sl_hp_driver.sh biases_cifar10
+
+# Follow-up bias-placement panels
+PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
+    bash benchmarks/sl_clean/sl_hp_driver.sh biases_cifar10_centered
+PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
+    bash benchmarks/sl_clean/sl_hp_driver.sh biases_mnist_decentered
+
+# Regenerate the paper figures
+python3 docs/generate_paper_i_figures.py
 ```
 
-### Summary results
+All paper-grade result rows carry a code identity, dataset hashes, full
+config dictionaries, per-seed metrics, and aggregate summaries.  The
+preserved JSON/log artifacts used by Paper I live in `results/sl_clean/`.
 
-| Model                     | MNIST  | Fashion | CIFAR-10 | Time |
-|---------------------------|--------|---------|----------|------|
-| NEFLayer (2000)           | 95.7%  | 85.9%   | 47.8%    | 2s |
-| **NEF single RF** (12000n, p=10, α-tuned) | **98.5%** | — | — | **52s** |
-| **NEF single RF** (12000n, p=5, α-tuned) | — | **89.7%** | — | **59s** |
-| **NEF ensemble** (10×3000 RF, p=5, α-tuned) | — | — | **58.4%** | **53s** |
-| NEFNet-hybrid→E2E         | 98.6%  | 90.6%   | 58.4%    | 402s |
-| MLP (2×1000)              | 98.5%  | 89.7%   | 52.7%    | 83s |
+## Paper I summary results
 
-The single-layer NEF model with local receptive field encoders and tuned
-Tikhonov regularization **matches or beats the gradient-trained MLP on
-all three benchmarks while training faster** — without any gradient
-computation.  The key insight: at scale, the default regularization
-α=10⁻² over-regularizes; reducing it to a dataset-tuned value closes the
-final accuracy gap.  See the
-[historical technical report](attic/docs/technical_report.md) for the
-earlier (single-seed) sweep results, analysis, and competitive context.
-The current rl_clean-style multi-seed program rebuilds these claims under
-the discipline described in [`AGENTS.md`](AGENTS.md), with running
-documentation in [`docs/sl_clean_sweeps.md`](docs/sl_clean_sweeps.md) and
-the synthesized story in [`docs/paper_insights.md`](docs/paper_insights.md).
+All numbers below are multi-seed results from [`docs/SSUP-I.md`](docs/SSUP-I.md).
+
+| Setting | Result | Notes |
+|---|---|---|
+| Single-layer leenef, MNIST raw | 97.08 ± 0.04 % | hypersphere encoders, `n = 5000` |
+| Single-layer leenef, Fashion-MNIST raw | 87.74 ± 0.06 % | hypersphere encoders, `n = 5000` |
+| Single-layer leenef, CIFAR-10 raw | 49.72 ± 0.08 % | hypersphere encoders, `n = 5000` |
+| Single-layer leenef, CIFAR-10 receptive-field | **55.10 ± 0.10 %** | +1.37 pp over the tuned MLP cell, ~11x less end-to-end wall-clock time |
+| Stream-NEF, row sMNIST | **98.45 ± 0.02 %** | `n = 8000`; 0.6 pp below a tuned near-best LSTM, 2.4x less wall-clock time |
+| Stream-NEF, permuted sMNIST | **79.44 ± 0.03 %** | `n = 16000`; ESN reaches matched accuracy with fewer parameters |
+
+The corresponding negative results matter just as much:
+
+- generic fixed encoders are not a substitute for spatial priors on
+  harder image data
+- purely analytic multi-layer stacking does not buy depth on its own
+- mean-pooled delay-line features lose the long-range order needed for
+  harder sequence tasks
 
 ## Components
 
-| Module | Purpose |
-|--------|---------|
-| `src/leenef/layers.py` | `NEFLayer` — encode → activate → decode |
-| `src/leenef/ensemble.py` | `NEFEnsemble` — ensemble of NEFLayers |
-| `src/leenef/networks.py` | `NEFNetwork` — multi-layer (greedy / hybrid / TP / E2E / hybrid→E2E / TP→E2E) |
-| `src/leenef/recurrent.py` | `RecurrentNEFLayer` — temporal decode-then-re-encode loop |
-| `src/leenef/streaming.py` | `StreamingNEFClassifier` — delay-line reservoir temporal classifier with batch, Woodbury, and accumulate+solve training |
-| `src/leenef/conv.py` | `ConvNEFStage`, `ConvNEFPipeline`, `ConvNEFEnsemble` — gradient-free convolutional feature extraction and multi-scale ensembles |
-| `src/leenef/rl.py` | `NEFFeatures`, `NEFFQIAgent`, `NEFFQIEnsemble` — reinforcement learning with analytical Q-value solve, Thompson sampling, exponential forgetting, and dead neuron recentering |
-| `src/leenef/encoders.py` | Encoder strategies (`hypersphere`, `gaussian`, `sparse`, `receptive_field`, `whitened`, `class_contrast`, `local_pca`) |
-| `src/leenef/activations.py` | Activations (`abs`, `relu`, `softplus`, `lif_rate`) |
-| `src/leenef/solvers.py` | Decoder solvers (`tikhonov`, `cholesky`, `lstsq`) plus `solve_from_normal_equations` |
-| `benchmarks/` | Feed-forward, recurrent, streaming, ConvNEF, continual learning, and RL benchmark harnesses |
-| `docs/sl_clean_sweeps.md` | Running execution log of the rl_clean-style supervised-learning sweeps (configs, sentinels, per-phase verdicts) |
-| `docs/paper_insights.md` | Synthesized supervised-learning story (frame coefficients, DC framing, α-as-function-of-n, manifold view) |
-| `attic/docs/technical_report.md` | Pre-restart supervised-learning technical report (single-seed; archived) |
-| `attic/docs/rl_notes.md` | Pre-restart RL research notes — NEF-FQI, Thompson ensembles, continual RL (archived) |
+| Path | Purpose |
+|---|---|
+| `src/leenef/layers.py` | `NEFLayer`: encode -> activate -> decode; batch, accumulated, and continuous analytic solves |
+| `src/leenef/ensemble.py` | `NEFEnsemble`: independent NEF layers combined by averaging or voting |
+| `src/leenef/networks.py` | `NEFNetwork`: multi-layer comparison model with greedy, hybrid, target-prop, end-to-end, hybrid->E2E, and target-prop->E2E training |
+| `src/leenef/recurrent.py` | `RecurrentNEFLayer`: recurrent decode-then-re-encode sequence model |
+| `src/leenef/streaming.py` | `StreamingNEFClassifier`: delay-line temporal classifier with batch, Woodbury, and accumulate+solve training |
+| `src/leenef/conv.py` | `ConvNEFStage`, `ConvNEFPipeline`, `ConvNEFEnsemble`: gradient-free convolutional front ends and ensembles |
+| `src/leenef/rl.py` | `NEFFeatures`, `NEFFQIAgent`, `NEFFQIEnsemble`: RL agents and ensembles built on analytic value solves |
+| `src/leenef/encoders.py` | Encoder strategies: `hypersphere`, `gaussian`, `sparse`, `receptive_field`, `whitened`, `class_contrast`, `local_pca` |
+| `src/leenef/activations.py` | Activations: `abs`, `relu`, `softplus`, `lif_rate` |
+| `src/leenef/solvers.py` | Decoder solvers and normal-equation utilities |
+| `benchmarks/sl_clean/` | Active reproducible supervised-learning sweep harness for Paper I |
+| `results/sl_clean/` | Preserved multi-seed result rows, summaries, and logs used by Paper I |
+| `attic/` | Archived pre-restart infrastructure, reports, and notes kept for historical reference |
