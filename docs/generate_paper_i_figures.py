@@ -1,4 +1,4 @@
-"""Generate figures for `docs/paper_i.md`.
+"""Generate figures for `docs/SSUP-I.md`.
 
 Reads `results/sl_clean/*.json` and writes PNGs to `docs/figures/`.
 Idempotent: regenerate any single figure with `--only F3` etc.
