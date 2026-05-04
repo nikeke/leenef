@@ -42,14 +42,25 @@ tests/test_cl_clean.py
 
 ## Phase order
 
+**Current runnable status (after the GPT-5.5 review-fix commits):**
+B1/B2 are runnable today through the four `nef_continual_*` driver
+targets.  B3-B5 are planned but not yet implemented as driver phases.
+Do not tell the user they are ready to launch until the needed driver
+case clauses and experiment support have landed and passed the smoke
+tests.
+
 1. **B1** joint-equivalence (4 panels × 10 seeds).  Sentinel per
    panel: `results/cl_clean/<experiment>_done`.
 2. **B2** cross-method comparison.  Reuses the panels from B1;
    adds the MLP cells.
 3. **B3** capacity matrix (Permuted-MNIST grid + Permuted-CIFAR-10
-   spot panel).
-4. **B4** center-adaptation falsifier.
-5. **B5** solver-mode + α regime.
+   spot panel).  **Not wired yet.**
+4. **B4** center-adaptation falsifier.  **Not wired yet;**
+   `centers_mode` supports `none`, `first_task`, and `all_tasks`, but
+   the planned `growing` condition still needs implementation.
+5. **B5** solver-mode + α regime.  **Not wired yet;** current NEF
+   cells use `partial_fit` + `solve_accumulated`, not Woodbury batch /
+   online solver modes.
 6. **C1, C2** ConvNEF-CL panels — *blocked* on Paper I v2 ConvNEF
    chapter landing.
 
