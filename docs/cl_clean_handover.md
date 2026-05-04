@@ -88,9 +88,9 @@ After B1/B2 are either complete or intentionally restarted on the new
 identity, the follow-up targets are:
 
 ```bash
-PYTHON=$PWD/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b3_capacity
-PYTHON=$PWD/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b4_centers
-PYTHON=$PWD/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b5_solvers
+PYTHON=$PWD/../leenef/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b3_capacity
+PYTHON=$PWD/../leenef/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b4_centers
+PYTHON=$PWD/../leenef/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b5_solvers
 ```
 
 Defaults: B3 uses 5 seeds for Permuted-MNIST and 3 seeds for the
