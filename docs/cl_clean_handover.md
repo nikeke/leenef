@@ -42,25 +42,24 @@ tests/test_cl_clean.py
 
 ## Phase order
 
-**Current runnable status (after the GPT-5.5 review-fix commits):**
-B1/B2 are runnable today through the four `nef_continual_*` driver
-targets.  B3-B5 are planned but not yet implemented as driver phases.
-Do not tell the user they are ready to launch until the needed driver
-case clauses and experiment support have landed and passed the smoke
-tests.
+**Current runnable status:** B1-B5 are wired in the scaffold.  The
+driver targets are `nef_continual_*` for B1/B2, then `b3_capacity`,
+`b4_centers`, and `b5_solvers`.  These targets change
+`CODE_IDENTITY_PATHS` relative to the first B1/B2 scaffold: do not pull
+or merge them into an executing worktree while old-code B1/B2 rows are
+in flight unless you intend to stop and restart those panels.
 
 1. **B1** joint-equivalence (4 panels × 10 seeds).  Sentinel per
    panel: `results/cl_clean/<experiment>_done`.
 2. **B2** cross-method comparison.  Reuses the panels from B1;
    adds the MLP cells.
 3. **B3** capacity matrix (Permuted-MNIST grid + Permuted-CIFAR-10
-   spot panel).  **Not wired yet.**
-4. **B4** center-adaptation falsifier.  **Not wired yet;**
-   `centers_mode` supports `none`, `first_task`, and `all_tasks`, but
-   the planned `growing` condition still needs implementation.
-5. **B5** solver-mode + α regime.  **Not wired yet;** current NEF
-   cells use `partial_fit` + `solve_accumulated`, not Woodbury batch /
-   online solver modes.
+   spot panel).  Driver target: `b3_capacity`.
+4. **B4** center-adaptation falsifier.  Driver target: `b4_centers`.
+   Includes the checkpoint-era `growing` neuron-pool negative control.
+5. **B5** solver-mode + α regime.  Driver target: `b5_solvers`.
+   Includes `accumulate`, `woodbury_batch`, and `woodbury_online`
+   cells over the fixed-alpha grid.
 6. **C1, C2** ConvNEF-CL panels — *blocked* on Paper I v2 ConvNEF
    chapter landing.
 
@@ -82,6 +81,22 @@ pytest tests/test_cl_clean.py -q  # sanity
 PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
     bash benchmarks/cl_clean/cl_hp_driver.sh nef_continual_split_mnist
 ```
+
+After B1/B2 are either complete or intentionally restarted on the new
+identity, the follow-up targets are:
+
+```bash
+PYTHON=$PWD/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b3_capacity
+PYTHON=$PWD/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b4_centers
+PYTHON=$PWD/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b5_solvers
+```
+
+Defaults: B3 uses 5 seeds for Permuted-MNIST and 3 seeds for the
+Permuted-CIFAR-10 confirmation; B4/B5 use 5 seeds.  Override with
+`B3_MNIST_SEEDS`, `B3_CIFAR_SEEDS`, `B4_SEEDS`, and `B5_SEEDS`.
+The B3-B5 base configs include `"device": "cpu"`; for a Colab/GPU
+handoff, change that config field to `"cuda"` before launch and keep
+the resulting rows separate from CPU timing rows.
 
 ## Driver edits
 
