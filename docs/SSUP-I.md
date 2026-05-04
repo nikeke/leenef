@@ -16,7 +16,7 @@ responsibility.
 ## Abstract
 
 NEF's regularized least-squares solve over fixed-encoder neural
-activities — `D = (AᵀA + α_eff I)⁻¹ AᵀY` — gives a compact
+activities — $D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$ — gives a compact
 sufficient-statistics primitive for supervised learning.  In a
 rate-based specialization we call **leenef**, we interpret the
 activities as magnitudes of frame coefficients and study how
@@ -60,7 +60,7 @@ to compose decoded signals; we depart in three places.
   activations the frame-coefficient interpretation that the rest
   of the paper turns on.
 - We use **data-driven biases**.  The bias of neuron *i* is
-  `b_i = -g_i (e_i · d_i)` for a sample `d_i` drawn from the
+  $b_i = -g_i (e_i \cdot d_i)$ for a sample $d_i$ drawn from the
   training set, placing the *i*-th `abs` fold on the data
   manifold rather than on a generic random intercept.
 - We do not use NEF's **dynamics principle** anywhere in this
@@ -81,14 +81,14 @@ P1–P4 inherit from NEF, P5–P6 are leenef-specific.
 - **P1 — Encoders are fixed** (random or data-adapted).  Decoders
   are the only thing we ever fit.
 - **P2 — Decoders fall out of one analytic step:**
-  `D = (AᵀA + αI)⁻¹ AᵀY`.  No learning rate, no schedule, no
+  $D = (A^\top A + \alpha I)^{-1} A^\top Y$.  No learning rate, no schedule, no
   gradient flow between layers.
-- **P3 — `AᵀA` and `AᵀY` are the universe.**  Continual learning,
+- **P3 — $A^\top A$ and $A^\top Y$ are the universe.**  Continual learning,
   streaming over time, ensembles, online updates, per-action
   FQI (Ernst et al., 2005) — all of them are different ways of
   *additively combining*
   sufficient statistics.
-- **P4 — Targets `Y` are the only place where task structure
+- **P4 — Targets $Y$ are the only place where task structure
   enters.**  The encoder does not care what the task is; the
   decoder column does.
 - **P5 — Time is collapsed by pooling, not by recurrence.**  The
@@ -113,23 +113,23 @@ rest of the trilogy.
 ## §2 — Why over-representation needs nonlinearity
 
 A linear activation collapses the entire scheme.  If
-`a_i = g_i (e_i · x)`, then for any decoder `D ∈ ℝ^{n × d_out}`,
+$a_i = g_i (e_i \cdot x)$, then for any decoder $D \in \mathbb{R}^{n \times d_{\mathrm{out}}}$,
 
-```
-y = Dᵀa = Dᵀ diag(g) E x = (Dᵀ diag(g) E) x = W x
-```
+$$
+y = D^\top a = D^\top \operatorname{diag}(g) E x = \left(D^\top \operatorname{diag}(g) E\right) x = W x
+$$
 
 is a single linear map, regardless of `n`.  Over-completeness
 buys **nothing**: a 100 000-neuron linear network is exactly as
 expressive as a single linear projection of input onto output.
-The frame `{g_i e_i}` is just an absurdly redundant
-parameterization of a `d_in × d_out` matrix.
+The frame $\{g_i e_i\}$ is just an absurdly redundant
+parameterization of a $d_{\mathrm{in}} \times d_{\mathrm{out}}$ matrix.
 
 We verified this in a sanity-check experiment: a linear-activation
-leenef layer at `n ∈ {1 000, 4 000}` plateaus at **86.0–86.2 %** on
+leenef layer at $n \in \{1000, 4000\}$ plateaus at **86.0–86.2 %** on
 MNIST (LeCun et al., 1998), within 1 pp of a plain ridge regression
 on the raw 784-D input (85.3 %).  An `abs`-activation leenef layer
-at `n = 5 000`
+at $n = 5000$
 reaches **97.08 %** under identical training data and α policy.
 The collapse is empirical, not just algebraic; the +11 pp delta
 is the entire contribution of the pointwise nonlinearity.  This
@@ -140,13 +140,13 @@ The minimal repair is a pointwise nonlinearity that is *not*
 representable as a linear scaling.  `abs` is the smallest such
 repair we can imagine:
 
-```
-a_i = |g_i · e_i · x|
-```
+$$
+a_i = |g_i \cdot e_i \cdot x|
+$$
 
-With unit encoders, `|e_i · x|` is the **unsigned distance of x
-from the hyperplane `{e_i · z = 0}`**.  With gains,
-`|g_i e_i · x|` is the same distance scaled by `g_i`.  A linear
+With unit encoders, $|e_i \cdot x|$ is the **unsigned distance of $x$
+from the hyperplane $\{e_i \cdot z = 0\}$**.  With gains,
+$|g_i e_i \cdot x|$ is the same distance scaled by $g_i$.  A linear
 readout over `n` such folded projections is a piecewise-linear
 function with up to `n` fold lines.  Translated folds (non-zero
 biases) and enough directions give the familiar expressive family
@@ -154,36 +154,36 @@ of absolute-value and ReLU networks; zero-bias folds alone are
 more restricted — homogeneous and even — which is exactly why
 bias placement becomes a load-bearing empirical question in §5.1.
 ReLU is the same idea after a half-fold (drop the sign instead of
-folding about the origin); the identity `|x| = ReLU(x) + ReLU(-x)`
+folding about the origin); the identity $|x| = \operatorname{ReLU}(x) + \operatorname{ReLU}(-x)$
 means that one `abs` feature spans the same scalar function as a
 mirrored pair of ReLU features, although the fixed-neuron-budget
 parameterization is not identical.
 
 ### The frame-coefficient interpretation
 
-Set `u_i = g_i e_i`.  Then
-`a_i = |u_i · x|` is the magnitude of the *i*-th frame
+Set $u_i = g_i e_i$.  Then
+$a_i = |u_i \cdot x|$ is the magnitude of the *i*-th frame
 coefficient of `x` in the (over-complete, possibly random) frame
-`{u_i}`.  When biases are non-zero, the frame becomes
+$\{u_i\}$.  When biases are non-zero, the frame becomes
 *manifold-local*:
 
-```
-a_i = |g_i · e_i · (x − d_i)|        (data-driven bias case)
-```
+$$
+a_i = |g_i \cdot e_i \cdot (x - d_i)| \qquad \text{(data-driven bias case)}
+$$
 
-Each neuron then asks "how far is x from training sample `d_i`,
-along direction `e_i`?"  The decoder is the linear functional
+Each neuron then asks "how far is $x$ from training sample $d_i$,
+along direction $e_i$?"  The decoder is the linear functional
 that reads off the target from these magnitudes.  This framing
 will recur throughout the paper:
 
 - **Encoder strategies** (§5.2) are different priors over the
-  frame directions `{u_i}`: hypersphere = isotropic; whitened =
+  frame directions $\{u_i\}$: hypersphere = isotropic; whitened =
   data-covariance-aware; receptive_field = spatial-locality-aware.
   Random, near-isotropic frames are broad but data-blind;
   data-adapted frames trade generic coverage for efficiency.
-- **Per-neuron gain `g_i`** (§5.4) rescales each frame element,
-  equivalent to non-uniform measurement of `x`.  Empirically the
-  default `U(0.5, 2.0)` range and a fixed `g_i ≡ 1` perform within
+- **Per-neuron gain $g_i$** (§5.4) rescales each frame element,
+  equivalent to non-uniform measurement of $x$.  Empirically the
+  default $U(0.5, 2.0)$ range and a fixed $g_i \equiv 1$ perform within
   seed noise on raw image classification (§5.4); we keep gain
   diversity as the project default because it is the NEF-canonical
   setting and because it pays off in the streaming variant.
@@ -227,53 +227,53 @@ of constant pixel mass.
 
 ## §3 — Method: the NEF layer as one analytic step
 
-A leenef layer is three operations.  Given input `x ∈ ℝ^{d_in}`,
-fixed encoder matrix `E ∈ ℝ^{n × d_in}` (rows of unit norm by
-default), per-neuron gain vector `g ∈ ℝ^n`, bias vector
-`b ∈ ℝ^n`, and pointwise activation `G : ℝ → ℝ`, the forward map
+A leenef layer is three operations.  Given input $x \in \mathbb{R}^{d_{\mathrm{in}}}$,
+fixed encoder matrix $E \in \mathbb{R}^{n \times d_{\mathrm{in}}}$ (rows of unit norm by
+default), per-neuron gain vector $g \in \mathbb{R}^n$, bias vector
+$b \in \mathbb{R}^n$, and pointwise activation $G : \mathbb{R} \to \mathbb{R}$, the forward map
 is
 
-```
-a = G(g ⊙ (E x) + b) ∈ ℝ^n.
-```
+$$
+a = G(g \odot (E x) + b) \in \mathbb{R}^n.
+$$
 
 The default activation is `abs`; encoders are uniform on the
-unit sphere (`hypersphere`); gains are drawn `U(0.5, 2.0)`;
+unit sphere (`hypersphere`); gains are drawn $U(0.5, 2.0)$;
 biases are derived from training samples
-`b_i = -g_i (e_i · d_i)` for `d_i ∼ training set`.  The output
-is read off by a linear decoder `D ∈ ℝ^{n × d_out}`:
+$b_i = -g_i (e_i \cdot d_i)$ for $d_i \sim \text{training set}$.  The output
+is read off by a linear decoder $D \in \mathbb{R}^{n \times d_{\mathrm{out}}}$:
 
-```
-y = Dᵀ a.
-```
+$$
+y = D^\top a.
+$$
 
 The decoder is fitted by Tikhonov ridge regression against
-targets `Y ∈ ℝ^{N × d_out}` (one-hot for classification, real-
+targets $Y \in \mathbb{R}^{N \times d_{\mathrm{out}}}$ (one-hot for classification, real-
 valued for regression):
 
-```
-D = (AᵀA + α_eff I)⁻¹ AᵀY.
-```
+$$
+D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y.
+$$
 
-The per-sample activity matrix `A ∈ ℝ^{N × n}` need never be
+The per-sample activity matrix $A \in \mathbb{R}^{N \times n}$ need never be
 materialized in full — only its sufficient statistics
-`AᵀA ∈ ℝ^{n × n}` and `AᵀY ∈ ℝ^{n × d_out}` enter the solve.
+$A^\top A \in \mathbb{R}^{n \times n}$ and $A^\top Y \in \mathbb{R}^{n \times d_{\mathrm{out}}}$ enter the solve.
 Three numerically equivalent paths to those statistics are
 implemented:
 
 - **`batch_acc`**: one-shot full-data accumulate, single
   Cholesky solve.  Simplest; needs the whole training set in
   memory (or one streaming pass).
-- **`accumulate`**: chunked accumulate.  GEMMs (`AᵀA`, `AᵀY`)
+- **`accumulate`**: chunked accumulate.  GEMMs ($A^\top A$, $A^\top Y$)
   in float32; running stats in float64 to absorb cancellation
   across chunks.  GPU-friendly; memory cost `O(n²)` for the
   stats, independent of dataset size.
 - **`woodbury`** (continuous fit): rank-`k` Sherman–Morrison
-  updates of the inverse `M⁻¹ = (AᵀA + α_eff I)⁻¹` after every
+  updates of the inverse $M^{-1} = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1}$ after every
   batch, so the decoder is current at every step.  The inverse
   itself is kept in float64 to keep updates from drifting.
   Necessary for online deployments; on GPU at large `n` the
-  explicit `n × n` inverse is the bottleneck.
+  explicit $n \times n$ inverse is the bottleneck.
 
 §5.3 measures all three on identical accumulated statistics
 and shows that the resulting decoders agree to 0.000 pp on
@@ -282,13 +282,13 @@ concern (latency, memory, online vs batch) — not a statistical
 one.  We default to `accumulate + solve` in the paper unless
 online updates are required.
 
-### What composes through `AᵀA` and `AᵀY`
+### What composes through $A^\top A$ and $A^\top Y$
 
 Every leenef variant is a different additive use of these
 statistics.  The relevant cases for Paper I:
 
 - **Ensembles.**  `K` independent layers with different seeds
-  share inputs but produce independent activities `A^{(k)}`;
+  share inputs but produce independent activities $A^{(k)}$;
   predictions average post-decode.  This is *not* additive at
   the statistic level (decoders are independent), but is a
   trivially parallel reuse of the same fit step.
@@ -299,11 +299,11 @@ statistics.  The relevant cases for Paper I:
   encoder to each timestep of a delay-line window, mean-pool
   the activations across the window, and then accumulate
   statistics over windows.  No recurrent state; no BPTT.
-- **Multiple decoders, one feature bank.**  `AᵀA` is shared
-  across any number of target columns `Y_1, Y_2, …` that the
+- **Multiple decoders, one feature bank.**  $A^\top A$ is shared
+  across any number of target columns $Y_1, Y_2, \ldots$ that the
   same population is asked to predict.  Solving for each
-  decoder is a separate `(AᵀA + α I)⁻¹ AᵀY_k` and costs only
-  the right-hand side multiply once `AᵀA` is factored.  In
+  decoder is a separate $(A^\top A + \alpha I)^{-1} A^\top Y_k$ and costs only
+  the right-hand side multiply once $A^\top A$ is factored.  In
   this paper the targets are always class one-hots, so this
   property is latent.  It is what lets the same NEF feature
   bank predict, for example, both a digit class and a
@@ -324,67 +324,67 @@ This is why the rest of the trilogy stays single-layer.
 
 ## §4 — Regularization scales with the encoder span
 
-The Tikhonov scale is hard to set portably when `α_eff` is chosen
-without reference to the magnitude of `AᵀA`.  In our normal-equation
-implementation `AᵀA` is a **sum** over samples, not an average; its
+The Tikhonov scale is hard to set portably when $\alpha_{\mathrm{eff}}$ is chosen
+without reference to the magnitude of $A^\top A$.  In our normal-equation
+implementation $A^\top A$ is a **sum** over samples, not an average; its
 trace therefore changes with both dataset size and representation
-scale.  As `n_neurons` grows, the average diagonal mass per neuron
+scale.  As $n_{\mathrm{neurons}}$ grows, the average diagonal mass per neuron
 is approximately stable for normalized inputs and `abs` activations,
 so the total trace grows roughly linearly in `n`.  A fixed scalar
-`α = 10⁻²` can therefore land in a useful range at one width and a
+$\alpha = 10^{-2}$ can therefore land in a useful range at one width and a
 poor range at another.
 
 We saw this empirically on streaming sMNIST:
 
-| `n_neurons` | accuracy (mean ± SE, fixed α=10⁻²) |
+| $n_{\mathrm{neurons}}$ | accuracy (mean ± SE, fixed $\alpha = 10^{-2}$) |
 |-------------|------------------------------------|
 | 2 000 | 97.30 ± 0.04 |
 | 4 000 | 98.03 ± 0.03 |
 | 8 000 | 87.27 ± 6.77 (one seed collapsed below 80 %, another fell to 85 %) |
 
-The variance at `n=8 000` is the giveaway: individual seeds
-bifurcate under the same fixed `α`.  The architectural fix is to
-scale `α_eff` by the trace per neuron:
+The variance at $n = 8000$ is the giveaway: individual seeds
+bifurcate under the same fixed $\alpha$.  The architectural fix is to
+scale $\alpha_{\mathrm{eff}}$ by the trace per neuron:
 
-```
-α_eff = max(α · trace(AᵀA) / n_neurons, α).
-```
+$$
+\alpha_{\mathrm{eff}} = \max\!\left(\alpha \cdot \operatorname{tr}(A^\top A) / n_{\mathrm{neurons}}, \alpha\right).
+$$
 
-Here `trace(AᵀA) / n_neurons` is the average squared column norm
+Here $\operatorname{tr}(A^\top A) / n_{\mathrm{neurons}}$ is the average squared column norm
 of `A` — the average activity energy deposited in each frame
-element across the dataset.  Scaling by it puts `α_eff` on the
-same footing as the encoder span: `α` becomes a dimensionless
+element across the dataset.  Scaling by it puts $\alpha_{\mathrm{eff}}$ on the
+same footing as the encoder span: $\alpha$ becomes a dimensionless
 multiplier rather than an absolute diagonal value.
 
 ### The α multiplier itself depends on the architecture
 
 Trace-scaling alone is not enough.  The otherwise useful
-single-layer default `α = 10⁻²` over-regularizes the streaming
+single-layer default $\alpha = 10^{-2}$ over-regularizes the streaming
 classifier by ~2 OOM.  In the raw 60 000 × 784 MNIST solve, the
 per-neuron diagonal scale is small (typical
-`|projection|² ≈ 0.1`), giving `α_eff = α · 60000 · 0.1 ≈ 60`.
+$|\mathrm{projection}|^2 \approx 0.1$), giving $\alpha_{\mathrm{eff}} = \alpha \cdot 60000 \cdot 0.1 \approx 60$.
 In streaming, mean-pooling preserves abs-projection magnitudes;
-`trace / n ≈ 11 000`, so the same base `α = 10⁻²` gives
-`α_eff ≈ 110`, which regularizes the leading components much more
+$\operatorname{tr}(A^\top A) / n \approx 11000$, so the same base $\alpha = 10^{-2}$ gives
+$\alpha_{\mathrm{eff}} \approx 110$, which regularizes the leading components much more
 strongly.
 
 We measured this directly with a five-by-five-by-two
 calibration sweep (5 alphas × 2 scaling modes × 2 widths × 5
 seeds = 100 cells).  The
-best robust cross-width choice is **trace-scaled `α = 10⁻⁴`**:
-98.03 % at `n = 4 000`, 98.44 % at `n = 8 000`, SE ≤ 0.04 pp,
-gap across `n` of just +0.4 pp.  It is not the pointwise winner
-in every single cell — fixed `α=10⁻²` and trace `α=10⁻⁵` tie it
-within noise at `n=4 000` — but it is the stable choice that does
-not collapse at `n=8 000`.
+best robust cross-width choice is **trace-scaled $\alpha = 10^{-4}$**:
+98.03 % at $n = 4000$, 98.44 % at $n = 8000$, SE ≤ 0.04 pp,
+gap across $n$ of just +0.4 pp.  It is not the pointwise winner
+in every single cell — fixed $\alpha = 10^{-2}$ and trace $\alpha = 10^{-5}$ tie it
+within noise at $n = 4000$ — but it is the stable choice that does
+not collapse at $n = 8000$.
 
 ![Figure 1: α policy by width on row sMNIST.](figures/f1_alpha_vs_n.png)
 
-**Figure 1.**  Trace-scaled `α = 10⁻⁴` is the robust cross-width
-choice.  Fixed `α = 10⁻²` is competitive at `n = 4 000` but
-collapses at `n = 8 000`.
+**Figure 1.**  Trace-scaled $\alpha = 10^{-4}$ is the robust cross-width
+choice.  Fixed $\alpha = 10^{-2}$ is competitive at $n = 4000$ but
+collapses at $n = 8000$.
 
-| α policy | `n=4 000` | `n=8 000` | worst-case-mean |
+| $\alpha$ policy | $n = 4000$ | $n = 8000$ | worst-case mean |
 |----------|-----------|-----------|-----------------|
 | trace-scaled, base 10⁻² (the `solvers.tikhonov` default) | 95.89 % | 96.92 % | 95.89 % |
 | trace-scaled, base 10⁻³ | 97.57 % | 98.14 % | 97.57 % |
@@ -392,14 +392,14 @@ collapses at `n = 8 000`.
 | fixed 10⁻² | 98.07 % | 87.27 % | 87.27 % |
 | fixed 10⁻⁴ | 95.02 % | 96.33 % | 95.02 % |
 
-Two failure modes are visible.  Trace-scaled at base 10⁻² is
-*consistent across* `n` but consistently under-trained.  Fixed-α
-is best at one `n` and catastrophic at another (fixed 10⁻² wins
+Two failure modes are visible.  Trace-scaled at base $10^{-2}$ is
+*consistent across* $n$ but consistently under-trained.  Fixed-$\alpha$
+is best at one $n$ and catastrophic at another (fixed $10^{-2}$ wins
 4k by 0.04 pp, then collapses 11 pp at 8k).  Trace-scaled base
-10⁻⁴ is simultaneously the best and the most stable across `n`.
+$10^{-4}$ is simultaneously the best and the most stable across $n$.
 
 This is the practical regularization claim of the paper: any
-practitioner copying our recipe needs trace-scaled `α`, and the
+practitioner copying our recipe needs trace-scaled $\alpha$, and the
 appropriate scalar multiplier depends on the architecture (one
 value for a static single-layer solve, a different one for the
 streaming classifier).  Once trace-scaling is in place the
@@ -416,10 +416,10 @@ MNIST, Fashion-MNIST, and CIFAR-10.  Ten seeds throughout.
 
 ### §5.1 — Where the abs hinge sits relative to data
 
-The bias `b_i` selects where the *i*-th `abs` fold sits in
+The bias $b_i$ selects where the *i*-th `abs` fold sits in
 input space.  Zero bias places every hinge through the origin
-of `ℝ^{d_in}`.  Data-driven bias `b_i = -g_i (e_i · d_i)`
-places the *i*-th hinge at training sample `d_i`.  A naïve
+of $\mathbb{R}^{d_{\mathrm{in}}}$.  Data-driven bias $b_i = -g_i (e_i \cdot d_i)$
+places the *i*-th hinge at training sample $d_i$.  A naïve
 spectral reading (the "DC component" reading) predicts that the
 gap between these two choices should track how much DC mass the
 dataset carries; a clean geometric reading predicts that it
@@ -522,7 +522,7 @@ Three findings.
    `gaussian` (which the encoder builder normalizes to the
    sphere), and `sparse` cluster within 0.1 pp on every dataset.
 2. **Receptive-field encoders are the headline win.**  +5.4 pp
-   on CIFAR-10 (49.7 → 55.1 %) at fixed `n_neurons` is the
+   on CIFAR-10 (49.7 → 55.1 %) at fixed $n_{\mathrm{neurons}}$ is the
    largest effect we have seen from any frame change.  The
    mechanism is the spatial-locality prior: each neuron looks
    at a small patch, so the over-complete frame is a
@@ -546,7 +546,7 @@ that survives every dataset in this panel.
 
 ### §5.3 — Solver-numerics equivalence
 
-Streaming sMNIST at `n = 4 000`, `α = 10⁻⁴` (trace-scaled),
+Streaming sMNIST at $n = 4000$, $\alpha = 10^{-4}$ (trace-scaled),
 five seeds:
 
 | solve mode | accuracy ± SE |
@@ -556,22 +556,22 @@ five seeds:
 | `woodbury` | 98.03 ± 0.02 % |
 
 Worst pairwise |Δ| over seeds is **0.000 pp** to reporting
-precision.  The three solve paths reach the same decoder.  Practical guidance: on CPU at moderate `n`, all
+precision.  The three solve paths reach the same decoder.  Practical guidance: on CPU at moderate $n$, all
 three are fine; on GPU at large `n`, prefer `accumulate +
-solve` (memory `O(n²)` only, GEMMs in float32) unless the
+solve` (memory $O(n^2)$ only, GEMMs in float32) unless the
 deployment requires per-batch up-to-date decoders, in which
 case `woodbury` is the only path that delivers them — at the
-cost of an explicit float64 `n × n` inverse.
+cost of an explicit float64 $n \times n$ inverse.
 
 ### §5.4 — Scaling and activation choices
 
 Two 10-seed ablations use the same base configuration:
 hypersphere encoders, data-driven biases, gain
-`U(0.5, 2.0)`, `α = 10⁻³`):
+$U(0.5, 2.0)$, $\alpha = 10^{-3}$):
 
 **Single-layer width.**  MNIST and Fashion-MNIST are monotone in
-`n_neurons` over the entire range we measured; *their curves do
-not flatten by `n = 20 000`*.  CIFAR-10 behaves differently under
+$n_{\mathrm{neurons}}$ over the entire range we measured; *their curves do
+not flatten by $n = 20000$*.  CIFAR-10 behaves differently under
 the generic hypersphere encoder: it improves through 10k neurons
 and then falls at 20k, which is a useful warning that "more random
 global features" is not a universal scaling law.
@@ -584,7 +584,7 @@ through 20 000 neurons; CIFAR-10 peaks near 10 000 and then
 falls, showing that more global random features are not a
 substitute for the right spatial prior.
 
-| `n` | MNIST | Fashion-MNIST | CIFAR-10 |
+| $n$ | MNIST | Fashion-MNIST | CIFAR-10 |
 |-----|---:|---:|---:|
 | 500   | 92.2 ± 0.1 | 83.0 ± 0.1 | 43.3 ± 0.1 |
 | 1 000  | 94.3 ± 0.1 | 84.8 ± 0.0 | 45.8 ± 0.1 |
@@ -593,9 +593,9 @@ substitute for the right spatial prior.
 | 10 000 | 97.6 ± 0.0 | 88.7 ± 0.1 | **49.6 ± 0.1** |
 | 20 000 | **98.0 ± 0.0** | **89.3 ± 0.1** | 47.1 ± 0.1 |
 
-The 10 k → 20 k step is `+0.40 pp` on MNIST and `+0.60 pp` on
-Fashion — order-of-magnitude above the combined SE — but `-2.51 pp`
-on CIFAR-10.  We use `n = 5 000` as the like-for-like ablation
+The 10 k → 20 k step is $+0.40$ pp on MNIST and $+0.60$ pp on
+Fashion — order-of-magnitude above the combined SE — but $-2.51$ pp
+on CIFAR-10.  We use $n = 5000$ as the like-for-like ablation
 point throughout the paper because it is the shared, stable point
 across all three datasets; doubling further is still valuable on
 MNIST/Fashion, while CIFAR-10 needs a better encoder prior rather
@@ -603,7 +603,7 @@ than more generic global neurons.  The practical reading: scaling
 helps until the representation, not the solver, becomes the
 bottleneck.
 
-**Activation choice.**  At fixed `n = 5 000` with hypersphere
+**Activation choice.**  At fixed $n = 5000$ with hypersphere
 encoders and data-driven biases, `abs`, `relu`, and `tanh`
 behave like this:
 
@@ -633,7 +633,7 @@ small gain.
 
 The reading the §2 algebra supports: `abs` and ReLU are the
 same minimal nonlinearity up to a sign-flip
-(`|x| = ReLU(x) + ReLU(-x)`), and an `abs` neuron is the same
+($|x| = \operatorname{ReLU}(x) + \operatorname{ReLU}(-x)$), and an `abs` neuron is the same
 information as two mirrored `relu` neurons whose decoder rows
 the analytic solve will find.  At fixed `n` the `abs` parameterization
 buys a half-budget worth of "free" `relu` partners, which is
@@ -641,10 +641,10 @@ exactly what the small Fashion-MNIST edge looks like.  We keep
 `abs` as the project default on this evidence — modest, measured,
 and consistent with the algebra.
 
-`tanh` is robustly worse across the panel (`-0.2…0.4 pp` on
-MNIST, `-0.3…1.0 pp` on Fashion, `-0.5…1.7 pp` on CIFAR-10).
+`tanh` is robustly worse across the panel ($-0.2 \ldots 0.4$ pp on
+MNIST, $-0.3 \ldots 1.0$ pp on Fashion, $-0.5 \ldots 1.7$ pp on CIFAR-10).
 Saturation cancels the benefit of over-representation: a `tanh`
-neuron only carries information about whether `(e_i · x)` is
+neuron only carries information about whether $(e_i \cdot x)$ is
 "small" or "large", not its magnitude.  This is consistent with
 the §2 frame-coefficient picture, which requires a nonlinearity
 that preserves magnitude information.  Practical implication:
@@ -658,7 +658,7 @@ two-sided fold.
 ## §6 — Streaming-NEF: time collapsed by pooling
 
 The headline empirical contribution.  Given a temporal sequence
-`x_1, …, x_T`, we form a `K`-step delay-line feature at each
+$x_1, \ldots, x_T$, we form a $K$-step delay-line feature at each
 timestep, apply a fixed encoder to that feature, take the
 absolute value, mean-pool the resulting activities over sequence
 positions, then `accumulate + solve` over examples.  No
@@ -666,16 +666,16 @@ recurrence, no BPTT (Werbos, 1990).
 
 ### §6.1 — The architecture
 
-Let `ŝ_t = (x_{t-K+1}, …, x_t) ∈ ℝ^{Kd_in}` be the delay-line
+Let $\hat{s}_t = (x_{t-K+1}, \ldots, x_t) \in \mathbb{R}^{K d_{\mathrm{in}}}$ be the delay-line
 window at time `t`.  Activate it through the same leenef layer
 defined in §3; mean-pool the resulting activities over `t`:
 
-```
-Â = (1/T) Σ_t |g ⊙ E ŝ_t + b|
-```
+$$
+\hat{A} = \frac{1}{T} \sum_t |g \odot E \hat{s}_t + b|
+$$
 
-`Â` is a fixed-size vector regardless of `T`, so the rest of
-the pipeline is identical to §3: accumulate `ÂᵀÂ` and `ÂᵀY`,
+$\hat{A}$ is a fixed-size vector regardless of $T$, so the rest of
+the pipeline is identical to §3: accumulate $\hat{A}^\top \hat{A}$ and $\hat{A}^\top Y$,
 solve for the decoder.  The streaming variants `batch_acc`,
 `accumulate`, and `woodbury` (continuous fit) share the same
 test accuracy (§5.3).
@@ -685,9 +685,9 @@ test accuracy (§5.3).
 Sequential MNIST with rows-as-timesteps (T = 28, K = 10), following
 the sequential-MNIST benchmark setup popularized in recurrent-network
 work such as Le et al. (2015).
-Ten seeds at each width, trace-scaled `α = 10⁻⁴`:
+Ten seeds at each width, trace-scaled $\alpha = 10^{-4}$:
 
-| `n_neurons` | accuracy ± SE | end-to-end wall-clock time (CPU, s/seed) |
+| $n_{\mathrm{neurons}}$ | accuracy ± SE | end-to-end wall-clock time (CPU, s/seed) |
 |-------------|----------------|--------------------|
 | 2 000 | 97.20 ± 0.04 % | 20 |
 | 4 000 | 97.97 ± 0.02 % | 42 |
@@ -744,7 +744,7 @@ Permuted sMNIST destroys spatial locality: each pixel becomes
 its own timestep with a fixed random permutation applied
 uniformly across the dataset (T = 784).  Stream-NEF cells:
 
-| `n_neurons` | seeds | Stream-NEF accuracy ± SE | end-to-end wall-clock time (CPU, s/seed) |
+| $n_{\mathrm{neurons}}$ | seeds | Stream-NEF accuracy ± SE | end-to-end wall-clock time (CPU, s/seed) |
 |-------------|-------|--------------------------|--------------------|
 | 2000 | 5 | 72.96 ± 0.07 % | 559 |
 | 4000 | 5 | 75.61 ± 0.05 % | 794 |
@@ -761,7 +761,7 @@ We completed the apples-to-apples ESN comparator (same fixed-feature +
 linear-readout family) under the same code identity.  Best cell per
 `n`:
 
-| `n_reservoir` | seeds | best ESN accuracy ± SE | (sr, leak) | end-to-end wall-clock time (CPU, s/seed) |
+| $n_{\mathrm{reservoir}}$ | seeds | best ESN accuracy ± SE | (sr, leak) | end-to-end wall-clock time (CPU, s/seed) |
 |---------------|-------|------------------------|------------|--------------------|
 |   500 | 5 | 70.64 ± 0.53 % | (0.95, 0.3) |   529 |
 | 1 000 | 5 | 75.26 ± 0.59 % | (0.95, 0.3) | 2 073 |
@@ -964,16 +964,16 @@ straightforwardly.
 
 ### Closed-form uncertainty estimates
 
-The Tikhonov solve `(AᵀA + α_eff I)⁻¹` is the inverse of the
+The Tikhonov solve $(A^\top A + \alpha_{\mathrm{eff}} I)^{-1}$ is the inverse of the
 posterior precision matrix in a Gaussian-Bayesian reading of
 ridge regression.  The columns of the resulting decoder come
-with a closed-form covariance — `Σ_D = σ² (AᵀA + α_eff I)⁻¹`
+with a closed-form covariance — $\Sigma_D = \sigma^2 (A^\top A + \alpha_{\mathrm{eff}} I)^{-1}$
 for a unit residual variance — and the predictive variance at
-a test input `a*` is `σ² + a*ᵀ Σ_D a*`.  Nothing about this
+a test input $a^{*}$ is $\sigma^2 + {a^{*}}^\top \Sigma_D a^{*}$.  Nothing about this
 is novel mathematically; what is uncommon is that we already
-have `(AᵀA + α_eff I)⁻¹` materialized as part of the
+have $(A^\top A + \alpha_{\mathrm{eff}} I)^{-1}$ materialized as part of the
 `woodbury` solve path.  The resulting uncertainty estimate is
-computationally cheap: a single `aᵀ M⁻¹ a` per test point.  Whether
+computationally cheap: a single $a^\top M^{-1} a$ per test point.  Whether
 it is empirically calibrated is a separate question that we do not
 claim to settle here.
 
@@ -986,7 +986,7 @@ gradient-trained-network bridge sketched below.
 
 ### Continual learning: a forward look
 
-Per-class columns of `AᵀY` are additive, while the shared `AᵀA`
+Per-class columns of $A^\top Y$ are additive, while the shared $A^\top A$
 term determines how changes in representation statistics propagate
 to every decoder column.  That separation is the load-bearing
 property for Paper II: class-specific target statistics can be
@@ -997,7 +997,7 @@ owns the algorithmic claim.
 
 ### Reinforcement learning: a forward look
 
-The same accumulator handles harder targets.  `Y` becomes a
+The same accumulator handles harder targets.  $Y$ becomes a
 bootstrap target rather than a label, and the per-action
 decomposition (NEF Successor Features; Barreto et al., 2017,
 and FQI; Ernst et al., 2005) is again just
@@ -1058,7 +1058,7 @@ The per-cell JSON rows under `results/sl_clean/` carry:
   `(config, seed)` cell.
 - `aggregates`: mean, SE, n, and the adoption verdict relative
   to the cell's incumbent (replace if the candidate's mean is
-  more than `sqrt(SE_cand² + SE_inc²)` above the incumbent's;
+  more than $\sqrt{SE_{\mathrm{cand}}^2 + SE_{\mathrm{inc}}^2}$ above the incumbent's;
   keep the incumbent otherwise).
 
 The driver scripts (`benchmarks/sl_clean/sl_hp_driver.sh`,
@@ -1080,7 +1080,7 @@ for ablation tables, 3 seeds for appendix-legacy tables.
 training rules recover single-layer accuracy but do not exceed
 it.**  A five-seed MNIST panel with one 2000-neuron hidden layer,
 a 2000-neuron output layer, `abs` activation, hypersphere encoders,
-data-driven biases, and `α = 10⁻³` tests five strategies:
+data-driven biases, and $\alpha = 10^{-3}$ tests five strategies:
 
 | strategy | test accuracy (mean ± SE) | end-to-end wall-clock time (CPU, s/seed) | inter-layer gradients? |
 |---|---|---:|---|
