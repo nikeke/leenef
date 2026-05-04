@@ -136,6 +136,50 @@ Cross-method / forgetting summary:
   supported against the continual SGD baselines**, with MLP-joint still
   the best absolute-accuracy upper bound on this panel.
 
+#### 2026-05-04 — Split-CIFAR-100 (`nef_continual_split_cifar100`)
+
+* Code identity: `ed891a3d7bbefb532fe876847b635a1fb871aa43`.
+* Command family: `PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python SEEDS=0-9 bash benchmarks/cl_clean/cl_hp_driver.sh nef_continual_split_cifar100`.
+* Thread caps at launch: `OMP_NUM_THREADS=4`, `MKL_NUM_THREADS=4`,
+  `OPENBLAS_NUM_THREADS=4`, `NUMEXPR_NUM_THREADS=4`.
+* Base config: `results/cl_clean/base_config_nef_continual_split_cifar100.json`
+  (`n_neurons=5000`, `alpha=1e-3`, `centers_mode=first_task`,
+  `fit_chunk_size=4096`).
+* Cells: `nef_accumulate`, `nef_joint`, `nef_reset`, `mlp_finetune`,
+  `mlp_joint`, `mlp_ewc`, `mlp_er`; seeds 0-9; 70 rows complete.
+* Sentinel: `results/cl_clean/nef_continual_split_cifar100_panel_done`.
+
+Per-cell summary (`test_accuracy`, mean ± SE; `fit_time_s`, mean ± SE):
+
+| Cell | n | Accuracy | Fit time |
+| --- | ---: | ---: | ---: |
+| `nef_accumulate` | 10 | 24.147% ± 0.080% | 35.77s ± 0.34s |
+| `nef_joint` | 10 | 24.147% ± 0.080% | 36.52s ± 0.29s |
+| `nef_reset` | 10 | 3.943% ± 0.146% | 4.66s ± 0.08s |
+| `mlp_finetune` | 10 | 1.080% ± 0.046% | 17.97s ± 0.38s |
+| `mlp_joint` | 10 | 23.809% ± 0.132% | 180.26s ± 10.00s |
+| `mlp_ewc` | 10 | 4.115% ± 0.224% | 40.41s ± 0.12s |
+| `mlp_er` | 10 | 2.035% ± 0.363% | 17.70s ± 0.10s |
+
+Joint-equivalence summary:
+
+* `mean_signed_gap(accumulate - joint) = +0.0000 pp`
+* `max_abs_gap(accumulate - joint) = 0.0000 pp`
+* `n = 10`
+* Verdict: **joint-equivalence supported (≤ 0.05 pp)**.
+
+Cross-method / forgetting summary:
+
+* Forgetting-gap proxy (`accumulate - reset`): `+20.204 ± 0.128 pp`.
+* All continual SGD baselines collapse to the 1-4% range on this
+  100-class class-incremental split.
+* The NEF pair is the best-performing family on the panel:
+  `nef_accumulate` exceeds `mlp_joint` by 0.338 pp while using 5.04×
+  less end-to-end wall-clock fitting time (`35.77s` vs `180.26s`).
+* Adoption verdicts: **H1 supported strongly** on Split-CIFAR-100; **H5
+  supported strongly**, including against the joint MLP upper bound on
+  this panel.
+
 ### B3 — Capacity matrix (H2)
 
 Runnable via:

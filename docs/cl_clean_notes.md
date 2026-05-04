@@ -59,3 +59,10 @@ Three things make this paper interesting (and not just an "of course"):
   result as "exact continual equivalence plus a strong efficiency story,"
   not as a blanket claim that the fixed-encoder NEF always dominates the
   best gradient-trained upper bound on harder images.
+* Split-CIFAR-100 pushes the story back toward NEF.  On the harder
+  100-class split, the NEF pair still matches exactly and now edges past
+  `mlp_joint` by 0.3 pp while using about 5× less end-to-end wall-clock
+  time.  A useful draft framing is that the fixed-encoder regime is not
+  uniformly best on every visual task, but its combination of exact
+  continual equivalence and competitive-or-better final accuracy becomes
+  stronger as the class-incremental problem gets harsher.
