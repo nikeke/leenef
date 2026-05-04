@@ -186,6 +186,43 @@ class TestMLPReproducibility:
             assert torch.equal(p1, p2)
 
 
+class TestPhaseBRegistrations:
+    def test_capacity_experiments_are_registered(self):
+        names = experiments.names()
+        assert "nef_capacity_permuted_mnist_t100" in names
+        assert "nef_capacity_permuted_cifar10_t20" in names
+
+    def test_grid_cell_parsers(self):
+        from benchmarks.cl_clean.experiments import _parse_capacity_cell, _parse_solver_alpha_cell
+
+        assert _parse_capacity_cell("n5000_t20") == (5000, 20)
+        assert _parse_solver_alpha_cell("woodbury_online_a0.1") == ("woodbury_online", 0.1)
+
+    def test_layer_encoders_and_gains_do_not_depend_on_centers_mode(self):
+        import torch
+
+        from benchmarks.cl_clean.experiments import _build_layer, _make_subrngs
+
+        kwargs = dict(
+            d_in=8,
+            n_neurons=32,
+            n_classes=4,
+            encoder_strategy="hypersphere",
+            gain_low=0.5,
+            gain_high=2.0,
+            device=torch.device("cpu"),
+        )
+        centered = _build_layer(
+            **kwargs,
+            centers=torch.randn(32, 8, generator=torch.Generator().manual_seed(99)),
+            rngs=_make_subrngs(11),
+        )
+        uncentered = _build_layer(**kwargs, centers=None, rngs=_make_subrngs(11))
+
+        assert torch.equal(centered.encoders, uncentered.encoders)
+        assert torch.equal(centered.gain, uncentered.gain)
+
+
 class TestByteIdentityIdempotency:
     def test_rerun_produces_byte_identical_json(self, tmp_path: Path):
         out = tmp_path / "smoke.json"

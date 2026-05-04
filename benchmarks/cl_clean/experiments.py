@@ -25,6 +25,7 @@ from typing import Callable
 import torch
 
 from leenef.layers import NEFLayer
+from leenef.solvers import solve_from_normal_equations
 
 from .cl_repro import set_cl_seed
 from .datasets import make_task_stream
@@ -210,10 +211,45 @@ def _make_subrngs(seed: int) -> dict[str, torch.Generator]:
     }
 
 
+def _make_gain_tensor(
+    n_neurons: int, gain_low: float, gain_high: float, *, rng: torch.Generator
+) -> torch.Tensor:
+    return gain_low + (gain_high - gain_low) * torch.rand(n_neurons, generator=rng)
+
+
 def _one_hot(y: torch.Tensor, n_classes: int) -> torch.Tensor:
     oh = torch.zeros(y.shape[0], n_classes, dtype=torch.float32)
     oh[torch.arange(y.shape[0]), y] = 1.0
     return oh
+
+
+def _parse_capacity_cell(raw: object) -> tuple[int, int]:
+    """Parse capacity labels of the form ``n5000_t20``."""
+    text = str(raw)
+    try:
+        n_part, t_part = text.split("_", 1)
+        if not n_part.startswith("n") or not t_part.startswith("t"):
+            raise ValueError
+        return int(n_part[1:]), int(t_part[1:])
+    except ValueError as exc:
+        raise ValueError(f"capacity_cell must look like 'n5000_t20', got {text!r}") from exc
+
+
+def _parse_solver_alpha_cell(raw: object) -> tuple[str, float]:
+    """Parse solver labels of the form ``woodbury_online_a0.1``."""
+    text = str(raw)
+    try:
+        solver_mode, alpha_text = text.rsplit("_a", 1)
+        alpha = float(alpha_text)
+    except ValueError as exc:
+        raise ValueError(
+            "solver_alpha_cell must look like 'accumulate_a0.001' or "
+            f"'woodbury_online_a1', got {text!r}"
+        ) from exc
+    valid = {"accumulate", "woodbury_batch", "woodbury_online"}
+    if solver_mode not in valid:
+        raise ValueError(f"unknown solver mode {solver_mode!r}; expected one of {sorted(valid)}")
+    return solver_mode, alpha
 
 
 def _build_layer(
@@ -225,19 +261,32 @@ def _build_layer(
     gain_low: float,
     gain_high: float,
     centers: torch.Tensor | None,
-    layer_seed: int,
+    rngs: dict[str, torch.Generator],
     device: torch.device | None = None,
 ) -> NEFLayer:
+    gain = _make_gain_tensor(
+        n_neurons,
+        gain_low,
+        gain_high,
+        rng=rngs["gain"],
+    )
     layer = NEFLayer(
         d_in=d_in,
         n_neurons=n_neurons,
         d_out=n_classes,
         encoder_strategy=encoder_strategy,
         activation="abs",
-        gain=(gain_low, gain_high),
-        centers=centers,
-        rng=torch.Generator().manual_seed(layer_seed),
+        gain=gain,
+        centers=None,
+        rng=rngs["encoder"],
     )
+    if centers is not None:
+        if centers.shape != (n_neurons, d_in):
+            raise ValueError(
+                f"selected centers must have shape {(n_neurons, d_in)}, got {tuple(centers.shape)}"
+            )
+        with torch.no_grad():
+            layer.bias.data.copy_(-layer.gain * (centers.float() * layer.encoders.data).sum(dim=1))
     if device is not None:
         layer = layer.to(device)
     return layer
@@ -266,8 +315,79 @@ def _eval_per_task(
     return per_task, round(n_correct_total / n_total, 6)
 
 
+@torch.no_grad()
+def _fit_growing_centers(
+    layer: NEFLayer,
+    stream,
+    *,
+    n_classes: int,
+    alpha: float,
+    rng: torch.Generator,
+    device: torch.device,
+) -> None:
+    """Fit the negative-control "growing neuron pool" center strategy.
+
+    Neurons are partitioned by task.  When task ``t`` arrives, its group
+    receives centers sampled from that task and becomes active; future
+    groups are zeroed out for the current task.  This preserves the old
+    no-replay design from the checkpoint trail: old-data × new-neuron
+    cross-terms are missing, so the panel tests whether the tempting
+    center-adaptation shortcut actually helps (it previously collapsed).
+    """
+
+    n_tasks = len(stream.tasks)
+    boundaries = torch.linspace(0, layer.n_neurons, n_tasks + 1, dtype=torch.int64).tolist()
+    ata = torch.zeros(layer.n_neurons, layer.n_neurons, dtype=torch.float64, device=device)
+    aty = torch.zeros(layer.n_neurons, n_classes, dtype=torch.float64, device=device)
+
+    for t, task in enumerate(stream.tasks):
+        start, end = int(boundaries[t]), int(boundaries[t + 1])
+        if end <= start:
+            raise ValueError(
+                f"growing centers need at least one neuron per task; "
+                f"n_neurons={layer.n_neurons}, n_tasks={n_tasks}"
+            )
+        idx = torch.randint(task.x_train.shape[0], (end - start,), generator=rng)
+        centers = task.x_train[idx].to(device)
+        with torch.no_grad():
+            enc = layer.encoders[start:end]
+            gain = layer.gain[start:end]
+            layer.bias[start:end].copy_(-gain * (centers.float() * enc).sum(dim=1))
+
+        x = task.x_train.to(device)
+        y_oh = _one_hot(task.y_train, n_classes).to(device)
+        acts = layer.encode(x)
+        if end < layer.n_neurons:
+            acts[:, end:] = 0
+        acts_stats = acts.float() if acts.dtype in (torch.float16, torch.bfloat16) else acts
+        y_stats = y_oh.float() if y_oh.dtype in (torch.float16, torch.bfloat16) else y_oh
+        ata.add_((acts_stats.T @ acts_stats).double())
+        aty.add_((acts_stats.T @ y_stats).double())
+
+    layer._ata = ata
+    layer._aty = aty
+    layer.decoders.data.copy_(
+        solve_from_normal_equations(layer._ata, layer._aty, alpha=alpha).to(layer.decoders.dtype)
+    )
+
+
 def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
     set_cl_seed(seed)
+    config = dict(config)
+    run_context = dict(run_context)
+    if "capacity_cell" in config:
+        n_neurons_override, n_tasks_override = _parse_capacity_cell(config["capacity_cell"])
+        config["n_neurons"] = n_neurons_override
+        run_context["n_tasks"] = n_tasks_override
+        config.setdefault("cell", "nef_accumulate")
+    if "solver_alpha_cell" in config:
+        solver_mode_override, alpha_override = _parse_solver_alpha_cell(
+            config["solver_alpha_cell"]
+        )
+        config["solver_mode"] = solver_mode_override
+        config["alpha"] = alpha_override
+        config.setdefault("cell", "nef_accumulate")
+
     method = str(config["cell"])
     if method in _MLP_METHODS:
         from .baselines import er_run, ewc_run, finetune_run, joint_run
@@ -301,6 +421,7 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
     n_neurons = int(config["n_neurons"])
     alpha = float(config["alpha"])
     centers_mode = str(config.get("centers_mode", "first_task"))
+    solver_mode = str(config.get("solver_mode", "accumulate"))
     device_str = str(config.get("device", "cpu"))
     device = torch.device(device_str)
 
@@ -315,11 +436,10 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
         centers = all_x[idx]
     elif centers_mode == "none":
         centers = None
+    elif centers_mode == "growing":
+        centers = None
     else:
         raise ValueError(f"unknown centers_mode {centers_mode!r}")
-    if centers is not None:
-        centers = centers.to(device)
-
     layer = _build_layer(
         d_in=d_in,
         n_neurons=n_neurons,
@@ -328,17 +448,55 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
         gain_low=float(config["gain_low"]),
         gain_high=float(config["gain_high"]),
         centers=centers,
-        layer_seed=seed * 1_000_003 + 1,
+        rngs=rngs,
         device=device,
     )
 
+    refresh_decoder_max_abs_diff: float | None = None
+    refresh_test_accuracy: float | None = None
+
     t0 = time.perf_counter()
-    if method == "nef_accumulate":
+    if method == "nef_accumulate" and centers_mode == "growing":
+        _fit_growing_centers(
+            layer,
+            stream,
+            n_classes=n_classes,
+            alpha=alpha,
+            rng=rngs["center_index"],
+            device=device,
+        )
+    elif method == "nef_accumulate" and solver_mode == "accumulate":
         for task in stream.tasks:
             x = task.x_train.to(device)
             y_oh = _one_hot(task.y_train, n_classes).to(device)
             layer.partial_fit(x, y_oh)
         layer.solve_accumulated(alpha=alpha)
+    elif method == "nef_accumulate" and solver_mode == "woodbury_batch":
+        for task in stream.tasks:
+            x = task.x_train.to(device)
+            y_oh = _one_hot(task.y_train, n_classes).to(device)
+            layer.continuous_fit(x, y_oh, alpha=alpha)
+    elif method == "nef_accumulate" and solver_mode == "woodbury_online":
+        chunk = int(config.get("woodbury_chunk_size", 100))
+        for task in stream.tasks:
+            y_oh_full = _one_hot(task.y_train, n_classes)
+            for s in range(0, task.x_train.shape[0], chunk):
+                e = min(s + chunk, task.x_train.shape[0])
+                x = task.x_train[s:e].to(device)
+                y_oh = y_oh_full[s:e].to(device)
+                layer.continuous_fit(x, y_oh, alpha=alpha)
+        online_decoders = layer.decoders.data.detach().clone()
+        layer.refresh_inverse(alpha=alpha)
+        refresh_decoder_max_abs_diff = float(
+            (online_decoders - layer.decoders.data).abs().max().cpu()
+        )
+        refresh_per_task_acc, refresh_test_accuracy = _eval_per_task(layer, stream, device=device)
+        layer.decoders.data.copy_(online_decoders)
+    elif method == "nef_accumulate":
+        raise ValueError(
+            f"unknown solver_mode {solver_mode!r}; expected accumulate, "
+            "woodbury_batch, or woodbury_online"
+        )
     elif method == "nef_joint":
         # Joint upper bound.  Concatenates the union once, then calls
         # ``partial_fit`` on shuffled chunks so the code path differs
@@ -367,10 +525,15 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
 
     per_task_acc, avg_acc = _eval_per_task(layer, stream, device=device)
 
-    return {
+    metrics = {
         "test_accuracy": avg_acc,
         "per_task_accuracy": per_task_acc,
         "fit_time_s": round(fit_s, 4),
+        "effective_n_neurons": n_neurons,
+        "effective_n_tasks": n_tasks,
+        "centers_mode": centers_mode,
+        "solver_mode": solver_mode,
+        "alpha": alpha,
         "stream_hash": stream.stream_hash,
         "stream_metadata": stream.metadata(),
         "dataset_metadata": {
@@ -384,6 +547,11 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
             "processed_hashes": dict(stream.processed_hashes),
         },
     }
+    if refresh_decoder_max_abs_diff is not None:
+        metrics["refresh_decoder_max_abs_diff"] = refresh_decoder_max_abs_diff
+        metrics["refresh_test_accuracy"] = refresh_test_accuracy
+        metrics["refresh_per_task_accuracy"] = refresh_per_task_acc
+    return metrics
 
 
 def _nef_cl_context_factory(*, base_dataset: str, scenario: str, n_tasks: int) -> ContextFn:
@@ -420,5 +588,37 @@ for _name, _base, _scen, _nt in _NEF_CL_PANELS:
                 f"Paper II headline NEF-CL panel — {_base} ({_scen}, {_nt} tasks). "
                 f"Cells: {NEF_CL_CELLS}."
             ),
+        )
+    )
+
+
+# Phase B3 capacity panels.  These are separate experiment registrations
+# rather than run-context overrides so each row's top-level run_context
+# records the actual task count used by the phase.
+for _nt in (5, 10, 20, 50, 100):
+    register(
+        ExperimentSpec(
+            name=f"nef_capacity_permuted_mnist_t{_nt}",
+            run_fn=_nef_cl_run,
+            default_run_context=_nef_cl_context_factory(
+                base_dataset="MNIST", scenario="permuted", n_tasks=_nt
+            ),
+            primary_metric="test_accuracy",
+            higher_is_better=True,
+            description=f"Paper II B3 capacity panel — Permuted-MNIST ({_nt} tasks).",
+        )
+    )
+
+for _nt in (5, 10, 20):
+    register(
+        ExperimentSpec(
+            name=f"nef_capacity_permuted_cifar10_t{_nt}",
+            run_fn=_nef_cl_run,
+            default_run_context=_nef_cl_context_factory(
+                base_dataset="CIFAR10", scenario="permuted", n_tasks=_nt
+            ),
+            primary_metric="test_accuracy",
+            higher_is_better=True,
+            description=f"Paper II B3 capacity spot panel — Permuted-CIFAR-10 ({_nt} tasks).",
         )
     )

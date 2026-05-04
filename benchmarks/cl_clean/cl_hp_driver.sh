@@ -45,14 +45,22 @@ if [[ "${DETACH:-0}" == "1" && -z "${CL_DETACHED:-}" ]]; then
   exit 0
 fi
 
+normalize_seeds() {
+  local raw="$1"
+  case "${raw}" in
+    *-*)
+      local lo="${raw%%-*}"
+      local hi="${raw##*-}"
+      seq -s, "${lo}" "${hi}"
+      ;;
+    *)
+      echo "${raw}"
+      ;;
+  esac
+}
+
 # Translate ``0-9`` → ``0,1,2,3,4,5,6,7,8,9`` for convenience.
-case "${SEEDS_DEFAULT}" in
-  *-*)
-    LO="${SEEDS_DEFAULT%%-*}"
-    HI="${SEEDS_DEFAULT##*-}"
-    SEEDS_DEFAULT="$(seq -s, "${LO}" "${HI}")"
-    ;;
-esac
+SEEDS_DEFAULT="$(normalize_seeds "${SEEDS_DEFAULT}")"
 
 run_phase() {
   local phase="$1"; shift
@@ -118,6 +126,59 @@ case "${EXPERIMENT}" in
       echo "phase ${PHASE_NAME} had cell errors; sentinel NOT touched" >&2
       exit 1
     fi
+    ;;
+
+  b3_capacity)
+    # Phase B3 — capacity matrix.  Defaults follow the plan:
+    # Permuted-MNIST: 5 seeds over a 5×5 n_neurons × n_tasks grid.
+    # Permuted-CIFAR-10: 3 seeds over a smaller confirmation grid.
+    B3_MNIST_SEEDS="$(normalize_seeds "${B3_MNIST_SEEDS:-0-4}")"
+    B3_CIFAR_SEEDS="$(normalize_seeds "${B3_CIFAR_SEEDS:-0-2}")"
+    B3_MNIST_N="${B3_MNIST_N:-500,1000,2000,5000,10000}"
+    B3_CIFAR_N="${B3_CIFAR_N:-1000,2000,5000,10000}"
+    BASE="${RESULTS_DIR}/base_config_b3_capacity.json"
+    for T in ${B3_MNIST_TASKS:-5 10 20 50 100}; do
+      run_phase "b3_capacity_permuted_mnist_t${T}" n_neurons "${B3_MNIST_N}" \
+                "${B3_MNIST_SEEDS}" "${BASE}" "nef_capacity_permuted_mnist_t${T}"
+    done
+    for T in ${B3_CIFAR_TASKS:-5 10 20}; do
+      run_phase "b3_capacity_permuted_cifar10_t${T}" n_neurons "${B3_CIFAR_N}" \
+                "${B3_CIFAR_SEEDS}" "${BASE}" "nef_capacity_permuted_cifar10_t${T}"
+    done
+
+    # Joint-equivalence spot checks at the four MNIST grid extremes.
+    for T in 5 100; do
+      for N in 500 10000; do
+        SPOT_BASE="${RESULTS_DIR}/base_config_b3_capacity_spot_n${N}.json"
+        run_phase "b3_capacity_spot_permuted_mnist_t${T}_n${N}" cell \
+                  "nef_accumulate,nef_joint" "${B3_CIFAR_SEEDS}" \
+                  "${SPOT_BASE}" "nef_capacity_permuted_mnist_t${T}"
+      done
+    done
+    touch "${RESULTS_DIR}/b3_capacity_done"
+    ;;
+
+  b4_centers)
+    # Phase B4 — center-adaptation falsifier.
+    B4_SEEDS="$(normalize_seeds "${B4_SEEDS:-0-4}")"
+    BASE="${RESULTS_DIR}/base_config_b4_centers.json"
+    run_phase b4_centers_split_mnist centers_mode "none,first_task,all_tasks,growing" \
+              "${B4_SEEDS}" "${BASE}" nef_continual_split_mnist
+    run_phase b4_centers_split_cifar10 centers_mode "none,first_task,all_tasks,growing" \
+              "${B4_SEEDS}" "${BASE}" nef_continual_split_cifar10
+    touch "${RESULTS_DIR}/b4_centers_done"
+    ;;
+
+  b5_solvers)
+    # Phase B5 — solver mode × fixed-alpha regime.
+    B5_SEEDS="$(normalize_seeds "${B5_SEEDS:-0-4}")"
+    BASE="${RESULTS_DIR}/base_config_b5_solvers.json"
+    SOLVER_ALPHA_CELLS="${SOLVER_ALPHA_CELLS:-accumulate_a0.001,accumulate_a0.01,accumulate_a0.1,accumulate_a1,accumulate_a10,accumulate_a100,accumulate_a1000,woodbury_batch_a0.001,woodbury_batch_a0.01,woodbury_batch_a0.1,woodbury_batch_a1,woodbury_batch_a10,woodbury_batch_a100,woodbury_batch_a1000,woodbury_online_a0.001,woodbury_online_a0.01,woodbury_online_a0.1,woodbury_online_a1,woodbury_online_a10,woodbury_online_a100,woodbury_online_a1000}"
+    for EXP in nef_continual_split_mnist nef_continual_permuted_mnist nef_continual_split_cifar10; do
+      run_phase "b5_solvers_${EXP#nef_continual_}" solver_alpha_cell "${SOLVER_ALPHA_CELLS}" \
+                "${B5_SEEDS}" "${BASE}" "${EXP}"
+    done
+    touch "${RESULTS_DIR}/b5_solvers_done"
     ;;
 
   *)
