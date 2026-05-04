@@ -100,13 +100,25 @@ def code_identity() -> str | None:
     tree_listing = _git("ls-tree", "-r", "HEAD", "--", *CODE_IDENTITY_PATHS) or ""
     content_id = hashlib.sha256(tree_listing.encode("utf-8")).hexdigest()[:40]
     diff = _git("diff", "--no-ext-diff", "HEAD", "--", *CODE_IDENTITY_PATHS) or ""
-    untracked = (
+    untracked_list = (
         _git("ls-files", "--others", "--exclude-standard", "--", *CODE_IDENTITY_PATHS) or ""
     )
-    if not diff and not untracked:
+    untracked_files = [line for line in untracked_list.splitlines() if line.strip()]
+    if not diff and not untracked_files:
         return content_id
-    blob = f"{diff}\n--untracked--\n{untracked}".encode("utf-8")
-    dirty = hashlib.sha256(blob).hexdigest()[:12]
+    h = hashlib.sha256()
+    h.update(diff.encode("utf-8"))
+    h.update(b"\n--untracked--\n")
+    for rel in sorted(untracked_files):
+        h.update(rel.encode("utf-8"))
+        h.update(b"\0")
+        path = REPO_ROOT / rel
+        try:
+            h.update(path.read_bytes())
+        except (OSError, IsADirectoryError):
+            h.update(b"<unreadable>")
+        h.update(b"\n")
+    dirty = h.hexdigest()[:12]
     return f"{content_id}-dirty-{dirty}"
 
 
