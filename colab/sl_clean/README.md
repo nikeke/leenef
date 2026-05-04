@@ -57,12 +57,10 @@ the same device.
 2. Runtime -> Change runtime type -> GPU -> G4 if available, otherwise L4.
 3. Run all cells.
 4. Download the zip file produced by the final cell and commit the JSON
-   and log files back to the Phase-C branch.
+   and log files back to `main`.
 
-The notebook currently clones `paper-i/phase-c-gpu-suite`, the temporary
-branch that preserves this GPU-suite commit while the long CPU Phase-C
-run finishes on `paper-i/phase-c-experiments`.  Switch the notebook back
-to `paper-i/phase-c-experiments` after the branches are merged.
+The notebook clones `main`, so the Colab run uses the same committed
+benchmark code and sweep definitions as the primary repository branch.
 
 ## What this suite does *not* replace
 

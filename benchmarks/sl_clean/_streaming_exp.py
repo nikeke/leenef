@@ -31,6 +31,18 @@ from .sl_repro import set_sl_seed
 STREAMING_SOLVE_MODES = ("batch_acc", "accumulate", "woodbury")
 
 
+def _resolve_device(config: dict) -> torch.device:
+    requested = str(config.get("device", "cpu"))
+    if requested == "auto":
+        requested = "cuda" if torch.cuda.is_available() else "cpu"
+    device = torch.device(requested)
+    if device.type == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError(
+            "streaming experiment requested CUDA but torch.cuda.is_available() is false"
+        )
+    return device
+
+
 def streaming_make_rng(seed: int) -> torch.Generator:
     return torch.Generator().manual_seed(int(seed) * 1_000_003 + 42)
 
@@ -87,25 +99,32 @@ def streaming_run(config: dict, seed: int, run_context: dict) -> dict:
     encode_max_tokens = int(config.get("encode_max_tokens", 50_000))
     chunk_stats = bool(config.get("chunk_stats", False))
     eval_train_accuracy = bool(config.get("eval_train_accuracy", False))
+    device = _resolve_device(config)
     if solve_mode not in STREAMING_SOLVE_MODES:
         raise ValueError(
             f"unknown solve_mode {solve_mode!r}; expected one of {STREAMING_SOLVE_MODES}"
         )
 
     bundle = _load_streaming_dataset(run_context)
-    x_train, y_train = bundle.x_train, bundle.y_train
-    x_test, y_test = bundle.x_test, bundle.y_test
+    x_train_cpu, y_train_cpu = bundle.x_train, bundle.y_train
+    x_test_cpu, y_test_cpu = bundle.x_test, bundle.y_test
+    x_train = x_train_cpu.to(device)
+    y_train = y_train_cpu.to(device)
+    x_test = x_test_cpu.to(device)
+    y_test = y_test_cpu.to(device)
     if x_train.dim() != 3:
         raise RuntimeError(
             "streaming experiments require sequential dataset (N, T, d); "
             f"got shape {tuple(x_train.shape)}"
         )
     n_classes = bundle.n_classes
-    Y_oh = bundle.one_hot(y_train)
+    Y_oh = bundle.one_hot(y_train_cpu).to(device)
 
     rng = streaming_make_rng(seed)
+    # Build on CPU so explicit-Generator draws and sampled center windows
+    # match the CPU reference exactly, then move model/data together.
     clf = StreamingNEFClassifier(
-        d_timestep=int(x_train.shape[2]),
+        d_timestep=int(x_train_cpu.shape[2]),
         n_neurons=n_neurons,
         d_out=n_classes,
         window_size=window_size,
@@ -113,8 +132,8 @@ def streaming_run(config: dict, seed: int, run_context: dict) -> dict:
         encoder_strategy=encoder_strategy,
         gain=(gain_low, gain_high),
         rng=rng,
-        centers=x_train if use_centers else None,
-    )
+        centers=x_train_cpu if use_centers else None,
+    ).to(device)
 
     t0 = time.perf_counter()
     # When alpha_scale='trace', do a pilot accumulate pass to compute the
@@ -173,6 +192,8 @@ def streaming_run(config: dict, seed: int, run_context: dict) -> dict:
                     x_train[s:e], Y_oh[s:e], alpha=alpha, max_tokens=encode_max_tokens
                 )
             clf.refresh_inverse(alpha=alpha)
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
     fit_s = time.perf_counter() - t0
 
     t1 = time.perf_counter()
@@ -182,6 +203,8 @@ def streaming_run(config: dict, seed: int, run_context: dict) -> dict:
         else None
     )
     test_acc = _classification_accuracy(clf, x_test, y_test, encode_max_tokens=encode_max_tokens)
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
     eval_s = time.perf_counter() - t1
 
     return {
@@ -206,6 +229,8 @@ def streaming_run(config: dict, seed: int, run_context: dict) -> dict:
             "alpha_scale": alpha_scale,
             "alpha_nominal": alpha,
             "alpha_eff": round(float(alpha_eff), 9),
+            "device": str(device),
+            "gpu_name": torch.cuda.get_device_name(device) if device.type == "cuda" else None,
         },
         "dataset_metadata": bundle.metadata(),
     }

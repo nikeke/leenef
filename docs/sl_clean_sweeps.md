@@ -460,6 +460,7 @@ The `16000` row beats `8000` by `+1.76 pp`, far outside the combined SE
 materially all the way to 16k, but the extension **does not break the
 ceiling**. Even at 16k, permuted Stream-NEF remains in the high-70s —
 nowhere near the row-sMNIST regime where streaming reaches the high-90s.
+This is exactly the characterization the delegation note asked for.
 
 ---
 
@@ -612,6 +613,14 @@ ESN (input-W, reservoir-W, internal sample) seeded as
   earlier dirty-tagged version of the same panel was reproduced
   bit-exactly under the clean identity by the row audit — no
   decoder/state was lost; this row decision is firm.
+- **Audit addendum 2026-05-03.** A clean-tree re-run of the row-panel cell
+  `n=2000, sr=0.95, leak=0.3, seed=0` reproduces the stored dirty-row value
+  **exactly**: `93.33000183105469%` test accuracy in both the original
+  panel and `results/sl_clean/b6_esn_smnist_row_audit.json`. The original
+  panel row lives under dirty identity `a495b4…`; the audit row under clean
+  identity `9bfe9d…`. Because the numeric match is bit-exact, the
+  row-panel JSON is treated as **audited** and does **not** need a full
+  60-cell rerun.
 - **b6_esn_smnist_permuted: 60/60 ✅.** Best cell per `n` under
   identity `69b0b0bb204d`:
 

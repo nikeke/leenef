@@ -5,5 +5,6 @@
   "n_epochs": 30,
   "lr": 1e-3,
   "batch_size": 256,
-  "alpha": 1e-3
+  "alpha": 1e-3,
+  "device": "cuda"
 }

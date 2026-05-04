@@ -42,10 +42,18 @@ _B6_GRID: tuple[str, ...] = tuple(
 )
 
 
+def _resolve_device(config: dict) -> str:
+    requested = str(config.get("device", "auto"))
+    if requested == "auto":
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    if requested == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("B6 requested CUDA but torch.cuda.is_available() is false")
+    return requested
+
+
 def _b6_run(config: dict, seed: int, run_context: dict) -> dict:
-    if torch.cuda.is_available():
-        device = "cuda"
-    else:
+    device = _resolve_device(config)
+    if device == "cpu":
         device = "cpu"
         threads = int(os.environ.get("OMP_NUM_THREADS", "4"))
         torch.set_num_threads(threads)
@@ -83,6 +91,8 @@ def _b6_run(config: dict, seed: int, run_context: dict) -> dict:
         generator_reservoir=g_reservoir,
         device=device,
     )
+    if device == "cuda":
+        torch.cuda.synchronize()
     wall = time.perf_counter() - t0
 
     return {
@@ -98,6 +108,8 @@ def _b6_run(config: dict, seed: int, run_context: dict) -> dict:
             "n_reservoir": n_res,
             "spectral_radius": sr,
             "leak_rate": leak,
+            "device": device,
+            "gpu_name": torch.cuda.get_device_name(0) if device == "cuda" else None,
         },
         "dataset_metadata": meta,
     }

@@ -1,8 +1,8 @@
 """GPU suite for the recurrent sMNIST comparison panel.
 
-Run from a CUDA Colab runtime on the `paper-i/phase-c-gpu-suite`
-branch.  The suite intentionally uses committed benchmark code and the
-standard `sl_phase_runner`; no runtime monkey-patching is involved.
+Run from a CUDA Colab runtime on `main`. The suite intentionally uses
+committed benchmark code and the standard `sl_phase_runner`; no runtime
+monkey-patching is involved.
 
 Default panels:
 
@@ -170,8 +170,8 @@ def run_suite(seeds: str) -> list[Path]:
     if missing:
         raise SystemExit(
             "This checkout does not contain the recurrent GPU suite experiments: "
-            f"{sorted(missing)}. Run on paper-i/phase-c-experiments after the "
-            "GPU-suite commit is present."
+            f"{sorted(missing)}. Update this checkout to a main revision that "
+            "includes the GPU-suite merge."
         )
 
     print(f"[gpu-suite] code_identity={code_identity()}", flush=True)

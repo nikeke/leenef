@@ -271,9 +271,75 @@ case "${EXPERIMENT}" in
         --out     "${RESULTS_DIR}/${PHASE_NAME}_summary.json"
     ;;
 
+  c1_scaling_mnist|c1_scaling_fashion|c1_scaling_cifar10|\
+c2_activation_mnist|c2_activation_fashion|c2_activation_cifar10|\
+c3_ensemble_cifar10|\
+c4_multilayer_mnist|c4_multilayer_cifar10|\
+c5_recurrent_smnist|\
+c6_convnef_mnist|c6_convnef_cifar10|\
+c7_housing)
+    # Phase C — supporting reruns. Each one is an enumerative knob='cell'
+    # panel; no adoption analyzer (matches biases / b3 / b4 layout).  The
+    # default cells / seeds are listed below per experiment; override via
+    # the VALUES / SEEDS environment variables.
+    BASE="${RESULTS_DIR}/base_config_${EXPERIMENT}.json"
+    PHASE_NAME="${EXPERIMENT}_panel"
+
+    case "${EXPERIMENT}" in
+      c1_scaling_*)
+        DEFAULT_CELLS="n500,n1000,n2000,n5000,n10000,n20000"
+        DEFAULT_SEEDS="0-9"
+        ;;
+      c2_activation_*)
+        DEFAULT_CELLS="abs+g0.5_2.0,abs+g1.0_1.0,abs+g0.1_5.0,relu+g0.5_2.0,relu+g1.0_1.0,relu+g0.1_5.0,tanh+g0.5_2.0,tanh+g1.0_1.0,tanh+g0.1_5.0"
+        DEFAULT_SEEDS="0-9"
+        ;;
+      c3_ensemble_cifar10)
+        DEFAULT_CELLS="m1+hypersphere,m1+receptive_field,m5+hypersphere,m5+receptive_field,m10+hypersphere,m10+receptive_field,m20+hypersphere,m20+receptive_field"
+        DEFAULT_SEEDS="0-4"
+        ;;
+      c4_multilayer_*)
+        DEFAULT_CELLS="greedy,hybrid,target_prop,end_to_end,hybrid_e2e"
+        DEFAULT_SEEDS="0-4"
+        ;;
+      c5_recurrent_smnist)
+        DEFAULT_CELLS="end_to_end,target_prop"
+        DEFAULT_SEEDS="0-4"
+        ;;
+      c6_convnef_*)
+        DEFAULT_CELLS="default"
+        DEFAULT_SEEDS="0-4"
+        ;;
+      c7_housing)
+        DEFAULT_CELLS="n500,n1000,n2000,n5000,n10000"
+        DEFAULT_SEEDS="0-2"
+        ;;
+    esac
+
+    CELLS="${VALUES:-${DEFAULT_CELLS}}"
+    SEEDS="${SEEDS:-${DEFAULT_SEEDS}}"
+
+    out="${RESULTS_DIR}/${PHASE_NAME}.json"
+    log="${LOGS_DIR}/${PHASE_NAME}.log"
+    echo "================================================================"
+    echo "  PHASE ${PHASE_NAME}  exp=${EXPERIMENT}  cells=${CELLS}  seeds=${SEEDS}"
+    echo "================================================================"
+    ${PYTHON} -u -m benchmarks.sl_clean.sl_phase_runner \
+        --experiment "${EXPERIMENT}" \
+        --phase      "${PHASE_NAME}" \
+        --knob       cell \
+        --values     "${CELLS}" \
+        --seeds      "${SEEDS}" \
+        --base-config "${BASE}" \
+        --out         "${out}" \
+        --log         "${log}"
+    # No phase-C-specific analyzer yet; per-cell aggregation handled by
+    # docs/sl_clean_sweeps.md note + downstream paper figure scripts.
+    ;;
+
   *)
     echo "unknown experiment block: ${EXPERIMENT}" >&2
-    echo "available: smoke biases_mnist biases_fashion biases_cifar10 biases_cifar10_centered biases_mnist_decentered b3_strategies_mnist b3_strategies_fashion b3_strategies_cifar10 b4_mlp_mnist b4_mlp_fashion b4_mlp_cifar10 b5_lstm_smnist_row b5_lstm_smnist_permuted b6_esn_smnist_row b6_esn_smnist_permuted streaming_smnist_row streaming_smnist_permuted streaming_solve_modes streaming_alpha_sweep" >&2
+    echo "available: smoke biases_mnist biases_fashion biases_cifar10 biases_cifar10_centered biases_mnist_decentered b3_strategies_mnist b3_strategies_fashion b3_strategies_cifar10 b4_mlp_mnist b4_mlp_fashion b4_mlp_cifar10 b5_lstm_smnist_row b5_lstm_smnist_permuted b6_esn_smnist_row b6_esn_smnist_permuted streaming_smnist_row streaming_smnist_permuted streaming_solve_modes streaming_alpha_sweep c1_scaling_{mnist,fashion,cifar10} c2_activation_{mnist,fashion,cifar10} c3_ensemble_cifar10 c4_multilayer_{mnist,cifar10} c5_recurrent_smnist c6_convnef_{mnist,cifar10} c7_housing" >&2
     exit 2
     ;;
 esac

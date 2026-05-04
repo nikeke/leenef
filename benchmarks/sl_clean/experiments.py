@@ -861,3 +861,118 @@ register(
         description=_b6.B6_DESCRIPTION + " (sMNIST-permuted-seed0)",
     )
 )
+
+# ---------------------------------------------------------------------------
+# C-phase — supporting reruns under the project's standard rl_clean discipline.
+# Lives in dedicated modules (one per phase) so future edits don't
+# perturb the B-phase definitions above.
+# ---------------------------------------------------------------------------
+
+from . import _c1_scaling_exp as _c1  # noqa: E402
+
+for _name, _ctx in (
+    ("c1_scaling_mnist", _c1._c1_mnist_context),
+    ("c1_scaling_fashion", _c1._c1_fashion_context),
+    ("c1_scaling_cifar10", _c1._c1_cifar10_context),
+):
+    register(
+        ExperimentSpec(
+            name=_name,
+            run_fn=_c1._c1_run,
+            default_run_context=_ctx,
+            primary_metric="test_accuracy",
+            higher_is_better=True,
+            description=_c1.C1_DESCRIPTION,
+        )
+    )
+
+from . import _c2_activation_exp as _c2  # noqa: E402
+
+for _name, _ctx in (
+    ("c2_activation_mnist", _c2._c2_mnist_context),
+    ("c2_activation_fashion", _c2._c2_fashion_context),
+    ("c2_activation_cifar10", _c2._c2_cifar10_context),
+):
+    register(
+        ExperimentSpec(
+            name=_name,
+            run_fn=_c2._c2_run,
+            default_run_context=_ctx,
+            primary_metric="test_accuracy",
+            higher_is_better=True,
+            description=_c2.C2_DESCRIPTION,
+        )
+    )
+
+from . import _c3_ensemble_exp as _c3  # noqa: E402
+
+register(
+    ExperimentSpec(
+        name="c3_ensemble_cifar10",
+        run_fn=_c3._c3_run,
+        default_run_context=_c3._c3_cifar10_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_c3.C3_DESCRIPTION,
+    )
+)
+
+from . import _c4_multilayer_exp as _c4  # noqa: E402
+
+for _name, _ctx in (
+    ("c4_multilayer_mnist", _c4._c4_mnist_context),
+    ("c4_multilayer_cifar10", _c4._c4_cifar10_context),
+):
+    register(
+        ExperimentSpec(
+            name=_name,
+            run_fn=_c4._c4_run,
+            default_run_context=_ctx,
+            primary_metric="test_accuracy",
+            higher_is_better=True,
+            description=_c4.C4_DESCRIPTION,
+        )
+    )
+
+from . import _c5_recurrent_lite_exp as _c5  # noqa: E402
+
+register(
+    ExperimentSpec(
+        name="c5_recurrent_smnist",
+        run_fn=_c5._c5_run,
+        default_run_context=_c5._c5_smnist_row_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=_c5.C5_DESCRIPTION,
+    )
+)
+
+from . import _c6_convnef_lite_exp as _c6  # noqa: E402
+
+for _name, _ctx in (
+    ("c6_convnef_mnist", _c6._c6_mnist_context),
+    ("c6_convnef_cifar10", _c6._c6_cifar10_context),
+):
+    register(
+        ExperimentSpec(
+            name=_name,
+            run_fn=_c6._c6_run,
+            default_run_context=_ctx,
+            primary_metric="test_accuracy",
+            higher_is_better=True,
+            description=_c6.C6_DESCRIPTION,
+        )
+    )
+
+from . import _c7_housing_exp as _c7  # noqa: E402
+
+register(
+    ExperimentSpec(
+        name="c7_housing",
+        run_fn=_c7._c7_run,
+        default_run_context=_c7._c7_context,
+        primary_metric="test_r2",
+        higher_is_better=True,
+        description=_c7.C7_DESCRIPTION,
+    )
+)
