@@ -85,14 +85,16 @@ P1–P4 inherit from NEF, P5–P6 are leenef-specific.
   gradient flow between layers.
 - **P3 — `AᵀA` and `AᵀY` are the universe.**  Continual learning,
   streaming over time, ensembles, online updates, per-action
-  FQI — all of them are different ways of *additively combining*
+  FQI (Ernst et al., 2005) — all of them are different ways of
+  *additively combining*
   sufficient statistics.
 - **P4 — Targets `Y` are the only place where task structure
   enters.**  The encoder does not care what the task is; the
   decoder column does.
 - **P5 — Time is collapsed by pooling, not by recurrence.**  The
   streaming classifier mean-pools delay-line activities into a
-  fixed-size representation; no BPTT, no recurrent solve.
+  fixed-size representation; no BPTT (Werbos, 1990), no recurrent
+  solve.
 - **P6 — Per-class additivity is what makes continual learning
   work.**  Each class owns its own decoder column, so accumulating
   new task statistics never interferes with old columns.
@@ -125,8 +127,9 @@ parameterization of a `d_in × d_out` matrix.
 
 We verified this in a sanity-check experiment: a linear-activation
 leenef layer at `n ∈ {1 000, 4 000}` plateaus at **86.0–86.2 %** on
-MNIST, within 1 pp of a plain ridge regression on the raw 784-D
-input (85.3 %).  An `abs`-activation leenef layer at `n = 5 000`
+MNIST (LeCun et al., 1998), within 1 pp of a plain ridge regression
+on the raw 784-D input (85.3 %).  An `abs`-activation leenef layer
+at `n = 5 000`
 reaches **97.08 %** under identical training data and α policy.
 The collapse is empirical, not just algebraic; the +11 pp delta
 is the entire contribution of the pointwise nonlinearity.  This
@@ -194,8 +197,8 @@ Real data lives on (or near) a low-dimensional manifold inside
 the ambient input space.  Two complementary roles emerge.
 
 - **Random encoders** approximate a near-isometric measurement
-  of that manifold (Johnson–Lindenstrauss / restricted-isometry
-  style).  Enough random directions in high dimension preserve
+  of that manifold (Johnson–Lindenstrauss style; Johnson &
+  Lindenstrauss, 1984).  Enough random directions in high dimension preserve
   pairwise distances and angles, so the data manifold's geometry
   is carried faithfully into the *n*-neuron frame coefficients.
 - **Data-driven biases** place each neuron's measurement origin
@@ -422,7 +425,9 @@ gap between these two choices should track how much DC mass the
 dataset carries; a clean geometric reading predicts that it
 tracks *how far the data centroid sits from the origin*.
 
-The raw-dataset bias panel is consistent with both readings:
+The raw-dataset bias panel is consistent with both readings on
+MNIST (LeCun et al., 1998), Fashion-MNIST (Xiao et al., 2017), and
+CIFAR-10 (Krizhevsky, 2009):
 
 ![Figure 2: bias placement on raw datasets.](figures/f2_biases.png)
 
@@ -657,7 +662,7 @@ The headline empirical contribution.  Given a temporal sequence
 timestep, apply a fixed encoder to that feature, take the
 absolute value, mean-pool the resulting activities over sequence
 positions, then `accumulate + solve` over examples.  No
-recurrence, no BPTT.
+recurrence, no BPTT (Werbos, 1990).
 
 ### §6.1 — The architecture
 
@@ -677,7 +682,9 @@ test accuracy (§5.3).
 
 ### §6.2 — Row sMNIST results
 
-Sequential MNIST with rows-as-timesteps (T = 28, K = 10).
+Sequential MNIST with rows-as-timesteps (T = 28, K = 10), following
+the sequential-MNIST benchmark setup popularized in recurrent-network
+work such as Le et al. (2015).
 Ten seeds at each width, trace-scaled `α = 10⁻⁴`:
 
 | `n_neurons` | accuracy ± SE | end-to-end wall-clock time (CPU, s/seed) |
@@ -690,7 +697,8 @@ Doubling `n` is +0.77 pp (17σ) at 2k → 4k and +0.48 pp (12σ)
 at 4k → 8k — clean monotone scaling.
 
 The same task with two contemporaneous baselines re-implemented
-under our seeding and code-identity discipline:
+under our seeding and code-identity discipline: LSTM (Hochreiter &
+Schmidhuber, 1997) and ESN (Jaeger, 2001).
 
 ![Figure 6: Stream-NEF vs ESN and LSTM on row/permuted sMNIST.](figures/f6_streaming_accuracy.png)
 
@@ -826,8 +834,8 @@ with gradient training, we owe the reader a properly tuned MLP
 baseline.  The MLP baseline is a 12-config × 3-dataset grid:
 depth ∈ {1, 2},
 width ∈ {256, 512, 1024}, lr ∈ {3·10⁻³, 10⁻³},
-Adam, batch 128, early-stop with patience 5 on a held-out 10 %
-validation split.  Five seeds each.
+Adam (Kingma & Ba, 2015), batch 128, early-stop with patience 5 on a
+held-out 10 % validation split.  Five seeds each.
 
 Default hypersphere leenef cell (MNIST/Fashion-MNIST) and the
 best receptive-field leenef cell (CIFAR-10) vs the best
@@ -991,7 +999,8 @@ owns the algorithmic claim.
 
 The same accumulator handles harder targets.  `Y` becomes a
 bootstrap target rather than a label, and the per-action
-decomposition (NEF Successor Features, FQI) is again just
+decomposition (NEF Successor Features; Barreto et al., 2017,
+and FQI; Ernst et al., 2005) is again just
 additive sufficient statistics.  A separate sparse-reward
 research line shows the primitive carrying real signal on
 classic dense-reward control benchmarks, with mixed results
@@ -1123,7 +1132,7 @@ Five-seed results:
 | ESN, best row cell | 93.522 ± 0.062 % | 5 |
 
 This reinforces rather than softens the earlier story:
-target propagation through time collapses, while ordinary
+target propagation through time (Lee et al., 2015) collapses, while ordinary
 end-to-end gradient training makes the recurrent NEF competitive.
 It edges above the same-device Stream-NEF row cell but uses far
 more wall-clock time; it remains about 0.25 pp below the LSTM
@@ -1148,7 +1157,7 @@ encoder strategy table) as documented "this is what *not* to
 do" counterexamples.
 
 **Speech Commands ceiling.**  Streaming-NEF on the Speech
-Commands v2 keyword-spotting task plateaus at ~76 % vs LSTM
+Commands v2 keyword-spotting task (Warden, 2018) plateaus at ~76 % vs LSTM
 ~90 %.  Mean-pooling absolute frame coefficients destroys
 order; an audio task whose discriminative information lives in
 phoneme order needs either a learned positional feature or a
@@ -1159,10 +1168,22 @@ representation question carried into Paper III.
 
 ## Literature
 
+- Barreto, A., Dabney, W., Munos, R., Hunt, J. J., Schaul, T., van Hasselt, H., & Silver, D. (2017). *Successor Features for Transfer in Reinforcement Learning*. Advances in Neural Information Processing Systems 30.
 - Coates, A., Lee, H., & Ng, A. Y. (2011). *An Analysis of Single-Layer Networks in Unsupervised Feature Learning*. Proceedings of the Fourteenth International Conference on Artificial Intelligence and Statistics.
 - Eliasmith, C., & Anderson, C. H. (2003). *Neural Engineering: Computation, Representation, and Dynamics in Neurobiological Systems*. MIT Press.
+- Ernst, D., Geurts, P., & Wehenkel, L. (2005). *Tree-Based Batch Mode Reinforcement Learning*. Journal of Machine Learning Research, 6, 503-556.
 - Huang, G.-B., Zhu, Q.-Y., & Siew, C.-K. (2006). *Extreme Learning Machine: Theory and Applications*. Neurocomputing, 70(1-3), 489-501.
+- Hochreiter, S., & Schmidhuber, J. (1997). *Long Short-Term Memory*. Neural Computation, 9(8), 1735-1780.
 - Jaeger, H. (2001). *The “Echo State” Approach to Analysing and Training Recurrent Neural Networks—With an Erratum Note*. GMD Report 148, German National Research Center for Information Technology.
+- Johnson, W. B., & Lindenstrauss, J. (1984). *Extensions of Lipschitz mappings into a Hilbert space*. Contemporary Mathematics, 26, 189-206.
+- Kingma, D. P., & Ba, J. (2015). *Adam: A Method for Stochastic Optimization*. International Conference on Learning Representations.
+- Krizhevsky, A. (2009). *Learning Multiple Layers of Features from Tiny Images*. Technical Report, University of Toronto.
+- Le, Q. V., Jaitly, N., & Hinton, G. E. (2015). *A Simple Way to Initialize Recurrent Networks of Rectified Linear Units*. arXiv preprint arXiv:1504.00941.
+- LeCun, Y., Cortes, C., & Burges, C. J. C. (1998). *The MNIST database of handwritten digits*.
+- Lee, D.-H., Zhang, S., Fischer, A., & Bengio, Y. (2015). *Difference Target Propagation*. Machine Learning, 104(2-3), 255-272.
 - Maass, W., Natschläger, T., & Markram, H. (2002). *Real-Time Computing Without Stable States: A New Framework for Neural Computation Based on Perturbations*. Neural Computation, 14(11), 2531-2560.
 - Rahimi, A., & Recht, B. (2007). *Random Features for Large-Scale Kernel Machines*. Advances in Neural Information Processing Systems 20.
 - Saxe, A. M., Koh, P. W., Chen, Z., Bhand, M., Suresh, B., & Ng, A. Y. (2011). *Random Weights and Unsupervised Feature Learning*. Proceedings of the 28th International Conference on Machine Learning.
+- Werbos, P. J. (1990). *Backpropagation through time: what it does and how to do it*. Proceedings of the IEEE, 78(10), 1550-1560.
+- Warden, P. (2018). *Speech Commands: A Dataset for Limited-Vocabulary Speech Recognition*. arXiv preprint arXiv:1804.03209.
+- Xiao, H., Rasul, K., & Vollgraf, R. (2017). *Fashion-MNIST: a Novel Image Dataset for Benchmarking Machine Learning Algorithms*. arXiv preprint arXiv:1708.07747.
