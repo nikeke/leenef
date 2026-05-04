@@ -135,6 +135,13 @@ infrastructure.
 - Use `g_i` or "gain" for per-neuron gains in the paper. Reserve `α`
   for regularization strength and trace-scaled regularization policy so
   §2 does not introduce a second unrelated alpha.
+- In Markdown paper manuscripts, write formulas as real TeX math
+  (`$...$` inline, `$$...$$` display). Do **not** encode formulas as
+  inline code, Unicode math glyphs, or plain-text pseudo-math. Brace
+  multi-letter subscripts/superscripts (`d_{\mathrm{in}}`,
+  `\alpha_{\mathrm{eff}}`), keep code spans for identifiers only
+  (`batch_acc`, config keys, paths), and avoid raw Unicode Greek in
+  headings/captions where PDF text fonts or bookmarks may drop glyphs.
 
 **Live phase log:** `docs/sl_clean_sweeps.md`.
 

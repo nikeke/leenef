@@ -130,7 +130,7 @@ leenef layer at $n \in \{1000, 4000\}$ plateaus at **86.0–86.2 %** on
 MNIST (LeCun et al., 1998), within 1 pp of a plain ridge regression
 on the raw 784-D input (85.3 %).  An `abs`-activation leenef layer
 at $n = 5000$
-reaches **97.08 %** under identical training data and α policy.
+reaches **97.08 %** under identical training data and $\alpha$ policy.
 The collapse is empirical, not just algebraic; the +11 pp delta
 is the entire contribution of the pointwise nonlinearity.  This
 is a single-seed sanity check; the comparator (97.08 ± 0.04 %)
@@ -356,7 +356,7 @@ element across the dataset.  Scaling by it puts $\alpha_{\mathrm{eff}}$ on the
 same footing as the encoder span: $\alpha$ becomes a dimensionless
 multiplier rather than an absolute diagonal value.
 
-### The α multiplier itself depends on the architecture
+### The alpha multiplier itself depends on the architecture
 
 Trace-scaling alone is not enough.  The otherwise useful
 single-layer default $\alpha = 10^{-2}$ over-regularizes the streaming
@@ -378,7 +378,7 @@ in every single cell — fixed $\alpha = 10^{-2}$ and trace $\alpha = 10^{-5}$ t
 within noise at $n = 4000$ — but it is the stable choice that does
 not collapse at $n = 8000$.
 
-![Figure 1: α policy by width on row sMNIST.](figures/f1_alpha_vs_n.png)
+![](figures/f1_alpha_vs_n.png)
 
 **Figure 1.**  Trace-scaled $\alpha = 10^{-4}$ is the robust cross-width
 choice.  Fixed $\alpha = 10^{-2}$ is competitive at $n = 4000$ but
@@ -386,11 +386,11 @@ collapses at $n = 8000$.
 
 | $\alpha$ policy | $n = 4000$ | $n = 8000$ | worst-case mean |
 |----------|-----------|-----------|-----------------|
-| trace-scaled, base 10⁻² (the `solvers.tikhonov` default) | 95.89 % | 96.92 % | 95.89 % |
-| trace-scaled, base 10⁻³ | 97.57 % | 98.14 % | 97.57 % |
-| **trace-scaled, base 10⁻⁴** (winner) | **98.03 %** | **98.44 %** | **98.03 %** |
-| fixed 10⁻² | 98.07 % | 87.27 % | 87.27 % |
-| fixed 10⁻⁴ | 95.02 % | 96.33 % | 95.02 % |
+| trace-scaled, base $10^{-2}$ (the `solvers.tikhonov` default) | 95.89 % | 96.92 % | 95.89 % |
+| trace-scaled, base $10^{-3}$ | 97.57 % | 98.14 % | 97.57 % |
+| **trace-scaled, base $10^{-4}$** (winner) | **98.03 %** | **98.44 %** | **98.03 %** |
+| fixed $10^{-2}$ | 98.07 % | 87.27 % | 87.27 % |
+| fixed $10^{-4}$ | 95.02 % | 96.33 % | 95.02 % |
 
 Two failure modes are visible.  Trace-scaled at base $10^{-2}$ is
 *consistent across* $n$ but consistently under-trained.  Fixed-$\alpha$
@@ -429,7 +429,7 @@ The raw-dataset bias panel is consistent with both readings on
 MNIST (LeCun et al., 1998), Fashion-MNIST (Xiao et al., 2017), and
 CIFAR-10 (Krizhevsky, 2009):
 
-![Figure 2: bias placement on raw datasets.](figures/f2_biases.png)
+![](figures/f2_biases.png)
 
 **Figure 2.**  Bias placement on raw MNIST, Fashion-MNIST, and
 CIFAR-10.  Zero and data-driven folds tie on the two mostly
@@ -452,7 +452,7 @@ readings:
 | MNIST decentered (+0.5) | 97.12 % | 95.78 % | +1.3 pp | ~0 |
 | CIFAR-10 per-channel centered | 49.72 % | 43.41 % | **+6.3 pp** | ~0 |
 
-![Figure 3: hinge-placement falsifier.](figures/f3_hinge_falsifier.png)
+![](figures/f3_hinge_falsifier.png)
 
 **Figure 3.**  The centering/decentering follow-ups challenge the pure-DC reading.
 Centering CIFAR-10 should have closed the data-driven-vs-zero
@@ -497,7 +497,7 @@ recommended against.
 The encoder-strategy sweep fixes `data_driven` biases and compares
 seven frame-direction priors (10 seeds, `n = 5 000`):
 
-![Figure 4: encoder strategy panel.](figures/f4_encoders.png)
+![](figures/f4_encoders.png)
 
 **Figure 4.**  Encoder strategy is a prior on frame directions.
 Receptive-field encoders provide the only large spatial-data win;
@@ -576,7 +576,7 @@ the generic hypersphere encoder: it improves through 10k neurons
 and then falls at 20k, which is a useful warning that "more random
 global features" is not a universal scaling law.
 
-![Figure 5: single-layer width scaling.](figures/f5_scaling.png)
+![](figures/f5_scaling.png)
 
 **Figure 5.**  Single-layer width scaling under the generic
 hypersphere encoder.  MNIST and Fashion-MNIST keep improving
@@ -693,21 +693,21 @@ Ten seeds at each width, trace-scaled $\alpha = 10^{-4}$:
 | 4 000 | 97.97 ± 0.02 % | 42 |
 | 8 000 | 98.45 ± 0.02 % | 95 |
 
-Doubling `n` is +0.77 pp (17σ) at 2k → 4k and +0.48 pp (12σ)
+Doubling $n$ is +0.77 pp ($17\sigma$) at 2k → 4k and +0.48 pp ($12\sigma$)
 at 4k → 8k — clean monotone scaling.
 
 The same task with two contemporaneous baselines re-implemented
 under our seeding and code-identity discipline: LSTM (Hochreiter &
 Schmidhuber, 1997) and ESN (Jaeger, 2001).
 
-![Figure 6: Stream-NEF vs ESN and LSTM on row/permuted sMNIST.](figures/f6_streaming_accuracy.png)
+![](figures/f6_streaming_accuracy.png)
 
 **Figure 6.**  Stream-NEF dominates the ESN on row sMNIST and
 ties it on permuted sMNIST at much larger reservoir width.  The
 permuted-panel ESN cell at `n = 2 000` matches the Stream-NEF
 cell at `n = 16 000` to well within the joint SE.
 
-![Figure 7: row-sMNIST wall-clock/accuracy trade-off.](figures/f7_streaming_wall_accuracy.png)
+![](figures/f7_streaming_wall_accuracy.png)
 
 **Figure 7.**  Wall-clock time versus accuracy on row sMNIST.
 The fastest Stream-NEF cells are lower-accuracy, but the
@@ -841,7 +841,7 @@ Default hypersphere leenef cell (MNIST/Fashion-MNIST) and the
 best receptive-field leenef cell (CIFAR-10) vs the best
 gradient-trained MLP cell in the tuned grid:
 
-![Figure 8: single-layer leenef vs tuned MLP.](figures/f8_mlp_comparator.png)
+![](figures/f8_mlp_comparator.png)
 
 **Figure 8.**  The MLP comparison is encoder-dependent.  Generic
 hypersphere leenef trails on MNIST/Fashion and raw CIFAR-10; the
@@ -923,12 +923,12 @@ can follow the threads back to where the ideas originated.
   others.  This is a pedagogical contribution; it lets
   practitioners reason about the geometry rather than treat
   the feature map as a black box.
-- **The architecture-specific α-scaling story**
+- **The architecture-specific alpha-scaling story**
   (§4).  Trace-scaling is not a new algorithm —
   it is already standard Tikhonov regularization bookkeeping —
-  but the cautionary baseline (fixed-α catastrophic
+  but the cautionary baseline (fixed-$\alpha$ catastrophic
   collapse at out-of-tune `n`) and the empirical observation
-  that the α multiplier itself depends on the architecture
+  that the alpha multiplier itself depends on the architecture
   (one value for static single-layer solves, a different value for
   streaming solves) is, to our knowledge, not in the
   literature in this exact form.  Useful for practitioners
@@ -955,7 +955,7 @@ not work is as useful as knowing where it does.  The §6.4 limit on permuted
 sequence classification, the limited room for depth under purely
 analytic stacking (Appendix B), the systematic loss of
 `class_contrast` and `local_pca` encoders (§5.2), the bimodal
-collapse of fixed-α at out-of-tune `n` (§4) are all reported
+collapse of fixed-$\alpha$ at out-of-tune `n` (§4) are all reported
 straightforwardly.
 
 ---
