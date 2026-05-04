@@ -79,8 +79,8 @@ After each phase sentinel:
 ```bash
 cd /home/amnesia/Persistent/src/leenef-cl-experiments
 source ../leenef/venv/bin/activate
-pytest tests/test_cl_clean.py -q  # sanity
-PYTHON=$PWD/../leenef/venv/bin/python SEEDS=0-9 \
+PYTHONPATH=$PWD pytest tests/test_cl_clean.py -q  # sanity
+PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python SEEDS=0-9 \
     bash benchmarks/cl_clean/cl_hp_driver.sh nef_continual_split_mnist
 ```
 
@@ -88,9 +88,9 @@ After B1/B2 are either complete or intentionally restarted on the new
 identity, the follow-up targets are:
 
 ```bash
-PYTHON=$PWD/../leenef/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b3_capacity
-PYTHON=$PWD/../leenef/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b4_centers
-PYTHON=$PWD/../leenef/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b5_solvers
+PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b3_capacity
+PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b4_centers
+PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b5_solvers
 ```
 
 Defaults: B3 uses 5 seeds for Permuted-MNIST and 3 seeds for the
