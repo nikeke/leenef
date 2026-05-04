@@ -29,6 +29,22 @@ mkdir -p "${LOGS_DIR}"
 PYTHON="${PYTHON:-python}"
 SEEDS_DEFAULT="${SEEDS:-0,1,2,3,4,5,6,7,8,9}"
 
+# DETACH=1 re-launches this driver fully detached via setsid (matches the
+# sl_clean Paper-I pattern).  Stdout/stderr go to a per-experiment log so
+# the launching shell can exit without taking the run down.  Watchdogs
+# in the sandbox cannot survive CLI restarts; sweeps must be launched
+# from the host or at least with `setsid ... < /dev/null & disown`.
+if [[ "${DETACH:-0}" == "1" && -z "${CL_DETACHED:-}" ]]; then
+  DETACH_LOG="${LOGS_DIR}/${EXPERIMENT}_detached.log"
+  echo "detaching driver for ${EXPERIMENT}; log=${DETACH_LOG}"
+  CL_DETACHED=1 setsid bash "$0" "$@" \
+      </dev/null >>"${DETACH_LOG}" 2>&1 &
+  disown || true
+  sleep 1
+  pgrep -af "cl_hp_driver.sh ${EXPERIMENT}" | grep -v "DETACH=1" || true
+  exit 0
+fi
+
 # Translate ``0-9`` → ``0,1,2,3,4,5,6,7,8,9`` for convenience.
 case "${SEEDS_DEFAULT}" in
   *-*)
@@ -95,9 +111,13 @@ case "${EXPERIMENT}" in
     BASE="${RESULTS_DIR}/base_config_${EXPERIMENT}.json"
     PHASE_NAME="${EXPERIMENT}_panel"
     CELLS="${CELLS:-nef_accumulate,nef_joint,nef_reset,mlp_finetune,mlp_joint,mlp_ewc,mlp_er}"
-    run_phase "${PHASE_NAME}" cell "${CELLS}" \
-              "${SEEDS_DEFAULT}" "${BASE}" "${EXPERIMENT}"
-    touch "${RESULTS_DIR}/${PHASE_NAME}_done"
+    if run_phase "${PHASE_NAME}" cell "${CELLS}" \
+              "${SEEDS_DEFAULT}" "${BASE}" "${EXPERIMENT}"; then
+      touch "${RESULTS_DIR}/${PHASE_NAME}_done"
+    else
+      echo "phase ${PHASE_NAME} had cell errors; sentinel NOT touched" >&2
+      exit 1
+    fi
     ;;
 
   *)

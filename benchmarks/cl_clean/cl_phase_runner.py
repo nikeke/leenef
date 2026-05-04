@@ -121,7 +121,13 @@ def run_phase(
     run_context: dict | None = None,
     log_path: Path | None = None,
 ) -> dict[str, Any]:
-    """Execute ``phase`` and write its rows to ``out_path``."""
+    """Execute ``phase`` and write its rows to ``out_path``.
+
+    Returns the result dict.  Callers can inspect rows for ``error`` keys
+    to detect cell failures; the CLI ``main`` exits non-zero if any cell
+    in the requested run failed (cached rows from prior runs do not
+    affect the exit status of the current invocation).
+    """
     spec = get_experiment(experiment)
     expected_run_context = dict(spec.default_run_context())
     if run_context:
@@ -144,6 +150,7 @@ def run_phase(
 
     total = len(values) * len(seeds)
     done = 0
+    n_errors = 0
     for value in values:
         config = expected_config_with_knob(base_config, knob, value)
         for seed in seeds:
@@ -180,6 +187,7 @@ def run_phase(
                     "wall_time_s": round(time.perf_counter() - t0, 4),
                 }
             except Exception as exc:
+                n_errors += 1
                 row = {
                     "phase": phase,
                     "knob": knob,
@@ -191,8 +199,13 @@ def run_phase(
                 log(f"  [{done}/{total}] ERROR {cell_key}: {row['error']}")
             results[cell_key] = row
             _atomic_write(out_path, results)
-    log(f"phase {phase} done — {len(results)} rows in {out_path}")
-    return results
+    if n_errors:
+        log(f"phase {phase} finished with {n_errors} cell error(s) — see {out_path}")
+    else:
+        log(f"phase {phase} done — {len(results)} rows in {out_path}")
+    # Report error count via a wrapping dict so callers can detect failures
+    # without polluting the on-disk JSON.
+    return {"results": results, "n_errors": n_errors}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -216,7 +229,7 @@ def main(argv: list[str] | None = None) -> int:
 
     out_path = Path(args.out) if args.out else RESULTS_DIR / f"{args.phase}.json"
     log_path = Path(args.log) if args.log else LOGS_DIR / f"{args.phase}.log"
-    run_phase(
+    summary = run_phase(
         experiment=args.experiment,
         phase=args.phase,
         knob=args.knob,
@@ -226,7 +239,7 @@ def main(argv: list[str] | None = None) -> int:
         out_path=out_path,
         log_path=log_path,
     )
-    return 0
+    return 1 if summary["n_errors"] else 0
 
 
 if __name__ == "__main__":
