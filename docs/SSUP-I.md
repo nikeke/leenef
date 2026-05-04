@@ -266,7 +266,7 @@ implemented:
   memory (or one streaming pass).
 - **`accumulate`**: chunked accumulate.  GEMMs ($A^\top A$, $A^\top Y$)
   in float32; running stats in float64 to absorb cancellation
-  across chunks.  GPU-friendly; memory cost `O(n²)` for the
+  across chunks.  GPU-friendly; memory cost $O(n^2)$ for the
   stats, independent of dataset size.
 - **`woodbury`** (continuous fit): rank-`k` Sherman–Morrison
   updates of the inverse $M^{-1} = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1}$ after every
@@ -356,7 +356,7 @@ element across the dataset.  Scaling by it puts $\alpha_{\mathrm{eff}}$ on the
 same footing as the encoder span: $\alpha$ becomes a dimensionless
 multiplier rather than an absolute diagonal value.
 
-### The alpha multiplier itself depends on the architecture
+### The $\alpha$ multiplier itself depends on the architecture
 
 Trace-scaling alone is not enough.  The otherwise useful
 single-layer default $\alpha = 10^{-2}$ over-regularizes the streaming
@@ -372,17 +372,13 @@ We measured this directly with a five-by-five-by-two
 calibration sweep (5 alphas × 2 scaling modes × 2 widths × 5
 seeds = 100 cells).  The
 best robust cross-width choice is **trace-scaled $\alpha = 10^{-4}$**:
-98.03 % at $n = 4000$, 98.44 % at $n = 8000$, SE ≤ 0.04 pp,
+98.03 % at $n = 4000$, 98.44 % at $n = 8000$, SE $\le 0.04$ pp,
 gap across $n$ of just +0.4 pp.  It is not the pointwise winner
 in every single cell — fixed $\alpha = 10^{-2}$ and trace $\alpha = 10^{-5}$ tie it
 within noise at $n = 4000$ — but it is the stable choice that does
 not collapse at $n = 8000$.
 
-![](figures/f1_alpha_vs_n.png)
-
-**Figure 1.**  Trace-scaled $\alpha = 10^{-4}$ is the robust cross-width
-choice.  Fixed $\alpha = 10^{-2}$ is competitive at $n = 4000$ but
-collapses at $n = 8000$.
+![Trace-scaled regularization is the robust cross-width choice on row sMNIST; the fixed baseline is competitive at 4000 neurons but collapses at 8000.](figures/f1_alpha_vs_n.png)
 
 | $\alpha$ policy | $n = 4000$ | $n = 8000$ | worst-case mean |
 |----------|-----------|-----------|-----------------|
@@ -429,13 +425,7 @@ The raw-dataset bias panel is consistent with both readings on
 MNIST (LeCun et al., 1998), Fashion-MNIST (Xiao et al., 2017), and
 CIFAR-10 (Krizhevsky, 2009):
 
-![](figures/f2_biases.png)
-
-**Figure 2.**  Bias placement on raw MNIST, Fashion-MNIST, and
-CIFAR-10.  Zero and data-driven folds tie on the two mostly
-background-dominated grayscale datasets; CIFAR-10 opens a
-measurable gap.  Random-normal biases are a repeatable failure
-mode.
+![Bias placement on raw MNIST, Fashion-MNIST, and CIFAR-10. Zero and data-driven folds tie on the two mostly background-dominated grayscale datasets; CIFAR-10 opens a measurable gap; random-normal biases are a repeatable failure mode.](figures/f2_biases.png)
 
 | dataset | `data_driven` | `zero` | gap |
 |---------|---------------|--------|-----|
@@ -452,12 +442,7 @@ readings:
 | MNIST decentered (+0.5) | 97.12 % | 95.78 % | +1.3 pp | ~0 |
 | CIFAR-10 per-channel centered | 49.72 % | 43.41 % | **+6.3 pp** | ~0 |
 
-![](figures/f3_hinge_falsifier.png)
-
-**Figure 3.**  The centering/decentering follow-ups challenge the pure-DC reading.
-Centering CIFAR-10 should have closed the data-driven-vs-zero
-gap under that story; instead it opens the largest gap in the
-series.
+![The centering and decentering follow-ups challenge the pure-DC reading: centering CIFAR-10 should have closed the data-driven-versus-zero gap under that story, but instead it opens the largest gap in the series.](figures/f3_hinge_falsifier.png)
 
 The spectral reading is insufficient.  Centering CIFAR-10 was
 predicted to *close* the gap; it *opens* it the most we have
@@ -497,12 +482,7 @@ recommended against.
 The encoder-strategy sweep fixes `data_driven` biases and compares
 seven frame-direction priors (10 seeds, `n = 5 000`):
 
-![](figures/f4_encoders.png)
-
-**Figure 4.**  Encoder strategy is a prior on frame directions.
-Receptive-field encoders provide the only large spatial-data win;
-label-aware and overly local manifold-tangent directions can
-backfire.
+![Encoder strategy is a prior on frame directions. Receptive-field encoders provide the only large spatial-data win, while label-aware and overly local manifold-tangent directions can backfire.](figures/f4_encoders.png)
 
 | strategy | MNIST | Fashion-MNIST | CIFAR-10 | verdict |
 |----------|------:|--------------:|---------:|---------|
@@ -576,13 +556,7 @@ the generic hypersphere encoder: it improves through 10k neurons
 and then falls at 20k, which is a useful warning that "more random
 global features" is not a universal scaling law.
 
-![](figures/f5_scaling.png)
-
-**Figure 5.**  Single-layer width scaling under the generic
-hypersphere encoder.  MNIST and Fashion-MNIST keep improving
-through 20 000 neurons; CIFAR-10 peaks near 10 000 and then
-falls, showing that more global random features are not a
-substitute for the right spatial prior.
+![Single-layer width scaling under the generic hypersphere encoder. MNIST and Fashion-MNIST keep improving through 20000 neurons; CIFAR-10 peaks near 10000 and then falls, showing that more global random features are not a substitute for the right spatial prior.](figures/f5_scaling.png)
 
 | $n$ | MNIST | Fashion-MNIST | CIFAR-10 |
 |-----|---:|---:|---:|
@@ -700,19 +674,9 @@ The same task with two contemporaneous baselines re-implemented
 under our seeding and code-identity discipline: LSTM (Hochreiter &
 Schmidhuber, 1997) and ESN (Jaeger, 2001).
 
-![](figures/f6_streaming_accuracy.png)
+![Stream-NEF dominates the ESN on row sMNIST and only ties it on permuted sMNIST at much larger reservoir width; the permuted-panel ESN cell at n equals 2000 matches the Stream-NEF cell at n equals 16000 well within the joint standard error.](figures/f6_streaming_accuracy.png)
 
-**Figure 6.**  Stream-NEF dominates the ESN on row sMNIST and
-ties it on permuted sMNIST at much larger reservoir width.  The
-permuted-panel ESN cell at `n = 2 000` matches the Stream-NEF
-cell at `n = 16 000` to well within the joint SE.
-
-![](figures/f7_streaming_wall_accuracy.png)
-
-**Figure 7.**  Wall-clock time versus accuracy on row sMNIST.
-The fastest Stream-NEF cells are lower-accuracy, but the
-8 000-neuron cell sits above the ESN panel and below the LSTM
-frontier at substantially lower wall-clock time.
+![Wall-clock time versus accuracy on row sMNIST. The fastest Stream-NEF cells are lower-accuracy, but the 8000-neuron cell sits above the ESN panel and below the LSTM frontier at substantially lower wall-clock time.](figures/f7_streaming_wall_accuracy.png)
 
 | method | accuracy ± SE | end-to-end wall-clock time (s/seed) | seeds |
 |--------|----------------|---------------|-------|
@@ -832,8 +796,8 @@ bounded above by mean-pool's order-erasing property.
 Before claiming that the analytic-solve primitive is competitive
 with gradient training, we owe the reader a properly tuned MLP
 baseline.  The MLP baseline is a 12-config × 3-dataset grid:
-depth ∈ {1, 2},
-width ∈ {256, 512, 1024}, lr ∈ {3·10⁻³, 10⁻³},
+depth $\in \{1, 2\}$,
+width $\in \{256, 512, 1024\}$, lr $\in \{3 \cdot 10^{-3}, 10^{-3}\}$,
 Adam (Kingma & Ba, 2015), batch 128, early-stop with patience 5 on a
 held-out 10 % validation split.  Five seeds each.
 
@@ -841,18 +805,14 @@ Default hypersphere leenef cell (MNIST/Fashion-MNIST) and the
 best receptive-field leenef cell (CIFAR-10) vs the best
 gradient-trained MLP cell in the tuned grid:
 
-![](figures/f8_mlp_comparator.png)
-
-**Figure 8.**  The MLP comparison is encoder-dependent.  Generic
-hypersphere leenef trails on MNIST/Fashion and raw CIFAR-10; the
-receptive-field prior reverses the CIFAR-10 gap.
+![The MLP comparison is encoder-dependent. Generic hypersphere leenef trails on MNIST, Fashion-MNIST, and raw CIFAR-10, while the receptive-field prior reverses the CIFAR-10 gap.](figures/f8_mlp_comparator.png)
 
 | dataset | leenef cell | best MLP cell | Δ | end-to-end wall-clock time (s/seed) | wall-clock ratio |
 |---------|------------------|---------------|---:|---------------|-----------------:|
-| MNIST | hypersphere · 97.08 ± 0.04 % | d=1, w=512, lr 3·10⁻³ · **98.10 ± 0.08 %** | +1.0 pp MLP | NEF ≈ 5 / MLP ≈ 58 | NEF uses **~12× less** |
-| Fashion-MNIST | hypersphere · 87.74 ± 0.06 % | d=2, w=1024, lr 10⁻³ · **89.39 ± 0.08 %** | +1.6 pp MLP | NEF ≈ 5 / MLP ≈ 254 | NEF uses **~50× less** |
-| CIFAR-10 | hypersphere · 49.72 ± 0.08 % | d=2, w=1024, lr 10⁻³ · **53.73 ± 0.22 %** | +4.0 pp MLP | NEF ≈ 16 / MLP ≈ 327 | NEF uses **~20× less** |
-| CIFAR-10 | **receptive_field · 55.10 ± 0.10 %** | d=2, w=1024, lr 10⁻³ · 53.73 ± 0.22 % | **+1.4 pp NEF** | NEF ≈ 30 / MLP ≈ 327 | NEF uses **~11× less** |
+| MNIST | hypersphere · 97.08 ± 0.04 % | d=1, w=512, lr $3 \cdot 10^{-3}$ · **98.10 ± 0.08 %** | +1.0 pp MLP | NEF $\approx 5$ / MLP $\approx 58$ | NEF uses **~12× less** |
+| Fashion-MNIST | hypersphere · 87.74 ± 0.06 % | d=2, w=1024, lr $10^{-3}$ · **89.39 ± 0.08 %** | +1.6 pp MLP | NEF $\approx 5$ / MLP $\approx 254$ | NEF uses **~50× less** |
+| CIFAR-10 | hypersphere · 49.72 ± 0.08 % | d=2, w=1024, lr $10^{-3}$ · **53.73 ± 0.22 %** | +4.0 pp MLP | NEF $\approx 16$ / MLP $\approx 327$ | NEF uses **~20× less** |
+| CIFAR-10 | **receptive_field · 55.10 ± 0.10 %** | d=2, w=1024, lr $10^{-3}$ · 53.73 ± 0.22 % | **+1.4 pp NEF** | NEF $\approx 30$ / MLP $\approx 327$ | NEF uses **~11× less** |
 
 (NEF timing is `accumulate + solve` end-to-end on CPU including
 the encoder build; MLP timing is the patience-5 early-stopping
@@ -923,12 +883,12 @@ can follow the threads back to where the ideas originated.
   others.  This is a pedagogical contribution; it lets
   practitioners reason about the geometry rather than treat
   the feature map as a black box.
-- **The architecture-specific alpha-scaling story**
+- **The architecture-specific $\alpha$-scaling story**
   (§4).  Trace-scaling is not a new algorithm —
   it is already standard Tikhonov regularization bookkeeping —
   but the cautionary baseline (fixed-$\alpha$ catastrophic
   collapse at out-of-tune `n`) and the empirical observation
-  that the alpha multiplier itself depends on the architecture
+  that the $\alpha$ multiplier itself depends on the architecture
   (one value for static single-layer solves, a different value for
   streaming solves) is, to our knowledge, not in the
   literature in this exact form.  Useful for practitioners

@@ -7,13 +7,48 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DOC="$ROOT/docs/SSUP-I.md"
-OUT="${1:-$ROOT/build/SSUP-I.pdf}"
-
+OUT="$ROOT/build/SSUP-I.pdf"
+ARXIV_OUT=""
 regen_figures=0
-if [[ "${1:-}" == "--regen-figures" ]]; then
-    regen_figures=1
-    OUT="${2:-$ROOT/build/SSUP-I.pdf}"
-fi
+
+usage() {
+    cat <<EOF
+usage: $(basename "$0") [--regen-figures] [--arxiv-package [archive.tar.gz]] [output.pdf]
+
+Build the SSUP PDF, and optionally create an arXiv upload tarball.
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --regen-figures)
+            regen_figures=1
+            shift
+            ;;
+        --arxiv-package)
+            if [[ $# -ge 2 && "$2" != --* ]]; then
+                ARXIV_OUT="$2"
+                shift 2
+            else
+                ARXIV_OUT="$ROOT/build/SSUP-I-arxiv.tar.gz"
+                shift
+            fi
+            ;;
+        --help|-h)
+            usage
+            exit 0
+            ;;
+        --*)
+            echo "error: unknown option $1" >&2
+            usage >&2
+            exit 1
+            ;;
+        *)
+            OUT="$1"
+            shift
+            ;;
+    esac
+done
 
 if [[ ! -f "$DOC" ]]; then
     echo "error: cannot find $DOC" >&2
@@ -43,6 +78,9 @@ if [[ "$regen_figures" -eq 1 ]]; then
 fi
 
 mkdir -p "$(dirname "$OUT")"
+if [[ -n "$ARXIV_OUT" ]]; then
+    mkdir -p "$(dirname "$ARXIV_OUT")"
+fi
 
 tmpdir="$(mktemp -d)"
 tmp_header="$tmpdir/header.tex"
@@ -50,7 +88,11 @@ tmp_tex="$tmpdir/SSUP-I.tex"
 tmp_log="$tmpdir/xelatex.log"
 trap 'rm -rf "$tmpdir"' EXIT
 
-cat >"$tmp_header" <<'EOF'
+write_header() {
+    local mode="$1"
+    local header_path="$2"
+
+    cat >"$header_path" <<'EOF'
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{microtype}
@@ -65,33 +107,134 @@ cat >"$tmp_header" <<'EOF'
 \setlength{\emergencystretch}{3em}
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 EOF
-printf '\\graphicspath{{%s/}{%s/figures/}}\n' "$ROOT/docs" "$ROOT/docs" >>"$tmp_header"
+    if [[ "$mode" == "pdf" ]]; then
+        printf '\\graphicspath{{%s/}{%s/figures/}}\n' "$ROOT/docs" "$ROOT/docs" >>"$header_path"
+    fi
+}
 
-pandoc \
-    "$DOC" \
-    --from=markdown+tex_math_dollars+footnotes+pipe_tables+table_captions+raw_tex \
-    --to=latex \
-    --standalone \
-    --resource-path="$ROOT:$ROOT/docs:$ROOT/docs/figures" \
-    --include-in-header="$tmp_header" \
-    --variable=geometry:margin=1in \
-    --variable=fontsize:11pt \
-    --variable=linestretch:1.05 \
-    --variable=colorlinks:true \
-    --variable=linkcolor:blue \
-    --variable=urlcolor:blue \
-    --output="$tmp_tex"
+generate_tex() {
+    local mode="$1"
+    local output_tex="$2"
+    local header_path="$3"
 
-if ! xelatex -halt-on-error -interaction=nonstopmode -output-directory "$tmpdir" "$tmp_tex" >"$tmp_log" 2>&1; then
-    cat "$tmp_log" >&2
-    exit 1
-fi
+    write_header "$mode" "$header_path"
 
-if ! xelatex -halt-on-error -interaction=nonstopmode -output-directory "$tmpdir" "$tmp_tex" >"$tmp_log" 2>&1; then
-    cat "$tmp_log" >&2
-    exit 1
-fi
+    pandoc \
+        "$DOC" \
+        --from=markdown+tex_math_dollars+footnotes+pipe_tables+table_captions+raw_tex \
+        --to=latex \
+        --standalone \
+        --resource-path="$ROOT:$ROOT/docs:$ROOT/docs/figures" \
+        --include-in-header="$header_path" \
+        --variable=geometry:margin=1in \
+        --variable=fontsize:11pt \
+        --variable=linestretch:1.05 \
+        --variable=colorlinks:true \
+        --variable=linkcolor:blue \
+        --variable=urlcolor:blue \
+        --output="$output_tex"
+}
+
+run_xelatex() {
+    local tex_path="$1"
+    local log_path="$2"
+
+    if ! xelatex -halt-on-error -interaction=nonstopmode -output-directory "$(dirname "$tex_path")" "$tex_path" >"$log_path" 2>&1; then
+        cat "$log_path" >&2
+        exit 1
+    fi
+
+    if ! xelatex -halt-on-error -interaction=nonstopmode -output-directory "$(dirname "$tex_path")" "$tex_path" >"$log_path" 2>&1; then
+        cat "$log_path" >&2
+        exit 1
+    fi
+}
+
+print_arxiv_metadata() {
+    local pdf_path="$1"
+    local figure_count="$2"
+    local archive_path="$3"
+
+    local title subtitle author_line email_line combined_title abstract_text abstract_plain page_count abstract_tmp
+
+    title="$(awk '/^# / {sub(/^# /, ""); print; exit}' "$DOC")"
+    subtitle="$(awk 'BEGIN{seen_title=0} /^# / {seen_title=1; next} seen_title && /^## / {sub(/^## /, ""); print; exit}' "$DOC")"
+    author_line="$(awk 'BEGIN{after_subtitle=0} /^## / && !after_subtitle {after_subtitle=1; next} after_subtitle && NF && $0 !~ /^\[\^/ && $0 !~ /^---/ {gsub(/[[:space:]]+$/, ""); print; exit}' "$DOC")"
+    email_line="$(awk 'BEGIN{after_subtitle=0; seen_author=0} /^## / && !after_subtitle {after_subtitle=1; next} after_subtitle && NF && $0 !~ /^\[\^/ && $0 !~ /^---/ {gsub(/[[:space:]]+$/, ""); if (seen_author == 0) {seen_author=1; next} print; exit}' "$DOC")"
+    abstract_text="$(
+        awk '
+            /^## Abstract$/ {in_abstract=1; next}
+            in_abstract && /^---$/ {exit}
+            in_abstract {print}
+        ' "$DOC" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//'
+    )"
+    abstract_tmp="$tmpdir/arxiv-abstract.md"
+    printf '%s\n' "$abstract_text" >"$abstract_tmp"
+    abstract_plain="$(
+        pandoc "$abstract_tmp" \
+            --from=markdown+tex_math_dollars+footnotes+raw_tex \
+            --to=plain | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//'
+    )"
+    page_count="$(pdfinfo "$pdf_path" | awk -F': *' '/^Pages:/ {print $2; exit}')"
+    email_line="$(printf '%s' "$email_line" | sed 's/\[\^[^]]*\]//g')"
+
+    combined_title="$title"
+    if [[ -n "$subtitle" ]]; then
+        combined_title="$title: $subtitle"
+    fi
+
+    cat <<EOF
+
+arXiv upload package: $archive_path
+Suggested processor on arXiv: xelatex
+Main source file: SSUP-I.tex
+Comments: ${page_count:-unknown pages} pages, $figure_count figures
+
+Metadata deduced from the manuscript:
+- Title: $title
+- Subtitle: $subtitle
+- Suggested combined title: $combined_title
+- Authors: $author_line
+- Contact line: $email_line
+- Abstract (plain text for the form): $abstract_plain
+- Abstract (source form): $abstract_text
+
+You will still need to choose or confirm on arXiv:
+- primary subject class / cross-lists
+- license
+- comments edits, if any
+- journal reference / DOI / report number, if applicable
+- whether to use TeX Live 2025 or 2023 (this package is intended for xelatex; 2025 is the natural choice)
+EOF
+}
+
+generate_tex "pdf" "$tmp_tex" "$tmp_header"
+run_xelatex "$tmp_tex" "$tmp_log"
 
 cp "$tmpdir/SSUP-I.pdf" "$OUT"
 
 echo "wrote $OUT"
+
+if [[ -n "$ARXIV_OUT" ]]; then
+    arxiv_dir="$tmpdir/arxiv-src"
+    arxiv_header="$tmpdir/arxiv-header.tex"
+    arxiv_tex="$arxiv_dir/SSUP-I.tex"
+    mkdir -p "$arxiv_dir"
+
+    generate_tex "arxiv" "$arxiv_tex" "$arxiv_header"
+
+    mapfile -t used_figures < <(
+        grep -oE 'includegraphics(\[[^]]*\])?\{[^}]+\}' "$arxiv_tex" \
+            | sed -E 's/.*\{([^}]+)\}/\1/' \
+            | sort -u
+    )
+
+    for figure_path in "${used_figures[@]}"; do
+        mkdir -p "$arxiv_dir/$(dirname "$figure_path")"
+        cp "$ROOT/docs/$figure_path" "$arxiv_dir/$figure_path"
+    done
+
+    tar -C "$arxiv_dir" -czf "$ARXIV_OUT" SSUP-I.tex "${used_figures[@]}"
+    echo "wrote $ARXIV_OUT"
+    print_arxiv_metadata "$OUT" "${#used_figures[@]}" "$ARXIV_OUT"
+fi
