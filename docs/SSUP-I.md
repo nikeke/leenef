@@ -5,7 +5,11 @@
 Nikša Bosnić  
 nikeke@otpisani.net[^ai]
 
-[^ai]: GitHub Copilot and frontier models from Anthropic (Claude Opus) and OpenAI (GPT-family models) were used extensively during code development, drafting, editing, and analysis for this work.  All final content, judgments, and errors remain the author's responsibility.
+[^ai]: GitHub Copilot (powered by Anthropic Claude Opus and OpenAI
+GPT large language models) was used extensively during code
+development, drafting, editing, and analysis for this work.  All
+final content, judgments, and errors remain the author's
+responsibility.
 
 ---
 
