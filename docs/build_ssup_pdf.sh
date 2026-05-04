@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Common Debian packages:
 #   sudo apt install pandoc texlive-xetex texlive-latex-recommended \
-#       texlive-latex-extra texlive-fonts-recommended
+#       texlive-latex-extra texlive-fonts-recommended lmodern
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DOC="$ROOT/docs/SSUP-I.md"
@@ -28,7 +28,13 @@ fi
 
 if ! command -v xelatex >/dev/null 2>&1; then
     echo "error: xelatex is required" >&2
-    echo "install with: sudo apt install texlive-xetex texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended" >&2
+    echo "install with: sudo apt install texlive-xetex texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended lmodern" >&2
+    exit 1
+fi
+
+if ! kpsewhich lmodern.sty >/dev/null 2>&1; then
+    echo "error: LaTeX package lmodern.sty is required" >&2
+    echo "install with: sudo apt install lmodern" >&2
     exit 1
 fi
 
@@ -57,7 +63,7 @@ EOF
 
 pandoc \
     "$DOC" \
-    --from=gfm+tex_math_dollars+footnotes+pipe_tables+table_captions \
+    --from=markdown+tex_math_dollars+footnotes+pipe_tables+table_captions+raw_tex \
     --to=pdf \
     --pdf-engine=xelatex \
     --standalone \
