@@ -362,6 +362,30 @@ def _fit_joint_shuffled_chunks(
         layer.partial_fit(xb, yb)
 
 
+def _fit_accumulate_chunked(
+    layer: NEFLayer,
+    stream,
+    *,
+    n_classes: int,
+    chunk_size: int,
+    device: torch.device,
+    mode: str,
+    alpha: float,
+) -> None:
+    for task in stream.tasks:
+        y_oh_full = _one_hot(task.y_train, n_classes)
+        for start in range(0, task.x_train.shape[0], chunk_size):
+            end = min(start + chunk_size, task.x_train.shape[0])
+            x = task.train_inputs(start=start, end=end).to(device)
+            y_oh = y_oh_full[start:end].to(device)
+            if mode == "accumulate":
+                layer.partial_fit(x, y_oh)
+            elif mode == "woodbury_batch":
+                layer.continuous_fit(x, y_oh, alpha=alpha)
+            else:
+                raise ValueError(f"unsupported chunked fit mode {mode!r}")
+
+
 @torch.no_grad()
 def _fit_growing_centers(
     layer: NEFLayer,
@@ -469,6 +493,7 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
     alpha = float(config["alpha"])
     centers_mode = _normalize_centers_mode(config.get("centers_mode", "first_task"))
     solver_mode = str(config.get("solver_mode", "accumulate"))
+    fit_chunk_size = int(config.get("fit_chunk_size", 4096))
     device_str = str(config.get("device", "cpu"))
     device = torch.device(device_str)
 
@@ -511,16 +536,26 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
             device=device,
         )
     elif method == "nef_accumulate" and solver_mode == "accumulate":
-        for task in stream.tasks:
-            x = task.train_inputs().to(device)
-            y_oh = _one_hot(task.y_train, n_classes).to(device)
-            layer.partial_fit(x, y_oh)
+        _fit_accumulate_chunked(
+            layer,
+            stream,
+            n_classes=n_classes,
+            chunk_size=fit_chunk_size,
+            device=device,
+            mode="accumulate",
+            alpha=alpha,
+        )
         layer.solve_accumulated(alpha=alpha)
     elif method == "nef_accumulate" and solver_mode == "woodbury_batch":
-        for task in stream.tasks:
-            x = task.train_inputs().to(device)
-            y_oh = _one_hot(task.y_train, n_classes).to(device)
-            layer.continuous_fit(x, y_oh, alpha=alpha)
+        _fit_accumulate_chunked(
+            layer,
+            stream,
+            n_classes=n_classes,
+            chunk_size=fit_chunk_size,
+            device=device,
+            mode="woodbury_batch",
+            alpha=alpha,
+        )
     elif method == "nef_accumulate" and solver_mode == "woodbury_online":
         chunk = int(config.get("woodbury_chunk_size", 100))
         for task in stream.tasks:
