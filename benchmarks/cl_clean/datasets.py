@@ -199,9 +199,14 @@ def _split_stream(bundle: DatasetBundle, *, n_tasks: int, stream_seed: int) -> T
             )
         )
 
-    stream_hash = hashlib.sha256(
-        repr(("split", n_tasks, n_classes, stream_seed, tuple(class_perm))).encode("utf-8")
-    ).hexdigest()
+    h = hashlib.sha256()
+    h.update(b"split\0")
+    h.update(int(n_tasks).to_bytes(8, "little", signed=False))
+    h.update(int(n_classes).to_bytes(8, "little", signed=False))
+    h.update(int(stream_seed).to_bytes(8, "little", signed=True))
+    for c in class_perm:
+        h.update(int(c).to_bytes(8, "little", signed=True))
+    stream_hash = h.hexdigest()
     return TaskStream(
         base_name=bundle.name,
         scenario="split",
@@ -244,9 +249,13 @@ def _permuted_stream(bundle: DatasetBundle, *, n_tasks: int, stream_seed: int) -
         )
 
     perm_hash = hashlib.sha256(b"|".join(p.numpy().tobytes() for p in perms)).hexdigest()
-    stream_hash = hashlib.sha256(
-        repr(("permuted", n_tasks, bundle.n_classes, stream_seed, perm_hash)).encode("utf-8")
-    ).hexdigest()
+    h = hashlib.sha256()
+    h.update(b"permuted\0")
+    h.update(int(n_tasks).to_bytes(8, "little", signed=False))
+    h.update(int(bundle.n_classes).to_bytes(8, "little", signed=False))
+    h.update(int(stream_seed).to_bytes(8, "little", signed=True))
+    h.update(perm_hash.encode("ascii"))
+    stream_hash = h.hexdigest()
     return TaskStream(
         base_name=bundle.name,
         scenario="permuted",
