@@ -1,8 +1,0 @@
-B3 launched: mnist=194045 fashion=194046 cifar=194048
-[07:21:42] starting b3_strategies_mnist -> results/sl_clean/logs/b3_mnist.log
-[07:21:42] starting b3_strategies_fashion -> results/sl_clean/logs/b3_fashion.log
-[07:21:42] starting b3_strategies_cifar10 -> results/sl_clean/logs/b3_cifar10.log
-mnist failed
-fashion failed
-cifar failed
-[08:15:06] all B3 panels finished

@@ -1,6 +1,0 @@
-[2026-05-01T06:34:14Z] panel-driver start (B7)
-[2026-05-01T06:34:14Z] launching biases_cifar10_centered + biases_mnist_decentered (parallel)
-[2026-05-01T06:34:14Z] cifar10_centered pid=184589  mnist_decentered pid=184590
-[2026-05-01T07:11:54Z] biases_cifar10_centered done (rc=0)
-[2026-05-01T07:11:54Z] biases_mnist_decentered done (rc=0)
-[2026-05-01T07:11:54Z] panel-driver complete (B7) — sentinel touched

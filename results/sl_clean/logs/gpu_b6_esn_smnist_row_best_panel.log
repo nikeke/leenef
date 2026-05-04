@@ -1,7 +1,0 @@
-[2026-05-03T10:48:40] phase=gpu_b6_esn_smnist_row_best_panel experiment=b6_esn_smnist_row knob=cell values=['n2000_sr0.95_leak0.3'] seeds=[0, 1, 2, 3, 4] code_identity=c3ca3cf8e46c1d9a45be76f8626e3795cda3c5a2
-[2026-05-03T10:48:40]   [1/5] run    gpu_b6_esn_smnist_row_best_panel_n2000_sr0.95_leak0.3_s0
-[2026-05-03T10:48:46]   [2/5] run    gpu_b6_esn_smnist_row_best_panel_n2000_sr0.95_leak0.3_s1
-[2026-05-03T10:48:51]   [3/5] run    gpu_b6_esn_smnist_row_best_panel_n2000_sr0.95_leak0.3_s2
-[2026-05-03T10:48:55]   [4/5] run    gpu_b6_esn_smnist_row_best_panel_n2000_sr0.95_leak0.3_s3
-[2026-05-03T10:49:00]   [5/5] run    gpu_b6_esn_smnist_row_best_panel_n2000_sr0.95_leak0.3_s4
-[2026-05-03T10:49:04] phase gpu_b6_esn_smnist_row_best_panel done — 5 rows in /content/leenef/results/sl_clean/gpu_b6_esn_smnist_row_best_panel.json
