@@ -51,3 +51,11 @@ Three things make this paper interesting (and not just an "of course"):
   cleaner story than "NEF forgets less": on this regime, sufficient-
   statistics accumulation lands on the joint solution exactly, while
   Fisher-style protection does not remain competitive.
+* Split-CIFAR-10 keeps the same structural story but with a narrower
+  accuracy gap to the joint MLP upper bound.  `nef_accumulate` again
+  matches `nef_joint` exactly over all 10 seeds, and it crushes the
+  continual SGD baselines, but `mlp_joint` still leads by 2.4 pp in
+  absolute accuracy.  That suggests the paper should frame the visual
+  result as "exact continual equivalence plus a strong efficiency story,"
+  not as a blanket claim that the fixed-encoder NEF always dominates the
+  best gradient-trained upper bound on harder images.
