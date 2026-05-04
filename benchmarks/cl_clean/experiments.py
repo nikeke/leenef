@@ -226,8 +226,9 @@ def _build_layer(
     gain_high: float,
     centers: torch.Tensor | None,
     layer_seed: int,
+    device: torch.device | None = None,
 ) -> NEFLayer:
-    return NEFLayer(
+    layer = NEFLayer(
         d_in=d_in,
         n_neurons=n_neurons,
         d_out=n_classes,
@@ -237,9 +238,14 @@ def _build_layer(
         centers=centers,
         rng=torch.Generator().manual_seed(layer_seed),
     )
+    if device is not None:
+        layer = layer.to(device)
+    return layer
 
 
-def _eval_per_task(layer: NEFLayer, stream, *, chunk: int = 5000) -> tuple[list[float], float]:
+def _eval_per_task(
+    layer: NEFLayer, stream, *, chunk: int = 5000, device: torch.device | None = None
+) -> tuple[list[float], float]:
     per_task = []
     n_correct_total = 0
     n_total = 0
@@ -249,7 +255,10 @@ def _eval_per_task(layer: NEFLayer, stream, *, chunk: int = 5000) -> tuple[list[
             n_correct = 0
             for s in range(0, x.shape[0], chunk):
                 e = min(s + chunk, x.shape[0])
-                pred = layer(x[s:e]).argmax(dim=1)
+                xb = x[s:e]
+                if device is not None:
+                    xb = xb.to(device)
+                pred = layer(xb).argmax(dim=1).cpu()
                 n_correct += int((pred == y[s:e]).sum())
             per_task.append(round(n_correct / x.shape[0], 6))
             n_correct_total += n_correct
@@ -292,6 +301,8 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
     n_neurons = int(config["n_neurons"])
     alpha = float(config["alpha"])
     centers_mode = str(config.get("centers_mode", "first_task"))
+    device_str = str(config.get("device", "cpu"))
+    device = torch.device(device_str)
 
     if centers_mode == "first_task":
         idx = torch.randint(
@@ -306,6 +317,8 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
         centers = None
     else:
         raise ValueError(f"unknown centers_mode {centers_mode!r}")
+    if centers is not None:
+        centers = centers.to(device)
 
     layer = _build_layer(
         d_in=d_in,
@@ -316,25 +329,43 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
         gain_high=float(config["gain_high"]),
         centers=centers,
         layer_seed=seed * 1_000_003 + 1,
+        device=device,
     )
 
     t0 = time.perf_counter()
     if method == "nef_accumulate":
         for task in stream.tasks:
-            layer.partial_fit(task.x_train, _one_hot(task.y_train, n_classes))
+            x = task.x_train.to(device)
+            y_oh = _one_hot(task.y_train, n_classes).to(device)
+            layer.partial_fit(x, y_oh)
         layer.solve_accumulated(alpha=alpha)
     elif method == "nef_joint":
+        # Joint upper bound.  Concatenates the union once, then calls
+        # ``partial_fit`` on shuffled chunks so the code path differs
+        # from ``nef_accumulate`` (per-task in stream order) and the H1
+        # joint-equivalence comparison is a real test rather than a
+        # tautology.  Chunking caps the activity-matrix peak memory at
+        # O(joint_chunk × n_neurons) instead of O(N_total × n_neurons).
         all_x = torch.cat([t.x_train for t in stream.tasks], dim=0)
         all_y = torch.cat([t.y_train for t in stream.tasks], dim=0)
-        layer.partial_fit(all_x, _one_hot(all_y, n_classes))
+        joint_chunk = int(config.get("joint_chunk_size", 4096))
+        joint_g = torch.Generator().manual_seed(seed * 1_000_003 + 7919)
+        order = torch.randperm(all_x.shape[0], generator=joint_g)
+        for s in range(0, all_x.shape[0], joint_chunk):
+            sel = order[s : s + joint_chunk]
+            xb = all_x[sel].to(device)
+            yb = _one_hot(all_y[sel], n_classes).to(device)
+            layer.partial_fit(xb, yb)
         layer.solve_accumulated(alpha=alpha)
     elif method == "nef_reset":
         last = stream.tasks[-1]
-        layer.partial_fit(last.x_train, _one_hot(last.y_train, n_classes))
+        x = last.x_train.to(device)
+        y_oh = _one_hot(last.y_train, n_classes).to(device)
+        layer.partial_fit(x, y_oh)
         layer.solve_accumulated(alpha=alpha)
     fit_s = time.perf_counter() - t0
 
-    per_task_acc, avg_acc = _eval_per_task(layer, stream)
+    per_task_acc, avg_acc = _eval_per_task(layer, stream, device=device)
 
     return {
         "test_accuracy": avg_acc,
@@ -342,6 +373,16 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
         "fit_time_s": round(fit_s, 4),
         "stream_hash": stream.stream_hash,
         "stream_metadata": stream.metadata(),
+        "dataset_metadata": {
+            "base_dataset": stream.base_name,
+            "scenario": stream.scenario,
+            "n_tasks": int(stream.n_tasks),
+            "n_classes": int(stream.n_classes),
+            "stream_seed": int(stream.stream_seed),
+            "stream_hash": stream.stream_hash,
+            "raw_hashes": dict(stream.raw_hashes),
+            "processed_hashes": dict(stream.processed_hashes),
+        },
     }
 
 
