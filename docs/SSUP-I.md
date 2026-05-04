@@ -116,7 +116,7 @@ A linear activation collapses the entire scheme.  If
 $a_i = g_i (e_i \cdot x)$, then for any decoder $D \in \mathbb{R}^{n \times d_{\mathrm{out}}}$,
 
 $$
-y = D^\top a = D^\top \operatorname{diag}(g) E x = \left(D^\top \operatorname{diag}(g) E\right) x = W x
+y = D^\top a = D^\top \mathrm{diag}(g) E x = \left(D^\top \mathrm{diag}(g) E\right) x = W x
 $$
 
 is a single linear map, regardless of `n`.  Over-completeness
@@ -154,7 +154,7 @@ of absolute-value and ReLU networks; zero-bias folds alone are
 more restricted — homogeneous and even — which is exactly why
 bias placement becomes a load-bearing empirical question in §5.1.
 ReLU is the same idea after a half-fold (drop the sign instead of
-folding about the origin); the identity $|x| = \operatorname{ReLU}(x) + \operatorname{ReLU}(-x)$
+folding about the origin); the identity $|x| = \mathrm{ReLU}(x) + \mathrm{ReLU}(-x)$
 means that one `abs` feature spans the same scalar function as a
 mirrored pair of ReLU features, although the fixed-neuron-budget
 parameterization is not identical.
@@ -347,10 +347,10 @@ bifurcate under the same fixed $\alpha$.  The architectural fix is to
 scale $\alpha_{\mathrm{eff}}$ by the trace per neuron:
 
 $$
-\alpha_{\mathrm{eff}} = \max\!\left(\alpha \cdot \operatorname{tr}(A^\top A) / n_{\mathrm{neurons}}, \alpha\right).
+\alpha_{\mathrm{eff}} = \max\!\left(\alpha \cdot \mathrm{tr}(A^\top A) / n_{\mathrm{neurons}}, \alpha\right).
 $$
 
-Here $\operatorname{tr}(A^\top A) / n_{\mathrm{neurons}}$ is the average squared column norm
+Here $\mathrm{tr}(A^\top A) / n_{\mathrm{neurons}}$ is the average squared column norm
 of `A` — the average activity energy deposited in each frame
 element across the dataset.  Scaling by it puts $\alpha_{\mathrm{eff}}$ on the
 same footing as the encoder span: $\alpha$ becomes a dimensionless
@@ -364,7 +364,7 @@ classifier by ~2 OOM.  In the raw 60 000 × 784 MNIST solve, the
 per-neuron diagonal scale is small (typical
 $|\mathrm{projection}|^2 \approx 0.1$), giving $\alpha_{\mathrm{eff}} = \alpha \cdot 60000 \cdot 0.1 \approx 60$.
 In streaming, mean-pooling preserves abs-projection magnitudes;
-$\operatorname{tr}(A^\top A) / n \approx 11000$, so the same base $\alpha = 10^{-2}$ gives
+$\mathrm{tr}(A^\top A) / n \approx 11000$, so the same base $\alpha = 10^{-2}$ gives
 $\alpha_{\mathrm{eff}} \approx 110$, which regularizes the leading components much more
 strongly.
 
@@ -607,7 +607,7 @@ small gain.
 
 The reading the §2 algebra supports: `abs` and ReLU are the
 same minimal nonlinearity up to a sign-flip
-($|x| = \operatorname{ReLU}(x) + \operatorname{ReLU}(-x)$), and an `abs` neuron is the same
+($|x| = \mathrm{ReLU}(x) + \mathrm{ReLU}(-x)$), and an `abs` neuron is the same
 information as two mirrored `relu` neurons whose decoder rows
 the analytic solve will find.  At fixed `n` the `abs` parameterization
 buys a half-budget worth of "free" `relu` partners, which is
