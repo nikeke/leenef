@@ -11,8 +11,9 @@ sequence:
   bound).
 * :func:`ewc_run` — Elastic Weight Consolidation with a per-task Fisher
   diagonal estimated on the task's training subset.
-* :func:`er_run` — Experience Replay with a fixed-size class-balanced
-  reservoir.
+* :func:`er_run` — Experience Replay with a fixed-size **uniform**
+  reservoir (Vitter's Algorithm R).  Class balance is not enforced;
+  the buffer is sampled uniformly from the streamed examples.
 
 Reproducibility discipline (must match cl_clean hazards):
 
@@ -63,24 +64,35 @@ class MLPConfig:
 
 def _build_mlp(cfg: MLPConfig, seed: int) -> nn.Module:
     g = torch.Generator().manual_seed(seed)
-    layers: list[nn.Module] = []
-    in_dim = cfg.d_in
-    for _ in range(cfg.n_hidden_layers):
-        lin = nn.Linear(in_dim, cfg.hidden)
+    # ``nn.Linear(...)`` calls ``init.kaiming_uniform_`` which draws from
+    # the global default RNG.  We immediately overwrite the parameters
+    # via the explicit Generator ``g``, but the Linear constructor still
+    # advances the global RNG state — making any subsequent global-RNG
+    # draw (e.g. in user code) seed-dependent on construction order.
+    # Save and restore the global RNG state around all ``nn.Linear``
+    # constructions to keep the surrounding global stream untouched.
+    global_state = torch.get_rng_state()
+    try:
+        layers: list[nn.Module] = []
+        in_dim = cfg.d_in
+        for _ in range(cfg.n_hidden_layers):
+            lin = nn.Linear(in_dim, cfg.hidden)
+            with torch.no_grad():
+                bound = (1.0 / max(in_dim, 1)) ** 0.5
+                lin.weight.copy_((torch.rand(lin.weight.shape, generator=g) * 2 - 1) * bound)
+                lin.bias.copy_((torch.rand(lin.bias.shape, generator=g) * 2 - 1) * bound)
+            layers.append(lin)
+            layers.append(nn.ReLU())
+            in_dim = cfg.hidden
+        head = nn.Linear(in_dim, cfg.n_classes)
         with torch.no_grad():
             bound = (1.0 / max(in_dim, 1)) ** 0.5
-            lin.weight.copy_((torch.rand(lin.weight.shape, generator=g) * 2 - 1) * bound)
-            lin.bias.copy_((torch.rand(lin.bias.shape, generator=g) * 2 - 1) * bound)
-        layers.append(lin)
-        layers.append(nn.ReLU())
-        in_dim = cfg.hidden
-    head = nn.Linear(in_dim, cfg.n_classes)
-    with torch.no_grad():
-        bound = (1.0 / max(in_dim, 1)) ** 0.5
-        head.weight.copy_((torch.rand(head.weight.shape, generator=g) * 2 - 1) * bound)
-        head.bias.copy_((torch.rand(head.bias.shape, generator=g) * 2 - 1) * bound)
-    layers.append(head)
-    return nn.Sequential(*layers)
+            head.weight.copy_((torch.rand(head.weight.shape, generator=g) * 2 - 1) * bound)
+            head.bias.copy_((torch.rand(head.bias.shape, generator=g) * 2 - 1) * bound)
+        layers.append(head)
+        return nn.Sequential(*layers)
+    finally:
+        torch.set_rng_state(global_state)
 
 
 def _train_epoch(
@@ -92,12 +104,16 @@ def _train_epoch(
     optim: torch.optim.Optimizer,
     rng: torch.Generator,
     extra_loss_fn=None,
+    device: torch.device | None = None,
 ) -> None:
     n = x.shape[0]
     perm = torch.randperm(n, generator=rng)
     for s in range(0, n, cfg.batch_size):
         idx = perm[s : s + cfg.batch_size]
         xb, yb = x[idx], y[idx]
+        if device is not None:
+            xb = xb.to(device)
+            yb = yb.to(device)
         logits = model(xb)
         loss = nn.functional.cross_entropy(logits, yb)
         if extra_loss_fn is not None:
@@ -108,7 +124,11 @@ def _train_epoch(
 
 
 def _evaluate_per_task(
-    model: nn.Module, stream: TaskStream, *, chunk: int = 5000
+    model: nn.Module,
+    stream: TaskStream,
+    *,
+    chunk: int = 5000,
+    device: torch.device | None = None,
 ) -> tuple[list[float], float]:
     per_task: list[float] = []
     n_correct_total = 0
@@ -120,7 +140,10 @@ def _evaluate_per_task(
             n_correct = 0
             for s in range(0, x.shape[0], chunk):
                 e = min(s + chunk, x.shape[0])
-                pred = model(x[s:e]).argmax(dim=1)
+                xb = x[s:e]
+                if device is not None:
+                    xb = xb.to(device)
+                pred = model(xb).argmax(dim=1).cpu()
                 n_correct += int((pred == y[s:e]).sum())
             per_task.append(round(n_correct / x.shape[0], 6))
             n_correct_total += n_correct
@@ -131,7 +154,7 @@ def _evaluate_per_task(
 
 def _make_stream_and_cfg(
     config: dict, seed: int, run_context: dict
-) -> tuple[TaskStream, MLPConfig, torch.Generator]:
+) -> tuple[TaskStream, MLPConfig, torch.Generator, torch.device]:
     set_cl_seed(seed)
     stream = make_task_stream(
         str(run_context["base_dataset"]),
@@ -150,7 +173,8 @@ def _make_stream_and_cfg(
         batch_size=int(config.get("batch_size", 128)),
     )
     rng = torch.Generator().manual_seed(seed * 1_000_003 + 31)
-    return stream, cfg, rng
+    device = torch.device(str(config.get("device", "cpu")))
+    return stream, cfg, rng, device
 
 
 def _result_envelope(stream: TaskStream, per_task: list[float], avg: float, fit_s: float) -> dict:
@@ -160,6 +184,16 @@ def _result_envelope(stream: TaskStream, per_task: list[float], avg: float, fit_
         "fit_time_s": round(fit_s, 4),
         "stream_hash": stream.stream_hash,
         "stream_metadata": stream.metadata(),
+        "dataset_metadata": {
+            "base_dataset": stream.base_name,
+            "scenario": stream.scenario,
+            "n_tasks": int(stream.n_tasks),
+            "n_classes": int(stream.n_classes),
+            "stream_seed": int(stream.stream_seed),
+            "stream_hash": stream.stream_hash,
+            "raw_hashes": dict(stream.raw_hashes),
+            "processed_hashes": dict(stream.processed_hashes),
+        },
     }
 
 
@@ -169,15 +203,17 @@ def _result_envelope(stream: TaskStream, per_task: list[float], avg: float, fit_
 
 
 def finetune_run(config: dict, seed: int, run_context: dict) -> dict:
-    stream, cfg, rng = _make_stream_and_cfg(config, seed, run_context)
-    model = _build_mlp(cfg, seed=seed * 1_000_003 + 1)
+    stream, cfg, rng, device = _make_stream_and_cfg(config, seed, run_context)
+    model = _build_mlp(cfg, seed=seed * 1_000_003 + 1).to(device)
     optim = torch.optim.Adam(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
     t0 = time.perf_counter()
     for task in stream.tasks:
         for _ in range(cfg.epochs_per_task):
-            _train_epoch(model, task.x_train, task.y_train, cfg=cfg, optim=optim, rng=rng)
+            _train_epoch(
+                model, task.x_train, task.y_train, cfg=cfg, optim=optim, rng=rng, device=device
+            )
     fit_s = time.perf_counter() - t0
-    per_task, avg = _evaluate_per_task(model, stream)
+    per_task, avg = _evaluate_per_task(model, stream, device=device)
     return _result_envelope(stream, per_task, avg, fit_s)
 
 
@@ -187,17 +223,17 @@ def finetune_run(config: dict, seed: int, run_context: dict) -> dict:
 
 
 def joint_run(config: dict, seed: int, run_context: dict) -> dict:
-    stream, cfg, rng = _make_stream_and_cfg(config, seed, run_context)
-    model = _build_mlp(cfg, seed=seed * 1_000_003 + 1)
+    stream, cfg, rng, device = _make_stream_and_cfg(config, seed, run_context)
+    model = _build_mlp(cfg, seed=seed * 1_000_003 + 1).to(device)
     optim = torch.optim.Adam(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
     all_x = torch.cat([t.x_train for t in stream.tasks], dim=0)
     all_y = torch.cat([t.y_train for t in stream.tasks], dim=0)
     total_epochs = cfg.epochs_per_task * stream.n_tasks
     t0 = time.perf_counter()
     for _ in range(total_epochs):
-        _train_epoch(model, all_x, all_y, cfg=cfg, optim=optim, rng=rng)
+        _train_epoch(model, all_x, all_y, cfg=cfg, optim=optim, rng=rng, device=device)
     fit_s = time.perf_counter() - t0
-    per_task, avg = _evaluate_per_task(model, stream)
+    per_task, avg = _evaluate_per_task(model, stream, device=device)
     return _result_envelope(stream, per_task, avg, fit_s)
 
 
@@ -207,7 +243,13 @@ def joint_run(config: dict, seed: int, run_context: dict) -> dict:
 
 
 def _diag_fisher(
-    model: nn.Module, x: Tensor, y: Tensor, *, n_samples: int, rng: torch.Generator
+    model: nn.Module,
+    x: Tensor,
+    y: Tensor,
+    *,
+    n_samples: int,
+    rng: torch.Generator,
+    device: torch.device | None = None,
 ) -> dict[str, Tensor]:
     n = x.shape[0]
     sample_idx = torch.randint(n, (min(n_samples, n),), generator=rng)
@@ -217,7 +259,10 @@ def _diag_fisher(
     model.eval()
     for i in sample_idx.tolist():
         model.zero_grad(set_to_none=True)
-        log_probs = nn.functional.log_softmax(model(x[i : i + 1]), dim=1)
+        xb = x[i : i + 1]
+        if device is not None:
+            xb = xb.to(device)
+        log_probs = nn.functional.log_softmax(model(xb), dim=1)
         loss = -log_probs[0, int(y[i])]
         loss.backward()
         for name, p in model.named_parameters():
@@ -229,8 +274,8 @@ def _diag_fisher(
 
 
 def ewc_run(config: dict, seed: int, run_context: dict) -> dict:
-    stream, cfg, rng = _make_stream_and_cfg(config, seed, run_context)
-    model = _build_mlp(cfg, seed=seed * 1_000_003 + 1)
+    stream, cfg, rng, device = _make_stream_and_cfg(config, seed, run_context)
+    model = _build_mlp(cfg, seed=seed * 1_000_003 + 1).to(device)
     optim = torch.optim.Adam(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
     ewc_lambda = float(config.get("ewc_lambda", 1e3))
     fisher_samples = int(config.get("fisher_samples", 200))
@@ -239,8 +284,8 @@ def ewc_run(config: dict, seed: int, run_context: dict) -> dict:
 
     def ewc_penalty(m: nn.Module) -> Tensor:
         if not accumulated:
-            return torch.zeros((), dtype=torch.float32)
-        loss = torch.zeros((), dtype=torch.float32)
+            return torch.zeros((), dtype=torch.float32, device=device)
+        loss = torch.zeros((), dtype=torch.float32, device=device)
         params = dict(m.named_parameters())
         for fisher, anchor in accumulated:
             for name, fdiag in fisher.items():
@@ -258,12 +303,15 @@ def ewc_run(config: dict, seed: int, run_context: dict) -> dict:
                 optim=optim,
                 rng=rng,
                 extra_loss_fn=ewc_penalty,
+                device=device,
             )
-        f = _diag_fisher(model, task.x_train, task.y_train, n_samples=fisher_samples, rng=rng)
+        f = _diag_fisher(
+            model, task.x_train, task.y_train, n_samples=fisher_samples, rng=rng, device=device
+        )
         a = {name: p.detach().clone() for name, p in model.named_parameters() if p.requires_grad}
         accumulated.append((f, a))
     fit_s = time.perf_counter() - t0
-    per_task, avg = _evaluate_per_task(model, stream)
+    per_task, avg = _evaluate_per_task(model, stream, device=device)
     return _result_envelope(stream, per_task, avg, fit_s)
 
 
@@ -273,29 +321,32 @@ def ewc_run(config: dict, seed: int, run_context: dict) -> dict:
 
 
 def er_run(config: dict, seed: int, run_context: dict) -> dict:
-    stream, cfg, rng = _make_stream_and_cfg(config, seed, run_context)
-    model = _build_mlp(cfg, seed=seed * 1_000_003 + 1)
+    stream, cfg, rng, device = _make_stream_and_cfg(config, seed, run_context)
+    model = _build_mlp(cfg, seed=seed * 1_000_003 + 1).to(device)
     optim = torch.optim.Adam(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
     buffer_size = int(config.get("buffer_size", 500))
     replay_batch = int(config.get("replay_batch", 64))
 
-    buf_x = torch.empty(0, cfg.d_in, dtype=torch.float32)
-    buf_y = torch.empty(0, dtype=torch.int64)
+    # Vitter's Algorithm R reservoir, preallocated to avoid the O(N^2)
+    # ``torch.cat`` pattern of repeated single-row appends.
+    buf_x = torch.empty(buffer_size, cfg.d_in, dtype=torch.float32)
+    buf_y = torch.empty(buffer_size, dtype=torch.int64)
+    n_in_buf = 0
     seen = 0
 
-    def reservoir_add(x_new: Tensor, y_new: Tensor) -> tuple[Tensor, Tensor]:
-        nonlocal seen, buf_x, buf_y
+    def reservoir_add(x_new: Tensor, y_new: Tensor) -> None:
+        nonlocal seen, n_in_buf
         for i in range(x_new.shape[0]):
-            if buf_x.shape[0] < buffer_size:
-                buf_x = torch.cat([buf_x, x_new[i : i + 1]], dim=0)
-                buf_y = torch.cat([buf_y, y_new[i : i + 1]], dim=0)
+            if n_in_buf < buffer_size:
+                buf_x[n_in_buf] = x_new[i]
+                buf_y[n_in_buf] = y_new[i]
+                n_in_buf += 1
             else:
                 j = int(torch.randint(0, seen + 1, (1,), generator=rng).item())
                 if j < buffer_size:
                     buf_x[j] = x_new[i]
                     buf_y[j] = y_new[i]
             seen += 1
-        return buf_x, buf_y
 
     def er_train_epoch(task_x: Tensor, task_y: Tensor) -> None:
         n = task_x.shape[0]
@@ -303,11 +354,13 @@ def er_run(config: dict, seed: int, run_context: dict) -> dict:
         for s in range(0, n, cfg.batch_size):
             idx = perm[s : s + cfg.batch_size]
             xb, yb = task_x[idx], task_y[idx]
-            if buf_x.shape[0] > 0:
-                k = min(replay_batch, buf_x.shape[0])
-                ridx = torch.randperm(buf_x.shape[0], generator=rng)[:k]
-                xb = torch.cat([xb, buf_x[ridx]], dim=0)
-                yb = torch.cat([yb, buf_y[ridx]], dim=0)
+            if n_in_buf > 0:
+                k = min(replay_batch, n_in_buf)
+                ridx = torch.randperm(n_in_buf, generator=rng)[:k]
+                xb = torch.cat([xb, buf_x[:n_in_buf][ridx]], dim=0)
+                yb = torch.cat([yb, buf_y[:n_in_buf][ridx]], dim=0)
+            xb = xb.to(device)
+            yb = yb.to(device)
             logits = model(xb)
             loss = nn.functional.cross_entropy(logits, yb)
             optim.zero_grad(set_to_none=True)
@@ -320,5 +373,5 @@ def er_run(config: dict, seed: int, run_context: dict) -> dict:
             er_train_epoch(task.x_train, task.y_train)
         reservoir_add(task.x_train, task.y_train)
     fit_s = time.perf_counter() - t0
-    per_task, avg = _evaluate_per_task(model, stream)
+    per_task, avg = _evaluate_per_task(model, stream, device=device)
     return _result_envelope(stream, per_task, avg, fit_s)
