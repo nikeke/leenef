@@ -2,12 +2,10 @@
 
 ## Supervised Learning via the Neural Engineering Framework
 
-> **Status: draft in progress.**  This is the working manuscript for
-> Paper I of the leenef SSUP trilogy.  Numerical claims remain under
-> active audit until the final comparator panels land.  Cited
-> Eliasmith & Anderson chapters are from *Neural Engineering:
-> Computation, Representation, and Dynamics in Neurobiological Systems*
-> (MIT Press, 2003) unless stated otherwise.
+Nikša Bosnić  
+nikeke@otpisani.net[^ai]
+
+[^ai]: GitHub Copilot and frontier models from Anthropic (Claude Opus) and OpenAI (GPT-family models) were used extensively during code development, drafting, editing, and analysis for this work.  All final content, judgments, and errors remain the author's responsibility.
 
 ---
 
@@ -747,9 +745,9 @@ Scaling remains monotone: +2.65 pp from 2 000 to 4 000 neurons,
 flattening, consistent with a structural mean-pool ceiling rather
 than a parameter-count regime that just needs more neurons.
 
-The apples-to-apples ESN comparator (same fixed-feature +
-linear-readout family) is now complete.  Best cell per `n`,
-under the same code identity:
+We completed the apples-to-apples ESN comparator (same fixed-feature +
+linear-readout family) under the same code identity.  Best cell per
+`n`:
 
 | `n_reservoir` | seeds | best ESN accuracy ± SE | (sr, leak) | end-to-end wall-clock time (CPU, s/seed) |
 |---------------|-------|------------------------|------------|--------------------|
@@ -803,17 +801,16 @@ redundant) and *the* bug on Speech Commands or sCIFAR-10
 (periodicities longer than `K` are invisible to mean pooling;
 cross-position information is washed out).  The architecture
 is a measurement device for short-time-locally-coherent input
-streams; the moment that assumption breaks the analytic-solve
-property has to either be paired with a learned positional
-feature or yielded to a recurrent solver.  This is the bridge
-to Paper III.
+streams; once that assumption breaks, preserving order becomes
+the next modeling question rather than something pooling can
+hide.  Paper III picks up from that boundary.
 
 We attempted four cheap mitigations on permuted sMNIST (larger
 `K`, positional concatenation, max-pool, data-adapted
 encoders); each is reported in Appendix B with its multi-seed
 result.  The headline summary is that none of them cleanly
 crosses 90 % without abandoning the strict delay-line
-streaming" frame; the architecture's reach is genuinely
+streaming frame; the architecture's reach is genuinely
 bounded above by mean-pool's order-erasing property.
 
 ---
@@ -1055,7 +1052,7 @@ The driver scripts (`benchmarks/sl_clean/sl_hp_driver.sh`,
 `benchmarks/sl_clean/run_<phase>.sh`) launch detached, log to
 `results/sl_clean/logs/<phase>.log`, and skip already-completed
 `(namespace, code_identity, config, seed)` cells when restarted.
-This makes the entire B-phase pipeline resumable from any
+This makes any such pipeline resumable from any
 interruption — a property that matters at our wall-clock budget.
 
 The seed budget per claim is documented in
@@ -1072,13 +1069,13 @@ it.**  A five-seed MNIST panel with one 2000-neuron hidden layer,
 a 2000-neuron output layer, `abs` activation, hypersphere encoders,
 data-driven biases, and `α = 10⁻³` tests five strategies:
 
-| strategy | test accuracy (mean ± SE) | inter-layer gradients? |
-|---|---|---|
-| `greedy` | 95.37 ± 0.09 % | none |
-| `hybrid` | 94.25 ± 0.04 % | none |
-| `target_prop` | 98.54 ± 0.02 % | layer-local only |
-| `end_to_end` | 98.60 ± 0.02 % | full BPTT |
-| `hybrid_e2e` | 98.69 ± 0.01 % | full BPTT |
+| strategy | test accuracy (mean ± SE) | end-to-end wall-clock time (CPU, s/seed) | inter-layer gradients? |
+|---|---|---:|---|
+| `greedy` | 95.37 ± 0.09 % | 19 | none |
+| `hybrid` | 94.25 ± 0.04 % | 250 | none |
+| `target_prop` | 98.54 ± 0.02 % | 749 | layer-local only |
+| `end_to_end` | 98.60 ± 0.02 % | 1 697 | full BPTT |
+| `hybrid_e2e` | 98.69 ± 0.01 % | 1 634 | full BPTT |
 
 Plain greedy stacking and the alternate-solve hybrid both lose
 3–4 pp to single-wide-layer baselines.  Target propagation, which
@@ -1094,13 +1091,13 @@ the win on MNIST is small.  This is why the rest of the work
 stays single-layer.  CIFAR-10 tells the same ordering more
 sharply under the same five-seed protocol:
 
-| strategy | CIFAR-10 test accuracy (mean ± SE) |
-|---|---:|
-| `greedy` | 46.08 ± 0.13 % |
-| `hybrid` | 36.37 ± 0.17 % |
-| `target_prop` | 50.59 ± 0.15 % |
-| `end_to_end` | 59.20 ± 0.04 % |
-| `hybrid_e2e` | 58.47 ± 0.16 % |
+| strategy | CIFAR-10 test accuracy (mean ± SE) | end-to-end wall-clock time (CPU, s/seed) |
+|---|---:|---:|
+| `greedy` | 46.08 ± 0.13 % | 21 |
+| `hybrid` | 36.37 ± 0.17 % | 256 |
+| `target_prop` | 50.59 ± 0.15 % | 627 |
+| `end_to_end` | 59.20 ± 0.04 % | 1 311 |
+| `hybrid_e2e` | 58.47 ± 0.16 % | 1 590 |
 
 Target propagation is not a blanket failure — it recovers much
 of the greedy loss — but on the harder image task the decisive
@@ -1134,7 +1131,7 @@ mitigations on permuted sMNIST: larger window `K`, positional
 concatenation, max-pool replacing mean-pool, and data-adapted
 encoders (`local_pca` on permuted patches).  None cleanly
 crosses 90 % without abandoning the strict delay-line
-streaming" frame.  The architecture's reach is genuinely
+streaming frame.  The architecture's reach is genuinely
 bounded above by mean-pool's order-erasing property; the
 mitigations are reported as a map of *what does not save you*,
 not as a viable path past the limit.
@@ -1151,4 +1148,17 @@ Commands v2 keyword-spotting task plateaus at ~76 % vs LSTM
 ~90 %.  Mean-pooling absolute frame coefficients destroys
 order; an audio task whose discriminative information lives in
 phoneme order needs either a learned positional feature or a
-recurrent solver.  Honest scope; bridge to Paper III.
+recurrent solver.  That limitation frames the temporal
+representation question carried into Paper III.
+
+---
+
+## Literature
+
+- Coates, A., Lee, H., & Ng, A. Y. (2011). *An Analysis of Single-Layer Networks in Unsupervised Feature Learning*. Proceedings of the Fourteenth International Conference on Artificial Intelligence and Statistics.
+- Eliasmith, C., & Anderson, C. H. (2003). *Neural Engineering: Computation, Representation, and Dynamics in Neurobiological Systems*. MIT Press.
+- Huang, G.-B., Zhu, Q.-Y., & Siew, C.-K. (2006). *Extreme Learning Machine: Theory and Applications*. Neurocomputing, 70(1-3), 489-501.
+- Jaeger, H. (2001). *The “Echo State” Approach to Analysing and Training Recurrent Neural Networks—With an Erratum Note*. GMD Report 148, German National Research Center for Information Technology.
+- Maass, W., Natschläger, T., & Markram, H. (2002). *Real-Time Computing Without Stable States: A New Framework for Neural Computation Based on Perturbations*. Neural Computation, 14(11), 2531-2560.
+- Rahimi, A., & Recht, B. (2007). *Random Features for Large-Scale Kernel Machines*. Advances in Neural Information Processing Systems 20.
+- Saxe, A. M., Koh, P. W., Chen, Z., Bhand, M., Suresh, B., & Ng, A. Y. (2011). *Random Weights and Unsupervised Feature Learning*. Proceedings of the 28th International Conference on Machine Learning.
