@@ -266,6 +266,25 @@ wait_for_b2_panels.sh}` and the B2 launch in
 - Prefer a single zipped result artifact for notebook download. Multiple
   `files.download()` calls are fragile in Colab; bundle JSON panels,
   logs, and exact config copies into one archive.
+- **Follow the Paper-I notebook pattern literally.** A Colab launcher
+  notebook should have the same basic six-cell shape as
+  `colab/sl_clean/recurrent_smnist_gpu_suite.ipynb`:
+  1. markdown intro with the suite purpose and preferred GPU;
+  2. a tiny CUDA-check cell (`import torch`, assert CUDA, print device);
+  3. a shell-style clone/setup cell using notebook magics, not Python
+     subprocess wrappers:
+     `%cd /content`, `!rm -rf leenef`, `!git clone --depth 1 --branch <ref> ...`,
+     `%cd leenef`, `!git log -1 ...`, `!test -f <expected runner>`;
+  4. a dedicated install cell: `!pip install -q -e '.[dev]'`;
+  5. a dedicated run cell: `!python -u <suite.py> ...` (optionally with
+     a commented-out quick/smoke variant above the full command);
+  6. a final zip-and-download cell that asserts the expected result/log
+     files exist, writes one archive, includes the GPU config snapshots,
+     and calls `files.download(...)`.
+- **In the notebook itself, prefer shell-style `!` commands over
+  `subprocess.run(...)` wrappers.** The standard pattern is easier to
+  compare across suites and tends to show live command output in Colab
+  more reliably.
 - For C5-style recurrent row-sMNIST suites, G4 is the preferred Colab
   GPU if available at the documented ~5 CU/hr rate; L4 is the fallback.
   A100/H100 are unnecessary unless a future panel becomes genuinely
