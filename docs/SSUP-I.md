@@ -689,8 +689,7 @@ of the natural-image structure than any single-layer choice can.
 unsupervised features plus linear readout" line.  Modern deep
 CNNs trained end-to-end with backpropagation reach mid-90s on
 CIFAR-10; ConvNEF closes about a fifth of the raw-pixel-flat-NEF
-to deep-CNN gap, no more.  We replicate, organize under the
-SSUP recipe, and re-frame; we do not surpass.
+to deep-CNN gap, no more.
 
 **What this *is*.**  Evidence that the same primitive — fixed
 features, analytic readout, no gradient — extends past the raw
@@ -958,11 +957,10 @@ can follow the threads back to where the ideas originated.
   Rahimi & Recht (2007) on random features; Jaeger (2001) and
   Maass et al. (2002) on liquid-state and echo-state networks;
   Saxe et al. (2011) on the surprising adequacy of random
-  weights.  We connect to this corpus directly rather than
-  presenting old machinery as new.
+  weights.  We connect to this corpus directly.
 - **ConvNEF** (§5.5) is in the family of Coates et al. (2011)
   and the broader gradient-free feature-learning line.  We
-  replicate, organize, and re-frame rather than surpass.
+  replicate, organize, and re-frame.
 
 **What we believe is novel and worth presenting.**
 
@@ -1002,9 +1000,7 @@ can follow the threads back to where the ideas originated.
 
 **Negative results.**
 
-Negative results get first-class
-treatment rather than being deferred away from the main argument.
-They are part of the contribution: knowing where the primitive does
+Negative results are part of the contribution: knowing where the primitive does
 not work is as useful as knowing where it does.  The §6.4 limit on permuted
 sequence classification, the limited room for depth under purely
 analytic stacking (Appendix B), the systematic loss of
