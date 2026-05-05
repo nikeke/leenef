@@ -180,6 +180,52 @@ Cross-method / forgetting summary:
   supported strongly**, including against the joint MLP upper bound on
   this panel.
 
+#### 2026-05-05 — Permuted-MNIST (`nef_continual_permuted_mnist`)
+
+* Code identity: `ed891a3d7bbefb532fe876847b635a1fb871aa43`.
+* Command family: `PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python SEEDS=0-9 bash benchmarks/cl_clean/cl_hp_driver.sh nef_continual_permuted_mnist`.
+* Thread caps at launch: `OMP_NUM_THREADS=4`, `MKL_NUM_THREADS=4`,
+  `OPENBLAS_NUM_THREADS=4`, `NUMEXPR_NUM_THREADS=4`.
+* Base config: `results/cl_clean/base_config_nef_continual_permuted_mnist.json`
+  (`n_neurons=5000`, `alpha=1e-3`, `centers_mode=first_task`,
+  `fit_chunk_size=4096`).
+* Cells: `nef_accumulate`, `nef_joint`, `nef_reset`, `mlp_finetune`,
+  `mlp_joint`, `mlp_ewc`, `mlp_er`; seeds 0-9; 70 rows complete.
+* Sentinel: `results/cl_clean/nef_continual_permuted_mnist_panel_done`.
+
+Per-cell summary (`test_accuracy`, mean ± SE; `fit_time_s`, mean ± SE):
+
+| Cell | n | Accuracy | Fit time |
+| --- | ---: | ---: | ---: |
+| `nef_accumulate` | 10 | 94.498% ± 0.021% | 154.06s ± 5.13s |
+| `nef_joint` | 10 | 94.498% ± 0.021% | 90.79s ± 4.93s |
+| `nef_reset` | 10 | 27.606% ± 0.475% | 16.33s ± 0.02s |
+| `mlp_finetune` | 10 | 71.072% ± 0.662% | 20.57s ± 0.02s |
+| `mlp_joint` | 10 | 97.975% ± 0.024% | 91.76s ± 0.13s |
+| `mlp_ewc` | 10 | 95.599% ± 0.194% | 37.50s ± 0.03s |
+| `mlp_er` | 10 | 93.875% ± 0.145% | 26.12s ± 0.03s |
+
+Joint-equivalence summary:
+
+* `mean_signed_gap(accumulate - joint) = +0.0000 pp`
+* `max_abs_gap(accumulate - joint) = 0.0000 pp`
+* `n = 10`
+* Verdict: **joint-equivalence supported (≤ 0.05 pp)**.
+
+Cross-method / forgetting summary:
+
+* Forgetting-gap proxy (`accumulate - reset`): `+66.892 ± 0.465 pp`.
+* The fixed-encoder NEF story remains exact but no longer dominates the
+  stronger gradient baselines on this permutation-shift regime:
+  `mlp_ewc` exceeds `nef_accumulate` by 1.101 pp and `mlp_joint` leads by
+  3.477 pp.
+* `nef_accumulate` still stays ahead of replay by 0.623 pp and far ahead
+  of naive finetuning, but continual accumulation is also slower than the
+  one-shot joint solve here (`154.06s` vs `90.79s`).
+* Adoption verdicts: **H1 supported strongly** on Permuted-MNIST; **H5
+  mixed / not supported as a blanket claim** on this panel, because EWC
+  and the joint MLP both outperform the NEF pair in final accuracy.
+
 ### B3 — Capacity matrix (H2)
 
 Runnable via:

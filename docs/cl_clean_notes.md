@@ -66,3 +66,11 @@ Three things make this paper interesting (and not just an "of course"):
   uniformly best on every visual task, but its combination of exact
   continual equivalence and competitive-or-better final accuracy becomes
   stronger as the class-incremental problem gets harsher.
+* Permuted-MNIST is the important counterweight.  The additivity claim
+  still survives untouched — `nef_accumulate` and `nef_joint` are again
+  exactly identical over all 10 seeds — but the competitive story turns
+  mixed.  Here `mlp_ewc` and `mlp_joint` both beat the NEF pair in final
+  accuracy, while NEF still beats replay and massively beats the reset
+  control.  That suggests Paper II should separate two claims cleanly:
+  exact continual equivalence is structural, whereas competitive accuracy
+  depends on the regime and is strongest on class-incremental splits.

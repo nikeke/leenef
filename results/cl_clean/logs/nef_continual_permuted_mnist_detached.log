@@ -1,0 +1,82 @@
+[proxychains] DLL init: proxychains-ng 4.17
+[proxychains] DLL init: proxychains-ng 4.17
+[proxychains] DLL init: proxychains-ng 4.17
+[proxychains] DLL init: proxychains-ng 4.17
+================================================================
+  PHASE nef_continual_permuted_mnist_panel  exp=nef_continual_permuted_mnist  knob=cell  values=nef_accumulate,nef_joint,nef_reset,mlp_finetune,mlp_joint,mlp_ewc,mlp_er
+  base_config=results/cl_clean/base_config_nef_continual_permuted_mnist.json  out=results/cl_clean/nef_continual_permuted_mnist_panel.json
+================================================================
+[proxychains] DLL init: proxychains-ng 4.17
+[2026-05-04T22:58:00] phase=nef_continual_permuted_mnist_panel experiment=nef_continual_permuted_mnist knob=cell values=['nef_accumulate', 'nef_joint', 'nef_reset', 'mlp_finetune', 'mlp_joint', 'mlp_ewc', 'mlp_er'] seeds=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] code_identity=ed891a3d7bbefb532fe876847b635a1fb871aa43
+[2026-05-04T22:58:00]   [1/70] run    nef_continual_permuted_mnist_panel_nef_accumulate_s0
+[2026-05-04T23:00:53]   [2/70] run    nef_continual_permuted_mnist_panel_nef_accumulate_s1
+[2026-05-04T23:03:53]   [3/70] run    nef_continual_permuted_mnist_panel_nef_accumulate_s2
+[2026-05-04T23:06:55]   [4/70] run    nef_continual_permuted_mnist_panel_nef_accumulate_s3
+[2026-05-04T23:09:49]   [5/70] run    nef_continual_permuted_mnist_panel_nef_accumulate_s4
+[2026-05-04T23:12:30]   [6/70] run    nef_continual_permuted_mnist_panel_nef_accumulate_s5
+[2026-05-04T23:14:49]   [7/70] run    nef_continual_permuted_mnist_panel_nef_accumulate_s6
+[2026-05-04T23:17:06]   [8/70] run    nef_continual_permuted_mnist_panel_nef_accumulate_s7
+[2026-05-04T23:19:31]   [9/70] run    nef_continual_permuted_mnist_panel_nef_accumulate_s8
+[2026-05-04T23:22:04]   [10/70] run    nef_continual_permuted_mnist_panel_nef_accumulate_s9
+[2026-05-04T23:24:34]   [11/70] run    nef_continual_permuted_mnist_panel_nef_joint_s0
+[2026-05-04T23:26:45]   [12/70] run    nef_continual_permuted_mnist_panel_nef_joint_s1
+[2026-05-04T23:28:40]   [13/70] run    nef_continual_permuted_mnist_panel_nef_joint_s2
+[2026-05-04T23:30:09]   [14/70] run    nef_continual_permuted_mnist_panel_nef_joint_s3
+[2026-05-04T23:31:36]   [15/70] run    nef_continual_permuted_mnist_panel_nef_joint_s4
+[2026-05-04T23:33:02]   [16/70] run    nef_continual_permuted_mnist_panel_nef_joint_s5
+[2026-05-04T23:34:28]   [17/70] run    nef_continual_permuted_mnist_panel_nef_joint_s6
+[2026-05-04T23:35:54]   [18/70] run    nef_continual_permuted_mnist_panel_nef_joint_s7
+[2026-05-04T23:37:20]   [19/70] run    nef_continual_permuted_mnist_panel_nef_joint_s8
+[2026-05-04T23:38:46]   [20/70] run    nef_continual_permuted_mnist_panel_nef_joint_s9
+[2026-05-04T23:40:11]   [21/70] run    nef_continual_permuted_mnist_panel_nef_reset_s0
+[2026-05-04T23:40:31]   [22/70] run    nef_continual_permuted_mnist_panel_nef_reset_s1
+[2026-05-04T23:40:50]   [23/70] run    nef_continual_permuted_mnist_panel_nef_reset_s2
+[2026-05-04T23:41:09]   [24/70] run    nef_continual_permuted_mnist_panel_nef_reset_s3
+[2026-05-04T23:41:28]   [25/70] run    nef_continual_permuted_mnist_panel_nef_reset_s4
+[2026-05-04T23:41:47]   [26/70] run    nef_continual_permuted_mnist_panel_nef_reset_s5
+[2026-05-04T23:42:07]   [27/70] run    nef_continual_permuted_mnist_panel_nef_reset_s6
+[2026-05-04T23:42:26]   [28/70] run    nef_continual_permuted_mnist_panel_nef_reset_s7
+[2026-05-04T23:42:45]   [29/70] run    nef_continual_permuted_mnist_panel_nef_reset_s8
+[2026-05-04T23:43:04]   [30/70] run    nef_continual_permuted_mnist_panel_nef_reset_s9
+[2026-05-04T23:43:23]   [31/70] run    nef_continual_permuted_mnist_panel_mlp_finetune_s0
+[2026-05-04T23:43:45]   [32/70] run    nef_continual_permuted_mnist_panel_mlp_finetune_s1
+[2026-05-04T23:44:05]   [33/70] run    nef_continual_permuted_mnist_panel_mlp_finetune_s2
+[2026-05-04T23:44:26]   [34/70] run    nef_continual_permuted_mnist_panel_mlp_finetune_s3
+[2026-05-04T23:44:47]   [35/70] run    nef_continual_permuted_mnist_panel_mlp_finetune_s4
+[2026-05-04T23:45:08]   [36/70] run    nef_continual_permuted_mnist_panel_mlp_finetune_s5
+[2026-05-04T23:45:29]   [37/70] run    nef_continual_permuted_mnist_panel_mlp_finetune_s6
+[2026-05-04T23:45:50]   [38/70] run    nef_continual_permuted_mnist_panel_mlp_finetune_s7
+[2026-05-04T23:46:10]   [39/70] run    nef_continual_permuted_mnist_panel_mlp_finetune_s8
+[2026-05-04T23:46:31]   [40/70] run    nef_continual_permuted_mnist_panel_mlp_finetune_s9
+[2026-05-04T23:46:52]   [41/70] run    nef_continual_permuted_mnist_panel_mlp_joint_s0
+[2026-05-04T23:48:25]   [42/70] run    nef_continual_permuted_mnist_panel_mlp_joint_s1
+[2026-05-04T23:49:57]   [43/70] run    nef_continual_permuted_mnist_panel_mlp_joint_s2
+[2026-05-04T23:51:31]   [44/70] run    nef_continual_permuted_mnist_panel_mlp_joint_s3
+[2026-05-04T23:53:03]   [45/70] run    nef_continual_permuted_mnist_panel_mlp_joint_s4
+[2026-05-04T23:54:35]   [46/70] run    nef_continual_permuted_mnist_panel_mlp_joint_s5
+[2026-05-04T23:56:08]   [47/70] run    nef_continual_permuted_mnist_panel_mlp_joint_s6
+[2026-05-04T23:57:40]   [48/70] run    nef_continual_permuted_mnist_panel_mlp_joint_s7
+[2026-05-04T23:59:12]   [49/70] run    nef_continual_permuted_mnist_panel_mlp_joint_s8
+[2026-05-05T00:00:44]   [50/70] run    nef_continual_permuted_mnist_panel_mlp_joint_s9
+[2026-05-05T00:02:17]   [51/70] run    nef_continual_permuted_mnist_panel_mlp_ewc_s0
+[2026-05-05T00:02:55]   [52/70] run    nef_continual_permuted_mnist_panel_mlp_ewc_s1
+[2026-05-05T00:03:32]   [53/70] run    nef_continual_permuted_mnist_panel_mlp_ewc_s2
+[2026-05-05T00:04:10]   [54/70] run    nef_continual_permuted_mnist_panel_mlp_ewc_s3
+[2026-05-05T00:04:48]   [55/70] run    nef_continual_permuted_mnist_panel_mlp_ewc_s4
+[2026-05-05T00:05:25]   [56/70] run    nef_continual_permuted_mnist_panel_mlp_ewc_s5
+[2026-05-05T00:06:03]   [57/70] run    nef_continual_permuted_mnist_panel_mlp_ewc_s6
+[2026-05-05T00:06:40]   [58/70] run    nef_continual_permuted_mnist_panel_mlp_ewc_s7
+[2026-05-05T00:07:18]   [59/70] run    nef_continual_permuted_mnist_panel_mlp_ewc_s8
+[2026-05-05T00:07:56]   [60/70] run    nef_continual_permuted_mnist_panel_mlp_ewc_s9
+[2026-05-05T00:08:34]   [61/70] run    nef_continual_permuted_mnist_panel_mlp_er_s0
+[2026-05-05T00:09:01]   [62/70] run    nef_continual_permuted_mnist_panel_mlp_er_s1
+[2026-05-05T00:09:27]   [63/70] run    nef_continual_permuted_mnist_panel_mlp_er_s2
+[2026-05-05T00:09:53]   [64/70] run    nef_continual_permuted_mnist_panel_mlp_er_s3
+[2026-05-05T00:10:19]   [65/70] run    nef_continual_permuted_mnist_panel_mlp_er_s4
+[2026-05-05T00:10:46]   [66/70] run    nef_continual_permuted_mnist_panel_mlp_er_s5
+[2026-05-05T00:11:12]   [67/70] run    nef_continual_permuted_mnist_panel_mlp_er_s6
+[2026-05-05T00:11:38]   [68/70] run    nef_continual_permuted_mnist_panel_mlp_er_s7
+[2026-05-05T00:12:05]   [69/70] run    nef_continual_permuted_mnist_panel_mlp_er_s8
+[2026-05-05T00:12:31]   [70/70] run    nef_continual_permuted_mnist_panel_mlp_er_s9
+[2026-05-05T00:12:57] phase nef_continual_permuted_mnist_panel done — 70 rows in results/cl_clean/nef_continual_permuted_mnist_panel.json
+[proxychains] DLL init: proxychains-ng 4.17
