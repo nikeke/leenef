@@ -27,6 +27,7 @@ import torch
 from leenef.layers import NEFLayer
 from leenef.solvers import solve_from_normal_equations
 
+from ._c1_convnef_cl_exp import PHASE_C_CONVNEF_CELLS, convnef_cl_run
 from .cl_repro import set_cl_seed
 from .datasets import make_task_stream
 
@@ -622,3 +623,20 @@ for _nt in (5, 10, 20):
             description=f"Paper II B3 capacity spot panel — Permuted-CIFAR-10 ({_nt} tasks).",
         )
     )
+
+
+register(
+    ExperimentSpec(
+        name="c1_convnef_split_cifar10",
+        run_fn=convnef_cl_run,
+        default_run_context=_nef_cl_context_factory(
+            base_dataset="CIFAR10", scenario="split", n_tasks=5
+        ),
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=(
+            "Paper II Phase C ConvNEF continual-learning panel on Split-CIFAR-10. "
+            f"Cells: {PHASE_C_CONVNEF_CELLS}."
+        ),
+    )
+)

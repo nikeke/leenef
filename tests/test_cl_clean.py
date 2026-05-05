@@ -191,12 +191,15 @@ class TestPhaseBRegistrations:
         names = experiments.names()
         assert "nef_capacity_permuted_mnist_t100" in names
         assert "nef_capacity_permuted_cifar10_t20" in names
+        assert "c1_convnef_split_cifar10" in names
 
     def test_grid_cell_parsers(self):
+        from benchmarks.cl_clean._c1_convnef_cl_exp import parse_convnef_cell
         from benchmarks.cl_clean.experiments import _parse_capacity_cell, _parse_solver_alpha_cell
 
         assert _parse_capacity_cell("n5000_t20") == (5000, 20)
         assert _parse_solver_alpha_cell("woodbury_online_a0.1") == ("woodbury_online", 0.1)
+        assert parse_convnef_cell("first_task_n2000") == ("first_task", 2000)
 
     def test_layer_encoders_and_gains_do_not_depend_on_centers_mode(self):
         import torch
@@ -221,6 +224,85 @@ class TestPhaseBRegistrations:
 
         assert torch.equal(centered.encoders, uncentered.encoders)
         assert torch.equal(centered.gain, uncentered.gain)
+
+    def test_convnef_run_fn_accepts_synthetic_stream(self, monkeypatch):
+        import torch
+
+        from benchmarks.cl_clean import _c1_convnef_cl_exp as convnef_exp
+        from benchmarks.cl_clean.datasets import TaskSplit, TaskStream
+
+        g = torch.Generator().manual_seed(7)
+        prototypes = torch.rand(4, 3072, generator=g)
+
+        def make_split(task_index: int, classes: tuple[int, ...]) -> TaskSplit:
+            train_parts, train_labels = [], []
+            test_parts, test_labels = [], []
+            for cls in classes:
+                train_parts.append(
+                    (
+                        prototypes[cls].unsqueeze(0) + 0.01 * torch.randn(8, 3072, generator=g)
+                    ).clamp_(0.0, 1.0)
+                )
+                train_labels.append(torch.full((8,), cls, dtype=torch.int64))
+                test_parts.append(
+                    (
+                        prototypes[cls].unsqueeze(0) + 0.01 * torch.randn(4, 3072, generator=g)
+                    ).clamp_(0.0, 1.0)
+                )
+                test_labels.append(torch.full((4,), cls, dtype=torch.int64))
+            return TaskSplit(
+                task_index=task_index,
+                classes=classes,
+                x_train=torch.cat(train_parts, dim=0),
+                y_train=torch.cat(train_labels, dim=0),
+                x_test=torch.cat(test_parts, dim=0),
+                y_test=torch.cat(test_labels, dim=0),
+            )
+
+        fake_stream = TaskStream(
+            base_name="CIFAR10",
+            scenario="split",
+            n_tasks=2,
+            n_classes=4,
+            stream_seed=0,
+            tasks=(make_split(0, (0, 1)), make_split(1, (2, 3))),
+            stream_hash="synthetic-stream",
+            raw_hashes={"train": "synthetic"},
+            processed_hashes={"x_train": "synthetic", "x_test": "synthetic"},
+            extra={"class_permutation": [0, 1, 2, 3]},
+        )
+        monkeypatch.setattr(convnef_exp, "make_task_stream", lambda *args, **kwargs: fake_stream)
+
+        spec = experiments.get("c1_convnef_split_cifar10")
+        metrics = spec.run_fn(
+            {
+                "cell": "first_task_n32",
+                "activation": "abs",
+                "alpha": 0.01,
+                "augment_flip": False,
+                "batch_size": 8,
+                "conv_stages": [{"n_filters": 4, "patch_size": 3, "pool_size": 2}],
+                "device": "cpu",
+                "encoder_strategy": "hypersphere",
+                "fit_subsample": 16,
+                "gain_high": 2.0,
+                "gain_low": 0.5,
+                "gcn": False,
+                "lcn_kernel": None,
+                "n_augment": 1,
+                "parallel": False,
+                "pool_levels": [1, 2],
+                "pool_order": 1,
+                "standardize": True,
+            },
+            seed=0,
+            run_context=spec.default_run_context() | {"n_tasks": 2},
+        )
+
+        assert 0.0 <= metrics["test_accuracy"] <= 1.0
+        assert metrics["feature_mode"] == "first_task"
+        assert metrics["effective_n_neurons"] == 32
+        assert metrics["stream_hash"] == "synthetic-stream"
 
 
 class TestByteIdentityIdempotency:
