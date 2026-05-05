@@ -339,4 +339,67 @@ appropriate.
 
 ## Phase C — Visual extension (Colab GPU)
 
-(Blocked on Paper I v2 ConvNEF chapter landing.)
+Imported from the separate Phase-C Colab bundle run against
+`paper-ii/cl-scaffold`, then copied back into this branch as JSON/log
+artifacts.  These rows therefore carry the scaffold-side code identity
+`a89221e4b319f454fa4318318ecf3cf8eb3b1ecb`, not the CPU-phase identity
+used by the B-series runs above.
+
+#### 2026-05-05 — GPU visual-extension bundle (`gpu_c1_*`, `gpu_c2_*`)
+
+* Source workflow: `colab/cl_clean/continual_cifar10_gpu_suite.py` on
+  `paper-ii/cl-scaffold`, with artifacts manually imported into this
+  worktree.
+* Hardware in the imported rows: **NVIDIA L4**, CUDA enabled, PyTorch
+  `2.10.0+cu128`.
+* Code identity: `a89221e4b319f454fa4318318ecf3cf8eb3b1ecb`.
+* Run context: Split-CIFAR-10, 5 tasks, seeds 0-9.
+* Imported config snapshots:
+  `results/cl_clean/base_config_gpu_c1_convnef_split_cifar10.json` and
+  `results/cl_clean/base_config_gpu_c2_flat_nef_split_cifar10.json`.
+
+Phase-C panel summary (`test_accuracy`, mean ± SE; `fit_time_s`, mean ± SE;
+end-to-end `wall_time_s`, mean ± SE):
+
+| Panel cell | n | Accuracy | Fit time | Wall time |
+| --- | ---: | ---: | ---: | ---: |
+| `all_data_n10000` | 10 | 72.870% ± 0.101% | 14.94s ± 0.14s | 16.81s ± 0.53s |
+| `first_task_n10000` | 10 | 72.655% ± 0.087% | 14.85s ± 0.00s | 16.32s ± 0.01s |
+| `joint_n10000` | 10 | 72.870% ± 0.101% | 7.61s ± 0.00s | 8.14s ± 0.01s |
+| `all_data_n20000` | 10 | 74.719% ± 0.089% | 83.46s ± 0.00s | 85.20s ± 0.01s |
+| `first_task_n20000` | 10 | 74.506% ± 0.100% | 83.46s ± 0.00s | 85.20s ± 0.01s |
+| `joint_n20000` | 10 | 74.719% ± 0.089% | 29.56s ± 0.01s | 30.14s ± 0.01s |
+| `nef_accumulate` (`gpu_c2`) | 10 | 49.484% ± 0.078% | 0.80s ± 0.02s | 1.50s ± 0.36s |
+
+Phase-C comparisons:
+
+* **ConvNEF vs flat NEF floor.**  The imported flat-NEF GPU control
+  (`gpu_c2_flat_nef_split_cifar10_panel`) lands at `49.484% ± 0.078%`,
+  while ConvNEF reaches `72.870%` at 10000 neurons and `74.719%` at
+  20000 neurons.  That is a **+23.386 pp** to **+25.235 pp** lift on the
+  same device and same code identity.
+* **Feature-source effect.**  Using all training images to fit the
+  ConvNEF feature extractor beats fitting features on the first task
+  alone by a small but consistent margin: `+0.215 ± 0.108 pp` at 10000
+  neurons and `+0.213 ± 0.080 pp` at 20000 neurons.
+* **Joint vs continual ConvNEF.**  `joint_n10000` matches
+  `all_data_n10000` exactly (`max|Δ| = 0.0000 pp` over the imported
+  seeds), and the same exact match holds at 20000 neurons.  The one-shot
+  joint fit is substantially cheaper in end-to-end wall-clock:
+  **2.06×** faster at 10000 neurons and **2.83×** faster at 20000.
+* **Neuron-count effect.**  Doubling ConvNEF head width from 10000 to
+  20000 neurons improves final accuracy by **+1.849 pp** for both the
+  continual `all_data` path and the one-shot `joint` path.
+
+Phase verdict:
+
+* Phase C is the first result in Paper II where the visual extension
+  clearly changes the ceiling rather than just the efficiency tradeoff.
+* The imported ConvNEF panel turns the Split-CIFAR-10 story from
+  "exact continual equivalence with a modest accuracy gap to stronger
+  baselines" into "a substantially stronger visual model that beats the
+  flat NEF floor by 23-25 pp."
+* Within ConvNEF itself, the continual `all_data` variant does **not**
+  beat the joint ConvNEF upper bound in accuracy; it matches it exactly
+  at both neuron counts while paying the expected continual-processing
+  time tax.

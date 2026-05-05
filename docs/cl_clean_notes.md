@@ -82,3 +82,17 @@ Three things make this paper interesting (and not just an "of course"):
   outright.  That leaves a cleaner message than "center adaptation
   helps": a single first-task center bank is already the stable
   sufficient-statistics regime.
+* Phase C changes the visual story substantially.  The imported L4 GPU
+  ConvNEF panel lifts Split-CIFAR-10 from the flat NEF floor
+  (`49.5%`) to `72.9%` at 10000 neurons and `74.7%` at 20000, so the
+  "visual extension" chapter is not cosmetic — it buys 23-25 pp on the
+  same task with the same code identity.  That is the strongest current
+  evidence that the Paper-II continual story can inherit a much better
+  visual front end without giving up the analytic-decoder framing.
+* The more delicate C1 result is that continual ConvNEF does not lose to
+  the joint ConvNEF upper bound in final accuracy on this panel: the
+  `all_data` continual path and the one-shot `joint` fit are exactly tied
+  at each neuron count, while the joint fit is 2-3× faster.  So Phase C
+  reinforces the same structural theme as B1 — the continual sufficient-
+  statistics path can still land on the joint solution — but now in a
+  regime where the overall accuracy level is much higher.
