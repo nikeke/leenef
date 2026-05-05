@@ -61,7 +61,10 @@ def _ensure_cifar10_raw() -> None:
 
     print(f"[gpu-suite] extracting {archive.name}", flush=True)
     with tarfile.open(archive, "r:gz") as tf:
-        tf.extractall(DATA_DIR)
+        try:
+            tf.extractall(DATA_DIR, filter="data")
+        except TypeError:
+            tf.extractall(DATA_DIR)
     if not raw_dir.exists():
         raise FileNotFoundError(f"expected extracted CIFAR-10 directory at {raw_dir}")
 

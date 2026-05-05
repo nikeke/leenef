@@ -148,10 +148,13 @@ def _fit_pipeline_features(
 ) -> None:
     """Fit ConvNEF stages and create the NEF head without solving decoders."""
     n_samples = images.shape[0]
-    g = torch.Generator(device=images.device).manual_seed(seed)
+    # Keep the parent RNG on CPU: downstream ConvNEF/NEF setup still mixes
+    # CPU-side random draws (e.g. center index selection inside NEFLayer)
+    # with device-local child generators for GPU patch sampling.
+    g = torch.Generator().manual_seed(seed)
 
     sub_n = min(fit_subsample, n_samples)
-    sub_idx = torch.randperm(n_samples, generator=g, device=images.device)[:sub_n]
+    sub_idx = torch.randperm(n_samples, generator=g)[:sub_n].to(images.device)
     sub_images = pipeline._preprocess(images[sub_idx])
 
     if pipeline.parallel:
@@ -192,7 +195,7 @@ def _fit_pipeline_features(
         pipeline.n_neurons,
         n_classes,
         centers=centers,
-        rng=fork_generator(g, device=images.device),
+        rng=fork_generator(g),
         **head_kwargs,
     ).to(images.device)
 
