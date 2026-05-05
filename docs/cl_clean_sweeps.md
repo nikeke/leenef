@@ -231,7 +231,8 @@ Cross-method / forgetting summary:
 Runnable via:
 
 ```bash
-PYTHON=$PWD/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b3_capacity
+PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python \
+    bash benchmarks/cl_clean/cl_hp_driver.sh b3_capacity
 ```
 
 Defaults: Permuted-MNIST `n_neurons ∈ {500,1000,2000,5000,10000}`,
@@ -249,7 +250,8 @@ and keep CPU/GPU timing rows labeled by their config.
 Runnable via:
 
 ```bash
-PYTHON=$PWD/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b4_centers
+PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python \
+    bash benchmarks/cl_clean/cl_hp_driver.sh b4_centers
 ```
 
 Runs Split-MNIST and Split-CIFAR-10 over
@@ -259,12 +261,71 @@ control: neurons are partitioned by task, each new group receives
 centers from the current task, future groups are inactive for earlier
 tasks, and no replay is used.
 
+#### 2026-05-05 — Center-adaptation falsifier (`b4_centers`)
+
+* Code identity: `ed891a3d7bbefb532fe876847b635a1fb871aa43`.
+* Command family: `PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b4_centers`.
+* Thread caps at launch: `OMP_NUM_THREADS=5`, `MKL_NUM_THREADS=5`,
+  `OPENBLAS_NUM_THREADS=5`, `NUMEXPR_NUM_THREADS=5`.
+* Base config: `results/cl_clean/base_config_b4_centers.json`
+  (`n_neurons=5000`, `alpha=1e-3`, `centers_mode=first_task`,
+  `fit_chunk_size=4096`, `device=cpu`).
+* Panels: `b4_centers_split_mnist` and `b4_centers_split_cifar10`;
+  `centers_mode ∈ {none,first_task,all_tasks,growing}`; seeds 0-4;
+  20 rows complete in each JSON.
+* Sentinel: `results/cl_clean/b4_centers_done`.
+
+Split-MNIST summary (`test_accuracy`, mean ± SE; `fit_time_s`, mean ± SE):
+
+| centers_mode | n | Accuracy | Fit time |
+| --- | ---: | ---: | ---: |
+| `all_tasks` | 5 | 97.018% ± 0.017% | 26.23s ± 0.07s |
+| `first_task` | 5 | 96.980% ± 0.053% | 26.12s ± 0.08s |
+| `none` | 5 | 96.008% ± 0.071% | 25.83s ± 0.16s |
+| `growing` | 5 | 19.772% ± 0.188% | 24.27s ± 0.26s |
+
+Split-MNIST adoption check:
+
+* Winner by mean: `all_tasks` at 97.018%.
+* Current base: `first_task` at 96.980%.
+* `Δ = 0.038 pp`, `SE_combined = 0.055 pp`, `ratio = 0.69`.
+* Verdict: **keep `first_task`**; the apparent `all_tasks` gain stays
+  within 1 combined standard error.
+
+Split-CIFAR-10 summary (`test_accuracy`, mean ± SE; `fit_time_s`, mean ± SE):
+
+| centers_mode | n | Accuracy | Fit time |
+| --- | ---: | ---: | ---: |
+| `first_task` | 5 | 49.640% ± 0.103% | 29.82s ± 0.11s |
+| `all_tasks` | 5 | 49.524% ± 0.259% | 29.98s ± 0.07s |
+| `none` | 5 | 48.092% ± 0.129% | 29.82s ± 0.14s |
+| `growing` | 5 | 16.434% ± 0.700% | 28.06s ± 0.24s |
+
+Split-CIFAR-10 adoption check:
+
+* Winner by mean: `first_task` at 49.640%.
+* Current base: `first_task` at 49.640%.
+* Verdict: **base already optimal** on this panel.
+
+Phase verdict:
+
+* `none` costs about 1.0 pp on Split-MNIST and 1.5 pp on Split-CIFAR-10,
+  so some data-driven centering is clearly useful.
+* `all_tasks` does not beat `first_task` decisively on either panel.
+* The `growing` negative control collapses on both datasets, ruling out
+  the checkpoint-era idea that continually adding task-local center pools
+  improves retention.
+* Adoption verdict: **H3 supported** in the conservative form — fixed
+  `first_task` centers remain the right default, and continual
+  recentering shows no compelling benefit.
+
 ### B5 — Solver-mode equivalence + α regime (H4)
 
 Runnable via:
 
 ```bash
-PYTHON=$PWD/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b5_solvers
+PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python \
+    bash benchmarks/cl_clean/cl_hp_driver.sh b5_solvers
 ```
 
 Runs Split-MNIST, Permuted-MNIST, and Split-CIFAR-10 over

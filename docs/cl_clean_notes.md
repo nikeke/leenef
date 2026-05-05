@@ -74,3 +74,11 @@ Three things make this paper interesting (and not just an "of course"):
   control.  That suggests Paper II should separate two claims cleanly:
   exact continual equivalence is structural, whereas competitive accuracy
   depends on the regime and is strongest on class-incremental splits.
+* The B4 center sweep sharpens the "fixed representation" part of the
+  argument.  Removing data-driven centers entirely costs about 1 pp on
+  Split-MNIST and 1.5 pp on Split-CIFAR-10, so centering matters; but
+  continually expanding or recomputing centers does not buy a robust
+  gain over `first_task`, and the old `growing` control collapses
+  outright.  That leaves a cleaner message than "center adaptation
+  helps": a single first-task center bank is already the stable
+  sufficient-statistics regime.

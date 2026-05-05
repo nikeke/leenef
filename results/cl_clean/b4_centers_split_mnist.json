@@ -1,0 +1,2702 @@
+{
+  "b4_centers_split_mnist_all_tasks_s0": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "all_tasks",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_all_tasks_s0",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "all_tasks",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "0687ff3daa0b9bd1aa3cfed0b910276558f514d058d7240d5cbb52dd2efe99a4",
+        "stream_seed": 0
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 26.4437,
+      "per_task_accuracy": [
+        0.976757,
+        0.978772,
+        0.974923,
+        0.955919,
+        0.963184
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "0687ff3daa0b9bd1aa3cfed0b910276558f514d058d7240d5cbb52dd2efe99a4",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          5,
+          6,
+          1,
+          2,
+          0,
+          8,
+          9,
+          3,
+          7,
+          4
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "0687ff3daa0b9bd1aa3cfed0b910276558f514d058d7240d5cbb52dd2efe99a4",
+        "stream_seed": 0,
+        "task_classes": [
+          [
+            5,
+            6
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            3,
+            9
+          ],
+          [
+            4,
+            7
+          ]
+        ]
+      },
+      "test_accuracy": 0.9699
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "all_tasks",
+    "wall_time_s": 27.5099
+  },
+  "b4_centers_split_mnist_all_tasks_s1": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "all_tasks",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_all_tasks_s1",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "all_tasks",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "d6f97e0e6f844c14017317f5e2aacddb07bccd5b32ae17283af750b6edb90428",
+        "stream_seed": 1
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 26.032,
+      "per_task_accuracy": [
+        0.961165,
+        0.98224,
+        0.958395,
+        0.97268,
+        0.979017
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "d6f97e0e6f844c14017317f5e2aacddb07bccd5b32ae17283af750b6edb90428",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          2,
+          7,
+          1,
+          5,
+          3,
+          9,
+          4,
+          6,
+          8,
+          0
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "d6f97e0e6f844c14017317f5e2aacddb07bccd5b32ae17283af750b6edb90428",
+        "stream_seed": 1,
+        "task_classes": [
+          [
+            2,
+            7
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            3,
+            9
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            0,
+            8
+          ]
+        ]
+      },
+      "test_accuracy": 0.9706
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "all_tasks",
+    "wall_time_s": 27.0834
+  },
+  "b4_centers_split_mnist_all_tasks_s2": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "all_tasks",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_all_tasks_s2",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "all_tasks",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "ee5f580c38e118fb14daa9737a52056c89146a110bfde94a8273915cc2ecc675",
+        "stream_seed": 2
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 26.2908,
+      "per_task_accuracy": [
+        0.96574,
+        0.961073,
+        0.962218,
+        0.980085,
+        0.982456
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "ee5f580c38e118fb14daa9737a52056c89146a110bfde94a8273915cc2ecc675",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          2,
+          4,
+          9,
+          5,
+          3,
+          7,
+          1,
+          8,
+          6,
+          0
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "ee5f580c38e118fb14daa9737a52056c89146a110bfde94a8273915cc2ecc675",
+        "stream_seed": 2,
+        "task_classes": [
+          [
+            2,
+            4
+          ],
+          [
+            5,
+            9
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            0,
+            6
+          ]
+        ]
+      },
+      "test_accuracy": 0.9704
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "all_tasks",
+    "wall_time_s": 27.3233
+  },
+  "b4_centers_split_mnist_all_tasks_s3": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "all_tasks",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_all_tasks_s3",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "all_tasks",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "0132f758fe5aaf2c0d08deb5b4b15b03fdfbb2a9fed57cba9219e1f276eae24f",
+        "stream_seed": 3
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 26.2728,
+      "per_task_accuracy": [
+        0.979021,
+        0.956308,
+        0.984004,
+        0.969453,
+        0.962761
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "0132f758fe5aaf2c0d08deb5b4b15b03fdfbb2a9fed57cba9219e1f276eae24f",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          1,
+          3,
+          9,
+          7,
+          6,
+          0,
+          5,
+          8,
+          4,
+          2
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "0132f758fe5aaf2c0d08deb5b4b15b03fdfbb2a9fed57cba9219e1f276eae24f",
+        "stream_seed": 3,
+        "task_classes": [
+          [
+            1,
+            3
+          ],
+          [
+            7,
+            9
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            2,
+            4
+          ]
+        ]
+      },
+      "test_accuracy": 0.9703
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "all_tasks",
+    "wall_time_s": 27.2867
+  },
+  "b4_centers_split_mnist_all_tasks_s4": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "all_tasks",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_all_tasks_s4",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "all_tasks",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "ff8c3f0dcd801f295084c3b1cf3ff53f5b125c5736b7b497a2af99395895bdf4",
+        "stream_seed": 4
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 26.0984,
+      "per_task_accuracy": [
+        0.964137,
+        0.972481,
+        0.975377,
+        0.967791,
+        0.968278
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "ff8c3f0dcd801f295084c3b1cf3ff53f5b125c5736b7b497a2af99395895bdf4",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          5,
+          2,
+          9,
+          1,
+          3,
+          0,
+          4,
+          8,
+          7,
+          6
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "ff8c3f0dcd801f295084c3b1cf3ff53f5b125c5736b7b497a2af99395895bdf4",
+        "stream_seed": 4,
+        "task_classes": [
+          [
+            2,
+            5
+          ],
+          [
+            1,
+            9
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            4,
+            8
+          ],
+          [
+            6,
+            7
+          ]
+        ]
+      },
+      "test_accuracy": 0.9697
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "all_tasks",
+    "wall_time_s": 27.152
+  },
+  "b4_centers_split_mnist_first_task_s0": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "first_task",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_first_task_s0",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "first_task",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "0687ff3daa0b9bd1aa3cfed0b910276558f514d058d7240d5cbb52dd2efe99a4",
+        "stream_seed": 0
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 25.9663,
+      "per_task_accuracy": [
+        0.976757,
+        0.974619,
+        0.972364,
+        0.958891,
+        0.963184
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "0687ff3daa0b9bd1aa3cfed0b910276558f514d058d7240d5cbb52dd2efe99a4",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          5,
+          6,
+          1,
+          2,
+          0,
+          8,
+          9,
+          3,
+          7,
+          4
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "0687ff3daa0b9bd1aa3cfed0b910276558f514d058d7240d5cbb52dd2efe99a4",
+        "stream_seed": 0,
+        "task_classes": [
+          [
+            5,
+            6
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            3,
+            9
+          ],
+          [
+            4,
+            7
+          ]
+        ]
+      },
+      "test_accuracy": 0.9691
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "first_task",
+    "wall_time_s": 27.0182
+  },
+  "b4_centers_split_mnist_first_task_s1": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "first_task",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_first_task_s1",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "first_task",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "d6f97e0e6f844c14017317f5e2aacddb07bccd5b32ae17283af750b6edb90428",
+        "stream_seed": 1
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 26.1622,
+      "per_task_accuracy": [
+        0.959223,
+        0.978786,
+        0.956909,
+        0.974227,
+        0.974411
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "d6f97e0e6f844c14017317f5e2aacddb07bccd5b32ae17283af750b6edb90428",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          2,
+          7,
+          1,
+          5,
+          3,
+          9,
+          4,
+          6,
+          8,
+          0
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "d6f97e0e6f844c14017317f5e2aacddb07bccd5b32ae17283af750b6edb90428",
+        "stream_seed": 1,
+        "task_classes": [
+          [
+            2,
+            7
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            3,
+            9
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            0,
+            8
+          ]
+        ]
+      },
+      "test_accuracy": 0.9686
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "first_task",
+    "wall_time_s": 27.1856
+  },
+  "b4_centers_split_mnist_first_task_s2": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "first_task",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_first_task_s2",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "first_task",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "ee5f580c38e118fb14daa9737a52056c89146a110bfde94a8273915cc2ecc675",
+        "stream_seed": 2
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 26.0663,
+      "per_task_accuracy": [
+        0.96574,
+        0.963703,
+        0.962709,
+        0.980085,
+        0.981424
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "ee5f580c38e118fb14daa9737a52056c89146a110bfde94a8273915cc2ecc675",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          2,
+          4,
+          9,
+          5,
+          3,
+          7,
+          1,
+          8,
+          6,
+          0
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "ee5f580c38e118fb14daa9737a52056c89146a110bfde94a8273915cc2ecc675",
+        "stream_seed": 2,
+        "task_classes": [
+          [
+            2,
+            4
+          ],
+          [
+            5,
+            9
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            0,
+            6
+          ]
+        ]
+      },
+      "test_accuracy": 0.9708
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "first_task",
+    "wall_time_s": 27.0967
+  },
+  "b4_centers_split_mnist_first_task_s3": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "first_task",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_first_task_s3",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "first_task",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "0132f758fe5aaf2c0d08deb5b4b15b03fdfbb2a9fed57cba9219e1f276eae24f",
+        "stream_seed": 3
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 25.9755,
+      "per_task_accuracy": [
+        0.977156,
+        0.955326,
+        0.983488,
+        0.968382,
+        0.972195
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "0132f758fe5aaf2c0d08deb5b4b15b03fdfbb2a9fed57cba9219e1f276eae24f",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          1,
+          3,
+          9,
+          7,
+          6,
+          0,
+          5,
+          8,
+          4,
+          2
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "0132f758fe5aaf2c0d08deb5b4b15b03fdfbb2a9fed57cba9219e1f276eae24f",
+        "stream_seed": 3,
+        "task_classes": [
+          [
+            1,
+            3
+          ],
+          [
+            7,
+            9
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            2,
+            4
+          ]
+        ]
+      },
+      "test_accuracy": 0.9713
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "first_task",
+    "wall_time_s": 27.0214
+  },
+  "b4_centers_split_mnist_first_task_s4": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "first_task",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_first_task_s4",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "first_task",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "ff8c3f0dcd801f295084c3b1cf3ff53f5b125c5736b7b497a2af99395895bdf4",
+        "stream_seed": 4
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 26.4179,
+      "per_task_accuracy": [
+        0.966216,
+        0.96875,
+        0.977889,
+        0.968814,
+        0.96425
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "ff8c3f0dcd801f295084c3b1cf3ff53f5b125c5736b7b497a2af99395895bdf4",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          5,
+          2,
+          9,
+          1,
+          3,
+          0,
+          4,
+          8,
+          7,
+          6
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "ff8c3f0dcd801f295084c3b1cf3ff53f5b125c5736b7b497a2af99395895bdf4",
+        "stream_seed": 4,
+        "task_classes": [
+          [
+            2,
+            5
+          ],
+          [
+            1,
+            9
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            4,
+            8
+          ],
+          [
+            6,
+            7
+          ]
+        ]
+      },
+      "test_accuracy": 0.9692
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "first_task",
+    "wall_time_s": 27.4439
+  },
+  "b4_centers_split_mnist_growing_s0": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "growing",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_growing_s0",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "growing",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "0687ff3daa0b9bd1aa3cfed0b910276558f514d058d7240d5cbb52dd2efe99a4",
+        "stream_seed": 0
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 24.1138,
+      "per_task_accuracy": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.996517
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "0687ff3daa0b9bd1aa3cfed0b910276558f514d058d7240d5cbb52dd2efe99a4",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          5,
+          6,
+          1,
+          2,
+          0,
+          8,
+          9,
+          3,
+          7,
+          4
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "0687ff3daa0b9bd1aa3cfed0b910276558f514d058d7240d5cbb52dd2efe99a4",
+        "stream_seed": 0,
+        "task_classes": [
+          [
+            5,
+            6
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            3,
+            9
+          ],
+          [
+            4,
+            7
+          ]
+        ]
+      },
+      "test_accuracy": 0.2003
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "growing",
+    "wall_time_s": 25.0526
+  },
+  "b4_centers_split_mnist_growing_s1": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "growing",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_growing_s1",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "growing",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "d6f97e0e6f844c14017317f5e2aacddb07bccd5b32ae17283af750b6edb90428",
+        "stream_seed": 1
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 24.9969,
+      "per_task_accuracy": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.994371
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "d6f97e0e6f844c14017317f5e2aacddb07bccd5b32ae17283af750b6edb90428",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          2,
+          7,
+          1,
+          5,
+          3,
+          9,
+          4,
+          6,
+          8,
+          0
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "d6f97e0e6f844c14017317f5e2aacddb07bccd5b32ae17283af750b6edb90428",
+        "stream_seed": 1,
+        "task_classes": [
+          [
+            2,
+            7
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            3,
+            9
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            0,
+            8
+          ]
+        ]
+      },
+      "test_accuracy": 0.1943
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "growing",
+    "wall_time_s": 26.0416
+  },
+  "b4_centers_split_mnist_growing_s2": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "growing",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_growing_s2",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "growing",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "ee5f580c38e118fb14daa9737a52056c89146a110bfde94a8273915cc2ecc675",
+        "stream_seed": 2
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 23.6117,
+      "per_task_accuracy": [
+        0.0,
+        0.0,
+        0.0,
+        0.000474,
+        0.993808
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "ee5f580c38e118fb14daa9737a52056c89146a110bfde94a8273915cc2ecc675",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          2,
+          4,
+          9,
+          5,
+          3,
+          7,
+          1,
+          8,
+          6,
+          0
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "ee5f580c38e118fb14daa9737a52056c89146a110bfde94a8273915cc2ecc675",
+        "stream_seed": 2,
+        "task_classes": [
+          [
+            2,
+            4
+          ],
+          [
+            5,
+            9
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            0,
+            6
+          ]
+        ]
+      },
+      "test_accuracy": 0.1927
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "growing",
+    "wall_time_s": 24.5606
+  },
+  "b4_centers_split_mnist_growing_s3": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "growing",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_growing_s3",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "growing",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "0132f758fe5aaf2c0d08deb5b4b15b03fdfbb2a9fed57cba9219e1f276eae24f",
+        "stream_seed": 3
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 24.7502,
+      "per_task_accuracy": [
+        0.0,
+        0.0,
+        0.0,
+        0.013398,
+        0.995035
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "0132f758fe5aaf2c0d08deb5b4b15b03fdfbb2a9fed57cba9219e1f276eae24f",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          1,
+          3,
+          9,
+          7,
+          6,
+          0,
+          5,
+          8,
+          4,
+          2
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "0132f758fe5aaf2c0d08deb5b4b15b03fdfbb2a9fed57cba9219e1f276eae24f",
+        "stream_seed": 3,
+        "task_classes": [
+          [
+            1,
+            3
+          ],
+          [
+            7,
+            9
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            2,
+            4
+          ]
+        ]
+      },
+      "test_accuracy": 0.2029
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "growing",
+    "wall_time_s": 25.6948
+  },
+  "b4_centers_split_mnist_growing_s4": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "growing",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_growing_s4",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "growing",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "ff8c3f0dcd801f295084c3b1cf3ff53f5b125c5736b7b497a2af99395895bdf4",
+        "stream_seed": 4
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 23.8526,
+      "per_task_accuracy": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.998993
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "ff8c3f0dcd801f295084c3b1cf3ff53f5b125c5736b7b497a2af99395895bdf4",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          5,
+          2,
+          9,
+          1,
+          3,
+          0,
+          4,
+          8,
+          7,
+          6
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "ff8c3f0dcd801f295084c3b1cf3ff53f5b125c5736b7b497a2af99395895bdf4",
+        "stream_seed": 4,
+        "task_classes": [
+          [
+            2,
+            5
+          ],
+          [
+            1,
+            9
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            4,
+            8
+          ],
+          [
+            6,
+            7
+          ]
+        ]
+      },
+      "test_accuracy": 0.1984
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "growing",
+    "wall_time_s": 24.9038
+  },
+  "b4_centers_split_mnist_none_s0": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": null,
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_none_s0",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "none",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "0687ff3daa0b9bd1aa3cfed0b910276558f514d058d7240d5cbb52dd2efe99a4",
+        "stream_seed": 0
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 25.6247,
+      "per_task_accuracy": [
+        0.959459,
+        0.972312,
+        0.965711,
+        0.948489,
+        0.950249
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "0687ff3daa0b9bd1aa3cfed0b910276558f514d058d7240d5cbb52dd2efe99a4",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          5,
+          6,
+          1,
+          2,
+          0,
+          8,
+          9,
+          3,
+          7,
+          4
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "0687ff3daa0b9bd1aa3cfed0b910276558f514d058d7240d5cbb52dd2efe99a4",
+        "stream_seed": 0,
+        "task_classes": [
+          [
+            5,
+            6
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            3,
+            9
+          ],
+          [
+            4,
+            7
+          ]
+        ]
+      },
+      "test_accuracy": 0.9594
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": null,
+    "wall_time_s": 27.0592
+  },
+  "b4_centers_split_mnist_none_s1": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": null,
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_none_s1",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "none",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "d6f97e0e6f844c14017317f5e2aacddb07bccd5b32ae17283af750b6edb90428",
+        "stream_seed": 1
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 25.3041,
+      "per_task_accuracy": [
+        0.942233,
+        0.973853,
+        0.944032,
+        0.965464,
+        0.970829
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "d6f97e0e6f844c14017317f5e2aacddb07bccd5b32ae17283af750b6edb90428",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          2,
+          7,
+          1,
+          5,
+          3,
+          9,
+          4,
+          6,
+          8,
+          0
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "d6f97e0e6f844c14017317f5e2aacddb07bccd5b32ae17283af750b6edb90428",
+        "stream_seed": 1,
+        "task_classes": [
+          [
+            2,
+            7
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            3,
+            9
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            0,
+            8
+          ]
+        ]
+      },
+      "test_accuracy": 0.9591
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": null,
+    "wall_time_s": 26.3508
+  },
+  "b4_centers_split_mnist_none_s2": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": null,
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_none_s2",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "none",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "ee5f580c38e118fb14daa9737a52056c89146a110bfde94a8273915cc2ecc675",
+        "stream_seed": 2
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 26.155,
+      "per_task_accuracy": [
+        0.957299,
+        0.951604,
+        0.954858,
+        0.971076,
+        0.978844
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "ee5f580c38e118fb14daa9737a52056c89146a110bfde94a8273915cc2ecc675",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          2,
+          4,
+          9,
+          5,
+          3,
+          7,
+          1,
+          8,
+          6,
+          0
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "ee5f580c38e118fb14daa9737a52056c89146a110bfde94a8273915cc2ecc675",
+        "stream_seed": 2,
+        "task_classes": [
+          [
+            2,
+            4
+          ],
+          [
+            5,
+            9
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            0,
+            6
+          ]
+        ]
+      },
+      "test_accuracy": 0.9628
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": null,
+    "wall_time_s": 27.1509
+  },
+  "b4_centers_split_mnist_none_s3": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": null,
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_none_s3",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "none",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "0132f758fe5aaf2c0d08deb5b4b15b03fdfbb2a9fed57cba9219e1f276eae24f",
+        "stream_seed": 3
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 26.0861,
+      "per_task_accuracy": [
+        0.970629,
+        0.942563,
+        0.980908,
+        0.946945,
+        0.953327
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "0132f758fe5aaf2c0d08deb5b4b15b03fdfbb2a9fed57cba9219e1f276eae24f",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          1,
+          3,
+          9,
+          7,
+          6,
+          0,
+          5,
+          8,
+          4,
+          2
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "0132f758fe5aaf2c0d08deb5b4b15b03fdfbb2a9fed57cba9219e1f276eae24f",
+        "stream_seed": 3,
+        "task_classes": [
+          [
+            1,
+            3
+          ],
+          [
+            7,
+            9
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            2,
+            4
+          ]
+        ]
+      },
+      "test_accuracy": 0.959
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": null,
+    "wall_time_s": 27.0484
+  },
+  "b4_centers_split_mnist_none_s4": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": null,
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_continual_split_mnist",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "centers_mode",
+    "label": "b4_centers_split_mnist_none_s4",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "none",
+      "dataset_metadata": {
+        "base_dataset": "MNIST",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "ff8c3f0dcd801f295084c3b1cf3ff53f5b125c5736b7b497a2af99395895bdf4",
+        "stream_seed": 4
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 25.9747,
+      "per_task_accuracy": [
+        0.951663,
+        0.961287,
+        0.971357,
+        0.960634,
+        0.955186
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "ff8c3f0dcd801f295084c3b1cf3ff53f5b125c5736b7b497a2af99395895bdf4",
+      "stream_metadata": {
+        "base_dataset": "MNIST",
+        "class_permutation": [
+          5,
+          2,
+          9,
+          1,
+          3,
+          0,
+          4,
+          8,
+          7,
+          6
+        ],
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "x_test": "bc9f8f501f39b3ca61f899a2f402edf2024bde012b73223431b6bd735e47a165",
+          "x_train": "257f039238a0be158bad088c051a53908383fd47df03a7b1c229bb7bc968f160",
+          "y_test": "2fd8de6bdb8d11780b4b96dc57847bcfe6953f7c32aa48bfcd8237c3b7847243",
+          "y_train": "e474323ac02fc156161b0bbb1f8c9cfeb327a74bcd9f9680a8385269a24f566c"
+        },
+        "raw_hashes": {
+          "test_images": "0fa7898d509279e482958e8ce81c8e77db3f2f8254e26661ceb7762c4d494ce7",
+          "test_labels": "ff7bcfd416de33731a308c3f266cc351222c34898ecbeaf847f06e48f7ec33f2",
+          "train_images": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+          "train_labels": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+        },
+        "scenario": "split",
+        "stream_hash": "ff8c3f0dcd801f295084c3b1cf3ff53f5b125c5736b7b497a2af99395895bdf4",
+        "stream_seed": 4,
+        "task_classes": [
+          [
+            2,
+            5
+          ],
+          [
+            1,
+            9
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            4,
+            8
+          ],
+          [
+            6,
+            7
+          ]
+        ]
+      },
+      "test_accuracy": 0.9601
+    },
+    "phase": "b4_centers_split_mnist",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "MNIST",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "split"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": null,
+    "wall_time_s": 26.961
+  }
+}
