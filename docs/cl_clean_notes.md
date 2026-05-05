@@ -41,3 +41,10 @@ Three things make this paper interesting (and not just an "of course"):
 * No multi-seed numbers exist yet under `cl_clean/`.  All numbers
   in `attic/docs/continual_learning_notes.md` are single-seed and
   must be re-validated before the manuscript cites them.
+* Phase C now has a committed Colab package under `colab/cl_clean/`.
+  Important design choice: the notebook does **not** carry experiment
+  logic.  It clones the scaffold branch, writes GPU config snapshots,
+  runs the normal `cl_phase_runner`, and bundles the resulting JSON/log
+  files.  The actual ConvNEF-CL experiment lives under
+  `benchmarks/cl_clean/`, so the GPU rows carry the same `code_identity`
+  discipline as the CPU panels.

@@ -27,7 +27,7 @@ benchmarks/cl_clean/**
 results/cl_clean/**
 docs/cl_clean_sweeps.md
 docs/cl_clean_notes.md
-notebooks/cl_clean/**
+colab/cl_clean/**
 tests/test_cl_clean.py
 ```
 
@@ -60,12 +60,13 @@ in flight unless you intend to stop and restart those panels.
 5. **B5** solver-mode + α regime.  Driver target: `b5_solvers`.
    Includes `accumulate`, `woodbury_batch`, and `woodbury_online`
    cells over the fixed-alpha grid.
-6. **C1, C2** ConvNEF-CL panels — *blocked* on Paper I v2 ConvNEF
-   chapter landing.
+6. **C1, C2** ConvNEF-CL panels — launched from
+   `colab/cl_clean/continual_cifar10_gpu_suite.py` on
+   `paper-ii/cl-scaffold`, not from `paper-ii/cl-experiments`.
 
 After each phase sentinel:
 
-* commit results JSON + log to `paper-ii/cl-experiments`;
+* for B1-B5, commit results JSON + log to `paper-ii/cl-experiments`;
 * append a phase block to `docs/cl_clean_sweeps.md` with
   configs, dates, max-abs-gap, mean ± SE, and adoption verdicts;
 * append a paragraph to `docs/cl_clean_notes.md` if the panel
@@ -98,6 +99,13 @@ The B3-B5 base configs include `"device": "cpu"`; for a Colab/GPU
 handoff, change that config field to `"cuda"` before launch and keep
 the resulting rows separate from CPU timing rows.
 
+Phase C no longer uses `paper-ii/cl-experiments` as its source branch.
+The notebook under `colab/cl_clean/` clones `paper-ii/cl-scaffold`
+directly, writes GPU config snapshots under
+`results/cl_clean/colab_gpu_configs/`, runs the standard
+`benchmarks.cl_clean.cl_phase_runner`, and bundles the returned JSON/log
+artifacts for manual import back into this branch.
+
 ## Driver edits
 
 **Do not edit `cl_hp_driver.sh` while a phase that uses it is in
@@ -127,7 +135,7 @@ Land code changes between phases, never mid-phase.
 
 ## Hand-back protocol
 
-When `B1..B5` and (later) `C1..C2` sentinels have all landed:
+When `B1..B5` and the separate Phase-C Colab bundle have all landed:
 
 1. Tag the head of `paper-ii/cl-experiments` as
    `paper-ii/cl-data-frozen`.

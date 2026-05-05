@@ -19,7 +19,8 @@ Date: 2026-05-04..
   analyze_cl_panel.py, cl_hp_driver.sh, baselines/}`.
 * Registered experiments: `smoke`,
    `nef_continual_split_mnist`, `nef_continual_permuted_mnist`,
-   `nef_continual_split_cifar10`, `nef_continual_split_cifar100`.
+   `nef_continual_split_cifar10`, `nef_continual_split_cifar100`,
+   `c1_convnef_split_cifar10`.
 * Registered B3 capacity experiments:
   `nef_capacity_permuted_mnist_t{5,10,20,50,100}` and
   `nef_capacity_permuted_cifar10_t{5,10,20}`.
@@ -99,4 +100,36 @@ appropriate.
 
 ## Phase C — Visual extension (Colab GPU)
 
-(Blocked on Paper I v2 ConvNEF chapter landing.)
+Phase C is launched via:
+
+```bash
+python -u colab/cl_clean/continual_cifar10_gpu_suite.py --seeds 0-9
+```
+
+The package lives under `colab/cl_clean/`, clones
+`paper-ii/cl-scaffold` rather than `paper-ii/cl-experiments`, writes
+GPU config snapshots into `results/cl_clean/colab_gpu_configs/`, and
+bundles the returned JSON/log files for import back into this branch.
+
+### C1 — ConvNEF-CL on Split-CIFAR-10
+
+Experiment: `c1_convnef_split_cifar10`.
+
+Cells:
+
+* `all_data_n10000`, `first_task_n10000`, `joint_n10000`
+* `all_data_n20000`, `first_task_n20000`, `joint_n20000`
+
+Base config: `results/cl_clean/base_config_c1_convnef_split_cifar10.json`
+with a Colab-generated GPU copy under `results/cl_clean/colab_gpu_configs/`.
+
+### C2 — Flat-NEF Split-CIFAR-10 floor
+
+Experiment: `nef_continual_split_cifar10`.
+
+Cell:
+
+* `nef_accumulate`
+
+Base config: `results/cl_clean/base_config_nef_continual_split_cifar10.json`
+with a Colab-generated GPU copy under `results/cl_clean/colab_gpu_configs/`.
