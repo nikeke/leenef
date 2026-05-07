@@ -337,6 +337,85 @@ the online-decoder accuracy.  The base config carries
 `"device": "cpu"`; switch it to `"cuda"` for GPU execution when
 appropriate.
 
+#### 2026-05-07 — Solver-mode equivalence + α regime (`b5_solvers`)
+
+* Code identity: `ed891a3d7bbefb532fe876847b635a1fb871aa43`.
+* Command family: `PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b5_solvers`.
+* Thread caps at launch: `OMP_NUM_THREADS=5`, `MKL_NUM_THREADS=5`,
+  `OPENBLAS_NUM_THREADS=5`, `NUMEXPR_NUM_THREADS=5`.
+* Base config: `results/cl_clean/base_config_b5_solvers.json`
+  (`n_neurons=5000`, `cell=nef_accumulate`,
+  `solver_alpha_cell=accumulate_a0.001`, `fit_chunk_size=4096`,
+  `woodbury_chunk_size=100`, `device=cpu`).
+* Panels: `b5_solvers_split_mnist`, `b5_solvers_permuted_mnist`, and
+  `b5_solvers_split_cifar10`; 105 rows complete in each JSON.
+* Sentinel: `results/cl_clean/b5_solvers_done`.
+
+Split-MNIST mode summary (`test_accuracy`, mean ± SE; `fit_time_s`, mean ± SE):
+
+| Solver family | Best cell | n | Accuracy | Fit time |
+| --- | --- | ---: | ---: | ---: |
+| `accumulate` | `accumulate_a0.001` | 5 | 96.980% ± 0.053% | 26.93s ± 0.09s |
+| `woodbury_batch` | `woodbury_batch_a0.001` | 5 | 96.996% ± 0.047% | 164.91s ± 0.44s |
+| `woodbury_online` | `woodbury_online_a0.001` | 5 | 96.996% ± 0.047% | 239.80s ± 0.56s |
+
+Split-MNIST adoption check:
+
+* Winner by mean: `woodbury_batch_a0.001` at 96.996%.
+* Current base: `accumulate_a0.001` at 96.980%.
+* `Δ = 0.02 pp`, `SE_combined = 0.07 pp`, `ratio = 0.23`.
+* Verdict: **keep `accumulate_a0.001`**; the Woodbury edge stays well
+  within 1 combined standard error.
+
+Permuted-MNIST mode summary (`test_accuracy`, mean ± SE; `fit_time_s`, mean ± SE):
+
+| Solver family | Best cell | n | Accuracy | Fit time |
+| --- | --- | ---: | ---: | ---: |
+| `accumulate` | `accumulate_a0.001` | 5 | 94.518% ± 0.029% | 124.81s ± 1.54s |
+| `woodbury_batch` | `woodbury_batch_a0.01` | 5 | 94.557% ± 0.036% | 881.06s ± 14.55s |
+| `woodbury_online` | `woodbury_online_a0.01` | 5 | 94.557% ± 0.036% | 1135.10s ± 0.91s |
+
+Permuted-MNIST adoption check:
+
+* Winner by mean: `woodbury_batch_a0.01` at 94.557%.
+* Current base: `accumulate_a0.001` at 94.518%.
+* `Δ = 0.04 pp`, `SE_combined = 0.05 pp`, `ratio = 0.83`.
+* Verdict: **keep `accumulate_a0.001`**; the Woodbury gain again stays
+  within 1 combined standard error.
+
+Split-CIFAR-10 mode summary (`test_accuracy`, mean ± SE; `fit_time_s`, mean ± SE):
+
+| Solver family | Best cell | n | Accuracy | Fit time |
+| --- | --- | ---: | ---: | ---: |
+| `accumulate` | `accumulate_a0.01` | 5 | 50.448% ± 0.054% | 29.25s ± 0.10s |
+| `woodbury_batch` | `woodbury_batch_a100` | 5 | 50.432% ± 0.040% | 137.21s ± 0.88s |
+| `woodbury_online` | `woodbury_online_a100` | 5 | 50.430% ± 0.040% | 202.19s ± 0.11s |
+
+Split-CIFAR-10 adoption check:
+
+* Winner by mean: `accumulate_a0.01` at 50.448%.
+* Current base: `accumulate_a0.001` at 49.640%.
+* `Δ = 0.81 pp`, `SE_combined = 0.12 pp`, `ratio = 6.94`.
+* Verdict: **adopt `accumulate_a0.01`** for the Split-CIFAR-10-scale
+  continual setting.
+
+Phase verdict:
+
+* H4 is supported in the **solver-equivalence** sense: once `α` is
+  retuned, `accumulate`, `woodbury_batch`, and `woodbury_online` land in
+  nearly the same accuracy band on all three panels.
+* The solver family itself is not the useful knob.  At matched
+  accuracy, `accumulate` remains about 4.7-7.1x faster in fit time than
+  the best `woodbury_batch` row and about 6.9-9.1x faster than the best
+  `woodbury_online` row.
+* The online-refresh diagnostics stay numerically tight
+  (`refresh_decoder_max_abs_diff <= 2.3e-05`,
+  mean refreshed-accuracy gap `<= 0.002 pp`), so the online Woodbury
+  path is not failing because of drift; it is simply slower.
+* Adoption verdict: **keep `accumulate` as the default solver family**.
+  Keep `α = 10^{-3}` for the MNIST-like panels, but use `α = 10^{-2}`
+  for the Split-CIFAR-10 continual regime.
+
 ## Phase C — Visual extension (Colab GPU)
 
 Imported from the separate Phase-C Colab bundle run against

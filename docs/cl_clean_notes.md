@@ -82,6 +82,21 @@ Three things make this paper interesting (and not just an "of course"):
   outright.  That leaves a cleaner message than "center adaptation
   helps": a single first-task center bank is already the stable
   sufficient-statistics regime.
+* B5 closes the solver question cleanly.  On both MNIST panels the best
+  Woodbury rows only beat `accumulate_a0.001` by a few hundredths of a
+  percentage point, which stays inside the 1-SE adoption rule, while fit
+  time inflates by roughly 6-9x.  On Split-CIFAR-10 the story changes in
+  $\alpha$, not in solver family: `accumulate_a0.01` is the clear winner,
+  the best Woodbury rows land within about 0.02 pp of it, and they are
+  still far slower.  So the paper should frame B5 as "solver-equivalent
+  when tuned, not solver-superior," with a dataset-dependent regularizer
+  sweet spot rather than a case for online Woodbury as the new default.
+* The online refresh diagnostics matter rhetorically because they remove
+  an easy objection.  The best `woodbury_online` rows refresh back to the
+  exact-solve decoder with max coefficient drift only on the order of
+  $10^{-5}$ and essentially zero refreshed-accuracy gap, so the online
+  method is not losing because it drifts numerically; it is losing on fit
+  time.
 * Phase C changes the visual story substantially.  The imported L4 GPU
   ConvNEF panel lifts Split-CIFAR-10 from the flat NEF floor
   (`49.5%`) to `72.9%` at 10000 neurons and `74.7%` at 20000, so the

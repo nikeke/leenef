@@ -1,0 +1,238 @@
+[2026-05-05T05:06:36] phase=b5_solvers_permuted_mnist experiment=nef_continual_permuted_mnist knob=solver_alpha_cell values=['accumulate_a0.001', 'accumulate_a0.01', 'accumulate_a0.1', 'accumulate_a1', 'accumulate_a10', 'accumulate_a100', 'accumulate_a1000', 'woodbury_batch_a0.001', 'woodbury_batch_a0.01', 'woodbury_batch_a0.1', 'woodbury_batch_a1', 'woodbury_batch_a10', 'woodbury_batch_a100', 'woodbury_batch_a1000', 'woodbury_online_a0.001', 'woodbury_online_a0.01', 'woodbury_online_a0.1', 'woodbury_online_a1', 'woodbury_online_a10', 'woodbury_online_a100', 'woodbury_online_a1000'] seeds=[0, 1, 2, 3, 4] code_identity=ed891a3d7bbefb532fe876847b635a1fb871aa43
+[2026-05-05T05:06:36]   [1/105] run    b5_solvers_permuted_mnist_accumulate_a0.001_s0
+[2026-05-05T05:08:52]   [2/105] run    b5_solvers_permuted_mnist_accumulate_a0.001_s1
+[2026-05-05T05:10:58]   [3/105] run    b5_solvers_permuted_mnist_accumulate_a0.001_s2
+[2026-05-05T05:13:06]   [4/105] run    b5_solvers_permuted_mnist_accumulate_a0.001_s3
+[2026-05-05T05:15:14]   [5/105] run    b5_solvers_permuted_mnist_accumulate_a0.001_s4
+[2026-05-05T05:17:22]   [6/105] run    b5_solvers_permuted_mnist_accumulate_a0.01_s0
+[2026-05-05T05:19:27]   [7/105] run    b5_solvers_permuted_mnist_accumulate_a0.01_s1
+[2026-05-05T05:21:30]   [8/105] run    b5_solvers_permuted_mnist_accumulate_a0.01_s2
+[2026-05-05T05:23:38]   [9/105] run    b5_solvers_permuted_mnist_accumulate_a0.01_s3
+[2026-05-05T05:25:47]   [10/105] run    b5_solvers_permuted_mnist_accumulate_a0.01_s4
+[2026-05-05T05:27:56]   [11/105] run    b5_solvers_permuted_mnist_accumulate_a0.1_s0
+[2026-05-05T05:30:04]   [12/105] run    b5_solvers_permuted_mnist_accumulate_a0.1_s1
+[2026-05-05T05:32:11]   [13/105] run    b5_solvers_permuted_mnist_accumulate_a0.1_s2
+[2026-05-05T05:34:20]   [14/105] run    b5_solvers_permuted_mnist_accumulate_a0.1_s3
+[2026-05-05T05:36:26]   [15/105] run    b5_solvers_permuted_mnist_accumulate_a0.1_s4
+[2026-05-05T05:38:31]   [16/105] run    b5_solvers_permuted_mnist_accumulate_a1_s0
+[2026-05-05T05:40:37]   [17/105] run    b5_solvers_permuted_mnist_accumulate_a1_s1
+[2026-05-05T05:42:42]   [18/105] run    b5_solvers_permuted_mnist_accumulate_a1_s2
+[2026-05-05T05:44:49]   [19/105] run    b5_solvers_permuted_mnist_accumulate_a1_s3
+[2026-05-05T05:46:56]   [20/105] run    b5_solvers_permuted_mnist_accumulate_a1_s4
+[2026-05-05T05:49:04]   [21/105] run    b5_solvers_permuted_mnist_accumulate_a10_s0
+[2026-05-05T05:51:10]   [22/105] run    b5_solvers_permuted_mnist_accumulate_a10_s1
+[2026-05-05T05:53:22]   [23/105] run    b5_solvers_permuted_mnist_accumulate_a10_s2
+[2026-05-05T05:55:30]   [24/105] run    b5_solvers_permuted_mnist_accumulate_a10_s3
+[2026-05-05T05:57:41]   [25/105] run    b5_solvers_permuted_mnist_accumulate_a10_s4
+[2026-05-05T05:59:50]   [26/105] run    b5_solvers_permuted_mnist_accumulate_a100_s0
+[2026-05-05T06:01:59]   [27/105] run    b5_solvers_permuted_mnist_accumulate_a100_s1
+[2026-05-05T06:04:09]   [28/105] run    b5_solvers_permuted_mnist_accumulate_a100_s2
+[2026-05-05T06:06:17]   [29/105] run    b5_solvers_permuted_mnist_accumulate_a100_s3
+[2026-05-05T06:08:26]   [30/105] run    b5_solvers_permuted_mnist_accumulate_a100_s4
+[2026-05-05T06:10:35]   [31/105] run    b5_solvers_permuted_mnist_accumulate_a1000_s0
+[2026-05-05T06:12:45]   [32/105] run    b5_solvers_permuted_mnist_accumulate_a1000_s1
+[2026-05-05T06:15:01]   [33/105] run    b5_solvers_permuted_mnist_accumulate_a1000_s2
+[2026-05-05T06:17:11]   [34/105] run    b5_solvers_permuted_mnist_accumulate_a1000_s3
+[2026-05-05T06:19:21]   [35/105] run    b5_solvers_permuted_mnist_accumulate_a1000_s4
+[2026-05-05T06:21:29]   [36/105] run    b5_solvers_permuted_mnist_woodbury_batch_a0.001_s0
+[2026-05-05T06:35:27]   [37/105] run    b5_solvers_permuted_mnist_woodbury_batch_a0.001_s1
+[2026-05-05T06:49:16]   [38/105] run    b5_solvers_permuted_mnist_woodbury_batch_a0.001_s2
+[2026-05-05T14:42:53] phase=b5_solvers_permuted_mnist experiment=nef_continual_permuted_mnist knob=solver_alpha_cell values=['accumulate_a0.001', 'accumulate_a0.01', 'accumulate_a0.1', 'accumulate_a1', 'accumulate_a10', 'accumulate_a100', 'accumulate_a1000', 'woodbury_batch_a0.001', 'woodbury_batch_a0.01', 'woodbury_batch_a0.1', 'woodbury_batch_a1', 'woodbury_batch_a10', 'woodbury_batch_a100', 'woodbury_batch_a1000', 'woodbury_online_a0.001', 'woodbury_online_a0.01', 'woodbury_online_a0.1', 'woodbury_online_a1', 'woodbury_online_a10', 'woodbury_online_a100', 'woodbury_online_a1000'] seeds=[0, 1, 2, 3, 4] code_identity=ed891a3d7bbefb532fe876847b635a1fb871aa43
+[2026-05-05T14:42:53]   [1/105] skip   b5_solvers_permuted_mnist_accumulate_a0.001_s0  (cached)
+[2026-05-05T14:42:53]   [2/105] skip   b5_solvers_permuted_mnist_accumulate_a0.001_s1  (cached)
+[2026-05-05T14:42:53]   [3/105] skip   b5_solvers_permuted_mnist_accumulate_a0.001_s2  (cached)
+[2026-05-05T14:42:53]   [4/105] skip   b5_solvers_permuted_mnist_accumulate_a0.001_s3  (cached)
+[2026-05-05T14:42:53]   [5/105] skip   b5_solvers_permuted_mnist_accumulate_a0.001_s4  (cached)
+[2026-05-05T14:42:53]   [6/105] skip   b5_solvers_permuted_mnist_accumulate_a0.01_s0  (cached)
+[2026-05-05T14:42:53]   [7/105] skip   b5_solvers_permuted_mnist_accumulate_a0.01_s1  (cached)
+[2026-05-05T14:42:53]   [8/105] skip   b5_solvers_permuted_mnist_accumulate_a0.01_s2  (cached)
+[2026-05-05T14:42:53]   [9/105] skip   b5_solvers_permuted_mnist_accumulate_a0.01_s3  (cached)
+[2026-05-05T14:42:53]   [10/105] skip   b5_solvers_permuted_mnist_accumulate_a0.01_s4  (cached)
+[2026-05-05T14:42:53]   [11/105] skip   b5_solvers_permuted_mnist_accumulate_a0.1_s0  (cached)
+[2026-05-05T14:42:53]   [12/105] skip   b5_solvers_permuted_mnist_accumulate_a0.1_s1  (cached)
+[2026-05-05T14:42:53]   [13/105] skip   b5_solvers_permuted_mnist_accumulate_a0.1_s2  (cached)
+[2026-05-05T14:42:53]   [14/105] skip   b5_solvers_permuted_mnist_accumulate_a0.1_s3  (cached)
+[2026-05-05T14:42:53]   [15/105] skip   b5_solvers_permuted_mnist_accumulate_a0.1_s4  (cached)
+[2026-05-05T14:42:53]   [16/105] skip   b5_solvers_permuted_mnist_accumulate_a1_s0  (cached)
+[2026-05-05T14:42:53]   [17/105] skip   b5_solvers_permuted_mnist_accumulate_a1_s1  (cached)
+[2026-05-05T14:42:53]   [18/105] skip   b5_solvers_permuted_mnist_accumulate_a1_s2  (cached)
+[2026-05-05T14:42:53]   [19/105] skip   b5_solvers_permuted_mnist_accumulate_a1_s3  (cached)
+[2026-05-05T14:42:53]   [20/105] skip   b5_solvers_permuted_mnist_accumulate_a1_s4  (cached)
+[2026-05-05T14:42:53]   [21/105] skip   b5_solvers_permuted_mnist_accumulate_a10_s0  (cached)
+[2026-05-05T14:42:53]   [22/105] skip   b5_solvers_permuted_mnist_accumulate_a10_s1  (cached)
+[2026-05-05T14:42:53]   [23/105] skip   b5_solvers_permuted_mnist_accumulate_a10_s2  (cached)
+[2026-05-05T14:42:53]   [24/105] skip   b5_solvers_permuted_mnist_accumulate_a10_s3  (cached)
+[2026-05-05T14:42:53]   [25/105] skip   b5_solvers_permuted_mnist_accumulate_a10_s4  (cached)
+[2026-05-05T14:42:53]   [26/105] skip   b5_solvers_permuted_mnist_accumulate_a100_s0  (cached)
+[2026-05-05T14:42:53]   [27/105] skip   b5_solvers_permuted_mnist_accumulate_a100_s1  (cached)
+[2026-05-05T14:42:53]   [28/105] skip   b5_solvers_permuted_mnist_accumulate_a100_s2  (cached)
+[2026-05-05T14:42:53]   [29/105] skip   b5_solvers_permuted_mnist_accumulate_a100_s3  (cached)
+[2026-05-05T14:42:53]   [30/105] skip   b5_solvers_permuted_mnist_accumulate_a100_s4  (cached)
+[2026-05-05T14:42:53]   [31/105] skip   b5_solvers_permuted_mnist_accumulate_a1000_s0  (cached)
+[2026-05-05T14:42:53]   [32/105] skip   b5_solvers_permuted_mnist_accumulate_a1000_s1  (cached)
+[2026-05-05T14:42:53]   [33/105] skip   b5_solvers_permuted_mnist_accumulate_a1000_s2  (cached)
+[2026-05-05T14:42:53]   [34/105] skip   b5_solvers_permuted_mnist_accumulate_a1000_s3  (cached)
+[2026-05-05T14:42:53]   [35/105] skip   b5_solvers_permuted_mnist_accumulate_a1000_s4  (cached)
+[2026-05-05T14:42:53]   [36/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a0.001_s0  (cached)
+[2026-05-05T14:42:53]   [37/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a0.001_s1  (cached)
+[2026-05-05T14:42:53]   [38/105] run    b5_solvers_permuted_mnist_woodbury_batch_a0.001_s2
+[2026-05-05T14:56:39]   [39/105] run    b5_solvers_permuted_mnist_woodbury_batch_a0.001_s3
+[2026-05-05T15:11:08]   [40/105] run    b5_solvers_permuted_mnist_woodbury_batch_a0.001_s4
+[2026-05-05T15:26:03]   [41/105] run    b5_solvers_permuted_mnist_woodbury_batch_a0.01_s0
+[2026-05-05T15:41:05]   [42/105] run    b5_solvers_permuted_mnist_woodbury_batch_a0.01_s1
+[2026-05-05T15:56:21]   [43/105] run    b5_solvers_permuted_mnist_woodbury_batch_a0.01_s2
+[2026-05-05T16:11:25]   [44/105] run    b5_solvers_permuted_mnist_woodbury_batch_a0.01_s3
+[2026-05-05T16:25:54]   [45/105] run    b5_solvers_permuted_mnist_woodbury_batch_a0.01_s4
+[2026-05-05T16:39:50]   [46/105] run    b5_solvers_permuted_mnist_woodbury_batch_a0.1_s0
+[2026-05-05T16:53:45]   [47/105] run    b5_solvers_permuted_mnist_woodbury_batch_a0.1_s1
+[2026-05-05T17:07:29]   [48/105] run    b5_solvers_permuted_mnist_woodbury_batch_a0.1_s2
+[2026-05-05T17:21:32]   [49/105] run    b5_solvers_permuted_mnist_woodbury_batch_a0.1_s3
+[2026-05-05T17:36:28]   [50/105] run    b5_solvers_permuted_mnist_woodbury_batch_a0.1_s4
+[2026-05-05T17:51:32]   [51/105] run    b5_solvers_permuted_mnist_woodbury_batch_a1_s0
+[2026-05-05T18:06:21]   [52/105] run    b5_solvers_permuted_mnist_woodbury_batch_a1_s1
+[2026-05-05T18:21:21]   [53/105] run    b5_solvers_permuted_mnist_woodbury_batch_a1_s2
+[2026-05-05T18:36:07]   [54/105] run    b5_solvers_permuted_mnist_woodbury_batch_a1_s3
+[2026-05-05T18:51:08]   [55/105] run    b5_solvers_permuted_mnist_woodbury_batch_a1_s4
+[2026-05-05T19:06:11]   [56/105] run    b5_solvers_permuted_mnist_woodbury_batch_a10_s0
+[2026-05-05T19:21:21]   [57/105] run    b5_solvers_permuted_mnist_woodbury_batch_a10_s1
+[2026-05-05T19:35:55]   [58/105] run    b5_solvers_permuted_mnist_woodbury_batch_a10_s2
+[2026-05-05T19:50:13]   [59/105] run    b5_solvers_permuted_mnist_woodbury_batch_a10_s3
+[2026-05-05T20:04:27]   [60/105] run    b5_solvers_permuted_mnist_woodbury_batch_a10_s4
+[2026-05-05T20:18:09]   [61/105] run    b5_solvers_permuted_mnist_woodbury_batch_a100_s0
+[2026-05-05T20:31:47]   [62/105] run    b5_solvers_permuted_mnist_woodbury_batch_a100_s1
+[2026-05-05T20:45:32]   [63/105] run    b5_solvers_permuted_mnist_woodbury_batch_a100_s2
+[2026-05-05T20:59:15]   [64/105] run    b5_solvers_permuted_mnist_woodbury_batch_a100_s3
+[2026-05-05T21:13:06]   [65/105] run    b5_solvers_permuted_mnist_woodbury_batch_a100_s4
+[2026-05-05T21:26:55]   [66/105] run    b5_solvers_permuted_mnist_woodbury_batch_a1000_s0
+[2026-05-05T21:40:38]   [67/105] run    b5_solvers_permuted_mnist_woodbury_batch_a1000_s1
+[2026-05-05T21:54:30]   [68/105] run    b5_solvers_permuted_mnist_woodbury_batch_a1000_s2
+[2026-05-05T22:08:12]   [69/105] run    b5_solvers_permuted_mnist_woodbury_batch_a1000_s3
+[2026-05-05T22:22:02]   [70/105] run    b5_solvers_permuted_mnist_woodbury_batch_a1000_s4
+[2026-05-05T22:35:43]   [71/105] run    b5_solvers_permuted_mnist_woodbury_online_a0.001_s0
+[2026-05-05T22:54:36]   [72/105] run    b5_solvers_permuted_mnist_woodbury_online_a0.001_s1
+[2026-05-05T23:13:31]   [73/105] run    b5_solvers_permuted_mnist_woodbury_online_a0.001_s2
+[2026-05-05T23:32:31]   [74/105] run    b5_solvers_permuted_mnist_woodbury_online_a0.001_s3
+[2026-05-05T23:51:30]   [75/105] run    b5_solvers_permuted_mnist_woodbury_online_a0.001_s4
+[2026-05-06T00:10:30]   [76/105] run    b5_solvers_permuted_mnist_woodbury_online_a0.01_s0
+[2026-05-06T00:29:31]   [77/105] run    b5_solvers_permuted_mnist_woodbury_online_a0.01_s1
+[2026-05-06T00:48:33]   [78/105] run    b5_solvers_permuted_mnist_woodbury_online_a0.01_s2
+[2026-05-06T01:07:33]   [79/105] run    b5_solvers_permuted_mnist_woodbury_online_a0.01_s3
+[2026-05-06T01:26:29]   [80/105] run    b5_solvers_permuted_mnist_woodbury_online_a0.01_s4
+[2026-05-06T01:45:27]   [81/105] run    b5_solvers_permuted_mnist_woodbury_online_a0.1_s0
+[2026-05-06T02:04:25]   [82/105] run    b5_solvers_permuted_mnist_woodbury_online_a0.1_s1
+[2026-05-06T02:23:24]   [83/105] run    b5_solvers_permuted_mnist_woodbury_online_a0.1_s2
+[2026-05-06T02:42:25]   [84/105] run    b5_solvers_permuted_mnist_woodbury_online_a0.1_s3
+[2026-05-06T03:01:25]   [85/105] run    b5_solvers_permuted_mnist_woodbury_online_a0.1_s4
+[2026-05-06T03:20:22]   [86/105] run    b5_solvers_permuted_mnist_woodbury_online_a1_s0
+[2026-05-06T03:39:15]   [87/105] run    b5_solvers_permuted_mnist_woodbury_online_a1_s1
+[2026-05-06T03:58:14]   [88/105] run    b5_solvers_permuted_mnist_woodbury_online_a1_s2
+[2026-05-06T04:17:09]   [89/105] run    b5_solvers_permuted_mnist_woodbury_online_a1_s3
+[2026-05-06T04:36:06]   [90/105] run    b5_solvers_permuted_mnist_woodbury_online_a1_s4
+[2026-05-06T04:55:03]   [91/105] run    b5_solvers_permuted_mnist_woodbury_online_a10_s0
+[2026-05-06T16:22:34] phase=b5_solvers_permuted_mnist experiment=nef_continual_permuted_mnist knob=solver_alpha_cell values=['accumulate_a0.001', 'accumulate_a0.01', 'accumulate_a0.1', 'accumulate_a1', 'accumulate_a10', 'accumulate_a100', 'accumulate_a1000', 'woodbury_batch_a0.001', 'woodbury_batch_a0.01', 'woodbury_batch_a0.1', 'woodbury_batch_a1', 'woodbury_batch_a10', 'woodbury_batch_a100', 'woodbury_batch_a1000', 'woodbury_online_a0.001', 'woodbury_online_a0.01', 'woodbury_online_a0.1', 'woodbury_online_a1', 'woodbury_online_a10', 'woodbury_online_a100', 'woodbury_online_a1000'] seeds=[0, 1, 2, 3, 4] code_identity=ed891a3d7bbefb532fe876847b635a1fb871aa43
+[2026-05-06T16:22:34]   [1/105] skip   b5_solvers_permuted_mnist_accumulate_a0.001_s0  (cached)
+[2026-05-06T16:22:34]   [2/105] skip   b5_solvers_permuted_mnist_accumulate_a0.001_s1  (cached)
+[2026-05-06T16:22:34]   [3/105] skip   b5_solvers_permuted_mnist_accumulate_a0.001_s2  (cached)
+[2026-05-06T16:22:34]   [4/105] skip   b5_solvers_permuted_mnist_accumulate_a0.001_s3  (cached)
+[2026-05-06T16:22:34]   [5/105] skip   b5_solvers_permuted_mnist_accumulate_a0.001_s4  (cached)
+[2026-05-06T16:22:34]   [6/105] skip   b5_solvers_permuted_mnist_accumulate_a0.01_s0  (cached)
+[2026-05-06T16:22:34]   [7/105] skip   b5_solvers_permuted_mnist_accumulate_a0.01_s1  (cached)
+[2026-05-06T16:22:34]   [8/105] skip   b5_solvers_permuted_mnist_accumulate_a0.01_s2  (cached)
+[2026-05-06T16:22:34]   [9/105] skip   b5_solvers_permuted_mnist_accumulate_a0.01_s3  (cached)
+[2026-05-06T16:22:34]   [10/105] skip   b5_solvers_permuted_mnist_accumulate_a0.01_s4  (cached)
+[2026-05-06T16:22:34]   [11/105] skip   b5_solvers_permuted_mnist_accumulate_a0.1_s0  (cached)
+[2026-05-06T16:22:34]   [12/105] skip   b5_solvers_permuted_mnist_accumulate_a0.1_s1  (cached)
+[2026-05-06T16:22:34]   [13/105] skip   b5_solvers_permuted_mnist_accumulate_a0.1_s2  (cached)
+[2026-05-06T16:22:34]   [14/105] skip   b5_solvers_permuted_mnist_accumulate_a0.1_s3  (cached)
+[2026-05-06T16:22:34]   [15/105] skip   b5_solvers_permuted_mnist_accumulate_a0.1_s4  (cached)
+[2026-05-06T16:22:34]   [16/105] skip   b5_solvers_permuted_mnist_accumulate_a1_s0  (cached)
+[2026-05-06T16:22:34]   [17/105] skip   b5_solvers_permuted_mnist_accumulate_a1_s1  (cached)
+[2026-05-06T16:22:34]   [18/105] skip   b5_solvers_permuted_mnist_accumulate_a1_s2  (cached)
+[2026-05-06T16:22:34]   [19/105] skip   b5_solvers_permuted_mnist_accumulate_a1_s3  (cached)
+[2026-05-06T16:22:34]   [20/105] skip   b5_solvers_permuted_mnist_accumulate_a1_s4  (cached)
+[2026-05-06T16:22:34]   [21/105] skip   b5_solvers_permuted_mnist_accumulate_a10_s0  (cached)
+[2026-05-06T16:22:34]   [22/105] skip   b5_solvers_permuted_mnist_accumulate_a10_s1  (cached)
+[2026-05-06T16:22:34]   [23/105] skip   b5_solvers_permuted_mnist_accumulate_a10_s2  (cached)
+[2026-05-06T16:22:34]   [24/105] skip   b5_solvers_permuted_mnist_accumulate_a10_s3  (cached)
+[2026-05-06T16:22:34]   [25/105] skip   b5_solvers_permuted_mnist_accumulate_a10_s4  (cached)
+[2026-05-06T16:22:34]   [26/105] skip   b5_solvers_permuted_mnist_accumulate_a100_s0  (cached)
+[2026-05-06T16:22:34]   [27/105] skip   b5_solvers_permuted_mnist_accumulate_a100_s1  (cached)
+[2026-05-06T16:22:34]   [28/105] skip   b5_solvers_permuted_mnist_accumulate_a100_s2  (cached)
+[2026-05-06T16:22:34]   [29/105] skip   b5_solvers_permuted_mnist_accumulate_a100_s3  (cached)
+[2026-05-06T16:22:34]   [30/105] skip   b5_solvers_permuted_mnist_accumulate_a100_s4  (cached)
+[2026-05-06T16:22:34]   [31/105] skip   b5_solvers_permuted_mnist_accumulate_a1000_s0  (cached)
+[2026-05-06T16:22:34]   [32/105] skip   b5_solvers_permuted_mnist_accumulate_a1000_s1  (cached)
+[2026-05-06T16:22:34]   [33/105] skip   b5_solvers_permuted_mnist_accumulate_a1000_s2  (cached)
+[2026-05-06T16:22:34]   [34/105] skip   b5_solvers_permuted_mnist_accumulate_a1000_s3  (cached)
+[2026-05-06T16:22:34]   [35/105] skip   b5_solvers_permuted_mnist_accumulate_a1000_s4  (cached)
+[2026-05-06T16:22:34]   [36/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a0.001_s0  (cached)
+[2026-05-06T16:22:34]   [37/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a0.001_s1  (cached)
+[2026-05-06T16:22:34]   [38/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a0.001_s2  (cached)
+[2026-05-06T16:22:34]   [39/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a0.001_s3  (cached)
+[2026-05-06T16:22:34]   [40/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a0.001_s4  (cached)
+[2026-05-06T16:22:34]   [41/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a0.01_s0  (cached)
+[2026-05-06T16:22:34]   [42/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a0.01_s1  (cached)
+[2026-05-06T16:22:34]   [43/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a0.01_s2  (cached)
+[2026-05-06T16:22:34]   [44/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a0.01_s3  (cached)
+[2026-05-06T16:22:34]   [45/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a0.01_s4  (cached)
+[2026-05-06T16:22:34]   [46/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a0.1_s0  (cached)
+[2026-05-06T16:22:34]   [47/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a0.1_s1  (cached)
+[2026-05-06T16:22:34]   [48/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a0.1_s2  (cached)
+[2026-05-06T16:22:34]   [49/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a0.1_s3  (cached)
+[2026-05-06T16:22:34]   [50/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a0.1_s4  (cached)
+[2026-05-06T16:22:34]   [51/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a1_s0  (cached)
+[2026-05-06T16:22:34]   [52/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a1_s1  (cached)
+[2026-05-06T16:22:34]   [53/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a1_s2  (cached)
+[2026-05-06T16:22:34]   [54/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a1_s3  (cached)
+[2026-05-06T16:22:34]   [55/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a1_s4  (cached)
+[2026-05-06T16:22:34]   [56/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a10_s0  (cached)
+[2026-05-06T16:22:34]   [57/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a10_s1  (cached)
+[2026-05-06T16:22:34]   [58/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a10_s2  (cached)
+[2026-05-06T16:22:34]   [59/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a10_s3  (cached)
+[2026-05-06T16:22:34]   [60/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a10_s4  (cached)
+[2026-05-06T16:22:34]   [61/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a100_s0  (cached)
+[2026-05-06T16:22:34]   [62/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a100_s1  (cached)
+[2026-05-06T16:22:34]   [63/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a100_s2  (cached)
+[2026-05-06T16:22:34]   [64/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a100_s3  (cached)
+[2026-05-06T16:22:34]   [65/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a100_s4  (cached)
+[2026-05-06T16:22:34]   [66/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a1000_s0  (cached)
+[2026-05-06T16:22:34]   [67/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a1000_s1  (cached)
+[2026-05-06T16:22:34]   [68/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a1000_s2  (cached)
+[2026-05-06T16:22:34]   [69/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a1000_s3  (cached)
+[2026-05-06T16:22:34]   [70/105] skip   b5_solvers_permuted_mnist_woodbury_batch_a1000_s4  (cached)
+[2026-05-06T16:22:34]   [71/105] skip   b5_solvers_permuted_mnist_woodbury_online_a0.001_s0  (cached)
+[2026-05-06T16:22:34]   [72/105] skip   b5_solvers_permuted_mnist_woodbury_online_a0.001_s1  (cached)
+[2026-05-06T16:22:34]   [73/105] skip   b5_solvers_permuted_mnist_woodbury_online_a0.001_s2  (cached)
+[2026-05-06T16:22:34]   [74/105] skip   b5_solvers_permuted_mnist_woodbury_online_a0.001_s3  (cached)
+[2026-05-06T16:22:34]   [75/105] skip   b5_solvers_permuted_mnist_woodbury_online_a0.001_s4  (cached)
+[2026-05-06T16:22:34]   [76/105] skip   b5_solvers_permuted_mnist_woodbury_online_a0.01_s0  (cached)
+[2026-05-06T16:22:34]   [77/105] skip   b5_solvers_permuted_mnist_woodbury_online_a0.01_s1  (cached)
+[2026-05-06T16:22:34]   [78/105] skip   b5_solvers_permuted_mnist_woodbury_online_a0.01_s2  (cached)
+[2026-05-06T16:22:34]   [79/105] skip   b5_solvers_permuted_mnist_woodbury_online_a0.01_s3  (cached)
+[2026-05-06T16:22:34]   [80/105] skip   b5_solvers_permuted_mnist_woodbury_online_a0.01_s4  (cached)
+[2026-05-06T16:22:34]   [81/105] skip   b5_solvers_permuted_mnist_woodbury_online_a0.1_s0  (cached)
+[2026-05-06T16:22:34]   [82/105] skip   b5_solvers_permuted_mnist_woodbury_online_a0.1_s1  (cached)
+[2026-05-06T16:22:34]   [83/105] skip   b5_solvers_permuted_mnist_woodbury_online_a0.1_s2  (cached)
+[2026-05-06T16:22:34]   [84/105] skip   b5_solvers_permuted_mnist_woodbury_online_a0.1_s3  (cached)
+[2026-05-06T16:22:34]   [85/105] skip   b5_solvers_permuted_mnist_woodbury_online_a0.1_s4  (cached)
+[2026-05-06T16:22:34]   [86/105] skip   b5_solvers_permuted_mnist_woodbury_online_a1_s0  (cached)
+[2026-05-06T16:22:34]   [87/105] skip   b5_solvers_permuted_mnist_woodbury_online_a1_s1  (cached)
+[2026-05-06T16:22:34]   [88/105] skip   b5_solvers_permuted_mnist_woodbury_online_a1_s2  (cached)
+[2026-05-06T16:22:34]   [89/105] skip   b5_solvers_permuted_mnist_woodbury_online_a1_s3  (cached)
+[2026-05-06T16:22:34]   [90/105] skip   b5_solvers_permuted_mnist_woodbury_online_a1_s4  (cached)
+[2026-05-06T16:22:34]   [91/105] run    b5_solvers_permuted_mnist_woodbury_online_a10_s0
+[2026-05-06T16:41:46]   [92/105] run    b5_solvers_permuted_mnist_woodbury_online_a10_s1
+[2026-05-06T17:00:59]   [93/105] run    b5_solvers_permuted_mnist_woodbury_online_a10_s2
+[2026-05-06T17:20:19]   [94/105] run    b5_solvers_permuted_mnist_woodbury_online_a10_s3
+[2026-05-06T17:39:41]   [95/105] run    b5_solvers_permuted_mnist_woodbury_online_a10_s4
+[2026-05-06T17:59:02]   [96/105] run    b5_solvers_permuted_mnist_woodbury_online_a100_s0
+[2026-05-06T18:18:20]   [97/105] run    b5_solvers_permuted_mnist_woodbury_online_a100_s1
+[2026-05-06T18:37:45]   [98/105] run    b5_solvers_permuted_mnist_woodbury_online_a100_s2
+[2026-05-06T18:57:09]   [99/105] run    b5_solvers_permuted_mnist_woodbury_online_a100_s3
+[2026-05-06T19:16:28]   [100/105] run    b5_solvers_permuted_mnist_woodbury_online_a100_s4
+[2026-05-06T19:35:48]   [101/105] run    b5_solvers_permuted_mnist_woodbury_online_a1000_s0
+[2026-05-06T19:55:09]   [102/105] run    b5_solvers_permuted_mnist_woodbury_online_a1000_s1
+[2026-05-06T20:14:26]   [103/105] run    b5_solvers_permuted_mnist_woodbury_online_a1000_s2
+[2026-05-06T20:33:49]   [104/105] run    b5_solvers_permuted_mnist_woodbury_online_a1000_s3
+[2026-05-06T20:53:15]   [105/105] run    b5_solvers_permuted_mnist_woodbury_online_a1000_s4
+[2026-05-06T21:12:40] phase b5_solvers_permuted_mnist done — 105 rows in results/cl_clean/b5_solvers_permuted_mnist.json
