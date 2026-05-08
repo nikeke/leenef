@@ -74,6 +74,22 @@ Three things make this paper interesting (and not just an "of course"):
   control.  That suggests Paper II should separate two claims cleanly:
   exact continual equivalence is structural, whereas competitive accuracy
   depends on the regime and is strongest on class-incremental splits.
+* B3 turns that structural claim into a quantitative scaling law.  On
+  the multi-seed Permuted-MNIST matrix, the approximate 80%-accuracy
+  frontier lands almost exactly on `(500,5)`, `(1000,10)`, `(2000,20)`,
+  `(5000,50)`, `(10000,100)`, i.e. about `100 neurons/task` or
+  $n / (T \cdot 10) \approx 10$ for a 10-way head.  The four grid-extreme
+  spot checks (`t5/t100 × n500/n10000`) all keep the accumulate-vs-joint
+  gap at 0.0000 pp, so the paper can say two things at once: the
+  sufficient-statistics identity stays exact at the extremes, and the
+  practical question is how much neuron budget preserves useful accuracy.
+* The CIFAR-10 confirmation is the important limiter on how boldly to
+  state that law.  Capacity still scales monotonically with neurons and
+  degrades smoothly with tasks, but even `10000` neurons only reaches
+  `43.0%` at 20 tasks, so the `100 neurons/task` constant is not
+  universal across datasets.  That pushes the manuscript toward wording
+  like "an MNIST-level capacity law with dataset-dependent constants,"
+  rather than presenting the ratio as a domain-agnostic theorem.
 * The B4 center sweep sharpens the "fixed representation" part of the
   argument.  Removing data-driven centers entirely costs about 1 pp on
   Split-MNIST and 1.5 pp on Split-CIFAR-10, so centering matters; but

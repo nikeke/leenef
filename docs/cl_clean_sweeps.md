@@ -245,6 +245,99 @@ joint-equivalence spot checks at the grid extremes.  Override with
 `"device": "cpu"`; switch it to `"cuda"` for a GPU execution branch
 and keep CPU/GPU timing rows labeled by their config.
 
+#### 2026-05-05 to 2026-05-08 — Permuted-MNIST capacity grid (`nef_capacity_permuted_mnist_t{5,10,20,50,100}`)
+
+* Code identity: `ed891a3d7bbefb532fe876847b635a1fb871aa43`.
+* Command family: `PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b3_capacity`.
+* Base configs:
+  `results/cl_clean/base_config_b3_capacity.json`,
+  `results/cl_clean/base_config_b3_capacity_spot_n500.json`, and
+  `results/cl_clean/base_config_b3_capacity_spot_n10000.json`
+  (`alpha=1e-3`, `centers_mode=first_task`, `fit_chunk_size=4096`,
+  `device=cpu`).
+* Completed artifacts:
+  `b3_capacity_permuted_mnist_t{5,10,20,50,100}.json`,
+  `b3_capacity_spot_permuted_mnist_t{5,100}_n{500,10000}.json`, and
+  their paired logs.
+* Row counts: 125 grid rows (5 task counts × 5 neuron counts × 5 seeds)
+  plus 40 spot-check rows (4 panels × 2 cells × 5 seeds).
+* Operational note: the final `t100,n=10000` spot-check was resumed as
+  temporary `*_accum_resume` and `*_joint_resume` phases to keep CPU
+  usage near the target range; those outputs were merged back into the
+  canonical `b3_capacity_spot_permuted_mnist_t100_n10000.{json,log}`
+  artifact after completion.
+
+Accuracy matrix (`test_accuracy`, % mean ± SE):
+
+| Tasks \ Neurons | 500 | 1000 | 2000 | 5000 | 10000 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 5 | 82.6 ± 0.1 | 88.0 ± 0.1 | 91.6 ± 0.0 | 94.5 ± 0.0 | 95.9 ± 0.0 |
+| 10 | 73.9 ± 0.1 | 82.5 ± 0.0 | 88.0 ± 0.0 | 92.4 ± 0.0 | 94.5 ± 0.0 |
+| 20 | 61.9 ± 0.1 | 73.8 ± 0.1 | 82.2 ± 0.0 | 89.1 ± 0.0 | 92.4 ± 0.0 |
+| 50 | 44.1 ± 0.1 | 56.9 ± 0.2 | 69.4 ± 0.1 | 81.4 ± 0.0 | 87.3 ± 0.0 |
+| 100 | 34.2 ± 0.2 | 43.9 ± 0.1 | 56.3 ± 0.2 | 71.8 ± 0.1 | 80.8 ± 0.0 |
+
+Joint-equivalence spot checks (`test_accuracy`, % mean ± SE):
+
+| Spot check | `nef_accumulate` | `nef_joint` | Mean gap (acc - joint) | Max abs gap |
+| --- | ---: | ---: | ---: | ---: |
+| `t5, n=500` | 82.552% ± 0.112% | 82.552% ± 0.112% | +0.0000 pp | 0.0000 pp |
+| `t5, n=10000` | 95.910% ± 0.026% | 95.910% ± 0.026% | +0.0000 pp | 0.0000 pp |
+| `t100, n=500` | 34.170% ± 0.189% | 34.170% ± 0.189% | +0.0000 pp | 0.0000 pp |
+| `t100, n=10000` | 80.783% ± 0.032% | 80.783% ± 0.032% | +0.0000 pp | 0.0000 pp |
+
+Capacity / stability summary:
+
+* The approximate 80%-accuracy frontier lies almost exactly on
+  `(n_neurons, n_tasks) = (500,5), (1000,10), (2000,20), (5000,50), (10000,100)`,
+  i.e. about `100 neurons/task` or
+  $n / (T \cdot 10) \approx 10$ for the 10-way output head.
+* Per-task accuracy dispersion at 100 tasks falls from `3.1 ± 0.1%` at
+  500 neurons to `0.6 ± 0.0%` at 10000 neurons, so higher neuron budgets
+  buy both mean accuracy and cross-task uniformity.
+* CPU fit time on the same 100-task frontier scales from
+  `65.1 ± 0.3s` (500 neurons) to `6727.5 ± 57.2s` (10000 neurons),
+  consistent with the expected roughly linear-in-tasks and strongly
+  superlinear-in-neurons cost profile.
+* Verdict: **H2 supported on Permuted-MNIST**.  The additivity-backed
+  joint-equivalence claim remains exact at both low/high-capacity and
+  low/high-task extremes, while the usable accuracy frontier follows the
+  predicted near-linear neuron-per-task rule.
+
+#### 2026-05-05 to 2026-05-06 — Permuted-CIFAR-10 confirmation (`nef_capacity_permuted_cifar10_t{5,10,20}`)
+
+* Code identity: `ed891a3d7bbefb532fe876847b635a1fb871aa43`.
+* Command family: `PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b3_capacity`.
+* Base config: `results/cl_clean/base_config_b3_capacity.json`
+  (`alpha=1e-3`, `centers_mode=first_task`, `fit_chunk_size=4096`,
+  `device=cpu`).
+* Completed artifacts:
+  `b3_capacity_permuted_cifar10_t{5,10,20}.json` and paired logs.
+* Row counts: 36 rows (3 task counts × 4 neuron counts × 3 seeds).
+
+Accuracy matrix (`test_accuracy`, % mean ± SE):
+
+| Tasks \ Neurons | 1000 | 2000 | 5000 | 10000 |
+| --- | ---: | ---: | ---: | ---: |
+| 5 | 39.5 ± 0.1 | 42.5 ± 0.1 | 45.8 ± 0.1 | 48.0 ± 0.2 |
+| 10 | 36.1 ± 0.1 | 39.4 ± 0.0 | 43.5 ± 0.0 | 45.8 ± 0.0 |
+| 20 | 32.6 ± 0.1 | 36.1 ± 0.1 | 40.3 ± 0.0 | 43.0 ± 0.0 |
+
+Confirmation summary:
+
+* The same monotone scaling pattern holds — more neurons buy accuracy,
+  and more tasks cost accuracy — but the absolute frontier is far lower
+  than on Permuted-MNIST.
+* Even at `10000` neurons, the 20-task panel reaches only
+  `43.0 ± 0.0%`, so the `100 neurons/task` frontier constant is **not**
+  a cross-dataset universal.
+* Fit time at 20 tasks rises from `51.3 ± 0.1s` (1000 neurons) to
+  `1269.7 ± 54.0s` (10000 neurons), with per-task std staying tightly
+  bounded around `0.3-0.4%`.
+* Verdict: **B3 cross-dataset confirmation is qualitative rather than
+  law-matching**.  CIFAR-10 preserves the capacity trend but suggests
+  the constant in the scaling law is dataset-dependent.
+
 ### B4 — Center-adaptation falsifier (H3)
 
 Runnable via:
