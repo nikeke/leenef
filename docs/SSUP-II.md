@@ -37,7 +37,7 @@ shows that worst-case retention scales smoothly with neuron budget per
 task, with an MNIST-level "~100 neurons per task for ~80 % retention"
 operating point and a confirmed dataset dependence on harder visual
 splits.  Online Woodbury and offline accumulation match within 0.05 pp
-at the tuned $\alpha$ while accumulation runs **5–9× faster**, and
+at the tuned $\alpha$ while accumulation runs 5–9× faster, and
 center-bank policies turn out not to matter once a single first-task
 bank is in place.  A gradient-free ConvNEF front-end lifts the
 Split-CIFAR-10 ceiling from 49.5 % to **74.7 ± 0.1 %** without breaking
@@ -84,7 +84,7 @@ samples through the *fixed* encoder.  Sequentially calling
 `partial_fit` over a stream of tasks and finally `solve_accumulated`
 yields exactly the same decoder as one fit on the union — not "to
 within float precision" as a numerical aspiration, but bit-identical
-in test accuracy as long as both sides use the same `A_t` (and we run
+in test accuracy as long as both sides use the same $A_t$ (and we run
 both sides under one code identity to guarantee that).
 
 The point of this paper is to take that algebraic fact through to a
@@ -100,7 +100,7 @@ characterize where it stops being useful.  Concretely:
   $A^\top Y$ that those tasks contributed", and they sit in the
   accumulator as a faithful record.  In the continual-learning
   literature, "average final accuracy" is one number with a lot
-  of room to hide a lot of asymmetric behavior; here it is the same
+  of room to hide asymmetric behavior; here it is the same
   number you would get by ignoring the stream.
 - **Where the regime is competitive and where it is not.**  Paper I
   established that the analytic primitive is competitive on image
@@ -111,7 +111,7 @@ characterize where it stops being useful.  Concretely:
   the analytic primitive wins by a wide margin because it does not
   collapse at all; on domain-incremental Permuted-MNIST it loses to
   EWC and joint MLP because the static-image accuracy ceiling of a
-  single-layer NEF is below theirs.  The honest reading is that
+  single-layer NEF is below theirs.  The reading is that
   this paper's contribution is structural and the absolute level
   inherits whatever Paper I established.
 - **Capacity, not just possibility.**  "No forgetting" is necessary
@@ -155,7 +155,7 @@ continual learning.  When the front end itself must change across
 tasks, the additive identity holds only with respect to the fixed
 component, and Paper I's negative result on purely analytic depth is
 the limiter.  We document the working operating regime and label the
-boundary; we do not paper over either side of it.
+boundary.
 
 ---
 
@@ -327,7 +327,7 @@ claims of Paper II as a whole.
 
 Fix an encoder map $\phi: \mathbb{R}^{d_{\mathrm{in}}} \to
 \mathbb{R}^n$ as in Paper I §3; concretely, $\phi(x)_i =
-\mathrm{abs}(g_i (e_i \cdot (x - d_i)))$ for a unit encoder $e_i$,
+|g_i (e_i \cdot (x - d_i))|$ for a unit encoder $e_i$,
 gain $g_i$, and center $d_i$, all sampled before any training data
 arrives and held constant for the entire stream.  Let
 $\mathcal{D}_t = \{(x_t^{(k)}, y_t^{(k)})\}_{k=1}^{N_t}$ be the
@@ -807,7 +807,7 @@ EWC lands at 95.6 ± 0.2 %, beating NEF-continual by 1.1 pp; the
 joint MLP lands at 98.0 ± 0.0 %, beating both.  On wall-clock,
 EWC also wins: 37.5 s vs 154 s for NEF-continual.
 
-There are two honest readings.  The first is structural:
+There are two readings.  The first is structural:
 joint-equivalence still holds (94.5 = 94.5).  Whatever
 NEF-continual is doing, it is what NEF-joint would have done
 with the same data, so this is not a continual-learning
@@ -905,7 +905,7 @@ is **6.1× faster** than `woodbury_batch` and **8.9× faster** than
 and **7.1× / 9.1×** on Permuted-MNIST.  At the same final accuracy.
 
 The reason `accumulate` wins on wall-clock is that
-`woodbury_*` updates the cached inverse $M_t$ at every batch,
+Woodbury updates the cached inverse $M_t$ at every batch,
 which is a $O(N_t^2 n + N_t n^2)$ operation, while `accumulate`
 just adds $A_t^\top A_t$ once per batch
 ($O(N_t n^2)$, no $N_t^2$ term) and pays the $O(n^3)$ inversion
@@ -917,7 +917,7 @@ inter-task query is then the batch's small Woodbury rather than
 a fresh $O(n^3)$ solve.
 
 The Split-CIFAR-10 row is also a small $\alpha$-regime story.
-`accumulate`'s sweet spot is $10^{-2}$ but `woodbury_*`'s is
+`accumulate`'s sweet spot is $10^{-2}$ but Woodbury's is
 $10^2$, four orders of magnitude apart.  That difference is not
 an algebraic disagreement — it is the same regularizer applied
 to the same Gram matrix — but a numerical-stability artifact at
@@ -1002,7 +1002,7 @@ $n = 10$ seeds per cell.
 | ConvNEF, `joint`, n=10 000      | 72.9 ± 0.1 %  | 7.6 ± 0.1 s       |
 | ConvNEF, `first_task`, n=20 000 | 74.5 ± 0.1 %  | 83.5 ± 0.5 s      |
 | ConvNEF, `all_data`, n=20 000   | 74.7 ± 0.1 %  | 83.5 ± 0.5 s      |
-| ConvNEF, `joint`, n=20 000      | **74.7 ± 0.1 %** | 29.6 ± 0.4 s   |
+| ConvNEF, `joint`, n=20 000      | 74.7 ± 0.1 %  | 29.6 ± 0.4 s      |
 
 Three things are worth flagging in this table.
 
@@ -1024,7 +1024,7 @@ Three things are worth flagging in this table.
    first task's data only and never updates it again, lands
    0.2 pp below the `all_data` / `joint` oracle at $n = 20\,000$
    (74.5 % vs 74.7 %) and 0.2 pp below at $n = 10\,000$.  Both
-   gaps are at the $1\sigma$ level.  Practically, on
+   gaps are at the $1 \sigma$ level.  Practically, on
    Split-CIFAR-10, fitting PCA filters on the first task's
    data is good enough; the rest of the visual ceiling lift
    comes from the analytic head accumulating across tasks.
@@ -1134,7 +1134,7 @@ fixed feature extractor — whether random, PCA-fit, or a frozen
 deep network's penultimate layer — composes with `partial_fit`
 and inherits the property.
 
-### Negative results, in plain language
+### Negative results
 
 Three things worth restating because they are easy to miss in
 the headline tables.
@@ -1203,8 +1203,7 @@ has length zero, Paper III argues that the target-stream axis
 also has length zero in the same primitive.  A separate research
 line has the primitive working on classic dense-reward control
 benchmarks already; the sparse-reward variants are still
-uncertain.  We mention this here only to make the trilogy's
-shared spine visible.
+uncertain.
 
 ---
 
