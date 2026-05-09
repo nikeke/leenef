@@ -1,0 +1,108 @@
+[2026-05-05T02:24:27] phase=b3_capacity_permuted_mnist_t20 experiment=nef_capacity_permuted_mnist_t20 knob=n_neurons values=[500, 1000, 2000, 5000, 10000] seeds=[0, 1, 2, 3, 4] code_identity=ed891a3d7bbefb532fe876847b635a1fb871aa43
+[2026-05-05T02:24:27]   [1/25] run    b3_capacity_permuted_mnist_t20_500_s0
+[2026-05-05T02:24:42]   [2/25] run    b3_capacity_permuted_mnist_t20_500_s1
+[2026-05-05T02:24:58]   [3/25] run    b3_capacity_permuted_mnist_t20_500_s2
+[2026-05-05T02:25:13]   [4/25] run    b3_capacity_permuted_mnist_t20_500_s3
+[2026-05-05T02:25:28]   [5/25] run    b3_capacity_permuted_mnist_t20_500_s4
+[2026-05-05T02:25:43]   [6/25] run    b3_capacity_permuted_mnist_t20_1000_s0
+[2026-05-05T02:26:16]   [7/25] run    b3_capacity_permuted_mnist_t20_1000_s1
+[2026-05-05T02:26:48]   [8/25] run    b3_capacity_permuted_mnist_t20_1000_s2
+[2026-05-05T02:27:20]   [9/25] run    b3_capacity_permuted_mnist_t20_1000_s3
+[2026-05-05T02:27:53]   [10/25] run    b3_capacity_permuted_mnist_t20_1000_s4
+[2026-05-05T02:28:25]   [11/25] run    b3_capacity_permuted_mnist_t20_2000_s0
+[2026-05-05T02:30:02]   [12/25] run    b3_capacity_permuted_mnist_t20_2000_s1
+[2026-05-05T02:31:28]   [13/25] run    b3_capacity_permuted_mnist_t20_2000_s2
+[2026-05-05T02:32:56]   [14/25] run    b3_capacity_permuted_mnist_t20_2000_s3
+[2026-05-05T02:34:23]   [15/25] run    b3_capacity_permuted_mnist_t20_2000_s4
+[2026-05-05T02:35:50]   [16/25] run    b3_capacity_permuted_mnist_t20_5000_s0
+[2026-05-05T02:42:48]   [17/25] run    b3_capacity_permuted_mnist_t20_5000_s1
+[2026-05-05T02:49:42]   [18/25] run    b3_capacity_permuted_mnist_t20_5000_s2
+[2026-05-05T02:56:40]   [19/25] run    b3_capacity_permuted_mnist_t20_5000_s3
+[2026-05-05T03:03:38]   [20/25] run    b3_capacity_permuted_mnist_t20_5000_s4
+[2026-05-05T03:10:38]   [21/25] run    b3_capacity_permuted_mnist_t20_10000_s0
+[2026-05-05T03:34:19]   [22/25] run    b3_capacity_permuted_mnist_t20_10000_s1
+[2026-05-05T03:57:54]   [23/25] run    b3_capacity_permuted_mnist_t20_10000_s2
+[2026-05-05T04:21:54]   [24/25] run    b3_capacity_permuted_mnist_t20_10000_s3
+[2026-05-05T04:46:06]   [25/25] run    b3_capacity_permuted_mnist_t20_10000_s4
+[2026-05-05T05:09:30] phase b3_capacity_permuted_mnist_t20 done — 25 rows in results/cl_clean/b3_capacity_permuted_mnist_t20.json
+[2026-05-05T14:42:55] phase=b3_capacity_permuted_mnist_t20 experiment=nef_capacity_permuted_mnist_t20 knob=n_neurons values=[500, 1000, 2000, 5000, 10000] seeds=[0, 1, 2, 3, 4] code_identity=ed891a3d7bbefb532fe876847b635a1fb871aa43
+[2026-05-05T14:42:55]   [1/25] skip   b3_capacity_permuted_mnist_t20_500_s0  (cached)
+[2026-05-05T14:42:55]   [2/25] skip   b3_capacity_permuted_mnist_t20_500_s1  (cached)
+[2026-05-05T14:42:55]   [3/25] skip   b3_capacity_permuted_mnist_t20_500_s2  (cached)
+[2026-05-05T14:42:55]   [4/25] skip   b3_capacity_permuted_mnist_t20_500_s3  (cached)
+[2026-05-05T14:42:55]   [5/25] skip   b3_capacity_permuted_mnist_t20_500_s4  (cached)
+[2026-05-05T14:42:55]   [6/25] skip   b3_capacity_permuted_mnist_t20_1000_s0  (cached)
+[2026-05-05T14:42:55]   [7/25] skip   b3_capacity_permuted_mnist_t20_1000_s1  (cached)
+[2026-05-05T14:42:55]   [8/25] skip   b3_capacity_permuted_mnist_t20_1000_s2  (cached)
+[2026-05-05T14:42:55]   [9/25] skip   b3_capacity_permuted_mnist_t20_1000_s3  (cached)
+[2026-05-05T14:42:55]   [10/25] skip   b3_capacity_permuted_mnist_t20_1000_s4  (cached)
+[2026-05-05T14:42:55]   [11/25] skip   b3_capacity_permuted_mnist_t20_2000_s0  (cached)
+[2026-05-05T14:42:55]   [12/25] skip   b3_capacity_permuted_mnist_t20_2000_s1  (cached)
+[2026-05-05T14:42:55]   [13/25] skip   b3_capacity_permuted_mnist_t20_2000_s2  (cached)
+[2026-05-05T14:42:55]   [14/25] skip   b3_capacity_permuted_mnist_t20_2000_s3  (cached)
+[2026-05-05T14:42:55]   [15/25] skip   b3_capacity_permuted_mnist_t20_2000_s4  (cached)
+[2026-05-05T14:42:55]   [16/25] skip   b3_capacity_permuted_mnist_t20_5000_s0  (cached)
+[2026-05-05T14:42:55]   [17/25] skip   b3_capacity_permuted_mnist_t20_5000_s1  (cached)
+[2026-05-05T14:42:55]   [18/25] skip   b3_capacity_permuted_mnist_t20_5000_s2  (cached)
+[2026-05-05T14:42:55]   [19/25] skip   b3_capacity_permuted_mnist_t20_5000_s3  (cached)
+[2026-05-05T14:42:55]   [20/25] skip   b3_capacity_permuted_mnist_t20_5000_s4  (cached)
+[2026-05-05T14:42:55]   [21/25] skip   b3_capacity_permuted_mnist_t20_10000_s0  (cached)
+[2026-05-05T14:42:55]   [22/25] skip   b3_capacity_permuted_mnist_t20_10000_s1  (cached)
+[2026-05-05T14:42:55]   [23/25] skip   b3_capacity_permuted_mnist_t20_10000_s2  (cached)
+[2026-05-05T14:42:55]   [24/25] skip   b3_capacity_permuted_mnist_t20_10000_s3  (cached)
+[2026-05-05T14:42:55]   [25/25] skip   b3_capacity_permuted_mnist_t20_10000_s4  (cached)
+[2026-05-05T14:42:55] phase b3_capacity_permuted_mnist_t20 done — 25 rows in results/cl_clean/b3_capacity_permuted_mnist_t20.json
+[2026-05-06T16:22:37] phase=b3_capacity_permuted_mnist_t20 experiment=nef_capacity_permuted_mnist_t20 knob=n_neurons values=[500, 1000, 2000, 5000, 10000] seeds=[0, 1, 2, 3, 4] code_identity=ed891a3d7bbefb532fe876847b635a1fb871aa43
+[2026-05-06T16:22:37]   [1/25] skip   b3_capacity_permuted_mnist_t20_500_s0  (cached)
+[2026-05-06T16:22:37]   [2/25] skip   b3_capacity_permuted_mnist_t20_500_s1  (cached)
+[2026-05-06T16:22:37]   [3/25] skip   b3_capacity_permuted_mnist_t20_500_s2  (cached)
+[2026-05-06T16:22:37]   [4/25] skip   b3_capacity_permuted_mnist_t20_500_s3  (cached)
+[2026-05-06T16:22:37]   [5/25] skip   b3_capacity_permuted_mnist_t20_500_s4  (cached)
+[2026-05-06T16:22:37]   [6/25] skip   b3_capacity_permuted_mnist_t20_1000_s0  (cached)
+[2026-05-06T16:22:37]   [7/25] skip   b3_capacity_permuted_mnist_t20_1000_s1  (cached)
+[2026-05-06T16:22:37]   [8/25] skip   b3_capacity_permuted_mnist_t20_1000_s2  (cached)
+[2026-05-06T16:22:37]   [9/25] skip   b3_capacity_permuted_mnist_t20_1000_s3  (cached)
+[2026-05-06T16:22:37]   [10/25] skip   b3_capacity_permuted_mnist_t20_1000_s4  (cached)
+[2026-05-06T16:22:37]   [11/25] skip   b3_capacity_permuted_mnist_t20_2000_s0  (cached)
+[2026-05-06T16:22:37]   [12/25] skip   b3_capacity_permuted_mnist_t20_2000_s1  (cached)
+[2026-05-06T16:22:37]   [13/25] skip   b3_capacity_permuted_mnist_t20_2000_s2  (cached)
+[2026-05-06T16:22:37]   [14/25] skip   b3_capacity_permuted_mnist_t20_2000_s3  (cached)
+[2026-05-06T16:22:37]   [15/25] skip   b3_capacity_permuted_mnist_t20_2000_s4  (cached)
+[2026-05-06T16:22:37]   [16/25] skip   b3_capacity_permuted_mnist_t20_5000_s0  (cached)
+[2026-05-06T16:22:37]   [17/25] skip   b3_capacity_permuted_mnist_t20_5000_s1  (cached)
+[2026-05-06T16:22:37]   [18/25] skip   b3_capacity_permuted_mnist_t20_5000_s2  (cached)
+[2026-05-06T16:22:37]   [19/25] skip   b3_capacity_permuted_mnist_t20_5000_s3  (cached)
+[2026-05-06T16:22:37]   [20/25] skip   b3_capacity_permuted_mnist_t20_5000_s4  (cached)
+[2026-05-06T16:22:37]   [21/25] skip   b3_capacity_permuted_mnist_t20_10000_s0  (cached)
+[2026-05-06T16:22:37]   [22/25] skip   b3_capacity_permuted_mnist_t20_10000_s1  (cached)
+[2026-05-06T16:22:37]   [23/25] skip   b3_capacity_permuted_mnist_t20_10000_s2  (cached)
+[2026-05-06T16:22:37]   [24/25] skip   b3_capacity_permuted_mnist_t20_10000_s3  (cached)
+[2026-05-06T16:22:37]   [25/25] skip   b3_capacity_permuted_mnist_t20_10000_s4  (cached)
+[2026-05-06T16:22:37] phase b3_capacity_permuted_mnist_t20 done — 25 rows in results/cl_clean/b3_capacity_permuted_mnist_t20.json
+[2026-05-07T18:10:59] phase=b3_capacity_permuted_mnist_t20 experiment=nef_capacity_permuted_mnist_t20 knob=n_neurons values=[500, 1000, 2000, 5000, 10000] seeds=[0, 1, 2, 3, 4] code_identity=ed891a3d7bbefb532fe876847b635a1fb871aa43
+[2026-05-07T18:10:59]   [1/25] skip   b3_capacity_permuted_mnist_t20_500_s0  (cached)
+[2026-05-07T18:10:59]   [2/25] skip   b3_capacity_permuted_mnist_t20_500_s1  (cached)
+[2026-05-07T18:10:59]   [3/25] skip   b3_capacity_permuted_mnist_t20_500_s2  (cached)
+[2026-05-07T18:10:59]   [4/25] skip   b3_capacity_permuted_mnist_t20_500_s3  (cached)
+[2026-05-07T18:10:59]   [5/25] skip   b3_capacity_permuted_mnist_t20_500_s4  (cached)
+[2026-05-07T18:10:59]   [6/25] skip   b3_capacity_permuted_mnist_t20_1000_s0  (cached)
+[2026-05-07T18:10:59]   [7/25] skip   b3_capacity_permuted_mnist_t20_1000_s1  (cached)
+[2026-05-07T18:10:59]   [8/25] skip   b3_capacity_permuted_mnist_t20_1000_s2  (cached)
+[2026-05-07T18:10:59]   [9/25] skip   b3_capacity_permuted_mnist_t20_1000_s3  (cached)
+[2026-05-07T18:10:59]   [10/25] skip   b3_capacity_permuted_mnist_t20_1000_s4  (cached)
+[2026-05-07T18:10:59]   [11/25] skip   b3_capacity_permuted_mnist_t20_2000_s0  (cached)
+[2026-05-07T18:10:59]   [12/25] skip   b3_capacity_permuted_mnist_t20_2000_s1  (cached)
+[2026-05-07T18:10:59]   [13/25] skip   b3_capacity_permuted_mnist_t20_2000_s2  (cached)
+[2026-05-07T18:10:59]   [14/25] skip   b3_capacity_permuted_mnist_t20_2000_s3  (cached)
+[2026-05-07T18:10:59]   [15/25] skip   b3_capacity_permuted_mnist_t20_2000_s4  (cached)
+[2026-05-07T18:10:59]   [16/25] skip   b3_capacity_permuted_mnist_t20_5000_s0  (cached)
+[2026-05-07T18:10:59]   [17/25] skip   b3_capacity_permuted_mnist_t20_5000_s1  (cached)
+[2026-05-07T18:10:59]   [18/25] skip   b3_capacity_permuted_mnist_t20_5000_s2  (cached)
+[2026-05-07T18:10:59]   [19/25] skip   b3_capacity_permuted_mnist_t20_5000_s3  (cached)
+[2026-05-07T18:10:59]   [20/25] skip   b3_capacity_permuted_mnist_t20_5000_s4  (cached)
+[2026-05-07T18:10:59]   [21/25] skip   b3_capacity_permuted_mnist_t20_10000_s0  (cached)
+[2026-05-07T18:10:59]   [22/25] skip   b3_capacity_permuted_mnist_t20_10000_s1  (cached)
+[2026-05-07T18:10:59]   [23/25] skip   b3_capacity_permuted_mnist_t20_10000_s2  (cached)
+[2026-05-07T18:10:59]   [24/25] skip   b3_capacity_permuted_mnist_t20_10000_s3  (cached)
+[2026-05-07T18:10:59]   [25/25] skip   b3_capacity_permuted_mnist_t20_10000_s4  (cached)
+[2026-05-07T18:10:59] phase b3_capacity_permuted_mnist_t20 done — 25 rows in results/cl_clean/b3_capacity_permuted_mnist_t20.json

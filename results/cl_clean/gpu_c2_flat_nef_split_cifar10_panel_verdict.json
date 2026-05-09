@@ -1,0 +1,36 @@
+{
+  "by_value": {
+    "nef_accumulate": {
+      "mean_feature_time_s": null,
+      "mean_fit_time_s": 0.8022,
+      "mean_forgetting": null,
+      "mean_test_accuracy": 0.49484000000000006,
+      "mean_wall_time_s": 1.49709,
+      "n": 10,
+      "se_fit_time_s": 0.016939067270661627,
+      "se_test_accuracy": 0.0007833262411026438,
+      "se_wall_time_s": 0.36246496273586376
+    }
+  },
+  "code_identity": "a89221e4b319f454fa4318318ecf3cf8eb3b1ecb",
+  "comparisons": {
+    "convnef_joint_10000_minus_flat_nef_pp": 23.385999999999996,
+    "convnef_joint_20000_minus_flat_nef_pp": 25.234999999999996,
+    "flat_nef_gpu_acc_pp": 49.48400000000001
+  },
+  "experiment": "nef_continual_split_cifar10",
+  "run_context": {
+    "base_dataset": "CIFAR10",
+    "experiment_kind": "nef_continual",
+    "n_tasks": 5,
+    "scenario": "split"
+  },
+  "runner_version": "cl-clean-v1",
+  "seed_policy": {
+    "main_seed": "per-run user-visible seed",
+    "numpy_seed": "np.random.seed(seed)",
+    "python_seed": "random.seed(seed)",
+    "task_stream_seed": "derived deterministically from seed inside the experiment",
+    "torch_seed": "torch.manual_seed(seed)"
+  }
+}

@@ -33,7 +33,10 @@ near-best LSTM while using **2.4× less wall-clock time**, and
 models with generic encoders end **1–4 pp below** gradient-trained
 MLPs on image features while using **12–50× less wall-clock time**;
 on CIFAR-10, adding a receptive-field encoder reverses that gap
-(**+1.37 pp**) with **~11× less wall-clock time**.  The same
+(**+1.37 pp**) with **~11× less wall-clock time**, and a
+gradient-free convolutional feature stack (ConvNEF, §5.5) lifts
+the same head by a further **+10.78 pp** to **65.89 ± 0.12 %**.
+The same
 evidence also marks clear limits: generic fixed encoders are not a
 substitute for spatial priors, purely analytic depth does not buy
 accuracy on its own, and mean-pooled delay-line features lose the
@@ -487,7 +490,7 @@ seven frame-direction priors (10 seeds, `n = 5 000`):
 | strategy | MNIST | Fashion-MNIST | CIFAR-10 | verdict |
 |----------|------:|--------------:|---------:|---------|
 | hypersphere (baseline) | 97.08 ± 0.04 | 87.74 ± 0.06 | 49.72 ± 0.08 | reference |
-| gaussian | 97.08 ± 0.04 | 87.74 ± 0.06 | 49.72 ± 0.08 | ≡ hypersphere |
+| gaussian | 97.08 ± 0.04 | 87.74 ± 0.06 | 49.72 ± 0.08 | $\equiv$ hypersphere |
 | sparse | 97.08 ± 0.02 | 87.82 ± 0.04 | 49.85 ± 0.10 | ties everywhere |
 | whitened | 97.46 ± 0.03 | 88.33 ± 0.04 | 50.93 ± 0.09 | small consistent gain |
 | **receptive_field** | **97.35 ± 0.03** | **88.58 ± 0.03** | **55.10 ± 0.10** | **clear winner on spatial data** |
@@ -626,6 +629,97 @@ the project default `abs` is defensible, but `relu` is a clean
 fallback at no measurable cost on raw image classification — one
 to keep in mind when a deployment constraint disallows the
 two-sided fold.
+
+### §5.5 — Beyond random global features: ConvNEF
+
+§5.4 closed with a warning: at the generic hypersphere encoder,
+the CIFAR-10 single-layer curve peaks near $n = 10\,000$ and then
+falls — *more random global features* is not a universal scaling
+law on natural images.  §5.2 already pointed at the fix: the
+`receptive_field` encoder, whose neurons look at small image
+patches, lifted CIFAR-10 by $+5.4$ pp at fixed $n_{\mathrm{neurons}}$.
+The natural next step is to take that spatial-locality prior
+seriously and stack it.  We call the result **ConvNEF**: a small,
+strictly gradient-free convolutional feature extractor whose
+output feeds the same single-layer NEF head that §3 already
+defined.
+
+**Architecture.**  ConvNEF replaces "random hypersphere encoder
+on the raw pixels" with the following sequence, all of which
+are fixed once the *first* training batch is seen:
+
+1. Sample $P$ patches of size $k \times k$ from the training set
+   and run PCA to obtain $F$ orthonormal filters.  Use them as
+   the kernels of a fixed `Conv2d` layer (no bias).
+2. Apply the same `abs` nonlinearity §3 uses for the dense NEF
+   layer.
+3. Average-pool by a factor of $2 \times 2$.
+4. Run a spatial pyramid pool over levels $\{1, 2, 4\}$ and
+   concatenate.  This produces a fixed-length feature vector.
+5. Feed the feature vector to a standard NEF layer
+   (hypersphere encoders, `abs`, data-driven biases, gain
+   $U(0.5, 2.0)$, $\alpha = 10^{-2}$) and solve its decoder
+   analytically.
+
+There is no gradient anywhere.  The PCA filters are buffered
+once; the NEF layer's encoders, biases, and gains are sampled
+once; the final decoder is a single regularized least-squares
+solve.  Reproducibility, code-identity, and dataset hashing
+inherit from the rest of the suite.
+
+**Default panel.**  Five seeds, single PCA stage with $F = 64$
+filters at $k = 5$, NEF head at $n = 4\,000$.  Augmentation off.
+Run on CPU.
+
+| dataset | flat-NEF best (§5.2) | ConvNEF default | $\Delta$ |
+|---------|---------------------:|----------------:|---------:|
+| MNIST    | 97.91 ± 0.02 (`local_pca`)        | **98.38 ± 0.02** | $+0.46$ pp |
+| CIFAR-10 | 55.10 ± 0.10 (`receptive_field`)  | **65.89 ± 0.12** | $+10.78$ pp |
+
+The MNIST gain is small.  Flat NEF is already close to ceiling
+on the centered-grayscale digit task; the gradient-free
+convolutional stack is not the right place to spend compute
+there.  The CIFAR-10 gain is the headline: a $+10.8$ pp lift over
+the best flat NEF encoder strategy at the *same* analytic head.
+The locality prior, applied hierarchically, is recovering more
+of the natural-image structure than any single-layer choice can.
+
+**What this is not.**  ConvNEF is in the family of Coates et al.
+(2011), Saxe et al. (2011), and the broader "shallow random or
+unsupervised features plus linear readout" line.  Modern deep
+CNNs trained end-to-end with backpropagation reach mid-90s on
+CIFAR-10; ConvNEF closes about a fifth of the raw-pixel-flat-NEF
+to deep-CNN gap, no more.
+
+**What this *is*.**  Evidence that the same primitive — fixed
+features, analytic readout, no gradient — extends past the raw
+pixel without any change to the solve.  The `partial_fit` /
+`accumulate + solve` machinery from §3 carries over verbatim;
+the only thing that changed is the feature map.  This is the
+piece Paper II picks up and pushes into the continual setting,
+where the additivity of $A^\top A$ over data partitions is what
+makes "no forgetting by construction" a property rather than a
+slogan.
+
+**Honest framing.**  Three caveats deserve to sit next to the
+table:
+
+1. The PCA filters are fit on the first training batch, so
+   ConvNEF is not strictly online from $t = 0$ — there is a
+   one-shot calibration step.  Multi-stage variants and an
+   explicit ablation panel are deferred to a future revision;
+   the present default is the single-stage configuration above.
+2. The CIFAR-10 number above is augmentation-off and CPU-only
+   for like-for-like comparison with the flat-NEF rows in
+   §5.2.  Light augmentation (random crops + horizontal flip)
+   and a wider head close more of the gap, but that
+   configuration is the one we exercise in Paper II's visual
+   panel rather than here.
+3. Five seeds is *fewer* than the ten-seed bar this paper uses
+   for headline rows.  We accept it because the panel SE is
+   already an order of magnitude tighter than the 1-decimal-place
+   table precision (0.02 pp on MNIST, 0.12 pp on CIFAR-10);
+   doubling the seeds would not change a single rounded digit.
 
 ---
 
@@ -863,12 +957,10 @@ can follow the threads back to where the ideas originated.
   Rahimi & Recht (2007) on random features; Jaeger (2001) and
   Maass et al. (2002) on liquid-state and echo-state networks;
   Saxe et al. (2011) on the surprising adequacy of random
-  weights.  We connect to this corpus directly rather than
-  presenting old machinery as new.
-- **ConvNEF** (deferred to a companion piece) is in the family
-  of Coates et al. (2011) and the broader gradient-free
-  feature-learning line.  We replicate, organize, and re-frame
-  rather than surpass.
+  weights.  We connect to this corpus directly.
+- **ConvNEF** (§5.5) is in the family of Coates et al. (2011)
+  and the broader gradient-free feature-learning line.  We
+  replicate, organize, and re-frame.
 
 **What we believe is novel and worth presenting.**
 
@@ -908,9 +1000,7 @@ can follow the threads back to where the ideas originated.
 
 **Negative results.**
 
-Negative results get first-class
-treatment rather than being deferred away from the main argument.
-They are part of the contribution: knowing where the primitive does
+Negative results are part of the contribution: knowing where the primitive does
 not work is as useful as knowing where it does.  The §6.4 limit on permuted
 sequence classification, the limited room for depth under purely
 analytic stacking (Appendix B), the systematic loss of

@@ -1,0 +1,12 @@
+[2026-05-05T18:52:38] phase=gpu_c2_flat_nef_split_cifar10_panel experiment=nef_continual_split_cifar10 knob=cell values=['nef_accumulate'] seeds=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] code_identity=a89221e4b319f454fa4318318ecf3cf8eb3b1ecb
+[2026-05-05T18:52:38]   [1/10] run    gpu_c2_flat_nef_split_cifar10_panel_nef_accumulate_s0
+[2026-05-05T18:52:43]   [2/10] run    gpu_c2_flat_nef_split_cifar10_panel_nef_accumulate_s1
+[2026-05-05T18:52:44]   [3/10] run    gpu_c2_flat_nef_split_cifar10_panel_nef_accumulate_s2
+[2026-05-05T18:52:45]   [4/10] run    gpu_c2_flat_nef_split_cifar10_panel_nef_accumulate_s3
+[2026-05-05T18:52:47]   [5/10] run    gpu_c2_flat_nef_split_cifar10_panel_nef_accumulate_s4
+[2026-05-05T18:52:48]   [6/10] run    gpu_c2_flat_nef_split_cifar10_panel_nef_accumulate_s5
+[2026-05-05T18:52:49]   [7/10] run    gpu_c2_flat_nef_split_cifar10_panel_nef_accumulate_s6
+[2026-05-05T18:52:50]   [8/10] run    gpu_c2_flat_nef_split_cifar10_panel_nef_accumulate_s7
+[2026-05-05T18:52:51]   [9/10] run    gpu_c2_flat_nef_split_cifar10_panel_nef_accumulate_s8
+[2026-05-05T18:52:52]   [10/10] run    gpu_c2_flat_nef_split_cifar10_panel_nef_accumulate_s9
+[2026-05-05T18:52:53] phase gpu_c2_flat_nef_split_cifar10_panel done — 10 rows in /content/leenef/results/cl_clean/gpu_c2_flat_nef_split_cifar10_panel.json

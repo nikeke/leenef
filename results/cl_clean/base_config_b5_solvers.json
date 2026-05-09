@@ -1,0 +1,14 @@
+{
+  "activation": "abs",
+  "alpha": 0.001,
+  "cell": "nef_accumulate",
+  "centers_mode": "first_task",
+  "device": "cpu",
+  "encoder_strategy": "hypersphere",
+  "fit_chunk_size": 4096,
+  "gain_high": 2.0,
+  "gain_low": 0.5,
+  "n_neurons": 5000,
+  "solver_alpha_cell": "accumulate_a0.001",
+  "woodbury_chunk_size": 100
+}

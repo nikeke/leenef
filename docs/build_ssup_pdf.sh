@@ -4,19 +4,42 @@ set -euo pipefail
 # Common Debian packages:
 #   sudo apt install pandoc texlive-xetex texlive-latex-recommended \
 #       texlive-latex-extra texlive-fonts-recommended lmodern
+#
+# Examples:
+#   bash docs/build_ssup_pdf.sh docs/SSUP-I.md
+#   bash docs/build_ssup_pdf.sh --verbose docs/SSUP-II.md docs/SSUP-II.pdf
+#   bash docs/build_ssup_pdf.sh --regen-figures docs/SSUP-I.md
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DOC="$ROOT/docs/SSUP-I.md"
-OUT="$ROOT/build/SSUP-I.pdf"
+DOC=""
+OUT=""
 ARXIV_OUT=""
 regen_figures=0
+verbose=0
 
 usage() {
     cat <<EOF
-usage: $(basename "$0") [--regen-figures] [--arxiv-package [archive.tar.gz]] [output.pdf]
+usage: $(basename "$0") [options] [source.md] [output.pdf]
 
-Build the SSUP PDF, and optionally create an arXiv upload tarball.
+Build an SSUP PDF from a Markdown source.  If source.md is omitted,
+docs/SSUP-I.md is used.  If output.pdf is omitted, the output is
+build/<source-basename>.pdf.
+
+Options:
+  --regen-figures              Regenerate Paper-I figures before building.
+  --arxiv-package [archive]    Create an arXiv source tarball.
+  --verbose                    Print pandoc/xelatex commands and show missing-character warnings.
+  -h, --help                   Show this help.
 EOF
+}
+
+abspath() {
+    local path="$1"
+    if [[ "$path" = /* ]]; then
+        printf '%s\n' "$path"
+    else
+        printf '%s/%s\n' "$PWD" "$path"
+    fi
 }
 
 while [[ $# -gt 0 ]]; do
@@ -25,12 +48,16 @@ while [[ $# -gt 0 ]]; do
             regen_figures=1
             shift
             ;;
+        --verbose)
+            verbose=1
+            shift
+            ;;
         --arxiv-package)
             if [[ $# -ge 2 && "$2" != --* ]]; then
-                ARXIV_OUT="$2"
+                ARXIV_OUT="$(abspath "$2")"
                 shift 2
             else
-                ARXIV_OUT="$ROOT/build/SSUP-I-arxiv.tar.gz"
+                ARXIV_OUT="__DEFAULT__"
                 shift
             fi
             ;;
@@ -44,15 +71,35 @@ while [[ $# -gt 0 ]]; do
             exit 1
             ;;
         *)
-            OUT="$1"
+            if [[ -z "$DOC" ]]; then
+                DOC="$(abspath "$1")"
+            elif [[ -z "$OUT" ]]; then
+                OUT="$(abspath "$1")"
+            else
+                echo "error: too many positional arguments" >&2
+                usage >&2
+                exit 1
+            fi
             shift
             ;;
     esac
 done
 
+if [[ -z "$DOC" ]]; then
+    DOC="$ROOT/docs/SSUP-I.md"
+fi
+
 if [[ ! -f "$DOC" ]]; then
     echo "error: cannot find $DOC" >&2
     exit 1
+fi
+
+stem="$(basename "$DOC" .md)"
+if [[ -z "$OUT" ]]; then
+    OUT="$ROOT/build/$stem.pdf"
+fi
+if [[ "$ARXIV_OUT" == "__DEFAULT__" ]]; then
+    ARXIV_OUT="$ROOT/build/$stem-arxiv.tar.gz"
 fi
 
 if ! command -v pandoc >/dev/null 2>&1; then
@@ -74,6 +121,10 @@ if ! kpsewhich lmodern.sty >/dev/null 2>&1; then
 fi
 
 if [[ "$regen_figures" -eq 1 ]]; then
+    if [[ "$(basename "$DOC")" != "SSUP-I.md" ]]; then
+        echo "error: --regen-figures is currently defined only for docs/SSUP-I.md" >&2
+        exit 1
+    fi
     python3 "$ROOT/docs/generate_paper_i_figures.py"
 fi
 
@@ -84,9 +135,18 @@ fi
 
 tmpdir="$(mktemp -d)"
 tmp_header="$tmpdir/header.tex"
-tmp_tex="$tmpdir/SSUP-I.tex"
+tmp_tex="$tmpdir/$stem.tex"
 tmp_log="$tmpdir/xelatex.log"
 trap 'rm -rf "$tmpdir"' EXIT
+
+run_cmd() {
+    if [[ "$verbose" -eq 1 ]]; then
+        printf '+'
+        printf ' %q' "$@"
+        printf '\n'
+    fi
+    "$@"
+}
 
 write_header() {
     local mode="$1"
@@ -103,6 +163,10 @@ write_header() {
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{caption}
+\usepackage{fontspec}
+\setmainfont{Latin Modern Roman}
+\setsansfont{Latin Modern Sans}
+\setmonofont{Latin Modern Mono}
 \captionsetup{font=small}
 \setlength{\emergencystretch}{3em}
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
@@ -119,7 +183,7 @@ generate_tex() {
 
     write_header "$mode" "$header_path"
 
-    pandoc \
+    run_cmd pandoc \
         "$DOC" \
         --from=markdown+tex_math_dollars+footnotes+pipe_tables+table_captions+raw_tex \
         --to=latex \
@@ -135,19 +199,35 @@ generate_tex() {
         --output="$output_tex"
 }
 
+print_missing_characters() {
+    local log_path="$1"
+
+    if grep -q 'Missing character:' "$log_path"; then
+        echo "missing-character warnings:" >&2
+        grep 'Missing character:' "$log_path" | sort -u >&2
+        return 1
+    fi
+}
+
 run_xelatex() {
     local tex_path="$1"
     local log_path="$2"
 
-    if ! xelatex -halt-on-error -interaction=nonstopmode -output-directory "$(dirname "$tex_path")" "$tex_path" >"$log_path" 2>&1; then
+    if [[ "$verbose" -eq 1 ]]; then
+        run_cmd xelatex -halt-on-error -interaction=nonstopmode -output-directory "$(dirname "$tex_path")" "$tex_path" 2>&1 | tee "$log_path"
+    elif ! xelatex -halt-on-error -interaction=nonstopmode -output-directory "$(dirname "$tex_path")" "$tex_path" >"$log_path" 2>&1; then
         cat "$log_path" >&2
         exit 1
     fi
+    print_missing_characters "$log_path" || return 1
 
-    if ! xelatex -halt-on-error -interaction=nonstopmode -output-directory "$(dirname "$tex_path")" "$tex_path" >"$log_path" 2>&1; then
+    if [[ "$verbose" -eq 1 ]]; then
+        run_cmd xelatex -halt-on-error -interaction=nonstopmode -output-directory "$(dirname "$tex_path")" "$tex_path" 2>&1 | tee "$log_path"
+    elif ! xelatex -halt-on-error -interaction=nonstopmode -output-directory "$(dirname "$tex_path")" "$tex_path" >"$log_path" 2>&1; then
         cat "$log_path" >&2
         exit 1
     fi
+    print_missing_characters "$log_path" || return 1
 }
 
 print_arxiv_metadata() {
@@ -187,7 +267,7 @@ print_arxiv_metadata() {
 
 arXiv upload package: $archive_path
 Suggested processor on arXiv: xelatex
-Main source file: SSUP-I.tex
+Main source file: $stem.tex
 Comments: ${page_count:-unknown pages} pages, $figure_count figures
 
 Metadata deduced from the manuscript:
@@ -211,14 +291,14 @@ EOF
 generate_tex "pdf" "$tmp_tex" "$tmp_header"
 run_xelatex "$tmp_tex" "$tmp_log"
 
-cp "$tmpdir/SSUP-I.pdf" "$OUT"
+cp "$tmpdir/$stem.pdf" "$OUT"
 
 echo "wrote $OUT"
 
 if [[ -n "$ARXIV_OUT" ]]; then
     arxiv_dir="$tmpdir/arxiv-src"
     arxiv_header="$tmpdir/arxiv-header.tex"
-    arxiv_tex="$arxiv_dir/SSUP-I.tex"
+    arxiv_tex="$arxiv_dir/$stem.tex"
     mkdir -p "$arxiv_dir"
 
     generate_tex "arxiv" "$arxiv_tex" "$arxiv_header"
@@ -234,7 +314,7 @@ if [[ -n "$ARXIV_OUT" ]]; then
         cp "$ROOT/docs/$figure_path" "$arxiv_dir/$figure_path"
     done
 
-    tar -C "$arxiv_dir" -czf "$ARXIV_OUT" SSUP-I.tex "${used_figures[@]}"
+    tar -C "$arxiv_dir" -czf "$ARXIV_OUT" "$stem.tex" "${used_figures[@]}"
     echo "wrote $ARXIV_OUT"
     print_arxiv_metadata "$OUT" "${#used_figures[@]}" "$ARXIV_OUT"
 fi

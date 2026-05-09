@@ -1,0 +1,40 @@
+{
+  "activation": "abs",
+  "alpha": 0.01,
+  "augment_flip": true,
+  "batch_size": 1000,
+  "cell": "all_data_n10000",
+  "conv_stages": [
+    {
+      "n_filters": 32,
+      "patch_size": 3,
+      "pool_size": 1
+    },
+    {
+      "n_filters": 32,
+      "patch_size": 5,
+      "pool_size": 1
+    },
+    {
+      "n_filters": 32,
+      "patch_size": 7,
+      "pool_size": 1
+    }
+  ],
+  "device": "cpu",
+  "encoder_strategy": "hypersphere",
+  "fit_subsample": 10000,
+  "gain_high": 2.0,
+  "gain_low": 0.5,
+  "gcn": false,
+  "lcn_kernel": null,
+  "n_augment": 1,
+  "parallel": true,
+  "pool_levels": [
+    1,
+    2,
+    4
+  ],
+  "pool_order": 1,
+  "standardize": true
+}

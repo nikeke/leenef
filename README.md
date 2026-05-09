@@ -56,7 +56,9 @@ Paper I frames the current supervised-learning story like this:
 > **1–4 pp below** gradient-trained MLPs on image features while using
 > **12–50× less wall-clock time**; on CIFAR-10, adding a
 > receptive-field encoder reverses that gap (**+1.37 pp**) with
-> **~11× less wall-clock time**.  The same evidence also marks clear
+> **~11× less wall-clock time**, and a gradient-free convolutional
+> feature stack (ConvNEF, §5.5) lifts the same head by a further
+> **+10.78 pp** to **65.89 ± 0.12 %**.  The same evidence also marks clear
 > limits: generic fixed encoders are not a substitute for spatial
 > priors, purely analytic depth does not buy accuracy on its own, and
 > mean-pooled delay-line features lose the long-range order

@@ -1,0 +1,321 @@
+[2026-05-05T00:50:03] phase=b5_solvers_split_mnist experiment=nef_continual_split_mnist knob=solver_alpha_cell values=['accumulate_a0.001', 'accumulate_a0.01', 'accumulate_a0.1', 'accumulate_a1', 'accumulate_a10', 'accumulate_a100', 'accumulate_a1000', 'woodbury_batch_a0.001', 'woodbury_batch_a0.01', 'woodbury_batch_a0.1', 'woodbury_batch_a1', 'woodbury_batch_a10', 'woodbury_batch_a100', 'woodbury_batch_a1000', 'woodbury_online_a0.001', 'woodbury_online_a0.01', 'woodbury_online_a0.1', 'woodbury_online_a1', 'woodbury_online_a10', 'woodbury_online_a100', 'woodbury_online_a1000'] seeds=[0, 1, 2, 3, 4] code_identity=ed891a3d7bbefb532fe876847b635a1fb871aa43
+[2026-05-05T00:50:03]   [1/105] run    b5_solvers_split_mnist_accumulate_a0.001_s0
+[2026-05-05T00:50:31]   [2/105] run    b5_solvers_split_mnist_accumulate_a0.001_s1
+[2026-05-05T00:50:59]   [3/105] run    b5_solvers_split_mnist_accumulate_a0.001_s2
+[2026-05-05T00:51:27]   [4/105] run    b5_solvers_split_mnist_accumulate_a0.001_s3
+[2026-05-05T00:51:55]   [5/105] run    b5_solvers_split_mnist_accumulate_a0.001_s4
+[2026-05-05T00:52:23]   [6/105] run    b5_solvers_split_mnist_accumulate_a0.01_s0
+[2026-05-05T00:52:51]   [7/105] run    b5_solvers_split_mnist_accumulate_a0.01_s1
+[2026-05-05T00:53:19]   [8/105] run    b5_solvers_split_mnist_accumulate_a0.01_s2
+[2026-05-05T00:53:46]   [9/105] run    b5_solvers_split_mnist_accumulate_a0.01_s3
+[2026-05-05T00:54:14]   [10/105] run    b5_solvers_split_mnist_accumulate_a0.01_s4
+[2026-05-05T00:54:42]   [11/105] run    b5_solvers_split_mnist_accumulate_a0.1_s0
+[2026-05-05T00:55:10]   [12/105] run    b5_solvers_split_mnist_accumulate_a0.1_s1
+[2026-05-05T00:55:37]   [13/105] run    b5_solvers_split_mnist_accumulate_a0.1_s2
+[2026-05-05T00:56:05]   [14/105] run    b5_solvers_split_mnist_accumulate_a0.1_s3
+[2026-05-05T00:56:34]   [15/105] run    b5_solvers_split_mnist_accumulate_a0.1_s4
+[2026-05-05T00:57:02]   [16/105] run    b5_solvers_split_mnist_accumulate_a1_s0
+[2026-05-05T00:57:29]   [17/105] run    b5_solvers_split_mnist_accumulate_a1_s1
+[2026-05-05T00:57:57]   [18/105] run    b5_solvers_split_mnist_accumulate_a1_s2
+[2026-05-05T00:58:25]   [19/105] run    b5_solvers_split_mnist_accumulate_a1_s3
+[2026-05-05T00:58:53]   [20/105] run    b5_solvers_split_mnist_accumulate_a1_s4
+[2026-05-05T00:59:21]   [21/105] run    b5_solvers_split_mnist_accumulate_a10_s0
+[2026-05-05T00:59:49]   [22/105] run    b5_solvers_split_mnist_accumulate_a10_s1
+[2026-05-05T01:00:16]   [23/105] run    b5_solvers_split_mnist_accumulate_a10_s2
+[2026-05-05T01:00:45]   [24/105] run    b5_solvers_split_mnist_accumulate_a10_s3
+[2026-05-05T01:01:12]   [25/105] run    b5_solvers_split_mnist_accumulate_a10_s4
+[2026-05-05T01:01:40]   [26/105] run    b5_solvers_split_mnist_accumulate_a100_s0
+[2026-05-05T01:02:08]   [27/105] run    b5_solvers_split_mnist_accumulate_a100_s1
+[2026-05-05T01:02:36]   [28/105] run    b5_solvers_split_mnist_accumulate_a100_s2
+[2026-05-05T01:03:01]   [29/105] run    b5_solvers_split_mnist_accumulate_a100_s3
+[2026-05-05T01:03:28]   [30/105] run    b5_solvers_split_mnist_accumulate_a100_s4
+[2026-05-05T01:03:55]   [31/105] run    b5_solvers_split_mnist_accumulate_a1000_s0
+[2026-05-05T01:04:22]   [32/105] run    b5_solvers_split_mnist_accumulate_a1000_s1
+[2026-05-05T01:04:48]   [33/105] run    b5_solvers_split_mnist_accumulate_a1000_s2
+[2026-05-05T01:05:15]   [34/105] run    b5_solvers_split_mnist_accumulate_a1000_s3
+[2026-05-05T01:05:42]   [35/105] run    b5_solvers_split_mnist_accumulate_a1000_s4
+[2026-05-05T01:06:09]   [36/105] run    b5_solvers_split_mnist_woodbury_batch_a0.001_s0
+[2026-05-05T01:08:54]   [37/105] run    b5_solvers_split_mnist_woodbury_batch_a0.001_s1
+[2026-05-05T01:11:39]   [38/105] run    b5_solvers_split_mnist_woodbury_batch_a0.001_s2
+[2026-05-05T01:14:27]   [39/105] run    b5_solvers_split_mnist_woodbury_batch_a0.001_s3
+[2026-05-05T01:17:13]   [40/105] run    b5_solvers_split_mnist_woodbury_batch_a0.001_s4
+[2026-05-05T01:19:59]   [41/105] run    b5_solvers_split_mnist_woodbury_batch_a0.01_s0
+[2026-05-05T01:22:45]   [42/105] run    b5_solvers_split_mnist_woodbury_batch_a0.01_s1
+[2026-05-05T01:25:31]   [43/105] run    b5_solvers_split_mnist_woodbury_batch_a0.01_s2
+[2026-05-05T01:28:23]   [44/105] run    b5_solvers_split_mnist_woodbury_batch_a0.01_s3
+[2026-05-05T01:31:15]   [45/105] run    b5_solvers_split_mnist_woodbury_batch_a0.01_s4
+[2026-05-05T01:34:07]   [46/105] run    b5_solvers_split_mnist_woodbury_batch_a0.1_s0
+[2026-05-05T01:37:00]   [47/105] run    b5_solvers_split_mnist_woodbury_batch_a0.1_s1
+[2026-05-05T01:39:49]   [48/105] run    b5_solvers_split_mnist_woodbury_batch_a0.1_s2
+[2026-05-05T01:42:42]   [49/105] run    b5_solvers_split_mnist_woodbury_batch_a0.1_s3
+[2026-05-05T01:45:33]   [50/105] run    b5_solvers_split_mnist_woodbury_batch_a0.1_s4
+[2026-05-05T01:48:24]   [51/105] run    b5_solvers_split_mnist_woodbury_batch_a1_s0
+[2026-05-05T01:51:14]   [52/105] run    b5_solvers_split_mnist_woodbury_batch_a1_s1
+[2026-05-05T01:54:07]   [53/105] run    b5_solvers_split_mnist_woodbury_batch_a1_s2
+[2026-05-05T01:56:59]   [54/105] run    b5_solvers_split_mnist_woodbury_batch_a1_s3
+[2026-05-05T01:59:50]   [55/105] run    b5_solvers_split_mnist_woodbury_batch_a1_s4
+[2026-05-05T02:02:40]   [56/105] run    b5_solvers_split_mnist_woodbury_batch_a10_s0
+[2026-05-05T02:05:31]   [57/105] run    b5_solvers_split_mnist_woodbury_batch_a10_s1
+[2026-05-05T02:08:23]   [58/105] run    b5_solvers_split_mnist_woodbury_batch_a10_s2
+[2026-05-05T02:11:16]   [59/105] run    b5_solvers_split_mnist_woodbury_batch_a10_s3
+[2026-05-05T02:14:04]   [60/105] run    b5_solvers_split_mnist_woodbury_batch_a10_s4
+[2026-05-05T02:16:57]   [61/105] run    b5_solvers_split_mnist_woodbury_batch_a100_s0
+[2026-05-05T02:19:48]   [62/105] run    b5_solvers_split_mnist_woodbury_batch_a100_s1
+[2026-05-05T02:22:39]   [63/105] run    b5_solvers_split_mnist_woodbury_batch_a100_s2
+[2026-05-05T02:25:23]   [64/105] run    b5_solvers_split_mnist_woodbury_batch_a100_s3
+[2026-05-05T02:28:03]   [65/105] run    b5_solvers_split_mnist_woodbury_batch_a100_s4
+[2026-05-05T02:30:41]   [66/105] run    b5_solvers_split_mnist_woodbury_batch_a1000_s0
+[2026-05-05T02:33:24]   [67/105] run    b5_solvers_split_mnist_woodbury_batch_a1000_s1
+[2026-05-05T02:36:09]   [68/105] run    b5_solvers_split_mnist_woodbury_batch_a1000_s2
+[2026-05-05T02:38:56]   [69/105] run    b5_solvers_split_mnist_woodbury_batch_a1000_s3
+[2026-05-05T02:41:40]   [70/105] run    b5_solvers_split_mnist_woodbury_batch_a1000_s4
+[2026-05-05T02:44:26]   [71/105] run    b5_solvers_split_mnist_woodbury_online_a0.001_s0
+[2026-05-05T02:48:26]   [72/105] run    b5_solvers_split_mnist_woodbury_online_a0.001_s1
+[2026-05-05T02:52:25]   [73/105] run    b5_solvers_split_mnist_woodbury_online_a0.001_s2
+[2026-05-05T02:56:27]   [74/105] run    b5_solvers_split_mnist_woodbury_online_a0.001_s3
+[2026-05-05T03:00:29]   [75/105] run    b5_solvers_split_mnist_woodbury_online_a0.001_s4
+[2026-05-05T03:04:30]   [76/105] run    b5_solvers_split_mnist_woodbury_online_a0.01_s0
+[2026-05-05T03:08:33]   [77/105] run    b5_solvers_split_mnist_woodbury_online_a0.01_s1
+[2026-05-05T03:12:35]   [78/105] run    b5_solvers_split_mnist_woodbury_online_a0.01_s2
+[2026-05-05T03:16:37]   [79/105] run    b5_solvers_split_mnist_woodbury_online_a0.01_s3
+[2026-05-05T03:20:39]   [80/105] run    b5_solvers_split_mnist_woodbury_online_a0.01_s4
+[2026-05-05T03:24:42]   [81/105] run    b5_solvers_split_mnist_woodbury_online_a0.1_s0
+[2026-05-05T03:28:44]   [82/105] run    b5_solvers_split_mnist_woodbury_online_a0.1_s1
+[2026-05-05T03:32:46]   [83/105] run    b5_solvers_split_mnist_woodbury_online_a0.1_s2
+[2026-05-05T03:36:49]   [84/105] run    b5_solvers_split_mnist_woodbury_online_a0.1_s3
+[2026-05-05T03:40:52]   [85/105] run    b5_solvers_split_mnist_woodbury_online_a0.1_s4
+[2026-05-05T03:44:54]   [86/105] run    b5_solvers_split_mnist_woodbury_online_a1_s0
+[2026-05-05T03:48:56]   [87/105] run    b5_solvers_split_mnist_woodbury_online_a1_s1
+[2026-05-05T03:52:59]   [88/105] run    b5_solvers_split_mnist_woodbury_online_a1_s2
+[2026-05-05T03:57:01]   [89/105] run    b5_solvers_split_mnist_woodbury_online_a1_s3
+[2026-05-05T04:01:02]   [90/105] run    b5_solvers_split_mnist_woodbury_online_a1_s4
+[2026-05-05T04:05:04]   [91/105] run    b5_solvers_split_mnist_woodbury_online_a10_s0
+[2026-05-05T04:09:10]   [92/105] run    b5_solvers_split_mnist_woodbury_online_a10_s1
+[2026-05-05T04:13:19]   [93/105] run    b5_solvers_split_mnist_woodbury_online_a10_s2
+[2026-05-05T04:17:29]   [94/105] run    b5_solvers_split_mnist_woodbury_online_a10_s3
+[2026-05-05T04:21:41]   [95/105] run    b5_solvers_split_mnist_woodbury_online_a10_s4
+[2026-05-05T04:25:50]   [96/105] run    b5_solvers_split_mnist_woodbury_online_a100_s0
+[2026-05-05T04:30:01]   [97/105] run    b5_solvers_split_mnist_woodbury_online_a100_s1
+[2026-05-05T04:34:07]   [98/105] run    b5_solvers_split_mnist_woodbury_online_a100_s2
+[2026-05-05T04:38:11]   [99/105] run    b5_solvers_split_mnist_woodbury_online_a100_s3
+[2026-05-05T04:42:15]   [100/105] run    b5_solvers_split_mnist_woodbury_online_a100_s4
+[2026-05-05T04:46:19]   [101/105] run    b5_solvers_split_mnist_woodbury_online_a1000_s0
+[2026-05-05T04:50:21]   [102/105] run    b5_solvers_split_mnist_woodbury_online_a1000_s1
+[2026-05-05T04:54:25]   [103/105] run    b5_solvers_split_mnist_woodbury_online_a1000_s2
+[2026-05-05T04:58:28]   [104/105] run    b5_solvers_split_mnist_woodbury_online_a1000_s3
+[2026-05-05T05:02:30]   [105/105] run    b5_solvers_split_mnist_woodbury_online_a1000_s4
+[2026-05-05T05:06:33] phase b5_solvers_split_mnist done — 105 rows in results/cl_clean/b5_solvers_split_mnist.json
+[2026-05-05T14:42:49] phase=b5_solvers_split_mnist experiment=nef_continual_split_mnist knob=solver_alpha_cell values=['accumulate_a0.001', 'accumulate_a0.01', 'accumulate_a0.1', 'accumulate_a1', 'accumulate_a10', 'accumulate_a100', 'accumulate_a1000', 'woodbury_batch_a0.001', 'woodbury_batch_a0.01', 'woodbury_batch_a0.1', 'woodbury_batch_a1', 'woodbury_batch_a10', 'woodbury_batch_a100', 'woodbury_batch_a1000', 'woodbury_online_a0.001', 'woodbury_online_a0.01', 'woodbury_online_a0.1', 'woodbury_online_a1', 'woodbury_online_a10', 'woodbury_online_a100', 'woodbury_online_a1000'] seeds=[0, 1, 2, 3, 4] code_identity=ed891a3d7bbefb532fe876847b635a1fb871aa43
+[2026-05-05T14:42:49]   [1/105] skip   b5_solvers_split_mnist_accumulate_a0.001_s0  (cached)
+[2026-05-05T14:42:49]   [2/105] skip   b5_solvers_split_mnist_accumulate_a0.001_s1  (cached)
+[2026-05-05T14:42:49]   [3/105] skip   b5_solvers_split_mnist_accumulate_a0.001_s2  (cached)
+[2026-05-05T14:42:49]   [4/105] skip   b5_solvers_split_mnist_accumulate_a0.001_s3  (cached)
+[2026-05-05T14:42:49]   [5/105] skip   b5_solvers_split_mnist_accumulate_a0.001_s4  (cached)
+[2026-05-05T14:42:49]   [6/105] skip   b5_solvers_split_mnist_accumulate_a0.01_s0  (cached)
+[2026-05-05T14:42:49]   [7/105] skip   b5_solvers_split_mnist_accumulate_a0.01_s1  (cached)
+[2026-05-05T14:42:49]   [8/105] skip   b5_solvers_split_mnist_accumulate_a0.01_s2  (cached)
+[2026-05-05T14:42:49]   [9/105] skip   b5_solvers_split_mnist_accumulate_a0.01_s3  (cached)
+[2026-05-05T14:42:49]   [10/105] skip   b5_solvers_split_mnist_accumulate_a0.01_s4  (cached)
+[2026-05-05T14:42:49]   [11/105] skip   b5_solvers_split_mnist_accumulate_a0.1_s0  (cached)
+[2026-05-05T14:42:49]   [12/105] skip   b5_solvers_split_mnist_accumulate_a0.1_s1  (cached)
+[2026-05-05T14:42:49]   [13/105] skip   b5_solvers_split_mnist_accumulate_a0.1_s2  (cached)
+[2026-05-05T14:42:49]   [14/105] skip   b5_solvers_split_mnist_accumulate_a0.1_s3  (cached)
+[2026-05-05T14:42:49]   [15/105] skip   b5_solvers_split_mnist_accumulate_a0.1_s4  (cached)
+[2026-05-05T14:42:49]   [16/105] skip   b5_solvers_split_mnist_accumulate_a1_s0  (cached)
+[2026-05-05T14:42:49]   [17/105] skip   b5_solvers_split_mnist_accumulate_a1_s1  (cached)
+[2026-05-05T14:42:49]   [18/105] skip   b5_solvers_split_mnist_accumulate_a1_s2  (cached)
+[2026-05-05T14:42:49]   [19/105] skip   b5_solvers_split_mnist_accumulate_a1_s3  (cached)
+[2026-05-05T14:42:49]   [20/105] skip   b5_solvers_split_mnist_accumulate_a1_s4  (cached)
+[2026-05-05T14:42:49]   [21/105] skip   b5_solvers_split_mnist_accumulate_a10_s0  (cached)
+[2026-05-05T14:42:49]   [22/105] skip   b5_solvers_split_mnist_accumulate_a10_s1  (cached)
+[2026-05-05T14:42:49]   [23/105] skip   b5_solvers_split_mnist_accumulate_a10_s2  (cached)
+[2026-05-05T14:42:49]   [24/105] skip   b5_solvers_split_mnist_accumulate_a10_s3  (cached)
+[2026-05-05T14:42:49]   [25/105] skip   b5_solvers_split_mnist_accumulate_a10_s4  (cached)
+[2026-05-05T14:42:49]   [26/105] skip   b5_solvers_split_mnist_accumulate_a100_s0  (cached)
+[2026-05-05T14:42:49]   [27/105] skip   b5_solvers_split_mnist_accumulate_a100_s1  (cached)
+[2026-05-05T14:42:49]   [28/105] skip   b5_solvers_split_mnist_accumulate_a100_s2  (cached)
+[2026-05-05T14:42:49]   [29/105] skip   b5_solvers_split_mnist_accumulate_a100_s3  (cached)
+[2026-05-05T14:42:49]   [30/105] skip   b5_solvers_split_mnist_accumulate_a100_s4  (cached)
+[2026-05-05T14:42:49]   [31/105] skip   b5_solvers_split_mnist_accumulate_a1000_s0  (cached)
+[2026-05-05T14:42:49]   [32/105] skip   b5_solvers_split_mnist_accumulate_a1000_s1  (cached)
+[2026-05-05T14:42:49]   [33/105] skip   b5_solvers_split_mnist_accumulate_a1000_s2  (cached)
+[2026-05-05T14:42:49]   [34/105] skip   b5_solvers_split_mnist_accumulate_a1000_s3  (cached)
+[2026-05-05T14:42:49]   [35/105] skip   b5_solvers_split_mnist_accumulate_a1000_s4  (cached)
+[2026-05-05T14:42:49]   [36/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.001_s0  (cached)
+[2026-05-05T14:42:49]   [37/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.001_s1  (cached)
+[2026-05-05T14:42:49]   [38/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.001_s2  (cached)
+[2026-05-05T14:42:49]   [39/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.001_s3  (cached)
+[2026-05-05T14:42:49]   [40/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.001_s4  (cached)
+[2026-05-05T14:42:49]   [41/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.01_s0  (cached)
+[2026-05-05T14:42:49]   [42/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.01_s1  (cached)
+[2026-05-05T14:42:49]   [43/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.01_s2  (cached)
+[2026-05-05T14:42:49]   [44/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.01_s3  (cached)
+[2026-05-05T14:42:49]   [45/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.01_s4  (cached)
+[2026-05-05T14:42:49]   [46/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.1_s0  (cached)
+[2026-05-05T14:42:49]   [47/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.1_s1  (cached)
+[2026-05-05T14:42:49]   [48/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.1_s2  (cached)
+[2026-05-05T14:42:49]   [49/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.1_s3  (cached)
+[2026-05-05T14:42:49]   [50/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.1_s4  (cached)
+[2026-05-05T14:42:49]   [51/105] skip   b5_solvers_split_mnist_woodbury_batch_a1_s0  (cached)
+[2026-05-05T14:42:49]   [52/105] skip   b5_solvers_split_mnist_woodbury_batch_a1_s1  (cached)
+[2026-05-05T14:42:49]   [53/105] skip   b5_solvers_split_mnist_woodbury_batch_a1_s2  (cached)
+[2026-05-05T14:42:49]   [54/105] skip   b5_solvers_split_mnist_woodbury_batch_a1_s3  (cached)
+[2026-05-05T14:42:49]   [55/105] skip   b5_solvers_split_mnist_woodbury_batch_a1_s4  (cached)
+[2026-05-05T14:42:49]   [56/105] skip   b5_solvers_split_mnist_woodbury_batch_a10_s0  (cached)
+[2026-05-05T14:42:49]   [57/105] skip   b5_solvers_split_mnist_woodbury_batch_a10_s1  (cached)
+[2026-05-05T14:42:49]   [58/105] skip   b5_solvers_split_mnist_woodbury_batch_a10_s2  (cached)
+[2026-05-05T14:42:49]   [59/105] skip   b5_solvers_split_mnist_woodbury_batch_a10_s3  (cached)
+[2026-05-05T14:42:49]   [60/105] skip   b5_solvers_split_mnist_woodbury_batch_a10_s4  (cached)
+[2026-05-05T14:42:49]   [61/105] skip   b5_solvers_split_mnist_woodbury_batch_a100_s0  (cached)
+[2026-05-05T14:42:49]   [62/105] skip   b5_solvers_split_mnist_woodbury_batch_a100_s1  (cached)
+[2026-05-05T14:42:49]   [63/105] skip   b5_solvers_split_mnist_woodbury_batch_a100_s2  (cached)
+[2026-05-05T14:42:49]   [64/105] skip   b5_solvers_split_mnist_woodbury_batch_a100_s3  (cached)
+[2026-05-05T14:42:49]   [65/105] skip   b5_solvers_split_mnist_woodbury_batch_a100_s4  (cached)
+[2026-05-05T14:42:49]   [66/105] skip   b5_solvers_split_mnist_woodbury_batch_a1000_s0  (cached)
+[2026-05-05T14:42:49]   [67/105] skip   b5_solvers_split_mnist_woodbury_batch_a1000_s1  (cached)
+[2026-05-05T14:42:49]   [68/105] skip   b5_solvers_split_mnist_woodbury_batch_a1000_s2  (cached)
+[2026-05-05T14:42:49]   [69/105] skip   b5_solvers_split_mnist_woodbury_batch_a1000_s3  (cached)
+[2026-05-05T14:42:49]   [70/105] skip   b5_solvers_split_mnist_woodbury_batch_a1000_s4  (cached)
+[2026-05-05T14:42:49]   [71/105] skip   b5_solvers_split_mnist_woodbury_online_a0.001_s0  (cached)
+[2026-05-05T14:42:49]   [72/105] skip   b5_solvers_split_mnist_woodbury_online_a0.001_s1  (cached)
+[2026-05-05T14:42:49]   [73/105] skip   b5_solvers_split_mnist_woodbury_online_a0.001_s2  (cached)
+[2026-05-05T14:42:49]   [74/105] skip   b5_solvers_split_mnist_woodbury_online_a0.001_s3  (cached)
+[2026-05-05T14:42:49]   [75/105] skip   b5_solvers_split_mnist_woodbury_online_a0.001_s4  (cached)
+[2026-05-05T14:42:49]   [76/105] skip   b5_solvers_split_mnist_woodbury_online_a0.01_s0  (cached)
+[2026-05-05T14:42:49]   [77/105] skip   b5_solvers_split_mnist_woodbury_online_a0.01_s1  (cached)
+[2026-05-05T14:42:49]   [78/105] skip   b5_solvers_split_mnist_woodbury_online_a0.01_s2  (cached)
+[2026-05-05T14:42:49]   [79/105] skip   b5_solvers_split_mnist_woodbury_online_a0.01_s3  (cached)
+[2026-05-05T14:42:49]   [80/105] skip   b5_solvers_split_mnist_woodbury_online_a0.01_s4  (cached)
+[2026-05-05T14:42:49]   [81/105] skip   b5_solvers_split_mnist_woodbury_online_a0.1_s0  (cached)
+[2026-05-05T14:42:49]   [82/105] skip   b5_solvers_split_mnist_woodbury_online_a0.1_s1  (cached)
+[2026-05-05T14:42:49]   [83/105] skip   b5_solvers_split_mnist_woodbury_online_a0.1_s2  (cached)
+[2026-05-05T14:42:49]   [84/105] skip   b5_solvers_split_mnist_woodbury_online_a0.1_s3  (cached)
+[2026-05-05T14:42:49]   [85/105] skip   b5_solvers_split_mnist_woodbury_online_a0.1_s4  (cached)
+[2026-05-05T14:42:49]   [86/105] skip   b5_solvers_split_mnist_woodbury_online_a1_s0  (cached)
+[2026-05-05T14:42:49]   [87/105] skip   b5_solvers_split_mnist_woodbury_online_a1_s1  (cached)
+[2026-05-05T14:42:49]   [88/105] skip   b5_solvers_split_mnist_woodbury_online_a1_s2  (cached)
+[2026-05-05T14:42:49]   [89/105] skip   b5_solvers_split_mnist_woodbury_online_a1_s3  (cached)
+[2026-05-05T14:42:49]   [90/105] skip   b5_solvers_split_mnist_woodbury_online_a1_s4  (cached)
+[2026-05-05T14:42:49]   [91/105] skip   b5_solvers_split_mnist_woodbury_online_a10_s0  (cached)
+[2026-05-05T14:42:49]   [92/105] skip   b5_solvers_split_mnist_woodbury_online_a10_s1  (cached)
+[2026-05-05T14:42:49]   [93/105] skip   b5_solvers_split_mnist_woodbury_online_a10_s2  (cached)
+[2026-05-05T14:42:49]   [94/105] skip   b5_solvers_split_mnist_woodbury_online_a10_s3  (cached)
+[2026-05-05T14:42:49]   [95/105] skip   b5_solvers_split_mnist_woodbury_online_a10_s4  (cached)
+[2026-05-05T14:42:49]   [96/105] skip   b5_solvers_split_mnist_woodbury_online_a100_s0  (cached)
+[2026-05-05T14:42:49]   [97/105] skip   b5_solvers_split_mnist_woodbury_online_a100_s1  (cached)
+[2026-05-05T14:42:49]   [98/105] skip   b5_solvers_split_mnist_woodbury_online_a100_s2  (cached)
+[2026-05-05T14:42:49]   [99/105] skip   b5_solvers_split_mnist_woodbury_online_a100_s3  (cached)
+[2026-05-05T14:42:49]   [100/105] skip   b5_solvers_split_mnist_woodbury_online_a100_s4  (cached)
+[2026-05-05T14:42:49]   [101/105] skip   b5_solvers_split_mnist_woodbury_online_a1000_s0  (cached)
+[2026-05-05T14:42:49]   [102/105] skip   b5_solvers_split_mnist_woodbury_online_a1000_s1  (cached)
+[2026-05-05T14:42:49]   [103/105] skip   b5_solvers_split_mnist_woodbury_online_a1000_s2  (cached)
+[2026-05-05T14:42:49]   [104/105] skip   b5_solvers_split_mnist_woodbury_online_a1000_s3  (cached)
+[2026-05-05T14:42:49]   [105/105] skip   b5_solvers_split_mnist_woodbury_online_a1000_s4  (cached)
+[2026-05-05T14:42:49] phase b5_solvers_split_mnist done — 105 rows in results/cl_clean/b5_solvers_split_mnist.json
+[2026-05-06T16:22:29] phase=b5_solvers_split_mnist experiment=nef_continual_split_mnist knob=solver_alpha_cell values=['accumulate_a0.001', 'accumulate_a0.01', 'accumulate_a0.1', 'accumulate_a1', 'accumulate_a10', 'accumulate_a100', 'accumulate_a1000', 'woodbury_batch_a0.001', 'woodbury_batch_a0.01', 'woodbury_batch_a0.1', 'woodbury_batch_a1', 'woodbury_batch_a10', 'woodbury_batch_a100', 'woodbury_batch_a1000', 'woodbury_online_a0.001', 'woodbury_online_a0.01', 'woodbury_online_a0.1', 'woodbury_online_a1', 'woodbury_online_a10', 'woodbury_online_a100', 'woodbury_online_a1000'] seeds=[0, 1, 2, 3, 4] code_identity=ed891a3d7bbefb532fe876847b635a1fb871aa43
+[2026-05-06T16:22:29]   [1/105] skip   b5_solvers_split_mnist_accumulate_a0.001_s0  (cached)
+[2026-05-06T16:22:29]   [2/105] skip   b5_solvers_split_mnist_accumulate_a0.001_s1  (cached)
+[2026-05-06T16:22:29]   [3/105] skip   b5_solvers_split_mnist_accumulate_a0.001_s2  (cached)
+[2026-05-06T16:22:29]   [4/105] skip   b5_solvers_split_mnist_accumulate_a0.001_s3  (cached)
+[2026-05-06T16:22:29]   [5/105] skip   b5_solvers_split_mnist_accumulate_a0.001_s4  (cached)
+[2026-05-06T16:22:29]   [6/105] skip   b5_solvers_split_mnist_accumulate_a0.01_s0  (cached)
+[2026-05-06T16:22:29]   [7/105] skip   b5_solvers_split_mnist_accumulate_a0.01_s1  (cached)
+[2026-05-06T16:22:29]   [8/105] skip   b5_solvers_split_mnist_accumulate_a0.01_s2  (cached)
+[2026-05-06T16:22:29]   [9/105] skip   b5_solvers_split_mnist_accumulate_a0.01_s3  (cached)
+[2026-05-06T16:22:29]   [10/105] skip   b5_solvers_split_mnist_accumulate_a0.01_s4  (cached)
+[2026-05-06T16:22:29]   [11/105] skip   b5_solvers_split_mnist_accumulate_a0.1_s0  (cached)
+[2026-05-06T16:22:29]   [12/105] skip   b5_solvers_split_mnist_accumulate_a0.1_s1  (cached)
+[2026-05-06T16:22:29]   [13/105] skip   b5_solvers_split_mnist_accumulate_a0.1_s2  (cached)
+[2026-05-06T16:22:29]   [14/105] skip   b5_solvers_split_mnist_accumulate_a0.1_s3  (cached)
+[2026-05-06T16:22:29]   [15/105] skip   b5_solvers_split_mnist_accumulate_a0.1_s4  (cached)
+[2026-05-06T16:22:29]   [16/105] skip   b5_solvers_split_mnist_accumulate_a1_s0  (cached)
+[2026-05-06T16:22:29]   [17/105] skip   b5_solvers_split_mnist_accumulate_a1_s1  (cached)
+[2026-05-06T16:22:29]   [18/105] skip   b5_solvers_split_mnist_accumulate_a1_s2  (cached)
+[2026-05-06T16:22:29]   [19/105] skip   b5_solvers_split_mnist_accumulate_a1_s3  (cached)
+[2026-05-06T16:22:29]   [20/105] skip   b5_solvers_split_mnist_accumulate_a1_s4  (cached)
+[2026-05-06T16:22:29]   [21/105] skip   b5_solvers_split_mnist_accumulate_a10_s0  (cached)
+[2026-05-06T16:22:29]   [22/105] skip   b5_solvers_split_mnist_accumulate_a10_s1  (cached)
+[2026-05-06T16:22:29]   [23/105] skip   b5_solvers_split_mnist_accumulate_a10_s2  (cached)
+[2026-05-06T16:22:29]   [24/105] skip   b5_solvers_split_mnist_accumulate_a10_s3  (cached)
+[2026-05-06T16:22:29]   [25/105] skip   b5_solvers_split_mnist_accumulate_a10_s4  (cached)
+[2026-05-06T16:22:29]   [26/105] skip   b5_solvers_split_mnist_accumulate_a100_s0  (cached)
+[2026-05-06T16:22:29]   [27/105] skip   b5_solvers_split_mnist_accumulate_a100_s1  (cached)
+[2026-05-06T16:22:29]   [28/105] skip   b5_solvers_split_mnist_accumulate_a100_s2  (cached)
+[2026-05-06T16:22:29]   [29/105] skip   b5_solvers_split_mnist_accumulate_a100_s3  (cached)
+[2026-05-06T16:22:29]   [30/105] skip   b5_solvers_split_mnist_accumulate_a100_s4  (cached)
+[2026-05-06T16:22:29]   [31/105] skip   b5_solvers_split_mnist_accumulate_a1000_s0  (cached)
+[2026-05-06T16:22:29]   [32/105] skip   b5_solvers_split_mnist_accumulate_a1000_s1  (cached)
+[2026-05-06T16:22:29]   [33/105] skip   b5_solvers_split_mnist_accumulate_a1000_s2  (cached)
+[2026-05-06T16:22:29]   [34/105] skip   b5_solvers_split_mnist_accumulate_a1000_s3  (cached)
+[2026-05-06T16:22:29]   [35/105] skip   b5_solvers_split_mnist_accumulate_a1000_s4  (cached)
+[2026-05-06T16:22:29]   [36/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.001_s0  (cached)
+[2026-05-06T16:22:29]   [37/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.001_s1  (cached)
+[2026-05-06T16:22:29]   [38/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.001_s2  (cached)
+[2026-05-06T16:22:29]   [39/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.001_s3  (cached)
+[2026-05-06T16:22:29]   [40/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.001_s4  (cached)
+[2026-05-06T16:22:29]   [41/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.01_s0  (cached)
+[2026-05-06T16:22:29]   [42/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.01_s1  (cached)
+[2026-05-06T16:22:29]   [43/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.01_s2  (cached)
+[2026-05-06T16:22:29]   [44/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.01_s3  (cached)
+[2026-05-06T16:22:29]   [45/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.01_s4  (cached)
+[2026-05-06T16:22:29]   [46/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.1_s0  (cached)
+[2026-05-06T16:22:29]   [47/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.1_s1  (cached)
+[2026-05-06T16:22:29]   [48/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.1_s2  (cached)
+[2026-05-06T16:22:29]   [49/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.1_s3  (cached)
+[2026-05-06T16:22:29]   [50/105] skip   b5_solvers_split_mnist_woodbury_batch_a0.1_s4  (cached)
+[2026-05-06T16:22:29]   [51/105] skip   b5_solvers_split_mnist_woodbury_batch_a1_s0  (cached)
+[2026-05-06T16:22:29]   [52/105] skip   b5_solvers_split_mnist_woodbury_batch_a1_s1  (cached)
+[2026-05-06T16:22:29]   [53/105] skip   b5_solvers_split_mnist_woodbury_batch_a1_s2  (cached)
+[2026-05-06T16:22:29]   [54/105] skip   b5_solvers_split_mnist_woodbury_batch_a1_s3  (cached)
+[2026-05-06T16:22:29]   [55/105] skip   b5_solvers_split_mnist_woodbury_batch_a1_s4  (cached)
+[2026-05-06T16:22:29]   [56/105] skip   b5_solvers_split_mnist_woodbury_batch_a10_s0  (cached)
+[2026-05-06T16:22:29]   [57/105] skip   b5_solvers_split_mnist_woodbury_batch_a10_s1  (cached)
+[2026-05-06T16:22:29]   [58/105] skip   b5_solvers_split_mnist_woodbury_batch_a10_s2  (cached)
+[2026-05-06T16:22:29]   [59/105] skip   b5_solvers_split_mnist_woodbury_batch_a10_s3  (cached)
+[2026-05-06T16:22:29]   [60/105] skip   b5_solvers_split_mnist_woodbury_batch_a10_s4  (cached)
+[2026-05-06T16:22:29]   [61/105] skip   b5_solvers_split_mnist_woodbury_batch_a100_s0  (cached)
+[2026-05-06T16:22:29]   [62/105] skip   b5_solvers_split_mnist_woodbury_batch_a100_s1  (cached)
+[2026-05-06T16:22:29]   [63/105] skip   b5_solvers_split_mnist_woodbury_batch_a100_s2  (cached)
+[2026-05-06T16:22:29]   [64/105] skip   b5_solvers_split_mnist_woodbury_batch_a100_s3  (cached)
+[2026-05-06T16:22:29]   [65/105] skip   b5_solvers_split_mnist_woodbury_batch_a100_s4  (cached)
+[2026-05-06T16:22:29]   [66/105] skip   b5_solvers_split_mnist_woodbury_batch_a1000_s0  (cached)
+[2026-05-06T16:22:29]   [67/105] skip   b5_solvers_split_mnist_woodbury_batch_a1000_s1  (cached)
+[2026-05-06T16:22:29]   [68/105] skip   b5_solvers_split_mnist_woodbury_batch_a1000_s2  (cached)
+[2026-05-06T16:22:29]   [69/105] skip   b5_solvers_split_mnist_woodbury_batch_a1000_s3  (cached)
+[2026-05-06T16:22:29]   [70/105] skip   b5_solvers_split_mnist_woodbury_batch_a1000_s4  (cached)
+[2026-05-06T16:22:29]   [71/105] skip   b5_solvers_split_mnist_woodbury_online_a0.001_s0  (cached)
+[2026-05-06T16:22:29]   [72/105] skip   b5_solvers_split_mnist_woodbury_online_a0.001_s1  (cached)
+[2026-05-06T16:22:29]   [73/105] skip   b5_solvers_split_mnist_woodbury_online_a0.001_s2  (cached)
+[2026-05-06T16:22:29]   [74/105] skip   b5_solvers_split_mnist_woodbury_online_a0.001_s3  (cached)
+[2026-05-06T16:22:29]   [75/105] skip   b5_solvers_split_mnist_woodbury_online_a0.001_s4  (cached)
+[2026-05-06T16:22:29]   [76/105] skip   b5_solvers_split_mnist_woodbury_online_a0.01_s0  (cached)
+[2026-05-06T16:22:29]   [77/105] skip   b5_solvers_split_mnist_woodbury_online_a0.01_s1  (cached)
+[2026-05-06T16:22:29]   [78/105] skip   b5_solvers_split_mnist_woodbury_online_a0.01_s2  (cached)
+[2026-05-06T16:22:29]   [79/105] skip   b5_solvers_split_mnist_woodbury_online_a0.01_s3  (cached)
+[2026-05-06T16:22:29]   [80/105] skip   b5_solvers_split_mnist_woodbury_online_a0.01_s4  (cached)
+[2026-05-06T16:22:29]   [81/105] skip   b5_solvers_split_mnist_woodbury_online_a0.1_s0  (cached)
+[2026-05-06T16:22:29]   [82/105] skip   b5_solvers_split_mnist_woodbury_online_a0.1_s1  (cached)
+[2026-05-06T16:22:29]   [83/105] skip   b5_solvers_split_mnist_woodbury_online_a0.1_s2  (cached)
+[2026-05-06T16:22:29]   [84/105] skip   b5_solvers_split_mnist_woodbury_online_a0.1_s3  (cached)
+[2026-05-06T16:22:29]   [85/105] skip   b5_solvers_split_mnist_woodbury_online_a0.1_s4  (cached)
+[2026-05-06T16:22:29]   [86/105] skip   b5_solvers_split_mnist_woodbury_online_a1_s0  (cached)
+[2026-05-06T16:22:29]   [87/105] skip   b5_solvers_split_mnist_woodbury_online_a1_s1  (cached)
+[2026-05-06T16:22:29]   [88/105] skip   b5_solvers_split_mnist_woodbury_online_a1_s2  (cached)
+[2026-05-06T16:22:29]   [89/105] skip   b5_solvers_split_mnist_woodbury_online_a1_s3  (cached)
+[2026-05-06T16:22:29]   [90/105] skip   b5_solvers_split_mnist_woodbury_online_a1_s4  (cached)
+[2026-05-06T16:22:29]   [91/105] skip   b5_solvers_split_mnist_woodbury_online_a10_s0  (cached)
+[2026-05-06T16:22:29]   [92/105] skip   b5_solvers_split_mnist_woodbury_online_a10_s1  (cached)
+[2026-05-06T16:22:29]   [93/105] skip   b5_solvers_split_mnist_woodbury_online_a10_s2  (cached)
+[2026-05-06T16:22:29]   [94/105] skip   b5_solvers_split_mnist_woodbury_online_a10_s3  (cached)
+[2026-05-06T16:22:29]   [95/105] skip   b5_solvers_split_mnist_woodbury_online_a10_s4  (cached)
+[2026-05-06T16:22:29]   [96/105] skip   b5_solvers_split_mnist_woodbury_online_a100_s0  (cached)
+[2026-05-06T16:22:29]   [97/105] skip   b5_solvers_split_mnist_woodbury_online_a100_s1  (cached)
+[2026-05-06T16:22:29]   [98/105] skip   b5_solvers_split_mnist_woodbury_online_a100_s2  (cached)
+[2026-05-06T16:22:29]   [99/105] skip   b5_solvers_split_mnist_woodbury_online_a100_s3  (cached)
+[2026-05-06T16:22:29]   [100/105] skip   b5_solvers_split_mnist_woodbury_online_a100_s4  (cached)
+[2026-05-06T16:22:29]   [101/105] skip   b5_solvers_split_mnist_woodbury_online_a1000_s0  (cached)
+[2026-05-06T16:22:29]   [102/105] skip   b5_solvers_split_mnist_woodbury_online_a1000_s1  (cached)
+[2026-05-06T16:22:29]   [103/105] skip   b5_solvers_split_mnist_woodbury_online_a1000_s2  (cached)
+[2026-05-06T16:22:29]   [104/105] skip   b5_solvers_split_mnist_woodbury_online_a1000_s3  (cached)
+[2026-05-06T16:22:29]   [105/105] skip   b5_solvers_split_mnist_woodbury_online_a1000_s4  (cached)
+[2026-05-06T16:22:29] phase b5_solvers_split_mnist done — 105 rows in results/cl_clean/b5_solvers_split_mnist.json

@@ -597,11 +597,16 @@ class ConvNEFPipeline(nn.Module):
                 per copy.
         """
         N = images.shape[0]
-        g = torch.Generator(device=images.device).manual_seed(seed)
+        # Keep the parent RNG on CPU. Some later initialization steps
+        # (notably NEFLayer center sampling) still draw on CPU even when
+        # the model/data live on CUDA, so the parent generator must remain
+        # device-agnostic and only the child generators should be
+        # specialized to the target tensor device.
+        g = torch.Generator().manual_seed(seed)
 
         # Subsample indices for stage fitting and center selection
         sub_n = min(fit_subsample, N)
-        sub_idx = torch.randperm(N, generator=g, device=images.device)[:sub_n]
+        sub_idx = torch.randperm(N, generator=g)[:sub_n].to(images.device)
         sub_images = self._preprocess(images[sub_idx])
 
         # Fit stages on subsample
@@ -650,7 +655,7 @@ class ConvNEFPipeline(nn.Module):
             self.n_neurons,
             targets.shape[1],
             centers=centers,
-            rng=fork_generator(g, device=images.device),
+            rng=fork_generator(g),
             **head_kwargs,
         )
         self.head = self.head.to(images.device)
