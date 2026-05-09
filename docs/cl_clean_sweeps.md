@@ -627,8 +627,8 @@ map is fixed from first-task centers.
 * Source workflow:
   `colab/cl_clean/streaming_permuted_smnist_gpu_suite.py --seeds 0-4`
   followed by the `--extended` cells.
-* Hardware in the imported rows: CUDA enabled Colab GPU (L4-class in the
-  runner log header).
+* Hardware in the imported rows: **Google Colab G4 GPU**, CUDA enabled,
+  NVIDIA RTX PRO 6000 Blackwell Server Edition, 95.0 GiB.
 * Code identity in all imported rows:
   `1436af7f8cda2a617d465b1f5a0e8db57d3de551`.
 * Imported artifacts:

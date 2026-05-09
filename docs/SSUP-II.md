@@ -42,16 +42,16 @@ center-bank policies turn out not to matter once a single first-task
 bank is in place.  A gradient-free ConvNEF front-end lifts the
 Split-CIFAR-10 ceiling from 49.5 % to **74.7 ± 0.1 %** without breaking
 additivity: the continual `partial_fit` path is bit-identical in
-accuracy to the one-shot joint fit at every neuron count tested.  A new
+accuracy to the one-shot joint fit at every neuron count tested.  A
 streaming-continual follow-up shows the boundary of the claim: the exact
 accumulate/joint identity still holds through a mean-pooled delay-line
 feature map, but the exact final solve is weak on 10-task permuted
 sMNIST, while online Woodbury reaches **59.8 ± 0.3 %** at 16 000 neurons
 without matching the exact solve.  These results are not "another CL
 method"; they are the structural consequence — and the structural limit
-— of treating $A^\top A$, $A^\top Y$ as the universe (Paper I, P3) and
-letting `partial_fit` be the only operation a learner ever performs on a
-task stream.
+— of the P3 principle that $A^\top A$, $A^\top Y$ are the universe, and
+of letting `partial_fit` be the only operation a learner ever performs
+on a task stream.
 
 ---
 
@@ -657,7 +657,8 @@ We also record:
 
 Wall-clock numbers come from the same hardware for all rows
 within a panel (single CPU socket for the headline panels; an
-NVIDIA L4 GPU for the ConvNEF panel of §5.6).
+NVIDIA L4 GPU for the ConvNEF panel of §5.6; a Google Colab G4
+GPU for the streaming panel of §5.7).
 Cross-panel wall-clock comparisons are only made within the
 same hardware.  When we say a method "uses $k\times$ less
 wall-clock time" we mean the ratio of mean fitting/training time.
@@ -1054,7 +1055,8 @@ streaming classifier of Paper I §6.  Each task is a full MNIST
 classification problem under a fresh fixed pixel permutation, reshaped
 as a 784-step sequence with one scalar per timestep.  The feature map is
 fixed from first-task centers and the model sees ten task permutations.
-The panel was run on an NVIDIA L4 GPU with 5 seeds per cell.
+The panel was run on a Google Colab G4 GPU (NVIDIA RTX PRO 6000
+Blackwell Server Edition, 95.0 GiB) with 5 seeds per cell.
 
 | Cell | n | Final accuracy | Fit time |
 | --- | ---: | ---: | ---: |
@@ -1370,9 +1372,11 @@ uses an L4-class GPU and is launched through
 generated configs are saved alongside its results JSON for
 post-hoc audit.  The streaming continual panel uses the same
 Colab pattern through
-`colab/cl_clean/streaming_permuted_smnist_gpu_suite.ipynb`; its rows
-carry a later H8 code identity and are audited as a homogeneous imported
-bundle rather than mixed with the CPU B-series rows.
+`colab/cl_clean/streaming_permuted_smnist_gpu_suite.ipynb` on a
+Google Colab G4 GPU (NVIDIA RTX PRO 6000 Blackwell Server
+Edition, 95.0 GiB); its rows carry a later H8 code identity and
+are audited as a homogeneous imported bundle rather than mixed
+with the CPU B-series rows.
 
 ---
 

@@ -88,7 +88,8 @@ rl_clean infrastructure.
   result synthesis and execution log.
 - [`docs/SSUP-I.md`](docs/SSUP-I.md) and
   [`docs/SSUP-II.md`](docs/SSUP-II.md) — current manuscripts; keep
-  abstracts synchronized with README.
+  their abstracts synchronized with the corresponding README block
+  quotes.
 - [`attic/docs/b1_followups.md`](attic/docs/b1_followups.md) — queued
   H1-completion experiment specs (B1.4 / B1.5 DC-mechanism falsifiers).
 - [`attic/docs/technical_report.md`](attic/docs/technical_report.md) —
@@ -125,7 +126,16 @@ rl_clean infrastructure.
 
 - Keep the current abstracts for each SSUP paper in `README.md`.  When a
   manuscript abstract changes materially, update the corresponding README
-  quote in the same commit or the next docs-only commit.
+  quote in the same commit; if a shared claim changes, check both abstract
+  quotes before committing.
+- Write abstracts and main text from the finished-paper reader's
+  perspective.  Do not call experiments, panels, figures, or results
+  "new", "recent", "upcoming", or similar merely because they were added
+  in the current editing session; reserve chronological language for
+  sweep logs and handover notes.
+- Once a paper repeats the six principles internally, principle references
+  inside that paper should be internal (`P3`, `P6`), not qualified as
+  "Paper I, P3" or similar.
 - The paper must be self-contained. Do **not** refer readers to
   repository paths, notes files, result JSON filenames, driver scripts,
   or other repo-internal files in the main text. Appendix A may list

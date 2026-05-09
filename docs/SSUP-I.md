@@ -661,11 +661,11 @@ are fixed once the *first* training batch is seen:
    $U(0.5, 2.0)$, $\alpha = 10^{-2}$) and solve its decoder
    analytically.
 
-There is no gradient anywhere.  The PCA filters are buffered
-once; the NEF layer's encoders, biases, and gains are sampled
-once; the final decoder is a single regularized least-squares
-solve.  Reproducibility, code-identity, and dataset hashing
-inherit from the rest of the suite.
+There is no gradient anywhere.  The PCA filters are fixed after
+calibration; the NEF layer's encoders, biases, and gains are
+sampled once; the final decoder is a single regularized
+least-squares solve.  The exact artifact and reproducibility
+metadata live in Appendix A rather than in the main text.
 
 **Default panel.**  Five seeds, single PCA stage with $F = 64$
 filters at $k = 5$, NEF head at $n = 4\,000$.  Augmentation off.
@@ -994,9 +994,10 @@ can follow the threads back to where the ideas originated.
   completed ESN row panel at ~5× less wall-clock time.
 - **A reproducibility infrastructure** that makes multi-seed
   analytic-readout studies cheap and resumable.  This is an
-  enabling contribution rather than a new learning algorithm: every
-  numeric claim in the paper is backed by preserved per-seed rows
-  with code-identity hashes, dataset hashes, and full configurations.
+  enabling contribution rather than a new learning algorithm:
+  every numeric claim in the paper is backed by preserved
+  per-seed artifacts; Appendix A records the concrete metadata
+  fields and replay mechanics.
 
 **Negative results.**
 
