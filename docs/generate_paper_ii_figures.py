@@ -156,7 +156,9 @@ def figure_f3() -> Path:
     for ax, (title, file_name) in zip(axes, files):
         rows = _load_rows(RESULTS / file_name)
         best: dict[str, tuple[float, float, float]] = {}
-        by_solver_alpha = _group(rows, lambda r: str(r.get("config", {}).get("solver_alpha_cell", "")))
+        by_solver_alpha = _group(
+            rows, lambda r: str(r.get("config", {}).get("solver_alpha_cell", ""))
+        )
         by_solver: dict[str, list[tuple[float, float, float]]] = defaultdict(list)
         for cell, group in by_solver_alpha.items():
             solver, _, alpha = cell.partition("_a")

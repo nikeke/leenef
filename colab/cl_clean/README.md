@@ -1,6 +1,13 @@
-# Split-CIFAR-10 continual ConvNEF GPU suite (Colab)
+# Paper-II continual GPU suites (Colab)
 
-This directory contains the Paper-II **Phase C** Colab assets:
+This directory contains two Paper-II Colab packages:
+
+1. the Split-CIFAR-10 ConvNEF continual panel used in the current
+   manuscript; and
+2. the H8 streaming-continual follow-up panel, designed but not yet part
+   of the manuscript claims.
+
+## Split-CIFAR-10 ConvNEF suite
 
 | Panel | Experiment | Cells | Seeds | Why it is included |
 |------|------------|-------|-------|--------------------|
@@ -33,7 +40,7 @@ Per `AGENTS.md`, **G4** is preferred if Colab offers it at the usual
 ~5 CU/hr rate.  **L4** is the fallback.  The suite fits comfortably on
 either card; A100/H100 are unnecessary here.
 
-## Running in Colab
+## Running the ConvNEF suite in Colab
 
 1. Push this branch, or edit the notebook's `BRANCH` variable to a
    pushed ref that contains these files.
@@ -47,6 +54,52 @@ either card; A100/H100 are unnecessary here.
 By default the notebook clones **`paper-ii/cl-scaffold`**, because the
 Phase-C package is committed here rather than on
 `paper-ii/cl-experiments`.
+
+## H8 streaming continual suite
+
+The H8 suite is:
+
+```text
+streaming_permuted_smnist_gpu_suite.ipynb
+streaming_permuted_smnist_gpu_suite.py
+```
+
+It runs `h8_streaming_permuted_smnist` through the standard phase runner
+on a 10-task permuted sequential-MNIST stream.  The default cells are:
+
+```text
+accumulate_final_n4000
+accumulate_task_solve_n4000
+woodbury_online_n4000
+joint_n4000
+reset_n4000
+accumulate_final_n8000
+woodbury_online_n8000
+joint_n8000
+reset_n8000
+```
+
+Default command:
+
+```bash
+python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py --seeds 0-4
+```
+
+Quick validation:
+
+```bash
+python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py --quick --seeds 0
+```
+
+Optional extension:
+
+```bash
+python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py --seeds 0-4 --extended
+```
+
+Use G4 if available, L4 fallback.  The suite is expected to be too slow
+for CPU because it multiplies the already-expensive permuted-sMNIST
+streaming solve by 10 task permutations and multiple solver modes.
 
 ## Quick validation
 

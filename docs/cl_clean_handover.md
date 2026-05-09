@@ -62,8 +62,12 @@ in flight unless you intend to stop and restart those panels.
    Includes `accumulate`, `woodbury_batch`, and `woodbury_online`
    cells over the fixed-alpha grid.
 6. **C1, C2** ConvNEF-CL panels — launched from
-   `colab/cl_clean/continual_cifar10_gpu_suite.py` on
-   `paper-ii/cl-scaffold`, not from `paper-ii/cl-experiments`.
+    `colab/cl_clean/continual_cifar10_gpu_suite.py` on
+    `paper-ii/cl-scaffold`, not from `paper-ii/cl-experiments`.
+7. **H8 streaming-continual follow-up** — launched from
+   `colab/cl_clean/streaming_permuted_smnist_gpu_suite.ipynb` (or its
+   `.py` runner) on `main`.  This is not yet part of the Paper-II
+   claims; it is the next benchmark-grade panel for the §6 forward look.
 
 After each phase sentinel:
 
@@ -107,6 +111,102 @@ directly, writes GPU config snapshots under
 `results/cl_clean/colab_gpu_configs/`, runs the standard
 `benchmarks.cl_clean.cl_phase_runner`, and bundles the returned JSON/log
 artifacts for manual import back into this branch.
+
+## H8 streaming-continual GPU panel
+
+Use Colab/GPU for this panel.  CPU single-task permuted-sMNIST already
+costs tens of minutes per seed at larger neuron counts, and the H8 panel
+multiplies that by 10 task permutations and several solver modes.  A G4
+runtime is preferred if available; L4 is the fallback.  The default
+suite stays below the user's 80-CU ceiling; use `--extended` only if the
+default panel finishes cleanly and budget remains.
+
+Notebook pattern:
+
+```text
+colab/cl_clean/streaming_permuted_smnist_gpu_suite.ipynb
+```
+
+The notebook follows the Paper-I Colab pattern literally:
+
+1. markdown suite intro + preferred GPU;
+2. CUDA check cell;
+3. shell-style clone/setup cell (`%cd`, `!git clone --branch main`, `!test -f ...`);
+4. `!pip install -q -e '.[dev]'`;
+5. run cell with quick command commented above the full command;
+6. zip/download cell.
+
+Quick validation:
+
+```bash
+python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py --quick --seeds 0
+```
+
+Default full panel:
+
+```bash
+python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py --seeds 0-4
+```
+
+Default cells:
+
+```text
+accumulate_final_n4000
+accumulate_task_solve_n4000
+woodbury_online_n4000
+joint_n4000
+reset_n4000
+accumulate_final_n8000
+woodbury_online_n8000
+joint_n8000
+reset_n8000
+```
+
+Optional extension (only after the default panel lands):
+
+```bash
+python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py --seeds 0-4 --extended
+```
+
+The extension adds:
+
+```text
+accumulate_final_n16000
+joint_n16000
+woodbury_online_n16000
+```
+
+Expected outputs:
+
+```text
+results/cl_clean/gpu_h8_streaming_permuted_smnist_panel.json
+results/cl_clean/logs/gpu_h8_streaming_permuted_smnist_panel.log
+results/cl_clean/colab_gpu_configs/base_config_gpu_h8_streaming_permuted_smnist.json
+results/cl_clean/cl_clean_streaming_smnist_gpu_bundle.zip
+```
+
+Import protocol after download:
+
+1. unzip the bundle into the repository root;
+2. run `python -m benchmarks.cl_clean.analyze_cl_panel` on the imported
+   JSON and check for errors/cached old-code rows;
+3. append the panel block to `docs/cl_clean_sweeps.md`;
+4. append only outcome-level interpretation to `docs/cl_clean_notes.md`;
+5. do **not** add the result to `docs/SSUP-II.md` until the numbers have
+   been independently checked against the JSON.
+
+Panel interpretation targets:
+
+* `accumulate_final` vs `joint`: should be equal to all stored accuracy
+  digits if the sufficient-statistic identity carries through the
+  streaming feature map.
+* `woodbury_online` vs `accumulate_final`: tests whether real online
+  decoder availability preserves the same final accuracy at practical
+  batch size.
+* `accumulate_task_solve_n4000`: measures the cost of making an
+  accumulate-only decoder available after every task; it should be
+  accurate but may be much slower than the final-only solve.
+* `reset`: lower bound that sees only the final permutation.
 
 ## Driver edits
 

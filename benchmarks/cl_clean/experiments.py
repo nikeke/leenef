@@ -18,6 +18,7 @@ tests.  Headline-claim experiments are added below.
 
 from __future__ import annotations
 
+import hashlib
 import time
 from dataclasses import dataclass
 from typing import Callable
@@ -26,10 +27,11 @@ import torch
 
 from leenef.layers import NEFLayer
 from leenef.solvers import solve_from_normal_equations
+from leenef.streaming import StreamingNEFClassifier
 
 from ._c1_convnef_cl_exp import PHASE_C_CONVNEF_CELLS, convnef_cl_run
 from .cl_repro import set_cl_seed
-from .datasets import make_task_stream
+from .datasets import load_base_dataset, make_task_stream
 
 RunFn = Callable[[dict, int, dict], dict]
 ContextFn = Callable[[], dict]
@@ -221,6 +223,12 @@ def _make_gain_tensor(
 def _one_hot(y: torch.Tensor, n_classes: int) -> torch.Tensor:
     oh = torch.zeros(y.shape[0], n_classes, dtype=torch.float32)
     oh[torch.arange(y.shape[0]), y] = 1.0
+    return oh
+
+
+def _sequence_one_hot(y: torch.Tensor, n_classes: int, *, device: torch.device) -> torch.Tensor:
+    oh = torch.zeros(y.shape[0], n_classes, dtype=torch.float32, device=device)
+    oh[torch.arange(y.shape[0], device=device), y.to(device)] = 1.0
     return oh
 
 
@@ -633,6 +641,218 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
     return metrics
 
 
+_STREAMING_CL_SOLVERS = (
+    "accumulate_final",
+    "accumulate_task_solve",
+    "woodbury_online",
+    "joint",
+    "reset",
+)
+
+
+def _parse_streaming_cell(raw: object, default_n: int) -> tuple[str, int]:
+    text = str(raw)
+    if "_n" not in text:
+        if text in _STREAMING_CL_SOLVERS:
+            return text, default_n
+        raise ValueError(f"streaming cell must look like 'woodbury_online_n4000', got {text!r}")
+    solver, n_text = text.rsplit("_n", 1)
+    if solver not in _STREAMING_CL_SOLVERS:
+        raise ValueError(f"unknown streaming solver {solver!r}; expected {_STREAMING_CL_SOLVERS}")
+    return solver, int(n_text)
+
+
+def _make_sequence_permutations(*, seed: int, n_tasks: int, d_in: int) -> tuple[torch.Tensor, ...]:
+    g = torch.Generator().manual_seed(seed * 1_000_003 + 97)
+    return tuple(torch.randperm(d_in, generator=g) for _ in range(n_tasks))
+
+
+def _permutation_hash(perms: tuple[torch.Tensor, ...]) -> str:
+    h = hashlib.sha256()
+    h.update(len(perms).to_bytes(8, "little", signed=False))
+    for perm in perms:
+        h.update(perm.cpu().numpy().tobytes())
+    return h.hexdigest()
+
+
+def _iter_permuted_sequence_batches(
+    x_flat: torch.Tensor,
+    y: torch.Tensor,
+    perm: torch.Tensor,
+    *,
+    batch_size: int,
+    device: torch.device,
+):
+    for start in range(0, x_flat.shape[0], batch_size):
+        end = min(start + batch_size, x_flat.shape[0])
+        xb = x_flat[start:end, perm].unsqueeze(-1).contiguous().to(device)
+        yb = y[start:end]
+        yield start, end, xb, yb
+
+
+def _eval_streaming_per_task(
+    model: StreamingNEFClassifier,
+    *,
+    x_flat: torch.Tensor,
+    y: torch.Tensor,
+    perms: tuple[torch.Tensor, ...],
+    batch_size: int,
+    device: torch.device,
+) -> tuple[list[float], float]:
+    per_task = []
+    n_correct_total = 0
+    n_total = 0
+    with torch.no_grad():
+        for perm in perms:
+            n_correct = 0
+            for _, _, xb, yb in _iter_permuted_sequence_batches(
+                x_flat, y, perm, batch_size=batch_size, device=device
+            ):
+                pred = model(xb).argmax(dim=1).cpu()
+                n_correct += int((pred == yb).sum())
+            per_task.append(round(n_correct / y.shape[0], 6))
+            n_correct_total += n_correct
+            n_total += int(y.shape[0])
+    return per_task, round(n_correct_total / n_total, 6)
+
+
+def _streaming_cl_run(config: dict, seed: int, run_context: dict) -> dict:
+    """Streaming-NEF continual panel on permuted sequential MNIST.
+
+    Each task is the full MNIST classification problem under a fresh fixed
+    pixel permutation, reshaped as a 784-step sequence with one scalar per
+    timestep.  The feature map is built once from first-task centers and
+    then held fixed, so the panel tests whether the streaming Woodbury path
+    preserves the same additivity story as the static CL panels.
+    """
+
+    set_cl_seed(seed)
+    config = dict(config)
+    run_context = dict(run_context)
+    solver_mode, n_neurons = _parse_streaming_cell(config.get("cell"), int(config["n_neurons"]))
+    config["n_neurons"] = n_neurons
+
+    n_tasks = int(run_context.get("n_tasks", config.get("n_tasks", 10)))
+    device = torch.device(
+        str(config.get("device", "cuda" if torch.cuda.is_available() else "cpu"))
+    )
+    batch_size = int(config.get("batch_size", 256))
+    eval_batch_size = int(config.get("eval_batch_size", batch_size))
+    max_tokens = int(config.get("max_tokens", 50_000))
+    alpha = float(config["alpha"])
+    window_size = int(config.get("window_size", 10))
+    center_samples = int(config.get("center_samples", 4096))
+    chunk_stats = bool(config.get("chunk_stats", True))
+
+    bundle = load_base_dataset("MNIST")
+    x_train = bundle.x_train
+    y_train = bundle.y_train
+    x_test = bundle.x_test
+    y_test = bundle.y_test
+    d_in = int(x_train.shape[1])
+    perms = _make_sequence_permutations(seed=seed, n_tasks=n_tasks, d_in=d_in)
+    perm_hash = _permutation_hash(perms)
+
+    rngs = _make_subrngs(seed)
+    center_idx = torch.randint(x_train.shape[0], (center_samples,), generator=rngs["center_index"])
+    centers = x_train[center_idx][:, perms[0]].unsqueeze(-1).contiguous()
+    model = StreamingNEFClassifier(
+        d_timestep=1,
+        n_neurons=n_neurons,
+        d_out=bundle.n_classes,
+        window_size=window_size,
+        activation=str(config.get("activation", "abs")),
+        encoder_strategy=str(config.get("encoder_strategy", "hypersphere")),
+        gain=(float(config["gain_low"]), float(config["gain_high"])),
+        rng=rngs["encoder"],
+        centers=centers,
+    ).to(device)
+
+    t0 = time.perf_counter()
+    if solver_mode in {"accumulate_final", "joint", "accumulate_task_solve"}:
+        for perm in perms:
+            for _, _, xb, yb in _iter_permuted_sequence_batches(
+                x_train, y_train, perm, batch_size=batch_size, device=device
+            ):
+                model.accumulate(
+                    xb,
+                    _sequence_one_hot(yb, bundle.n_classes, device=device),
+                    max_tokens=max_tokens,
+                    chunk_stats=chunk_stats,
+                )
+            if solver_mode == "accumulate_task_solve":
+                model.solve(alpha=alpha)
+        if solver_mode != "accumulate_task_solve":
+            model.solve(alpha=alpha)
+    elif solver_mode == "woodbury_online":
+        for perm in perms:
+            for _, _, xb, yb in _iter_permuted_sequence_batches(
+                x_train, y_train, perm, batch_size=batch_size, device=device
+            ):
+                model.continuous_fit(
+                    xb,
+                    _sequence_one_hot(yb, bundle.n_classes, device=device),
+                    alpha=alpha,
+                    max_tokens=max_tokens,
+                )
+    elif solver_mode == "reset":
+        for _, _, xb, yb in _iter_permuted_sequence_batches(
+            x_train, y_train, perms[-1], batch_size=batch_size, device=device
+        ):
+            model.accumulate(
+                xb,
+                _sequence_one_hot(yb, bundle.n_classes, device=device),
+                max_tokens=max_tokens,
+                chunk_stats=chunk_stats,
+            )
+        model.solve(alpha=alpha)
+    else:
+        raise ValueError(f"unsupported streaming solver {solver_mode!r}")
+    fit_s = time.perf_counter() - t0
+
+    per_task_acc, avg_acc = _eval_streaming_per_task(
+        model,
+        x_flat=x_test,
+        y=y_test,
+        perms=perms,
+        batch_size=eval_batch_size,
+        device=device,
+    )
+
+    return {
+        "test_accuracy": avg_acc,
+        "per_task_accuracy": per_task_acc,
+        "fit_time_s": round(fit_s, 4),
+        "solver_mode": solver_mode,
+        "effective_n_neurons": n_neurons,
+        "effective_n_tasks": n_tasks,
+        "alpha": alpha,
+        "window_size": window_size,
+        "center_samples": center_samples,
+        "permutation_hash": perm_hash,
+        "stream_metadata": {
+            "base_dataset": "MNIST",
+            "scenario": "permuted_smnist_stream",
+            "n_tasks": n_tasks,
+            "n_classes": bundle.n_classes,
+            "sequence_shape": [d_in, 1],
+            "stream_seed": seed,
+            "permutation_hash": perm_hash,
+        },
+        "dataset_metadata": {
+            "base_dataset": "MNIST",
+            "scenario": "permuted_smnist_stream",
+            "n_tasks": n_tasks,
+            "n_classes": bundle.n_classes,
+            "raw_hashes": dict(bundle.raw_hashes),
+            "processed_hashes": {
+                **dict(bundle.processed_hashes),
+                "permutations": perm_hash,
+            },
+        },
+    }
+
+
 def _nef_cl_context_factory(*, base_dataset: str, scenario: str, n_tasks: int) -> ContextFn:
     def _ctx() -> dict:
         return {
@@ -715,6 +935,30 @@ register(
         description=(
             "Paper II Phase C ConvNEF continual-learning panel on Split-CIFAR-10. "
             f"Cells: {PHASE_C_CONVNEF_CELLS}."
+        ),
+    )
+)
+
+
+def _streaming_cl_context() -> dict:
+    return {
+        "experiment_kind": "streaming_nef_continual",
+        "base_dataset": "MNIST",
+        "scenario": "permuted_smnist_stream",
+        "n_tasks": 10,
+    }
+
+
+register(
+    ExperimentSpec(
+        name="h8_streaming_permuted_smnist",
+        run_fn=_streaming_cl_run,
+        default_run_context=_streaming_cl_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=(
+            "Paper II follow-up streaming continual panel: StreamingNEFClassifier "
+            "on a 10-task permuted sequential-MNIST stream."
         ),
     )
 )
