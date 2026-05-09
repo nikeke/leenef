@@ -4,10 +4,11 @@ Machine learning with a rate-based specialization of the Neural
 Engineering Framework (NEF) in PyTorch.
 
 > **Repository status — SSUP trilogy rebuild.** The stable core lives in
-> `src/leenef/` and `tests/`.  Active supervised-learning experiments and
-> preserved artifacts live under `benchmarks/sl_clean/`,
-> `results/sl_clean/`, and `docs/SSUP-I.md`; older pre-restart
-> infrastructure remains in `attic/` for reference.
+> `src/leenef/` and `tests/`.  Active supervised-learning and
+> continual-learning experiments and preserved artifacts live under
+> `benchmarks/{sl_clean,cl_clean}/`, `results/{sl_clean,cl_clean}/`,
+> and `docs/SSUP-{I,II}.md`; older pre-restart infrastructure remains
+> in `attic/` for reference.
 
 ## Overview
 
@@ -32,9 +33,10 @@ statistics `AᵀA` and `AᵀY`.  The same primitive supports:
 - multi-layer and recurrent variants for controlled comparisons
 - reinforcement-learning agents built on the same analytic solve
 
-The current supervised-learning paper is
-[`docs/SSUP-I.md`](docs/SSUP-I.md).  It is the authoritative source for
-the repository's present claims, numbers, and caveats.
+The current supervised-learning and continual-learning papers are
+[`docs/SSUP-I.md`](docs/SSUP-I.md) and
+[`docs/SSUP-II.md`](docs/SSUP-II.md).  They are the authoritative source
+for the repository's present claims, numbers, and caveats.
 
 Paper I frames the current supervised-learning story like this:
 
@@ -63,6 +65,24 @@ Paper I frames the current supervised-learning story like this:
 > priors, purely analytic depth does not buy accuracy on its own, and
 > mean-pooled delay-line features lose the long-range order
 > information needed for harder sequence tasks.
+
+Paper II frames the current continual-learning story like this:
+
+> The same regularized least-squares solve
+> `D = (AᵀA + αI)⁻¹ AᵀY` that Paper I used for static supervised
+> learning is, under fixed-encoder NEF features, automatically a
+> continual learner.  Because `AᵀA` and `AᵀY` are additive over data
+> partitions, sequential `partial_fit` over a non-stationary task
+> stream produces the same decoder as joint training over the union of
+> tasks; the "forgetting" axis has length zero by construction.  Across
+> Split-MNIST, Permuted-MNIST, Split-CIFAR-10, and Split-CIFAR-100,
+> `nef_accumulate` matches `nef_joint` to **0.000000 pp** over 10 seeds.
+> The result collapses class-incremental forgetting in the tested MLP
+> baselines while preserving important limits: EWC and joint MLP remain
+> stronger on domain-incremental Permuted-MNIST, and the absolute ceiling
+> is still set by the fixed feature map inherited from Paper I.  Adding
+> a gradient-free ConvNEF front end lifts Split-CIFAR-10 from **49.5 %**
+> to **74.7 ± 0.1 %** without breaking the additivity property.
 
 ## Quick start
 
@@ -146,13 +166,18 @@ PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
 PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
     bash benchmarks/sl_clean/sl_hp_driver.sh biases_mnist_decentered
 
-# Regenerate the paper figures
+# Regenerate the Paper-I figures
 python3 docs/generate_paper_i_figures.py
+
+# Build Paper I / Paper II PDFs
+bash docs/build_ssup_pdf.sh docs/SSUP-I.md docs/SSUP-I.pdf
+bash docs/build_ssup_pdf.sh docs/SSUP-II.md docs/SSUP-II.pdf
 ```
 
 All paper-grade result rows carry a code identity, dataset hashes, full
 config dictionaries, per-seed metrics, and aggregate summaries.  The
-preserved JSON/log artifacts used by Paper I live in `results/sl_clean/`.
+preserved JSON/log artifacts used by Papers I and II live in
+`results/sl_clean/` and `results/cl_clean/`.
 
 ## Components
 
@@ -169,5 +194,7 @@ preserved JSON/log artifacts used by Paper I live in `results/sl_clean/`.
 | `src/leenef/activations.py` | Activations: `abs`, `relu`, `softplus`, `lif_rate` |
 | `src/leenef/solvers.py` | Decoder solvers and normal-equation utilities |
 | `benchmarks/sl_clean/` | Active reproducible supervised-learning sweep harness for Paper I |
+| `benchmarks/cl_clean/` | Active reproducible continual-learning sweep harness for Paper II |
 | `results/sl_clean/` | Preserved multi-seed result rows, summaries, and logs used by Paper I |
+| `results/cl_clean/` | Preserved multi-seed result rows, summaries, and logs used by Paper II |
 | `attic/` | Archived pre-restart infrastructure, reports, and notes kept for historical reference |

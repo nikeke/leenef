@@ -66,11 +66,13 @@ PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
 > commands have moved to `attic/`; only the `sl_clean` block above is
 > live.  See `docs/sl_clean_sweeps.md` for the running phase log.
 
-## SSUP paper series (Paper I — Supervised Learning)
+## SSUP paper series (Papers I–II)
 
 Paper I owns the `benchmarks/sl_clean/`, `results/sl_clean/`,
-`docs/sl_clean_sweeps.md` trio, modeled after the rl_clean
-infrastructure.
+`docs/sl_clean_sweeps.md` trio.  Paper II owns the parallel
+`benchmarks/cl_clean/`, `results/cl_clean/`, `docs/cl_clean_sweeps.md`,
+and `docs/cl_clean_handover.md` set.  Both stacks are modeled after the
+rl_clean infrastructure.
 
 **Documents you should read before non-trivial work:**
 
@@ -81,6 +83,12 @@ infrastructure.
   view, H8 linear collapse).  This is the **spine** of Paper I.
 - [`docs/sl_clean_sweeps.md`](docs/sl_clean_sweeps.md) — chronological
   execution log of B-phases (configs, sentinels, dates, raw verdicts).
+- [`docs/cl_clean_notes.md`](docs/cl_clean_notes.md) and
+  [`docs/cl_clean_sweeps.md`](docs/cl_clean_sweeps.md) — Paper II CL
+  result synthesis and execution log.
+- [`docs/SSUP-I.md`](docs/SSUP-I.md) and
+  [`docs/SSUP-II.md`](docs/SSUP-II.md) — current manuscripts; keep
+  abstracts synchronized with README.
 - [`attic/docs/b1_followups.md`](attic/docs/b1_followups.md) — queued
   H1-completion experiment specs (B1.4 / B1.5 DC-mechanism falsifiers).
 - [`attic/docs/technical_report.md`](attic/docs/technical_report.md) —
@@ -115,6 +123,9 @@ infrastructure.
 
 **Manuscript rules:**
 
+- Keep the current abstracts for each SSUP paper in `README.md`.  When a
+  manuscript abstract changes materially, update the corresponding README
+  quote in the same commit or the next docs-only commit.
 - The paper must be self-contained. Do **not** refer readers to
   repository paths, notes files, result JSON filenames, driver scripts,
   or other repo-internal files in the main text. Appendix A may list
@@ -142,6 +153,14 @@ infrastructure.
   `\alpha_{\mathrm{eff}}`), keep code spans for identifiers only
   (`batch_acc`, config keys, paths), and avoid raw Unicode Greek in
   headings/captions where PDF text fonts or bookmarks may drop glyphs.
+- Before committing a rebuilt PDF, run the generalized builder with
+  `--verbose` and fix every `Missing character:` warning:
+  `bash docs/build_ssup_pdf.sh --verbose docs/SSUP-I.md docs/SSUP-I.pdf`
+  or the analogous `SSUP-II.md` command.  The usual fixes are to move
+  Greek letters, comparison signs, superscripts/subscripts, and
+  equivalence symbols into TeX math (`$\alpha$`, `$\le$`, `$10^{-3}$`,
+  `$\equiv$`) rather than leaving Unicode glyphs in table cells,
+  headings, or captions.
 
 **Live phase log:** `docs/sl_clean_sweeps.md`.
 
