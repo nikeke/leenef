@@ -320,3 +320,229 @@ is what makes continual learning work") — are the load-bearing
 claims of Paper II as a whole.
 
 ---
+
+## §3 — Method
+
+### §3.1 — The joint-equivalence identity
+
+Fix an encoder map $\phi: \mathbb{R}^{d_{\mathrm{in}}} \to
+\mathbb{R}^n$ as in Paper I §3; concretely, $\phi(x)_i =
+\mathrm{abs}(g_i (e_i \cdot (x - d_i)))$ for a unit encoder $e_i$,
+gain $g_i$, and center $d_i$, all sampled before any training data
+arrives and held constant for the entire stream.  Let
+$\mathcal{D}_t = \{(x_t^{(k)}, y_t^{(k)})\}_{k=1}^{N_t}$ be the
+training data of task $t$, encode it as
+$A_t \in \mathbb{R}^{N_t \times n}$ with rows $\phi(x_t^{(k)})^\top$,
+and stack its one-hot labels as $Y_t \in \mathbb{R}^{N_t \times C}$
+where $C$ is the number of output classes seen across the entire
+stream so far (zero-padded for tasks that introduce fewer classes).
+
+The joint-trained decoder over the union of $T$ tasks is
+
+$$
+D^\star_{\mathrm{joint}} \;=\;
+\bigl( A^\top A + \alpha I \bigr)^{-1} A^\top Y,
+\qquad
+A \;=\;
+\begin{pmatrix} A_1 \\ A_2 \\ \vdots \\ A_T \end{pmatrix},
+\quad
+Y \;=\;
+\begin{pmatrix} Y_1 \\ Y_2 \\ \vdots \\ Y_T \end{pmatrix}.
+$$
+
+The block-row stacking has
+
+$$
+A^\top A \;=\; \sum_{t=1}^T A_t^\top A_t,
+\qquad
+A^\top Y \;=\; \sum_{t=1}^T A_t^\top Y_t,
+$$
+
+by direct expansion of the matrix product.  The continual-trained
+decoder is computed by initializing
+$G_0 = 0 \in \mathbb{R}^{n \times n}$,
+$B_0 = 0 \in \mathbb{R}^{n \times C}$, performing
+$G_t \mathrel{+}= A_t^\top A_t$ and $B_t \mathrel{+}= A_t^\top Y_t$
+for each task as it arrives, and finally solving
+$D^\star_{\mathrm{cont}} = (G_T + \alpha I)^{-1} B_T$.  Because
+$G_T = A^\top A$ and $B_T = A^\top Y$ exactly, we have
+
+$$
+D^\star_{\mathrm{cont}} \;=\; D^\star_{\mathrm{joint}}.
+$$
+
+This is the joint-equivalence identity.  It says that the
+continual decoder is not an approximation to the joint decoder
+under any error model: it is the *same* decoder.  The identity
+holds independently of the ordering of tasks, the size of each
+task's training set, and the number of tasks.  It depends on two
+assumptions: (a) the encoder map $\phi$ does not change across
+tasks, and (b) the regularizer $\alpha$ does not change across
+tasks.  Paper I §4 already explained why $\alpha$ behaves as a
+multiplier of the encoder-span and not a hyperparameter to
+re-tune per task as long as the encoder distribution is fixed,
+so (b) is automatic in the regime we use.
+
+The empirical claim of this paper is then that this identity
+*holds in test accuracy* under the float-precision implementation,
+not merely in exact arithmetic.  Section §5 verifies that across
+ten seeds and four datasets, the difference
+$|\mathrm{acc}(D^\star_{\mathrm{cont}}) - \mathrm{acc}(D^\star_{\mathrm{joint}})|$
+is **0.000000 pp**.
+
+### §3.2 — From batch identity to online updates
+
+Equation (1) gives us the joint-equivalence identity but does not
+say anything about *when* a usable decoder is available during the
+stream.  Two implementations matter in practice.
+
+**Accumulate-and-solve.**  Compute $G_t$ and $B_t$ as above; only
+materialize $D$ when needed.  Solving costs $O(n^3)$ once per
+solve; the per-task cost is the $O(N_t \, n^2)$ accumulation of
+$A_t^\top A_t$.  This is the cheaper option when test-time decoder
+queries between tasks are infrequent, and it is the
+default for the headline panels in §5.
+
+**Online Woodbury.**  Maintain $M_t = (G_t + \alpha I)^{-1}$
+directly via the rank-$N_t$ Sherman–Morrison–Woodbury identity:
+
+$$
+(G_{t-1} + \alpha I + A_t^\top A_t)^{-1}
+\;=\;
+M_{t-1} - M_{t-1} A_t^\top \bigl(I + A_t M_{t-1} A_t^\top\bigr)^{-1}
+A_t M_{t-1}.
+$$
+
+Decoders are then $D_t = M_t B_t$.  This is the cheaper option
+when test-time queries are frequent and per-batch updates can be
+small (the $O(N_t \, n^2 + N_t^2 \, n)$ Woodbury cost beats the
+full $O(n^3)$ solve when $N_t \ll n$); it is the operating mode
+of streaming-NEF in Paper I §6.  Numerically, Paper I §5.3 and
+the analysis in §5.4 of this paper show that the two paths agree
+to within float drift at the tuned $\alpha$.  Float64 accumulators
+are required (Paper I, P0 fix `b895794`); float32 accumulation
+does drift at long streams.
+
+**Refresh diagnostics.**  Online Woodbury can in principle drift
+across many small updates.  The implementation
+(`src/leenef/layers.py`) supports `refresh_inverse()`, which
+recomputes $M_t$ from the current $G_t$ exactly; we verify in §5.4
+that even after the longest streams in this paper the maximum
+coefficient drift between drifted-$M_t$ and refreshed-$M_t$ stays
+below $2.3 \times 10^{-5}$ and the test-accuracy gap stays below
+$0.002$ pp.  The "Woodbury drift" concern from earlier
+single-seed exploration was a float32 artifact; it does not
+survive the float64 accumulator discipline.
+
+### §3.3 — Center placement on a non-stationary stream
+
+Paper I established that data-driven biases — placing each
+neuron's hinge at a training sample, $b_i = -g_i \, e_i \cdot d_i$
+with $d_i$ drawn from training data — beat a uniform prior on
+biases for every static benchmark (§5.1).  On a continual stream
+the question becomes: *which* training data should the centers
+come from?
+
+We test four policies in §5.3.
+
+- **`none`**: biases sampled from the encoder-span prior, no
+  data-driven placement.  Static-NEF baseline carried forward.
+- **`first_task`**: biases drawn from the first task's training
+  set $\mathcal{D}_1$, fixed for the entire stream.
+- **`all_tasks`**: an *oracle* that draws biases from
+  $\bigcup_t \mathcal{D}_t$ before any training begins.
+  Available only when the union is known a priori; not a
+  legitimate continual-learning policy, but we use it as a
+  reference.
+- **`growing`**: every new task $t$ adds $n / T$ new neurons
+  whose biases are drawn from $\mathcal{D}_t$, while the
+  previously placed neurons are kept.  The motivation is that
+  later tasks should be able to "claim" some of the
+  representation by introducing receptive fields aligned with
+  their own data.
+
+`growing` is interesting because it almost works in static
+intuition.  In practice §5.3 shows that on class-incremental
+splits it collapses spectacularly — for the full mechanism,
+see the negative-results discussion in §6.
+
+### §3.4 — ConvNEF as a continual feature stack
+
+Paper I §5.5 introduced ConvNEF: a stack of one-shot PCA
+convolution + abs + pool stages whose final feature vector is
+fed into a NEF analytic head.  The PCA filters are fit once on
+patches of training data; they are not gradient-updated and
+therefore are not "trained" in the SGD sense.  The analytic head
+is a NEFLayer with `partial_fit` and `solve_accumulated`, so
+everything in §3.1–§3.3 carries through to it as long as the
+filter bank is fixed across tasks.
+
+There are two natural ways to fit the filter bank in a
+continual-learning context.
+
+**`first_task` filters.**  Fit the PCA filter bank on patches
+from the first task's training data only, then keep them fixed
+for the entire stream.  This is honestly continual: the model
+sees only $\mathcal{D}_1$ at filter-fit time, and the additive
+identity §3.1 holds for the analytic head.  The filter bank
+might not be optimal for later tasks' classes, but the cost is
+borne by the visual ceiling, not by a forgetting axis.
+
+**`all_data` filters.**  Fit the PCA filter bank on patches from
+the union of all tasks before the stream begins.  This is an
+*oracle* like the `all_tasks` center policy in §3.3, and we use
+it to measure the contribution of unsupervised filter
+adaptation across tasks separately from the contribution of the
+analytic head's continual property.
+
+The §5.6 panel runs both, plus the trivial `joint` upper bound
+(filter bank on union *and* analytic head fit jointly), and
+verifies that
+
+- the analytic head's continual fit is bit-identical in test
+  accuracy to its joint fit at every neuron count tested
+  (joint-equivalence survives the change of features), and
+- the gap between `first_task` filters and the `all_data` /
+  `joint` oracle stays under 0.3 pp on Split-CIFAR-10, so the
+  honest-continual variant does not pay a significant tax for
+  not seeing the union of tasks at filter-fit time.
+
+The takeaway is that the *front-end* feature learner can be made
+continual either by accepting the `first_task` filter strategy
+(no forgetting axis introduced) or by re-fitting on the union of
+seen tasks at task boundaries (which would re-introduce a
+front-end forgetting axis and is not what we recommend).  All
+the tabulated ConvNEF-CL numbers in §5.6 use `first_task`
+filters except where explicitly labeled `joint`.
+
+### §3.5 — Code identity, seed protocol, and dataset hashing
+
+Every result row in `results/cl_clean/` carries:
+
+- a `code_identity` SHA computed from
+  `git ls-tree -r HEAD -- src/ benchmarks/ tests/ pyproject.toml`
+  (or, for working-tree-dirty runs, the SHA of HEAD plus a
+  content hash of dirty paths);
+- a `dataset_metadata` block with `raw_hashes`
+  (SHA-256 of the on-disk source bytes) and `processed_hashes`
+  (SHA-256 of the float32 task-stream tensors after splitting
+  and per-task permutation);
+- a master seed.  All randomness — encoders, gains, centers,
+  task ordering, EWC Fisher diagonal, ER reservoir indices —
+  is drawn from per-stream sub-RNGs derived deterministically
+  from this master seed via `_make_subrngs`.  No code path
+  consumes the global default RNG; every random draw uses an
+  explicit `torch.Generator()`.  This makes a row fully
+  reproducible from `(code_identity, seed, config)`.
+
+Aggregate statistics in §5 are computed only over rows whose
+`code_identity` matches the current HEAD, so a result table in
+this paper corresponds to a single, identifiable point in the
+source tree.  Multi-seed tables use $n = 10$ for headline
+panels and $n = 5$ for ablations; reported uncertainties are
+$\mathrm{SE} = \mathrm{std}(\mathrm{seeds}) / \sqrt{n}$.  The
+adoption rule for "beats" / "matches" verbs is
+$|\Delta| \ge \sqrt{\mathrm{SE}_a^2 + \mathrm{SE}_b^2}$, the
+same rule as Paper I.
+
+---
