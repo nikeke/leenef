@@ -125,9 +125,9 @@ characterize where it stops being useful.  Concretely:
   classification with strong analytic-feature priors (ConvNEF,
   receptive-field encoders) and uncompetitive against deep CNNs.
   We carry that limit straight into Paper II.  On class-incremental
-splits — the regime where SGD baselines collapse most dramatically —
-the analytic primitive is strongest because it does not
-collapse at all; on domain-incremental Permuted-MNIST it loses to
+  splits — the regime where SGD baselines collapse most dramatically —
+  the analytic primitive wins by a wide margin because it does not
+  collapse at all; on domain-incremental Permuted-MNIST it loses to
   EWC and joint MLP because the static-image accuracy ceiling of a
   single-layer NEF is below theirs.  The reading is that
   this paper's contribution is structural and the absolute level
@@ -786,7 +786,7 @@ on Split-CIFAR-100.  All three MLP-CL baselines collapse to under
 ratio is **~5.0×**: NEF-continual uses 35.8 s where the joint
 MLP uses 180.3 s.
 
-The right reading of this is not "single-layer NEF is stronger than deep
+The right reading of this is not "single-layer NEF beats deep
 MLP".  It is that the joint-MLP upper bound on Split-CIFAR-100,
 on a comparably parameter-budgeted MLP and at a normal training
 budget, is roughly the same as what an analytic NEF gets on the
@@ -812,12 +812,12 @@ Permuted-MNIST is the counterweight.  This is a *domain-
 incremental* benchmark — 10 output classes throughout, only the
 input distribution changes — which is exactly the regime where
 EWC's parameter-space penalty does what it was designed to do.
-EWC lands at 95.6 ± 0.2 %, 1.1 pp above NEF-continual; the
+EWC lands at 95.6 ± 0.2 %, beating NEF-continual by 1.1 pp; the
 joint MLP lands at 98.0 ± 0.0 %, above both.  On wall-clock,
 EWC also wins: 37.5 s vs 154 s for NEF-continual.
 
 There are two readings.  The first is structural:
-joint-equivalence still holds (94.5 $= 94.5$).  Whatever
+joint-equivalence still holds ($94.5 = 94.5$).  Whatever
 NEF-continual is doing, it is what NEF-joint would have done
 with the same data, so this is not a continual-learning
 failure; it is the static-model accuracy ceiling on an MLP-style
@@ -827,7 +827,7 @@ and lands NEF-continual underneath the gradient methods that
 benefit from the same domain-incremental easiness.
 
 The second reading is the methodologically important one: when
-you publish "method X is above EWC on Split-MNIST and Split-CIFAR-100",
+you publish "method X beats EWC on Split-MNIST and Split-CIFAR-100",
 it is fair to ask whether the author also tried Permuted-MNIST.
 The answer here is yes, and EWC won on it.  The right summary is
 that sufficient-statistic accumulation is the strongest method in
@@ -937,9 +937,7 @@ Woodbury are indistinguishable, and both have a broad accuracy
 plateau: on Split-MNIST and Permuted-MNIST they are essentially
 flat from $\alpha=10^{-3}$ through $\alpha=1$, and on
 Split-CIFAR-10 they recover at large $\alpha$ where the small-
-$\alpha$ solve is under-regularized.  The older single-seed
-impression that online Woodbury was more accurate than the
-explicit solve was therefore the wrong conclusion; the durable
+$\alpha$ solve is under-regularized.  The durable
 point is robustness across a wide $\alpha$ range, not a higher
 best-cell accuracy.
 
@@ -1100,7 +1098,7 @@ being washed out by later ones; finetune simply forgets.  The
 analytic primitive does not have to defend anything because the
 data-stream axis has length zero by §3.1.  This is why the
 class-incremental splits — Split-MNIST, Split-CIFAR-10,
-Split-CIFAR-100 — are where the method is most useful, and why the
+Split-CIFAR-100 — are where the method visibly wins, and why the
 strongest numerical claim of the paper (NEF-continual edging past
 joint MLP on Split-CIFAR-100 at ~5× less wall-clock time)
 appears in the regime where SGD methods are weakest.
@@ -1356,15 +1354,23 @@ penalty is in parameter space, but the failure mode is
 output-space.  EWC delivered random-class accuracy on Split-MNIST
 (20.0 ± 0.3 %), Split-CIFAR-10 (16.1 ± 0.5 %), and Split-CIFAR-100
 (4.1 ± 0.2 %).  We did spot-check $\lambda \in \{0.1, 1, 10\} \cdot
-\lambda_{\mathrm{lit}}$; the verdict does not change.
+\lambda_{\mathrm{lit}}$; the verdict does not change; EWC
+cannot defend a model whose output space is structurally being
+asked to do something new on every task.  This is not new — the
+CL literature has flagged it repeatedly under the
+"task-incremental vs class-incremental" distinction (van de Ven
+& Tolias, 2019) — but it is worth restating because cross-
+table comparisons sometimes report only one of the two regimes.
 
 **Experience Replay at moderate buffer sizes on harder splits.**
-ER with a 500-sample buffer rescues Split-MNIST to 86.5 % but
+ER with a 500-sample buffer (which is comparable to MIR/GSS
+evaluations) rescues Split-MNIST to 86.5 % but
 fails on Split-CIFAR-10 and Split-CIFAR-100 (12.5 %, 2.0 %).
-Larger buffers do recover more, but at some point ER is just
+Larger buffers do recover more, but the wall-clock cost grows with
+buffer size, and at some point ER is just
 joint training over a growing reservoir, which is not a meaningful
 continual learner.  We did not chase the curve; we report ER at
-the point where MIR / GSS-style evaluations typically run.
+the point where MIR/GSS-style evaluations typically run.
 
 **The MNIST capacity law is not the CIFAR capacity law.**
 Permuted-CIFAR-10 capacity sits well below Permuted-MNIST
