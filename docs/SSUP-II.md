@@ -30,7 +30,7 @@ and joint-training MLPs, sufficient-statistics accumulation
 **collapses the class-incremental forgetting modes** of the gradient
 baselines (Split-MNIST: NEF 97.0 % vs MLP-EWC and MLP-finetune
 ~20.0 %), **edges past the joint MLP upper bound on Split-CIFAR-100**
-(NEF 24.15 ± 0.08 % vs MLP-joint 23.81 ± 0.13 %, ~4.5× less wall-clock
+(NEF 24.2 ± 0.1 % vs MLP-joint 23.8 ± 0.1 %, ~5× less wall-clock
 time), and **lands within 1.0 pp** of joint-MLP on Split-MNIST and
 within 2.4 pp on Split-CIFAR-10.  A capacity scan on Permuted-MNIST
 shows that worst-case retention scales smoothly with neuron budget per
@@ -123,7 +123,7 @@ characterize where it stops being useful.  Concretely:
   head).  On harder visual splits even $10\,000$ neurons stay below
   half that retention level, which is the empirical limiter on how
   general we are willing to make the rule.
-- **The visual ceiling moves cleanly.**  Phase C imports a
+- **The visual ceiling moves cleanly.**  We import a
   gradient-free convolutional feature stack (the ConvNEF of Paper I,
   §5.5) as the front end, fits its analytic NEF head on a stream
   of tasks via the same `partial_fit`, and shows that the additive
@@ -648,7 +648,7 @@ We also record:
 
 Wall-clock numbers come from the same hardware for all rows
 within a panel (single CPU socket for the `cl_clean` headline
-panels; an NVIDIA L4 GPU for the Phase-C ConvNEF panel).
+panels; an NVIDIA L4 GPU for the ConvNEF panel of §5.6).
 Cross-panel wall-clock comparisons are only made within the
 same hardware.  When we say a method "uses $k\times$ less
 wall-clock time" we mean the ratio of mean `fit_time_s`.
@@ -991,7 +991,7 @@ law.
 The flat-NEF Split-CIFAR-10 ceiling sits at 49.5 ± 0.1 %.
 Substituting the front end with a ConvNEF stack (Paper I §5.5)
 lifts that ceiling cleanly while leaving the analytic head's
-joint-equivalence intact.  Phase C runs on an NVIDIA L4 GPU,
+joint-equivalence intact.  This panel runs on an NVIDIA L4 GPU,
 $n = 10$ seeds per cell.
 
 | Configuration             | Final accuracy    | Wall-clock        |
@@ -1263,11 +1263,11 @@ addition to the standard `metrics.test_accuracy` and
   `git ls-tree -r HEAD -- src/ benchmarks/ tests/ pyproject.toml`
   and SHA-256-hashed.  Pure-docs commits do not bump this hash;
   any source change does.  Aggregated tables in §5 use only rows
-  whose `code_identity` matches the current HEAD.  Phase C
-  Colab-imported rows carry their own scaffold-side `code_identity`
-  distinct from the CPU-side panels; both identities are recorded
-  in the JSONs and the analyzer checks them per-row before
-  including a row in an aggregate.
+  whose `code_identity` matches the current HEAD.  ConvNEF
+  Colab-imported rows (§5.6) carry their own scaffold-side
+  `code_identity` distinct from the CPU-side panels; both
+  identities are recorded in the JSONs and the analyzer checks
+  them per-row before including a row in an aggregate.
 - `dataset_metadata.raw_hashes` — SHA-256 of the on-disk source
   bytes of MNIST / CIFAR-10 / CIFAR-100;
 - `dataset_metadata.processed_hashes` — SHA-256 of the float32
