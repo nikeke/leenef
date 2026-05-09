@@ -842,6 +842,8 @@ optimization Paper I used for static SL; we did not aggressively
 chase it here because Permuted-MNIST is the regime we already
 know NEF loses on.
 
+![Figure 1 -- Final accuracy across the four headline continual-learning panels.  Error bars show standard error over 10 seeds.](figures/cl_f1_headline_accuracy.png)
+
 ### §5.3 — Center placement is mostly neutral; "growing" collapses
 
 The four center-placement policies of §3.3 are run on Split-MNIST
@@ -939,6 +941,8 @@ $0.002$ pp.  The drift exists but is too small to matter, and
 it.  Float32 accumulators do not behave this well; that was the
 original drift report.
 
+![Figure 2 -- Solver modes at their tuned regularization values.  Offline accumulation and Woodbury reach the same accuracy plateau; the operational difference is wall-clock time.](figures/cl_f3_solver_tradeoff.png)
+
 ### §5.5 — Capacity scaling on Permuted-MNIST: ~100 neurons per task at ~80 % retention
 
 Permuted-MNIST sweeps the $(n_{\text{neurons}}, T)$ grid at
@@ -985,6 +989,8 @@ is achieved at ~100 neurons per task; harder visual benchmarks
 sit on a different curve, with dataset-dependent constants".
 We do not extrapolate to a single dataset-independent capacity
 law.
+
+![Figure 3 -- Permuted-MNIST capacity heat map.  Cell labels are mean final accuracy in percent over 5 seeds.](figures/cl_f2_capacity_heatmap.png)
 
 ### §5.6 — ConvNEF lifts the visual ceiling without breaking additivity
 
@@ -1037,6 +1043,8 @@ the same union PCA fit but T=5 partial-fit accumulations
 followed by the same analytic solve.  Both produce the same
 decoders to all stored digits; the wall-clock difference is
 solver-overhead, not numerical disagreement.
+
+![Figure 4 -- ConvNEF lifts the Split-CIFAR-10 ceiling while preserving the equality between the continual all-data fit and the joint fit.  Error bars show standard error over 10 seeds.](figures/cl_f4_convnef_lift.png)
 
 ### §5.7 — Aggregate read
 
