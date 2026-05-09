@@ -82,7 +82,11 @@ Paper II frames the current continual-learning story like this:
 > stronger on domain-incremental Permuted-MNIST, and the absolute ceiling
 > is still set by the fixed feature map inherited from Paper I.  Adding
 > a gradient-free ConvNEF front end lifts Split-CIFAR-10 from **49.5 %**
-> to **74.7 ± 0.1 %** without breaking the additivity property.
+> to **74.7 ± 0.1 %** without breaking the additivity property.  A
+> streaming-continual follow-up keeps the exact accumulate/joint identity
+> but shows the boundary of that claim: the exact final solve is weak on
+> 10-task permuted sMNIST, while online Woodbury reaches
+> **59.8 ± 0.3 %** at 16 000 neurons without matching the exact solve.
 
 ## Quick start
 

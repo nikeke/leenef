@@ -100,7 +100,7 @@ def figure_f1() -> Path:
 
 # ------------------------------------------------------------------ F2
 def figure_f2() -> Path:
-    """Permuted-MNIST capacity heat map."""
+    """Permuted-MNIST capacity table as a heat map."""
 
     task_counts = [5, 10, 20, 50, 100]
     n_values = [500, 1000, 2000, 5000, 10000]
@@ -126,14 +126,14 @@ def figure_f2() -> Path:
     ax.set_yticklabels([str(t) for t in task_counts])
     ax.set_xlabel("n_neurons")
     ax.set_ylabel("number of tasks")
-    ax.set_title("Figure 2 -- Permuted-MNIST capacity heat map")
+    ax.set_title("Permuted-MNIST final accuracy")
     for i, row in enumerate(labels):
         for j, label in enumerate(row):
             color = "white" if grid[i][j] < 75 else "black"
             ax.text(j, i, label, ha="center", va="center", color=color, fontsize=9)
     cbar = fig.colorbar(image, ax=ax)
     cbar.set_label("final accuracy (%)")
-    out = FIG_DIR / "cl_f2_capacity_heatmap.png"
+    out = FIG_DIR / "cl_f2_capacity_table_heatmap.png"
     fig.tight_layout()
     fig.savefig(out, dpi=150)
     plt.close(fig)
@@ -229,12 +229,55 @@ def figure_f4() -> Path:
     return out
 
 
+# ------------------------------------------------------------------ F5
+def figure_f5() -> Path:
+    """Streaming continual follow-up on permuted sMNIST."""
+
+    rows = _load_rows(RESULTS / "gpu_h8_streaming_permuted_smnist_panel.json")
+    grouped = _group(rows, lambda r: str(r.get("config", {}).get("cell", r.get("value"))))
+    series = [
+        ("accumulate_final", "accumulate = joint", "C0", "o"),
+        ("woodbury_online", "Woodbury online", "C2", "s"),
+        ("reset", "reset lower bound", "C3", "^"),
+    ]
+    n_values = [4000, 8000, 16000]
+
+    fig, ax = plt.subplots(figsize=(7.4, 4.8))
+    for prefix, label, color, marker in series:
+        xs, vals, ses = [], [], []
+        for n in n_values:
+            cell = f"{prefix}_n{n}"
+            if cell not in grouped:
+                continue
+            accs = [100 * _metric(r) for r in grouped[cell]]
+            xs.append(n)
+            vals.append(mean(accs))
+            ses.append(_se(accs))
+        if xs:
+            ax.errorbar(xs, vals, yerr=ses, marker=marker, capsize=3, color=color, label=label)
+
+    ax.set_xscale("log", base=2)
+    ax.set_xticks(n_values)
+    ax.set_xticklabels([str(n) for n in n_values])
+    ax.set_xlabel("streaming neurons")
+    ax.set_ylabel("final accuracy across 10 permutations (%)")
+    ax.set_title("Figure 5 -- Streaming continual follow-up")
+    ax.grid(True, which="both", alpha=0.3)
+    ax.legend()
+    out = FIG_DIR / "cl_f5_streaming_continual.png"
+    fig.tight_layout()
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    return out
+
+
 # ------------------------------------------------------------------ main
 FIGURES = {
     "F1": figure_f1,
     "F2": figure_f2,
     "F3": figure_f3,
     "F4": figure_f4,
+    "F5": figure_f5,
 }
 
 

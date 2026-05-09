@@ -42,11 +42,16 @@ center-bank policies turn out not to matter once a single first-task
 bank is in place.  A gradient-free ConvNEF front-end lifts the
 Split-CIFAR-10 ceiling from 49.5 % to **74.7 ± 0.1 %** without breaking
 additivity: the continual `partial_fit` path is bit-identical in
-accuracy to the one-shot joint fit at every neuron count tested.  These
-results are not "another CL method"; they are the structural consequence
-of treating $A^\top A$, $A^\top Y$ as the universe (Paper I, P3) and
-letting `partial_fit` be the only operation a learner ever performs on
-a task stream.
+accuracy to the one-shot joint fit at every neuron count tested.  A new
+streaming-continual follow-up shows the boundary of the claim: the exact
+accumulate/joint identity still holds through a mean-pooled delay-line
+feature map, but the exact final solve is weak on 10-task permuted
+sMNIST, while online Woodbury reaches **59.8 ± 0.3 %** at 16 000 neurons
+without matching the exact solve.  These results are not "another CL
+method"; they are the structural consequence — and the structural limit
+— of treating $A^\top A$, $A^\top Y$ as the universe (Paper I, P3) and
+letting `partial_fit` be the only operation a learner ever performs on a
+task stream.
 
 ---
 
@@ -778,7 +783,7 @@ on Split-CIFAR-100.  All three MLP-CL baselines collapse to under
 ratio is **~5.0×**: NEF-continual uses 35.8 s where the joint
 MLP uses 180.3 s.
 
-The right reading of this is not "single-layer NEF is stronger than deep
+The right reading of this is not "single-layer NEF beats deep
 MLP".  It is that the joint-MLP upper bound on Split-CIFAR-100,
 on a comparably parameter-budgeted MLP and at a normal training
 budget, is roughly the same as what an analytic NEF gets on the
@@ -804,7 +809,7 @@ Permuted-MNIST is the counterweight.  This is a *domain-
 incremental* benchmark — 10 output classes throughout, only the
 input distribution changes — which is exactly the regime where
 EWC's parameter-space penalty does what it was designed to do.
-EWC lands at 95.6 ± 0.2 %, 1.1 pp above NEF-continual; the
+EWC lands at 95.6 ± 0.2 %, beating NEF-continual by 1.1 pp; the
 joint MLP lands at 98.0 ± 0.0 %, above both.  On wall-clock,
 EWC also wins: 37.5 s vs 154 s for NEF-continual.
 
@@ -819,7 +824,7 @@ and lands NEF-continual underneath the gradient methods that
 benefit from the same domain-incremental easiness.
 
 The second reading is the methodologically important one: when
-you publish "method X is above EWC on Split-MNIST and Split-CIFAR-100",
+you publish "method X beats EWC on Split-MNIST and Split-CIFAR-100",
 it is fair to ask whether the author also tried Permuted-MNIST.
 The answer here is yes, and EWC won on it.  The right summary is
 that sufficient-statistic accumulation is the strongest method in
@@ -954,7 +959,7 @@ $T \in \{5, 10, 20, 50, 100\}$ and
 $n \in \{500, 1\,000, 2\,000, 5\,000, 10\,000\}$, $n = 5$ seeds
 per cell.  Final accuracy on the union of test sets:
 
-![Figure 3 -- Permuted-MNIST capacity heat map.  Cell labels are mean final accuracy in percent over 5 seeds.](figures/cl_f2_capacity_heatmap.png)
+![Figure 3 -- Permuted-MNIST capacity table as a heat map.  Cell labels are mean final accuracy in percent over 5 seeds.](figures/cl_f2_capacity_table_heatmap.png)
 
 All SEs are $\le 0.2$ pp; rounded to 1 dp the CIs are inside the
 last digit.  The diagonal $n / T \in \{100, 100, 100, 100, 100\}$
@@ -1042,9 +1047,61 @@ solver-overhead, not numerical disagreement.
 
 ![Figure 4 -- ConvNEF lifts the Split-CIFAR-10 ceiling while preserving the equality between the continual all-data fit and the joint fit.  Error bars show standard error over 10 seeds.](figures/cl_f4_convnef_lift.png)
 
-### §5.7 — Aggregate read
+### §5.7 — Streaming continual is a boundary case, not a free corollary
 
-Section §5 collected six classes of evidence.  At no point did
+The last panel asks whether the same story carries through the
+streaming classifier of Paper I §6.  Each task is a full MNIST
+classification problem under a fresh fixed pixel permutation, reshaped
+as a 784-step sequence with one scalar per timestep.  The feature map is
+fixed from first-task centers and the model sees ten task permutations.
+The panel was run on an NVIDIA L4 GPU with 5 seeds per cell.
+
+| Cell | n | Final accuracy | Fit time |
+| --- | ---: | ---: | ---: |
+| `accumulate_final` | 4 000 | 34.8 ± 5.6 % | 46.5 ± 0.0 s |
+| `joint` | 4 000 | 34.8 ± 5.6 % | 46.5 ± 0.0 s |
+| `accumulate_task_solve` | 4 000 | 34.8 ± 5.6 % | 47.2 ± 0.0 s |
+| `woodbury_online` | 4 000 | 56.4 ± 0.2 % | 76.8 ± 0.0 s |
+| `reset` | 4 000 | 15.8 ± 0.8 % | 4.7 ± 0.0 s |
+| `accumulate_final` | 8 000 | 20.0 ± 1.6 % | 103.2 ± 0.0 s |
+| `joint` | 8 000 | 20.0 ± 1.6 % | 103.2 ± 0.0 s |
+| `woodbury_online` | 8 000 | 58.4 ± 0.2 % | 211.1 ± 0.0 s |
+| `reset` | 8 000 | 12.1 ± 0.4 % | 10.7 ± 0.0 s |
+| `accumulate_final` | 16 000 | 14.4 ± 1.2 % | 248.8 ± 0.0 s |
+| `joint` | 16 000 | 14.4 ± 1.2 % | 248.8 ± 0.0 s |
+| `woodbury_online` | 16 000 | 59.8 ± 0.3 % | 629.4 ± 0.0 s |
+
+Two results are clean.  First, the exact sufficient-statistic identity
+does survive the streaming feature map: `accumulate_final` and `joint`
+are identical to all stored accuracy digits at 4 000, 8 000, and
+16 000 neurons.  Solving after every task also leaves the final decoder
+unchanged at 4 000 neurons.  The algebra is not the problem.
+
+Second, the exact final solve is not the useful streaming continual
+model on this benchmark.  The final accumulate/joint accuracy is weak
+and non-monotonic as the streaming feature dimension grows: 34.8 % at
+4 000 neurons, 20.0 % at 8 000, and 14.4 % at 16 000.  In contrast,
+the online Woodbury path improves monotonically from 56.4 % to 59.8 %,
+well above the reset lower bound and far above the exact final solve at
+larger widths.
+
+This is not the same conclusion as §5.4.  In the static CL panels,
+Woodbury and offline accumulation are solver-equivalent when $\alpha$ is
+tuned.  In this streaming continual panel they are operationally
+different.  The imported rows do not include an exact-inverse refresh
+diagnostic, so we do not claim a mechanism; the conservative reading is
+that repeated online inverse updates are acting as a useful online
+regularizer or numerical path dependency for this ill-conditioned
+mean-pooled delay-line feature map.  That makes the result interesting,
+but it also makes it a boundary result: streaming continual learning is
+not a free corollary of the exact accumulate/joint identity.
+
+![Figure 5 -- Streaming continual follow-up on 10-task permuted sMNIST.  Exact accumulate and joint fits coincide at every width, but the online Woodbury path is the useful high-accuracy path in this panel.](figures/cl_f5_streaming_continual.png)
+
+### §5.8 — Aggregate read
+
+Section §5 collected seven classes of evidence.  For the static CL
+panels, at no point did
 we have to choose a $\alpha$ that was different from Paper I's
 static defaults.  At no point did we have to introduce a
 mechanism that was not present in Paper I — `partial_fit` and
@@ -1059,10 +1116,15 @@ the property.  The class-incremental MLP-CL baselines collapse
 on splits, the EWC baseline wins on Permuted-MNIST, and the
 joint-MLP upper bound is 1–2 pp ahead on Split-MNIST and
 Split-CIFAR-10 and 0.3 pp *behind* NEF on Split-CIFAR-100.
+The streaming follow-up preserves exact accumulate/joint equality but
+also shows that online Woodbury can become the useful path precisely
+where the exact final solve is weak.
 
 We think the right summary is the structural one.  When the
 primitive is "$A^\top A$ and $A^\top Y$ are the universe", the
-data-stream axis simply does not exist.
+data-stream axis simply does not exist for fixed-feature static CL; for
+streaming delay-line features, the exact identity remains true but does
+not by itself guarantee a useful classifier.
 
 ---
 
@@ -1082,7 +1144,7 @@ being washed out by later ones; finetune simply forgets.  The
 analytic primitive does not have to defend anything because the
 data-stream axis has length zero by §3.1.  This is why the
 class-incremental splits — Split-MNIST, Split-CIFAR-10,
-Split-CIFAR-100 — are where the method is most useful, and why the
+Split-CIFAR-100 — are where the method visibly wins, and why the
 strongest numerical claim of the paper (NEF-continual edging past
 joint MLP on Split-CIFAR-100 at ~5× less wall-clock time)
 appears in the regime where SGD methods are weakest.
@@ -1138,18 +1200,26 @@ fixed feature extractor — whether random, PCA-fit, or a frozen
 deep network's penultimate layer — composes with `partial_fit`
 and inherits the property.
 
-### Streaming continual: a forward look
+### Streaming continual: why exactness is not enough
 
-A streaming-NEF + Woodbury panel on Permuted-sMNIST that ingests a
-non-stationary temporal stream and classifies in real time without
-revisiting old data is not a result in this paper.  We mention the
-direction because the architecture is already in place.  Stream-NEF
-(Paper I §6) already supports online Woodbury updates; calling it
-across a non-stationary task stream is exactly the §3.2 online path.
-Whether the resulting model is competitive against streaming-CL
-specialists is open, and we have only single-seed attic-grade evidence
-on it.  The next benchmark-grade evaluation in this direction is the
-entry point for follow-up work.
+The streaming follow-up is the paper's sharpest warning against
+over-reading the identity.  Stream-NEF uses mean-pooled delay-line
+features rather than static image features.  The sufficient-statistic
+identity still holds there: the final accumulate solve and the joint
+solve are exactly tied at every tested width.  But that exact solution
+is not the best model in the panel.  Online Woodbury is much more
+accurate, while no longer matching the final exact solve.
+
+The right interpretation is not that the identity failed.  It did not.
+The right interpretation is that "same as joint" is only as useful as
+the joint objective and feature map are.  In the static panels the joint
+objective is the thing we want, and the sufficient-statistic primitive
+gets there without forgetting.  In the streaming panel, the exact
+mean-pooled joint solution appears to be a poor objective at larger
+widths, while the online inverse path supplies a different and more
+useful inductive bias.  That is promising for streaming applications,
+but it is no longer the clean Paper-II theorem; it is a new research
+line.
 
 ### Bridge to Paper III
 
@@ -1161,10 +1231,10 @@ once again a partition into independent column groups of
 $A^\top Y$.  This makes the same `partial_fit` /
 `solve_accumulated` machinery available for value-function
 estimation.  Where this paper showed that the data-stream axis
-has length zero, Paper III argues that the target-stream axis
-also has length zero in the same primitive.  A separate research
-line has the primitive working on classic dense-reward control
-benchmarks already; the sparse-reward variants are still
+has length zero for fixed-feature static CL, Paper III asks when the
+target-stream axis also has length zero in the same primitive.  A
+separate research line has the primitive working on classic dense-
+reward control benchmarks already; the sparse-reward variants are still
 uncertain.
 
 ---
@@ -1198,14 +1268,18 @@ vs offline accumulate (equivalence at tuned $\alpha$, 5–9× less
 wall-clock for accumulate), the three center-placement choices
 that don't matter and the one that does (`growing` collapses),
 and the ConvNEF extension that lifts the visual ceiling by
-+25 pp without breaking the property.
++25 pp without breaking the property.  The streaming follow-up adds a
+boundary result: the accumulate/joint identity remains exact through a
+mean-pooled delay-line feature map, but online Woodbury becomes the
+useful high-accuracy path and no longer matches the exact final solve.
 
 The right reading is that the same primitive that handled static
 supervised learning in Paper I handles its non-stationary
 data-stream variant here, with no continual-learning machinery
-added on top.  Paper III takes the same primitive into the
-non-stationary target setting.  We have not built a new continual
-learner; we have noticed that the static one already was one.
+added on top, as long as the fixed-feature joint objective is the
+object we want.  Paper III takes the same primitive into the non-
+stationary target setting.  We have not built a new continual learner;
+we have noticed that the static one already was one.
 
 ---
 
@@ -1262,6 +1336,8 @@ single JSON file:
   (10 seeds × 6 cells) and
   `results/cl_clean/gpu_c2_flat_nef_split_cifar10_panel.json`
   (10 seeds × 1 cell).
+- §5.7: `results/cl_clean/gpu_h8_streaming_permuted_smnist_panel.json`,
+  5 seeds × 12 cells, imported from the streaming-sMNIST Colab suite.
 
 **Driver and runner.**  Each panel was launched via
 `benchmarks/cl_clean/cl_phase_runner.py`.  The runner is
@@ -1292,7 +1368,11 @@ self-describing in the panel JSONs.  The Phase-C ConvNEF panel
 uses an L4-class GPU and is launched through
 `colab/cl_clean/continual_cifar10_gpu_suite.ipynb`; its
 generated configs are saved alongside its results JSON for
-post-hoc audit.
+post-hoc audit.  The streaming continual panel uses the same
+Colab pattern through
+`colab/cl_clean/streaming_permuted_smnist_gpu_suite.ipynb`; its rows
+carry a later H8 code identity and are audited as a homogeneous imported
+bundle rather than mixed with the CPU B-series rows.
 
 ---
 
