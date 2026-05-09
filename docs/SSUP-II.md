@@ -62,6 +62,24 @@ mitigations layered on top of SGD.  They share an architecture in
 which forgetting *can* happen in principle, and the method is doing
 something to make it happen less.
 
+As in Paper I, the trilogy rests on six operational principles:
+
+- **P1 — Encoders are fixed** (random or data-adapted).  Decoders
+  are the only thing we fit.
+- **P2 — Decoders fall out of one analytic step:**
+  $D = (A^\top A + \alpha I)^{-1} A^\top Y$.
+- **P3 — $A^\top A$ and $A^\top Y$ are the universe.**  Learning
+  means accumulating sufficient statistics and solving.
+- **P4 — Targets $Y$ are the only place where task structure
+  enters.**  The encoder does not care what the task is; the
+  decoder column does.
+- **P5 — Time is collapsed by pooling, not by recurrence.**  The
+  streaming classifier of Paper I uses delay-line pooling rather
+  than BPTT.
+- **P6 — Per-class additivity is what makes continual learning
+  work.**  Each class owns its own decoder column, so accumulating
+  new task statistics does not overwrite old class columns.
+
 This paper takes the opposite stance.  We adopt the analytic primitive
 of Paper I — fixed encoders, one regularized least-squares solve over
 the resulting features — and observe that it has no forgetting axis to
@@ -84,8 +102,8 @@ samples through the *fixed* encoder.  Sequentially calling
 `partial_fit` over a stream of tasks and finally `solve_accumulated`
 yields exactly the same decoder as one fit on the union — not "to
 within float precision" as a numerical aspiration, but bit-identical
-in test accuracy as long as both sides use the same $A_t$ (and we run
-both sides under one code identity to guarantee that).
+in test accuracy as long as both sides use the same $A_t$ and the same
+frozen encoder map.
 
 The point of this paper is to take that algebraic fact through to a
 benchmark-grade evaluation, name what it does and does not say, and
@@ -107,9 +125,9 @@ characterize where it stops being useful.  Concretely:
   classification with strong analytic-feature priors (ConvNEF,
   receptive-field encoders) and uncompetitive against deep CNNs.
   We carry that limit straight into Paper II.  On class-incremental
-  splits — the regime where SGD baselines collapse most dramatically —
-  the analytic primitive wins by a wide margin because it does not
-  collapse at all; on domain-incremental Permuted-MNIST it loses to
+splits — the regime where SGD baselines collapse most dramatically —
+the analytic primitive is strongest because it does not
+collapse at all; on domain-incremental Permuted-MNIST it loses to
   EWC and joint MLP because the static-image accuracy ceiling of a
   single-layer NEF is below theirs.  The reading is that
   this paper's contribution is structural and the absolute level
@@ -125,7 +143,7 @@ characterize where it stops being useful.  Concretely:
   general we are willing to make the rule.
 - **The visual ceiling moves cleanly.**  We import a
   gradient-free convolutional feature stack (the ConvNEF of Paper I,
-  §5.5) as the front end, fits its analytic NEF head on a stream
+  §5.5) as the front end, fit its analytic NEF head on a stream
   of tasks via the same `partial_fit`, and shows that the additive
   property survives the change of features.  The Split-CIFAR-10
   continual ceiling moves from 49.5 % to 74.7 % at 20 000 neurons,
@@ -184,13 +202,15 @@ of mitigations.
   Fisher across tasks.  All of these slow drift on "important"
   parameters but do not stop it.
 - **Replay-based methods** keep a buffer of old samples (Experience
-  Replay; Robins, 1995) or a generator for them
-  (Generative Replay; Shin et al., 2017), and interleave old samples
-  with new ones during training.  iCaRL (Rebuffi et al., 2017),
-  GEM (Lopez-Paz & Ranzato, 2017), MIR (Aljundi et al., 2019), and
-  GSS (Aljundi et al., 2019) refine the storage and selection
-  policies.  Replay works well in practice but trades memory for
-  performance and is not online in the strict sense.
+  Replay; Robins, 1995; Rolnick et al., 2019; Chaudhry et al.,
+  2019) or a generator for them (Generative Replay; Shin et al.,
+  2017), and interleave old samples with new ones during training.
+  iCaRL (Rebuffi et al., 2017), GEM (Lopez-Paz & Ranzato, 2017),
+  MER (Riemer et al., 2019), MIR (Aljundi et al., 2019), GSS
+  (Aljundi et al., 2019), and DER++ (Buzzega et al., 2020) refine
+  the storage, selection, and distillation policies.  Replay works
+  well in practice but trades memory for performance and is not
+  online in the strict sense.
 - **Parameter-isolation methods** dedicate disjoint parameters to
   each task.  PackNet (Mallya & Lazebnik, 2018), Progressive Nets
   (Rusu et al., 2016), and HAT (Serrà et al., 2018) all variants on
@@ -248,16 +268,19 @@ This puts the present method into a fourth, structural family
 sometimes called **sufficient-statistic** or **online-ridge**
 methods (in classical statistics; see e.g. Hoerl & Kennard, 1970;
 the streaming version is the recursive least squares of Söderström
-& Stoica, 1988).  The closest deep-learning relatives are the
-random-feature ELM with online updates (ELM-Online; Liang et al.,
-2006), Bayesian linear regression with random features (which is
-the conjugate Gaussian-posterior special case), and the analytic
+& Stoica, 1988).  The online-learning version is online ridge
+regression / aggregating algorithm for regression (Azoury &
+Warmuth, 2001; Vovk, 2001), whose regret bounds scale with an
+effective feature dimension and whose matrix-inverse form is the
+same Woodbury update of §3.2.  The closest deep-learning relatives
+are the random-feature ELM with online updates (ELM-Online; Liang
+et al., 2006), Bayesian linear regression with random features
+(the conjugate Gaussian-posterior special case), and the analytic
 inverse models of LSTD in reinforcement learning (Bradtke & Barto,
 1996).  None of these have been benchmark-scale evaluated on
 modern continual-learning splits with multi-seed discipline against
 EWC- and replay-style baselines.  The contribution of this paper
-is to do exactly that, with the discipline carried over from
-Paper I and `rl_clean`.
+is to do exactly that under the same artifact discipline as Paper I.
 
 ### A note on the four CL evaluation protocols
 
@@ -394,7 +417,7 @@ is **0.000000 pp**.
 
 Equation (1) gives us the joint-equivalence identity but does not
 say anything about *when* a usable decoder is available during the
-stream.  Two implementations matter in practice.
+stream.  Two update schedules matter in practice.
 
 **Accumulate-and-solve.**  Compute $G_t$ and $B_t$ as above; only
 materialize $D$ when needed.  Solving costs $O(n^3)$ once per
@@ -419,20 +442,19 @@ small (the $O(N_t \, n^2 + N_t^2 \, n)$ Woodbury cost beats the
 full $O(n^3)$ solve when $N_t \ll n$); it is the operating mode
 of streaming-NEF in Paper I §6.  Numerically, Paper I §5.3 and
 the analysis in §5.4 of this paper show that the two paths agree
-to within float drift at the tuned $\alpha$.  Float64 accumulators
-are required (Paper I, P0 fix `b895794`); float32 accumulation
-does drift at long streams.
+to within float drift at the tuned $\alpha$.  The running normal
+equations must be accumulated in double precision at the stream
+lengths studied here; single precision drifts at long streams.
 
 **Refresh diagnostics.**  Online Woodbury can in principle drift
-across many small updates.  The implementation
-(`src/leenef/layers.py`) supports `refresh_inverse()`, which
-recomputes $M_t$ from the current $G_t$ exactly; we verify in §5.4
-that even after the longest streams in this paper the maximum
-coefficient drift between drifted-$M_t$ and refreshed-$M_t$ stays
-below $2.3 \times 10^{-5}$ and the test-accuracy gap stays below
-$0.002$ pp.  The "Woodbury drift" concern from earlier
-single-seed exploration was a float32 artifact; it does not
-survive the float64 accumulator discipline.
+across many small updates.  Recomputing $M_t$ directly from the
+current $G_t$ is the diagnostic: §5.4 verifies that even after the
+longest streams in this paper the maximum coefficient drift between
+online-updated $M_t$ and directly recomputed $M_t$ stays below
+$2.3 \times 10^{-5}$ and the test-accuracy gap stays below
+$0.002$ pp.  The "Woodbury drift" concern from earlier single-seed
+exploration was a float32 artifact; it does not survive the
+float64 accumulator discipline.
 
 ### §3.3 — Center placement on a non-stationary stream
 
@@ -515,35 +537,25 @@ front-end forgetting axis and is not what we recommend).  All
 the tabulated ConvNEF-CL numbers in §5.6 use `first_task`
 filters except where explicitly labeled `joint`.
 
-### §3.5 — Code identity, seed protocol, and dataset hashing
+### §3.5 — Reproducibility protocol
 
-Every result row in `results/cl_clean/` carries:
+Every aggregate in §5 is tied to a single source identity, a
+seed-defined task stream, and byte-level dataset hashes.  Headline
+panels use $n = 10$ seeds; ablations use $n = 5$ seeds.  Reported
+uncertainties are
+$\mathrm{SE} = \mathrm{std}(\mathrm{seeds}) / \sqrt{n}$.
 
-- a `code_identity` SHA computed from
-  `git ls-tree -r HEAD -- src/ benchmarks/ tests/ pyproject.toml`
-  (or, for working-tree-dirty runs, the SHA of HEAD plus a
-  content hash of dirty paths);
-- a `dataset_metadata` block with `raw_hashes`
-  (SHA-256 of the on-disk source bytes) and `processed_hashes`
-  (SHA-256 of the float32 task-stream tensors after splitting
-  and per-task permutation);
-- a master seed.  All randomness — encoders, gains, centers,
-  task ordering, EWC Fisher diagonal, ER reservoir indices —
-  is drawn from per-stream sub-RNGs derived deterministically
-  from this master seed via `_make_subrngs`.  No code path
-  consumes the global default RNG; every random draw uses an
-  explicit `torch.Generator()`.  This makes a row fully
-  reproducible from `(code_identity, seed, config)`.
+All random streams — encoders, gains, center selection, task order,
+EWC Fisher sampling, replay-buffer sampling, and evaluation order —
+are derived from the run seed through independent sub-generators.
+This matters for §5.1: the continual and joint rows for a given seed
+must use bit-identical encoders, gains, centers, and task streams or
+Equation (1) would compare two different feature matrices.
 
-Aggregate statistics in §5 are computed only over rows whose
-`code_identity` matches the current HEAD, so a result table in
-this paper corresponds to a single, identifiable point in the
-source tree.  Multi-seed tables use $n = 10$ for headline
-panels and $n = 5$ for ablations; reported uncertainties are
-$\mathrm{SE} = \mathrm{std}(\mathrm{seeds}) / \sqrt{n}$.  The
-adoption rule for "beats" / "matches" verbs is
-$|\Delta| \ge \sqrt{\mathrm{SE}_a^2 + \mathrm{SE}_b^2}$, the
-same rule as Paper I.
+For comparative language we use the same SE rule as Paper I:
+$|\Delta| \ge \sqrt{\mathrm{SE}_a^2 + \mathrm{SE}_b^2}$ before
+calling a rounded difference meaningful.  Appendix A gives the
+artifact layout and exact audit fields.
 
 ---
 
@@ -634,12 +646,12 @@ class-incremental and domain-incremental performance.
 
 We also record:
 
-- **Per-task accuracy at the end of training** (`per_task_accuracy`
-  in the JSON), which lets us inspect whether degradation is
-  uniform across tasks or concentrated on early ones;
-- **End-to-end wall-clock time** (`fit_time_s`), the seconds spent
-  inside `fit` / `partial_fit` / SGD training calls (excludes
-  data loading); reported as mean ± SE across seeds.
+- **Per-task accuracy at the end of training**, which lets us
+  inspect whether degradation is uniform across tasks or
+  concentrated on early ones;
+- **End-to-end wall-clock time**, the seconds spent fitting the
+  analytic head or training the SGD baseline (excluding data
+  loading); reported as mean ± SE across seeds.
 - **Joint-equivalence gap** (§5.1 specifically): the per-seed
   difference between `nef_accumulate` and `nef_joint` test
   accuracy.  Aggregated as
@@ -647,11 +659,11 @@ We also record:
   across seeds.
 
 Wall-clock numbers come from the same hardware for all rows
-within a panel (single CPU socket for the `cl_clean` headline
-panels; an NVIDIA L4 GPU for the ConvNEF panel of §5.6).
+within a panel (single CPU socket for the headline panels; an
+NVIDIA L4 GPU for the ConvNEF panel of §5.6).
 Cross-panel wall-clock comparisons are only made within the
 same hardware.  When we say a method "uses $k\times$ less
-wall-clock time" we mean the ratio of mean `fit_time_s`.
+wall-clock time" we mean the ratio of mean fitting/training time.
 
 ---
 
@@ -674,15 +686,13 @@ verify this at $n = 10$ seeds across all four panels.
 The "$\max_s |\Delta_s|$" column is the worst-case per-seed
 absolute difference between the continual and joint test accuracies,
 across the ten seeds of each panel.  All four panels return zero
-pp at the float-precision level we inspect at (the JSON test
-accuracies match to all stored digits).  The §3.1 identity is
+pp to all archived test-accuracy digits.  The §3.1 identity is
 not a numerical aspiration; it is the operating regime.
 
-Two implementation details make this possible.  First, both
-`partial_fit` and the joint path use float64 accumulators for
-$A^\top A$ and $A^\top Y$ (Paper I, P0 fix `b895794`); float32
-accumulation does not deliver bit-identical equality at this
-data scale.  Second, the seed protocol forces the encoder map
+Two reproducibility details make this possible.  First, both
+the continual and joint paths use double-precision accumulators for
+$A^\top A$ and $A^\top Y$; single-precision accumulation does not
+deliver bit-identical equality at this data scale.  Second, the seed protocol forces the encoder map
 $\phi$, the gain vector $g$, and the bias vector $b$ to be
 bit-identical between the continual and joint runs at the same
 seed; without that, the two paths would build *different*
@@ -695,8 +705,7 @@ implementation, not algorithm.
 
 We compare NEF-continual against the four standard MLP
 variants.  All numbers are mean ± SE across 10 seeds; wall-clock
-is mean per-seed seconds inside `fit_time_s` on a single CPU
-socket.
+is mean per-seed fitting/training time on a single CPU socket.
 
 #### Split-MNIST (5 tasks, class-incremental)
 
@@ -777,7 +786,7 @@ on Split-CIFAR-100.  All three MLP-CL baselines collapse to under
 ratio is **~5.0×**: NEF-continual uses 35.8 s where the joint
 MLP uses 180.3 s.
 
-The right reading of this is not "single-layer NEF beats deep
+The right reading of this is not "single-layer NEF is stronger than deep
 MLP".  It is that the joint-MLP upper bound on Split-CIFAR-100,
 on a comparably parameter-budgeted MLP and at a normal training
 budget, is roughly the same as what an analytic NEF gets on the
@@ -803,8 +812,8 @@ Permuted-MNIST is the counterweight.  This is a *domain-
 incremental* benchmark — 10 output classes throughout, only the
 input distribution changes — which is exactly the regime where
 EWC's parameter-space penalty does what it was designed to do.
-EWC lands at 95.6 ± 0.2 %, beating NEF-continual by 1.1 pp; the
-joint MLP lands at 98.0 ± 0.0 %, beating both.  On wall-clock,
+EWC lands at 95.6 ± 0.2 %, 1.1 pp above NEF-continual; the
+joint MLP lands at 98.0 ± 0.0 %, above both.  On wall-clock,
 EWC also wins: 37.5 s vs 154 s for NEF-continual.
 
 There are two readings.  The first is structural:
@@ -818,7 +827,7 @@ and lands NEF-continual underneath the gradient methods that
 benefit from the same domain-incremental easiness.
 
 The second reading is the methodologically important one: when
-you publish "method X beats EWC on Split-MNIST and Split-CIFAR-100",
+you publish "method X is above EWC on Split-MNIST and Split-CIFAR-100",
 it is fair to ask whether the author also tried Permuted-MNIST.
 The answer here is yes, and EWC won on it.  The right summary is
 that sufficient-statistic accumulation is the strongest method in
@@ -918,16 +927,21 @@ streaming-CL regime), `woodbury_online` wins because each
 inter-task query is then the batch's small Woodbury rather than
 a fresh $O(n^3)$ solve.
 
-The Split-CIFAR-10 row is also a small $\alpha$-regime story.
+The Split-CIFAR-10 row is also an $\alpha$-regime story.
 `accumulate`'s sweet spot is $10^{-2}$ but Woodbury's is
 $10^2$, four orders of magnitude apart.  That difference is not
 an algebraic disagreement — it is the same regularizer applied
-to the same Gram matrix — but a numerical-stability artifact at
-the extremes of the $\alpha$ sweep grid; both solvers reach the
-same accuracy plateau, just from different sides of the
-condition-number curve.  Outside that plateau accumulate
-remains marginally more $\alpha$-robust than the other two on
-this dataset.
+to the same Gram matrix — but a conditioning story.  In the
+current float64-accumulator runs, batch-Woodbury and online-
+Woodbury are indistinguishable, and both have a broad accuracy
+plateau: on Split-MNIST and Permuted-MNIST they are essentially
+flat from $\alpha=10^{-3}$ through $\alpha=1$, and on
+Split-CIFAR-10 they recover at large $\alpha$ where the small-
+$\alpha$ solve is under-regularized.  The older single-seed
+impression that online Woodbury was more accurate than the
+explicit solve was therefore the wrong conclusion; the durable
+point is robustness across a wide $\alpha$ range, not a higher
+best-cell accuracy.
 
 We also re-checked the "Woodbury drift" concern from earlier
 single-seed exploration: under float64 accumulators, after the
@@ -1017,7 +1031,7 @@ Three things are worth flagging in this table.
    flat-NEF floor of 49.5 %.  This is the full Paper I §5.5
    contribution carried through to a continual stream; the
    present paper does not re-derive it but does re-validate it
-   at multi-seed under the `cl_clean` discipline.
+   at multi-seed under the paper's artifact discipline.
 2. **Joint-equivalence survives the change of features.**  At
    every neuron count, the `all_data` row and the `joint` row
    agree to 0.000000 pp on test accuracy.  `all_data` is the
@@ -1086,7 +1100,7 @@ being washed out by later ones; finetune simply forgets.  The
 analytic primitive does not have to defend anything because the
 data-stream axis has length zero by §3.1.  This is why the
 class-incremental splits — Split-MNIST, Split-CIFAR-10,
-Split-CIFAR-100 — are where the method visibly wins, and why the
+Split-CIFAR-100 — are where the method is most useful, and why the
 strongest numerical claim of the paper (NEF-continual edging past
 joint MLP on Split-CIFAR-100 at ~5× less wall-clock time)
 appears in the regime where SGD methods are weakest.
@@ -1099,7 +1113,7 @@ MLP reaches 98.0 %, NEF-continual reaches 94.5 %.  The gap is
 not a continual-learning failure; joint-equivalence still holds
 (94.5 $\equiv$ 94.5).  It is the same gap a single-layer NEF would
 exhibit on the joint version of the benchmark, inherited from
-Paper I.  The honest reading is that the analytic primitive
+Paper I.  The direct reading is that the analytic primitive
 inherits its absolute level from Paper I, and where a static
 NEF is below an MLP, the continual NEF is below the continual
 or joint MLP by the same gap.
@@ -1142,60 +1156,18 @@ fixed feature extractor — whether random, PCA-fit, or a frozen
 deep network's penultimate layer — composes with `partial_fit`
 and inherits the property.
 
-### Negative results
-
-Three things worth restating because they are easy to miss in
-the headline tables.
-
-- **Center adaptation does nothing useful when not harmful.**
-  We tried four center-placement policies in §5.3 because the
-  literature has a strong intuition that adapting representations
-  to incoming tasks should help.  It does not.  `first_task`
-  centers (drawn once at $t = 1$, never updated) tie the
-  full-data oracle.  `growing` centers — adding new neurons per
-  task with biases drawn from each new task's data — *collapses*
-  to the catastrophic-forgetting baseline.  The mechanism is
-  worth keeping in mind: the joint-equivalence identity §3.1
-  applies *only* when the encoder map $\phi$ is fixed.  Mid-stream
-  changes to $\phi$ can re-introduce a forgetting axis even
-  though the analytic head is still doing the "right" thing
-  algebraically.
-- **EWC at class-incremental settings is essentially a no-op.**
-  On Split-CIFAR-100, EWC delivers 4.1 % final accuracy where
-  finetune delivers 1.1 %.  The 3 pp improvement over finetune is
-  in proportion to the difficulty of the underlying problem
-  (chance is 1 %); it is not "EWC works, but a bit weakly".  EWC
-  cannot defend a model whose output space is structurally being
-  asked to do something new on every task.  This is not new — the
-  CL literature has flagged it repeatedly under the
-  "task-incremental vs class-incremental" distinction (van de Ven
-  & Tolias, 2019) — but it is worth restating because cross-
-  table comparisons sometimes report only one of the two regimes.
-- **Replay buffers at "realistic" sizes do not save the splits.**
-  ER with a 500-sample buffer (which is comparable to MIR/GSS
-  evaluations) recovers most of Split-MNIST but is at random
-  on Split-CIFAR-10 and Split-CIFAR-100.  Larger buffers would
-  recover more, but the wall-clock cost grows with buffer size,
-  and at some point one is just doing joint training over a
-  growing reservoir.  The analytic primitive sidesteps this
-  trade entirely because it is *already* effectively maintaining
-  the union of all tasks' sufficient statistics, in compressed
-  form, in $A^\top A$ and $A^\top Y$.
-
 ### Streaming continual: a forward look
 
-H8 in our internal numbering — a streaming-NEF + Woodbury panel
-on Permuted-sMNIST that ingests a non-stationary temporal stream
-and classifies in real time without revisiting old data — is
-not a result in this paper.  We mention the direction because
-the architecture is already in place.  Stream-NEF (Paper I §6)
-already supports `continuous_fit` via online Woodbury; calling
-it across a non-stationary task stream is exactly the §3.2
-online path.  Whether the resulting model is competitive against
-streaming-CL specialists is open, and we have only single-seed
-attic-grade evidence on it.  Listing it here makes the trilogy's
-phase-2 frontier explicit; the next benchmark-grade evaluation
-in this direction is the entry point for follow-up work.
+A streaming-NEF + Woodbury panel on Permuted-sMNIST that ingests a
+non-stationary temporal stream and classifies in real time without
+revisiting old data is not a result in this paper.  We mention the
+direction because the architecture is already in place.  Stream-NEF
+(Paper I §6) already supports online Woodbury updates; calling it
+across a non-stationary task stream is exactly the §3.2 online path.
+Whether the resulting model is competitive against streaming-CL
+specialists is open, and we have only single-seed attic-grade evidence
+on it.  The next benchmark-grade evaluation in this direction is the
+entry point for follow-up work.
 
 ### Bridge to Paper III
 
@@ -1363,8 +1335,7 @@ it again.
 single-seed exploration suggested that `woodbury_online` was
 "more accurate" than `accumulate` because of small drift in the
 cached $M_t$ acting as a regularizer.  This was a float32
-artifact: under float64 accumulators (Paper I, P0 fix
-`b895794`), the drift is below $2.3 \times 10^{-5}$ in
+artifact: under float64 accumulators, the drift is below $2.3 \times 10^{-5}$ in
 coefficient norm and 0.002 pp in test accuracy, and the two
 solvers produce statistically indistinguishable results at the
 tuned $\alpha$.  Whatever benefit the drift was conveying in
@@ -1422,9 +1393,21 @@ Aljundi, R., Lin, M., Goujaud, B., & Bengio, Y. (2019).
 Gradient based sample selection for online continual learning.
 *NeurIPS*.
 
+Azoury, K. S., & Warmuth, M. K. (2001). Relative loss bounds for
+on-line density estimation with the exponential family of
+distributions. *Machine Learning*, 43, 211–246.
+
 Bradtke, S. J., & Barto, A. G. (1996). Linear least-squares
 algorithms for temporal difference learning. *Machine
 Learning*, 22(1–3), 33–57.
+
+Buzzega, P., Boschini, M., Porrello, A., Abati, D., & Calderara, S.
+(2020). Dark experience for general continual learning: A strong,
+simple baseline. *NeurIPS*.
+
+Chaudhry, A., Rohrbach, M., Elhoseiny, M., Ajanthan, T.,
+Dokania, P. K., Torr, P. H. S., & Ranzato, M. (2019). On tiny
+episodic memories in continual learning. *arXiv:1902.10486*.
 
 Coates, A., Lee, H., & Ng, A. Y. (2011). An analysis of
 single-layer networks in unsupervised feature learning.
@@ -1462,6 +1445,10 @@ Sundararajan, N. (2006). A fast and accurate online sequential
 learning algorithm for feedforward networks. *IEEE
 Transactions on Neural Networks*, 17(6), 1411–1423.
 
+Li, Z., & Hoiem, D. (2017). Learning without forgetting.
+*IEEE Transactions on Pattern Analysis and Machine Intelligence*,
+40(12), 2935–2947.
+
 Lopez-Paz, D., & Ranzato, M. (2017). Gradient episodic memory
 for continual learning. *NeurIPS*.
 
@@ -1485,8 +1472,16 @@ Rebuffi, S.-A., Kolesnikov, A., Sperl, G., & Lampert, C. H.
 (2017). iCaRL: Incremental classifier and representation
 learning. *CVPR*.
 
+Riemer, M., Cases, I., Ajemian, R., Liu, M., Rish, I.,
+Tu, Y., & Tesauro, G. (2019). Learning to learn without
+forgetting by maximizing transfer and minimizing interference.
+*ICLR*.
+
 Robins, A. (1995). Catastrophic forgetting, rehearsal and
 pseudorehearsal. *Connection Science*, 7(2), 123–146.
+
+Rolnick, D., Ahuja, A., Schwarz, J., Lillicrap, T., & Wayne, G.
+(2019). Experience replay for continual learning. *NeurIPS*.
 
 Rusu, A. A., Rabinowitz, N. C., Desjardins, G., Soyer, H.,
 Kirkpatrick, J., Kavukcuoglu, K., Pascanu, R., & Hadsell, R.
@@ -1509,6 +1504,9 @@ Prentice Hall.
 
 van de Ven, G. M., & Tolias, A. S. (2019). Three scenarios for
 continual learning. *arXiv:1904.07734*.
+
+Vovk, V. (2001). Competitive on-line statistics. *International
+Statistical Review*, 69(2), 213–248.
 
 Zenke, F., Poole, B., & Ganguli, S. (2017). Continual
 learning through synaptic intelligence. *ICML*.
