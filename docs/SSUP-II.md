@@ -15,43 +15,26 @@ responsibility.
 
 ## Abstract
 
-The same regularized least-squares solve
-$D = (A^\top A + \alpha I)^{-1} A^\top Y$ that Paper I used for static
-supervised learning is, under fixed-encoder NEF features, *automatically*
-a continual learner.  Because $A^\top A$ and $A^\top Y$ are additive
-over data partitions, sequential `partial_fit` over a non-stationary
-task stream produces the **same** decoder as joint training over the
-union of tasks; the "forgetting" axis has length zero by construction.
-We verify this empirically across four standard benchmarks at multi-seed
-rigor: on Split-MNIST, Permuted-MNIST, Split-CIFAR-10, and Split-CIFAR-100,
-the per-seed accuracy of `nef_accumulate` matches `nef_joint` to
-**0.000000 pp** over 10 seeds.  Comparing against EWC, Experience Replay,
-and joint-training MLPs, sufficient-statistics accumulation
-**collapses the class-incremental forgetting modes** of the gradient
-baselines (Split-MNIST: NEF 97.0 % vs MLP-EWC and MLP-finetune
-~20.0 %), **edges past the joint MLP upper bound on Split-CIFAR-100**
-(NEF 24.2 ± 0.1 % vs MLP-joint 23.8 ± 0.1 %, ~5× less wall-clock
-time), and **lands within 1.0 pp** of joint-MLP on Split-MNIST and
-within 2.4 pp on Split-CIFAR-10.  A capacity scan on Permuted-MNIST
-shows that worst-case retention scales smoothly with neuron budget per
-task, with an MNIST-level "~100 neurons per task for ~80 % retention"
-operating point and a confirmed dataset dependence on harder visual
-splits.  Online Woodbury and offline accumulation match within 0.05 pp
-at the tuned $\alpha$ while accumulation runs 5–9× faster, and
-center-bank policies turn out not to matter once a single first-task
-bank is in place.  A gradient-free ConvNEF front-end lifts the
-Split-CIFAR-10 ceiling from 49.5 % to **74.7 ± 0.1 %** without breaking
-additivity: the continual `partial_fit` path is bit-identical in
-accuracy to the one-shot joint fit at every neuron count tested.  A
-streaming-continual follow-up shows the boundary of the claim: the exact
-accumulate/joint identity still holds through a mean-pooled delay-line
-feature map, but the exact final solve is weak on 10-task permuted
-sMNIST, while online Woodbury reaches **59.8 ± 0.3 %** at 16 000 neurons
-without matching the exact solve.  These results are not "another CL
-method"; they are the structural consequence — and the structural limit
-— of the P3 principle that $A^\top A$, $A^\top Y$ are the universe, and
-of letting `partial_fit` be the only operation a learner ever performs
-on a task stream.
+The regularized least-squares solve
+$D = (A^\top A + \alpha I)^{-1} A^\top Y$ becomes a continual learner
+when the encoder is fixed.  Because $A^\top A$ and $A^\top Y$ add over
+data partitions, sequential `partial_fit` over a task stream produces
+the **same** decoder as joint training over the union of tasks: the
+forgetting axis has length zero by construction.  Across Split-MNIST,
+Permuted-MNIST, Split-CIFAR-10, and Split-CIFAR-100, `nef_accumulate`
+matches `nef_joint` to **0.000000 pp** over 10 seeds.  This collapses the
+class-incremental forgetting modes of the tested gradient baselines
+(Split-MNIST: 97.0 % vs ~20.0 % for MLP-EWC and MLP-finetune), while
+still exposing honest limits: EWC and joint MLP remain stronger on
+Permuted-MNIST, and absolute accuracy is bounded by the feature map.
+Capacity scales smoothly with neuron budget per task, and a
+gradient-free ConvNEF front end lifts Split-CIFAR-10 from 49.5 % to
+**74.7 ± 0.1 %** without breaking the additivity identity.  A
+streaming-continual follow-up marks the boundary: exact accumulate and
+joint fits still coincide through a mean-pooled delay-line feature map,
+but the exact final solve is weak on 10-task permuted sMNIST, while
+online Woodbury reaches **59.8 ± 0.3 %** without matching the exact
+solve.
 
 ---
 
@@ -149,8 +132,8 @@ of mitigations.
   Fisher across tasks.  All of these slow drift on "important"
   parameters but do not stop it.
 - **Replay-based methods** keep a buffer of old samples (Experience
-  Replay; Robins, 1995; Rolnick et al., 2019; Chaudhry et al.,
-  2019) or a generator for them (Generative Replay; Shin et al.,
+  Replay; Robins, 1995; Rolnick et al., 2019; Chaudhry et al., 2019)
+  or a generator for them (Generative Replay; Shin et al.,
   2017), and interleave old samples with new ones during training.
   iCaRL (Rebuffi et al., 2017), GEM (Lopez-Paz & Ranzato, 2017),
   MER (Riemer et al., 2019), MIR (Aljundi et al., 2019), GSS

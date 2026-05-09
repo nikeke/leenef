@@ -16,31 +16,22 @@ responsibility.
 ## Abstract
 
 NEF's regularized least-squares solve over fixed-encoder neural
-activities — $D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$ — gives a compact
-sufficient-statistics primitive for supervised learning.  In a
-rate-based specialization we call **leenef**, we interpret the
-activities as magnitudes of frame coefficients and study how
-encoder choice, bias placement, activation, and regularization
-shape the resulting fixed-feature learner.  The resulting primitive
-composes into ensembles, online updates (Woodbury),
-GPU-friendly accumulate-and-solve, and, non-trivially, a streaming
-temporal classifier.  Under multi-seed,
-code-identity-tagged evaluation, the analytic streaming classifier
-reaches **98.45 ± 0.02 %** on row sMNIST: **0.6 pp below** a tuned
-near-best LSTM while using **2.4× less wall-clock time**, and
-**~5 pp above** the completed ESN row panel while using
-**roughly 5× less wall-clock time**.  Static single-layer leenef
-models with generic encoders end **1–4 pp below** gradient-trained
-MLPs on image features while using **12–50× less wall-clock time**;
-on CIFAR-10, adding a receptive-field encoder reverses that gap
-(**+1.37 pp**) with **~11× less wall-clock time**, and a
-gradient-free convolutional feature stack (ConvNEF, §5.5) lifts
-the same head by a further **+10.78 pp** to **65.89 ± 0.12 %**.
-The same
-evidence also marks clear limits: generic fixed encoders are not a
-substitute for spatial priors, purely analytic depth does not buy
-accuracy on its own, and mean-pooled delay-line features lose the
-long-range order information needed for harder sequence tasks.
+activities — $D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$ — is a
+compact sufficient-statistics primitive for supervised learning.  In a
+rate-based specialization we call **leenef**, fixed encoders produce
+frame-coefficient-like activities and only the decoder is fit.  This
+primitive supports fast static classifiers, ensembles, online Woodbury
+updates, GPU-friendly accumulate-and-solve, and a streaming temporal
+classifier.  Under multi-seed, code-identity-tagged evaluation,
+Stream-NEF reaches **98.45 ± 0.02 %** on row sMNIST: **0.6 pp below** a
+tuned near-best LSTM while using **2.4× less wall-clock time**, and
+**~5 pp above** the completed ESN row panel.  Static image classifiers
+are fast but feature-limited: generic encoders trail tuned MLPs by
+**1–4 pp**, receptive-field encoders reverse the CIFAR-10 MLP gap, and a
+gradient-free ConvNEF front end reaches **65.89 ± 0.12 %** on CIFAR-10.
+The limits are equally clear: spatial priors matter, purely analytic
+depth does not buy accuracy on its own, and mean-pooled delay-line
+features lose long-range order information.
 
 ---
 
