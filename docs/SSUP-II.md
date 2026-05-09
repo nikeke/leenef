@@ -808,7 +808,7 @@ joint MLP lands at 98.0 ± 0.0 %, beating both.  On wall-clock,
 EWC also wins: 37.5 s vs 154 s for NEF-continual.
 
 There are two readings.  The first is structural:
-joint-equivalence still holds (94.5 = 94.5).  Whatever
+joint-equivalence still holds (94.5 $= 94.5$).  Whatever
 NEF-continual is doing, it is what NEF-joint would have done
 with the same data, so this is not a continual-learning
 failure; it is the static-model accuracy ceiling on an MLP-style
@@ -892,9 +892,9 @@ three datasets we tested.
 
 | Dataset         | best `accumulate`        | best `woodbury_batch`   | best `woodbury_online`  |
 |-----------------|--------------------------|--------------------------|--------------------------|
-| Split-MNIST     | 97.0 ± 0.1 % @ α=10⁻³, 26.9 s | 97.0 ± 0.1 % @ α=10⁻³, 164.9 s | 97.0 ± 0.1 % @ α=10⁻³, 239.8 s |
-| Split-CIFAR-10  | 50.5 ± 0.1 % @ α=10⁻², 29.3 s | 50.4 ± 0.0 % @ α=10², 137.2 s   | 50.4 ± 0.0 % @ α=10², 202.2 s   |
-| Permuted-MNIST  | 94.5 ± 0.0 % @ α=10⁻³, 124.8 s | 94.6 ± 0.0 % @ α=10⁻², 881.1 s | 94.6 ± 0.0 % @ α=10⁻², 1135.1 s |
+| Split-MNIST     | 97.0 ± 0.1 % @ $\alpha=10^{-3}$, 26.9 s | 97.0 ± 0.1 % @ $\alpha=10^{-3}$, 164.9 s | 97.0 ± 0.1 % @ $\alpha=10^{-3}$, 239.8 s |
+| Split-CIFAR-10  | 50.5 ± 0.1 % @ $\alpha=10^{-2}$, 29.3 s | 50.4 ± 0.0 % @ $\alpha=10^{2}$, 137.2 s   | 50.4 ± 0.0 % @ $\alpha=10^{2}$, 202.2 s   |
+| Permuted-MNIST  | 94.5 ± 0.0 % @ $\alpha=10^{-3}$, 124.8 s | 94.6 ± 0.0 % @ $\alpha=10^{-2}$, 881.1 s | 94.6 ± 0.0 % @ $\alpha=10^{-2}$, 1135.1 s |
 
 All cells are means ± SE across 5 seeds at the best $\alpha$ for
 that dataset–solver pair.  The accuracy column agrees to within
@@ -954,7 +954,7 @@ per cell.  Final accuracy on the union of test sets:
 |   5 000      | 94.5 % | 92.4 % | 89.2 % | 81.4 % | 71.8 % |
 |  10 000      | 95.9 % | 94.5 % | 92.4 % | 87.3 % | 80.8 % |
 
-All SEs are ≤ 0.2 pp; rounded to 1 dp the CIs are inside the
+All SEs are $\le 0.2$ pp; rounded to 1 dp the CIs are inside the
 last digit.  The diagonal $n / T \in \{100, 100, 100, 100, 100\}$
 (i.e. $n = 500 / T = 5$, $n = 1000 / T = 10$, etc.) corresponds
 to roughly 82.6 %, 82.5 %, 82.2 %, 81.4 %, 80.8 % — a
@@ -1089,7 +1089,7 @@ methods are not in the regime they fail in, and they win.
 Permuted-MNIST is the case in point: EWC reaches 95.6 %, joint
 MLP reaches 98.0 %, NEF-continual reaches 94.5 %.  The gap is
 not a continual-learning failure; joint-equivalence still holds
-(94.5 ≡ 94.5).  It is the same gap a single-layer NEF would
+(94.5 $\equiv$ 94.5).  It is the same gap a single-layer NEF would
 exhibit on the joint version of the benchmark, inherited from
 Paper I.  The honest reading is that the analytic primitive
 inherits its absolute level from Paper I, and where a static
@@ -1127,7 +1127,7 @@ applications — the simplicity is itself a contribution.
 (c) **the property survives interesting changes of features**.
 §5.6 shows that swapping the front end from random global
 features to gradient-free convolutional features preserves the
-joint-equivalence identity exactly (`all_data` ≡ `joint` to
+joint-equivalence identity exactly (`all_data` $\equiv$ `joint` to
 0.000000 pp at every neuron count).  This is the part of the
 story that lets us imagine pluggable feature extractors.  Any
 fixed feature extractor — whether random, PCA-fit, or a frozen
@@ -1362,7 +1362,7 @@ solvers produce statistically indistinguishable results at the
 tuned $\alpha$.  Whatever benefit the drift was conveying in
 float32 was not separable from its harm.
 
-**Trace-α as a universal regularizer.**  The intuition that
+**Trace-$\alpha$ as a universal regularizer.**  The intuition that
 $\alpha$ should scale with $\mathrm{tr}(A^\top A) / n$ across
 datasets so the regularizer becomes a single hyperparameter is
 appealing but breaks at the second decimal place: per-dataset
