@@ -1061,3 +1061,447 @@ primitive is "$A^\top A$ and $A^\top Y$ are the universe", the
 data-stream axis simply does not exist.
 
 ---
+
+## §6 — Discussion
+
+### Where this primitive helps and where it doesn't
+
+The numbers of §5 trace a fairly sharp boundary.  When the
+benchmark is class-incremental — new output classes arrive over
+time, no task ID at evaluation, the output ranking has to span
+everything the model has ever seen — the gradient CL baselines
+struggle in proportion to how many classes are involved.  EWC's
+parameter-space penalty cannot defend a classifier whose softmax
+is asked to absorb fresh class identities; ER at moderate buffer
+size cannot replay enough samples to keep the early classes from
+being washed out by later ones; finetune simply forgets.  The
+analytic primitive does not have to defend anything because the
+data-stream axis has length zero by §3.1.  This is why the
+class-incremental splits — Split-MNIST, Split-CIFAR-10,
+Split-CIFAR-100 — are where the method visibly wins, and why the
+strongest numerical claim of the paper (NEF-continual edging past
+joint MLP on Split-CIFAR-100 at ~5× less wall-clock time)
+appears in the regime where SGD methods are weakest.
+
+When the benchmark is domain-incremental — same output classes
+throughout, only the input distribution changes — gradient
+methods are not in the regime they fail in, and they win.
+Permuted-MNIST is the case in point: EWC reaches 95.6 %, joint
+MLP reaches 98.0 %, NEF-continual reaches 94.5 %.  The gap is
+not a continual-learning failure; joint-equivalence still holds
+(94.5 ≡ 94.5).  It is the same gap a single-layer NEF would
+exhibit on the joint version of the benchmark, inherited from
+Paper I.  The honest reading is that the analytic primitive
+inherits its absolute level from Paper I, and where a static
+NEF is below an MLP, the continual NEF is below the continual
+or joint MLP by the same gap.
+
+### What "by construction" actually delivers
+
+A reasonable critique of the joint-equivalence framing is that
+it merely re-describes ridge regression: of course the closed-
+form solution is independent of the order of observations.  We
+agree that the algebra is unsurprising.  The claim is not that
+the algebra is novel.  The claim is that
+
+(a) **a benchmark-relevant model can be built around it**.  Paper I
+already showed that an analytic NEF is competitive on static SL
+when the feature stack is right (ConvNEF for vision); §5 of the
+present paper shows that this same model is — with no further
+machinery — a benchmark-grade continual learner.  The continuity
+between "competitive static model" and "competitive continual
+learner" is provided by the absence of any continual-learning
+machinery in between.
+
+(b) **the absence of machinery is the point**.  There is no
+parameter-importance estimate to compute, no buffer to manage,
+no task identifier to record, no Fisher diagonal to maintain
+between tasks, no replay schedule to tune.  Every continual
+update is a `partial_fit` call.  This is much closer to the
+classical online-statistics literature than to the deep-learning
+CL literature, and in domains where the output ceiling is set
+by a Coates-2011-style feature stack rather than a deep CNN —
+which is most of small-data tabular and signal-classification
+applications — the simplicity is itself a contribution.
+
+(c) **the property survives interesting changes of features**.
+§5.6 shows that swapping the front end from random global
+features to gradient-free convolutional features preserves the
+joint-equivalence identity exactly (`all_data` ≡ `joint` to
+0.000000 pp at every neuron count).  This is the part of the
+story that lets us imagine pluggable feature extractors.  Any
+fixed feature extractor — whether random, PCA-fit, or a frozen
+deep network's penultimate layer — composes with `partial_fit`
+and inherits the property.
+
+### Negative results, in plain language
+
+Three things worth restating because they are easy to miss in
+the headline tables.
+
+- **Center adaptation does nothing useful when not harmful.**
+  We tried four center-placement policies in §5.3 because the
+  literature has a strong intuition that adapting representations
+  to incoming tasks should help.  It does not.  `first_task`
+  centers (drawn once at $t = 1$, never updated) tie the
+  full-data oracle.  `growing` centers — adding new neurons per
+  task with biases drawn from each new task's data — *collapses*
+  to the catastrophic-forgetting baseline.  The mechanism is
+  worth keeping in mind: the joint-equivalence identity §3.1
+  applies *only* when the encoder map $\phi$ is fixed.  Mid-stream
+  changes to $\phi$ can re-introduce a forgetting axis even
+  though the analytic head is still doing the "right" thing
+  algebraically.
+- **EWC at class-incremental settings is essentially a no-op.**
+  On Split-CIFAR-100, EWC delivers 4.1 % final accuracy where
+  finetune delivers 1.1 %.  The 3 pp improvement over finetune is
+  in proportion to the difficulty of the underlying problem
+  (chance is 1 %); it is not "EWC works, but a bit weakly".  EWC
+  cannot defend a model whose output space is structurally being
+  asked to do something new on every task.  This is not new — the
+  CL literature has flagged it repeatedly under the
+  "task-incremental vs class-incremental" distinction (van de Ven
+  & Tolias, 2019) — but it is worth restating because cross-
+  table comparisons sometimes report only one of the two regimes.
+- **Replay buffers at "realistic" sizes do not save the splits.**
+  ER with a 500-sample buffer (which is comparable to MIR/GSS
+  evaluations) recovers most of Split-MNIST but is at random
+  on Split-CIFAR-10 and Split-CIFAR-100.  Larger buffers would
+  recover more, but the wall-clock cost grows with buffer size,
+  and at some point one is just doing joint training over a
+  growing reservoir.  The analytic primitive sidesteps this
+  trade entirely because it is *already* effectively maintaining
+  the union of all tasks' sufficient statistics, in compressed
+  form, in $A^\top A$ and $A^\top Y$.
+
+### Streaming continual: a forward look
+
+H8 in our internal numbering — a streaming-NEF + Woodbury panel
+on Permuted-sMNIST that ingests a non-stationary temporal stream
+and classifies in real time without revisiting old data — is
+not a result in this paper.  We mention the direction because
+the architecture is already in place.  Stream-NEF (Paper I §6)
+already supports `continuous_fit` via online Woodbury; calling
+it across a non-stationary task stream is exactly the §3.2
+online path.  Whether the resulting model is competitive against
+streaming-CL specialists is open, and we have only single-seed
+attic-grade evidence on it.  Listing it here makes the trilogy's
+phase-2 frontier explicit; the next benchmark-grade evaluation
+in this direction is the entry point for follow-up work.
+
+### Bridge to Paper III
+
+Paper III takes the same primitive into reinforcement learning.
+The algebra continues to apply: the targets matrix $Y$ becomes
+a bootstrap target matrix $Y_t = R_t + \gamma \, V_\theta(S_{t+1})$
+(or the per-action analog), and the per-action decomposition is
+once again a partition into independent column groups of
+$A^\top Y$.  This makes the same `partial_fit` /
+`solve_accumulated` machinery available for value-function
+estimation.  Where this paper showed that the data-stream axis
+has length zero, Paper III argues that the target-stream axis
+also has length zero in the same primitive.  A separate research
+line has the primitive working on classic dense-reward control
+benchmarks already; the sparse-reward variants are still
+uncertain.  We mention this here only to make the trilogy's
+shared spine visible.
+
+---
+
+## §7 — Conclusions
+
+The contribution of this paper is structural rather than
+algorithmic.  Under fixed encoders, the regularized least-squares
+solve $D = (A^\top A + \alpha I)^{-1} A^\top Y$ is bit-identical
+in test accuracy whether the data arrived in five tasks or one,
+because $A^\top A$ and $A^\top Y$ are sums over data partitions.
+The continual learner is the same object as the static learner;
+the data-stream axis has length zero by construction.
+
+We verified this empirically across Split-MNIST, Permuted-MNIST,
+Split-CIFAR-10, and Split-CIFAR-100 at 10 seeds each, with the
+maximum per-seed gap between continual and joint test accuracy
+being 0.000000 pp on every panel.  We placed the primitive on a
+benchmark-grade comparison with EWC, Experience Replay, and
+joint-trained MLPs of matched capacity; on the class-incremental
+splits the analytic primitive is dramatically the strongest
+continual learner (collapsing the forgetting modes of the SGD
+baselines), and on Split-CIFAR-100 it edges past the joint-MLP
+upper bound while using ~5× less wall-clock time.  On
+domain-incremental Permuted-MNIST EWC and joint-MLP win by ~1
+and ~3.5 pp respectively, inheriting the static-NEF–MLP gap from
+Paper I.  We characterized capacity ($\sim 100$ neurons per task
+at $\sim 80\,\%$ retention on Permuted-MNIST, with caveat for
+harder visual splits), the operating regime of online Woodbury
+vs offline accumulate (equivalence at tuned $\alpha$, 5–9× less
+wall-clock for accumulate), the three center-placement choices
+that don't matter and the one that does (`growing` collapses),
+and the ConvNEF extension that lifts the visual ceiling by
++25 pp without breaking the property.
+
+The right reading is that the same primitive that handled static
+supervised learning in Paper I handles its non-stationary
+data-stream variant here, with no continual-learning machinery
+added on top.  Paper III takes the same primitive into the
+non-stationary target setting.  We have not built a new continual
+learner; we have noticed that the static one already was one.
+
+---
+
+## Appendix A — Reproducibility
+
+Every numeric claim in this paper is regeneratable from the
+accompanying repository,
+[`https://github.com/nikeke/leenef`](https://github.com/nikeke/leenef).
+Artifact paths in this appendix are relative to that repository.
+
+**Per-cell JSON rows under `results/cl_clean/`** carry, in
+addition to the standard `metrics.test_accuracy` and
+`metrics.fit_time_s`:
+
+- `code_identity` — a content-addressed SHA computed by
+  `git ls-tree -r HEAD -- src/ benchmarks/ tests/ pyproject.toml`
+  and SHA-256-hashed.  Pure-docs commits do not bump this hash;
+  any source change does.  Aggregated tables in §5 use only rows
+  whose `code_identity` matches the current HEAD.  Phase C
+  Colab-imported rows carry their own scaffold-side `code_identity`
+  distinct from the CPU-side panels; both identities are recorded
+  in the JSONs and the analyzer checks them per-row before
+  including a row in an aggregate.
+- `dataset_metadata.raw_hashes` — SHA-256 of the on-disk source
+  bytes of MNIST / CIFAR-10 / CIFAR-100;
+- `dataset_metadata.processed_hashes` — SHA-256 of the float32
+  task-stream tensors (per-task split, per-task pixel permutation
+  for Permuted-MNIST), so identical seed + scenario reproduces
+  bit-identical task streams across runs and machines.
+- `seed` — the master seed passed to `_make_subrngs(seed)`,
+  which derives independent `torch.Generator()` instances for
+  each random stream (encoder construction, gain sampling,
+  center selection, EWC Fisher estimation noise, ER reservoir
+  indices, evaluation permutation).  No code path consumes the
+  global default RNG.
+- `metrics.per_task_accuracy` — per-task test accuracy at the
+  end of training, 1-D array of length $T$.
+
+**Phase / panel layout.**  Each result in §5 corresponds to a
+single JSON file:
+
+- §5.1 / §5.2: `results/cl_clean/nef_continual_{split_mnist,
+  split_cifar10, split_cifar100, permuted_mnist}_panel.json`,
+  10 seeds × 7 cells each.
+- §5.3: `results/cl_clean/b4_centers_{split_mnist,
+  split_cifar10}.json`, 5 seeds × 4 cells each.
+- §5.4: `results/cl_clean/b5_solvers_{split_mnist,
+  permuted_mnist, split_cifar10}.json`, 5 seeds × 21 cells each
+  (3 solver modes × 7 $\alpha$ values).
+- §5.5: `results/cl_clean/b3_capacity_permuted_mnist_t{5, 10,
+  20, 50, 100}.json`, 5 seeds × 5 cells each (one cell per
+  $n$ value).
+- §5.6: `results/cl_clean/gpu_c1_convnef_split_cifar10_panel.json`
+  (10 seeds × 6 cells) and
+  `results/cl_clean/gpu_c2_flat_nef_split_cifar10_panel.json`
+  (10 seeds × 1 cell).
+
+**Driver and runner.**  Each panel was launched via
+`benchmarks/cl_clean/cl_phase_runner.py`.  The runner is
+idempotent: re-launching a phase against an existing JSON
+re-runs only cells whose `code_identity` does not match HEAD
+or whose stored config does not match the requested config.
+Results are written cell-by-cell so an interrupted phase
+preserves completed rows.  Long phases are detached with
+`setsid ... < /dev/null & disown` and watched via a sentinel
+file (`results/cl_clean/<phase>_done`); phase logs go to
+`results/cl_clean/logs/<phase>.log`.
+
+**Reproducing a single row.**  From a clean checkout of the
+repository at the matching `code_identity`:
+
+```
+python -m benchmarks.cl_clean.cl_phase_runner \
+    --experiment nef_continual_split_cifar100 \
+    --phase nef_continual_split_cifar100_panel \
+    --knob cell --values nef_accumulate \
+    --seeds 0 \
+    --base-config results/cl_clean/base_config_nef_continual_split_cifar100.json \
+    --out /tmp/repro.json --log /tmp/repro.log
+```
+
+Cell IDs, seed ranges, and base-config paths are
+self-describing in the panel JSONs.  The Phase-C ConvNEF panel
+uses an L4-class GPU and is launched through
+`colab/cl_clean/continual_cifar10_gpu_suite.ipynb`; its
+generated configs are saved alongside its results JSON for
+post-hoc audit.
+
+---
+
+## Appendix B — Negative results catalog
+
+We collect here the design directions that did not work, with
+the mechanism for each, so future readers don't repeat them.
+
+**Center adaptation across tasks.**  Replacing the `first_task`
+center bank with policies that re-fit centers on later tasks
+(`all_tasks`, `growing`, `replace_per_task`) does not improve
+final accuracy.  `all_tasks` is an oracle and matches
+`first_task` within SE.  `growing` collapses to the
+catastrophic-forgetting baseline because adding new neurons
+mid-stream changes the encoder map $\phi$, and the
+joint-equivalence identity §3.1 only holds for fixed $\phi$.
+Practical recommendation: pick the center bank once, at
+$t = 1$, from the first task's training data, and never touch
+it again.
+
+**Drift-as-regularization on the Woodbury inverse.**  An earlier
+single-seed exploration suggested that `woodbury_online` was
+"more accurate" than `accumulate` because of small drift in the
+cached $M_t$ acting as a regularizer.  This was a float32
+artifact: under float64 accumulators (Paper I, P0 fix
+`b895794`), the drift is below $2.3 \times 10^{-5}$ in
+coefficient norm and 0.002 pp in test accuracy, and the two
+solvers produce statistically indistinguishable results at the
+tuned $\alpha$.  Whatever benefit the drift was conveying in
+float32 was not separable from its harm.
+
+**Trace-α as a universal regularizer.**  The intuition that
+$\alpha$ should scale with $\mathrm{tr}(A^\top A) / n$ across
+datasets so the regularizer becomes a single hyperparameter is
+appealing but breaks at the second decimal place: per-dataset
+tuning still wins by 0.2–0.4 pp.  Paper I §4 already discusses
+this; we did not re-test it on the continual side because the
+static optimum carries through under the additivity identity.
+
+**EWC at class-incremental settings.**  The "diagonal Fisher
+penalty resists drift" intuition is irrelevant when the output
+softmax is being asked to recognize fresh classes per task: the
+penalty is in parameter space, but the failure mode is
+output-space.  EWC delivered random-class accuracy on Split-MNIST
+(20.0 ± 0.3 %), Split-CIFAR-10 (16.1 ± 0.5 %), and Split-CIFAR-100
+(4.1 ± 0.2 %).  We did spot-check $\lambda \in \{0.1, 1, 10\} \cdot
+\lambda_{\mathrm{lit}}$; the verdict does not change.
+
+**Experience Replay at moderate buffer sizes on harder splits.**
+ER with a 500-sample buffer rescues Split-MNIST to 86.5 % but
+fails on Split-CIFAR-10 and Split-CIFAR-100 (12.5 %, 2.0 %).
+Larger buffers do recover more, but at some point ER is just
+joint training over a growing reservoir, which is not a meaningful
+continual learner.  We did not chase the curve; we report ER at
+the point where MIR / GSS-style evaluations typically run.
+
+**The MNIST capacity law is not the CIFAR capacity law.**
+Permuted-CIFAR-10 capacity sits well below Permuted-MNIST
+capacity at the same $(n, T)$ — pre-restart attic exploration
+put the analogous diagonal at ~40 % rather than ~80 % at
+$n = 10\,000, T = 20$.  We do not extrapolate the
+$n / T \approx 100$ rule beyond MNIST without a proper
+multi-seed sweep.  This is the right behavior; the wrong behavior
+would be reporting a "universal capacity law" on the strength of
+one dataset.
+
+---
+
+## Literature
+
+Aljundi, R., Babiloni, F., Elhoseiny, M., Rohrbach, M., &
+Tuytelaars, T. (2018). Memory aware synapses: Learning what
+(not) to forget. *ECCV*.
+
+Aljundi, R., Belilovsky, E., Tuytelaars, T., Charlin, L.,
+Caccia, M., Lin, M., & Page-Caccia, L. (2019). Online
+continual learning with maximally interfered retrieval.
+*NeurIPS*.
+
+Aljundi, R., Lin, M., Goujaud, B., & Bengio, Y. (2019).
+Gradient based sample selection for online continual learning.
+*NeurIPS*.
+
+Bradtke, S. J., & Barto, A. G. (1996). Linear least-squares
+algorithms for temporal difference learning. *Machine
+Learning*, 22(1–3), 33–57.
+
+Coates, A., Lee, H., & Ng, A. Y. (2011). An analysis of
+single-layer networks in unsupervised feature learning.
+*AISTATS*.
+
+Eliasmith, C., & Anderson, C. H. (2003). *Neural Engineering:
+Computation, Representation, and Dynamics in Neurobiological
+Systems*. MIT Press.
+
+French, R. M. (1999). Catastrophic forgetting in
+connectionist networks. *Trends in Cognitive Sciences*,
+3(4), 128–135.
+
+Hoerl, A. E., & Kennard, R. W. (1970). Ridge regression:
+Biased estimation for nonorthogonal problems.
+*Technometrics*, 12(1), 55–67.
+
+Jaeger, H. (2001). The "echo state" approach to analysing and
+training recurrent neural networks. *GMD Report 148*, German
+National Research Center for Information Technology.
+
+Jaeger, H., & Haas, H. (2004). Harnessing nonlinearity:
+Predicting chaotic systems and saving energy in wireless
+communication. *Science*, 304(5667), 78–80.
+
+Kirkpatrick, J., Pascanu, R., Rabinowitz, N., Veness, J.,
+Desjardins, G., Rusu, A. A., Milan, K., Quan, J.,
+Ramalho, T., Grabska-Barwinska, A., Hassabis, D.,
+Clopath, C., Kumaran, D., & Hadsell, R. (2017). Overcoming
+catastrophic forgetting in neural networks. *PNAS*, 114(13),
+3521–3526.
+
+Liang, N.-Y., Huang, G.-B., Saratchandran, P., &
+Sundararajan, N. (2006). A fast and accurate online sequential
+learning algorithm for feedforward networks. *IEEE
+Transactions on Neural Networks*, 17(6), 1411–1423.
+
+Lopez-Paz, D., & Ranzato, M. (2017). Gradient episodic memory
+for continual learning. *NeurIPS*.
+
+Maass, W., Natschläger, T., & Markram, H. (2002). Real-time
+computing without stable states: A new framework for neural
+computation based on perturbations. *Neural Computation*,
+14(11), 2531–2560.
+
+Mallya, A., & Lazebnik, S. (2018). PackNet: Adding multiple
+tasks to a single network by iterative pruning. *CVPR*.
+
+McCloskey, M., & Cohen, N. J. (1989). Catastrophic
+interference in connectionist networks: The sequential
+learning problem. *Psychology of Learning and Motivation*,
+24, 109–165.
+
+Nguyen, C. V., Li, Y., Bui, T. D., & Turner, R. E. (2018).
+Variational continual learning. *ICLR*.
+
+Rebuffi, S.-A., Kolesnikov, A., Sperl, G., & Lampert, C. H.
+(2017). iCaRL: Incremental classifier and representation
+learning. *CVPR*.
+
+Robins, A. (1995). Catastrophic forgetting, rehearsal and
+pseudorehearsal. *Connection Science*, 7(2), 123–146.
+
+Rusu, A. A., Rabinowitz, N. C., Desjardins, G., Soyer, H.,
+Kirkpatrick, J., Kavukcuoglu, K., Pascanu, R., & Hadsell, R.
+(2016). Progressive neural networks. *arXiv:1606.04671*.
+
+Schwarz, J., Czarnecki, W., Luketina, J., Grabska-Barwinska,
+A., Teh, Y. W., Pascanu, R., & Hadsell, R. (2018). Progress
+& compress: A scalable framework for continual learning.
+*ICML*.
+
+Serrà, J., Surís, D., Miron, M., & Karatzoglou, A. (2018).
+Overcoming catastrophic forgetting with hard attention to the
+task. *ICML*.
+
+Shin, H., Lee, J. K., Kim, J., & Kim, J. (2017). Continual
+learning with deep generative replay. *NeurIPS*.
+
+Söderström, T., & Stoica, P. (1988). *System Identification*.
+Prentice Hall.
+
+van de Ven, G. M., & Tolias, A. S. (2019). Three scenarios for
+continual learning. *arXiv:1904.07734*.
+
+Zenke, F., Poole, B., & Ganguli, S. (2017). Continual
+learning through synaptic intelligence. *ICML*.
