@@ -15,6 +15,21 @@ if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
 
+MNIST_RAW_FILES = (
+    "train-images-idx3-ubyte",
+    "train-labels-idx1-ubyte",
+    "t10k-images-idx3-ubyte",
+    "t10k-labels-idx1-ubyte",
+)
+
+
+def mnist_raw_present(root: Path | None = None) -> bool:
+    """Return True only when all four raw MNIST IDX files are available."""
+    root = root or Path(__file__).resolve().parents[1]
+    raw_dir = root / "data" / "MNIST" / "raw"
+    return all((raw_dir / name).is_file() for name in MNIST_RAW_FILES)
+
+
 @pytest.fixture(autouse=True)
 def _reset_global_rng_state():
     """Keep tests independent from ambient RNG state shared across the session."""

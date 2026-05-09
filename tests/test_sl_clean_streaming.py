@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 import torch
+from conftest import mnist_raw_present
 
 from benchmarks.sl_clean._streaming_exp import (
     STREAMING_PERMUTED_BASE_CONFIG,
@@ -22,9 +23,7 @@ from benchmarks.sl_clean._streaming_exp import (
 from benchmarks.sl_clean.experiments import get
 from benchmarks.sl_clean.sl_phase_runner import run_phase
 
-DATA_PRESENT = (
-    Path(__file__).resolve().parents[1] / "data" / "MNIST" / "raw" / "train-images-idx3-ubyte"
-).exists()
+DATA_PRESENT = mnist_raw_present()
 
 
 def test_streaming_experiments_registered():

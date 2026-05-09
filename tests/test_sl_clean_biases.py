@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 import torch
+from conftest import mnist_raw_present
 
 from benchmarks.sl_clean import experiments as exp_mod
 from benchmarks.sl_clean.analyze_biases_panel import (
@@ -28,9 +29,7 @@ from benchmarks.sl_clean.experiments import (
 )
 from benchmarks.sl_clean.sl_phase_runner import run_phase
 
-DATA_PRESENT = (
-    Path(__file__).resolve().parents[1] / "data" / "MNIST" / "raw" / "train-images-idx3-ubyte"
-).exists()
+DATA_PRESENT = mnist_raw_present()
 
 
 def test_cells_are_9_and_well_formed():

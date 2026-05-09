@@ -240,6 +240,79 @@ class TestPhaseBRegistrations:
         assert torch.equal(centered.encoders, uncentered.encoders)
         assert torch.equal(centered.gain, uncentered.gain)
 
+    def test_h8_streaming_cells_are_registered_and_parsed(self):
+        from benchmarks.cl_clean.experiments import _parse_streaming_cell
+
+        names = experiments.names()
+        assert "h8_streaming_permuted_smnist" in names
+        assert _parse_streaming_cell("accumulate_final_n4000", 100) == (
+            "accumulate_final",
+            4000,
+        )
+        assert _parse_streaming_cell("woodbury_online_n8000", 100) == (
+            "woodbury_online",
+            8000,
+        )
+
+    def test_h8_streaming_run_fn_accepts_synthetic_mnist(self, monkeypatch):
+        import torch
+
+        from benchmarks.sl_clean.datasets import DatasetBundle, _hash_tensor
+
+        g = torch.Generator().manual_seed(123)
+        x_train = torch.rand(36, 16, generator=g)
+        y_train = torch.arange(36, dtype=torch.int64) % 3
+        x_test = torch.rand(18, 16, generator=g)
+        y_test = torch.arange(18, dtype=torch.int64) % 3
+        fake_bundle = DatasetBundle(
+            name="MNIST",
+            x_train=x_train,
+            y_train=y_train,
+            x_test=x_test,
+            y_test=y_test,
+            n_classes=3,
+            preprocessing="synthetic_flat",
+            raw_hashes={"synthetic": "true"},
+            processed_hashes={
+                "x_train": _hash_tensor(x_train),
+                "y_train": _hash_tensor(y_train),
+                "x_test": _hash_tensor(x_test),
+                "y_test": _hash_tensor(y_test),
+            },
+        )
+        monkeypatch.setattr(experiments, "load_base_dataset", lambda name: fake_bundle)
+
+        spec = experiments.get("h8_streaming_permuted_smnist")
+        config = {
+            "cell": "accumulate_final_n16",
+            "activation": "abs",
+            "alpha": 0.01,
+            "batch_size": 12,
+            "center_samples": 8,
+            "chunk_stats": True,
+            "device": "cpu",
+            "encoder_strategy": "hypersphere",
+            "eval_batch_size": 9,
+            "gain_high": 2.0,
+            "gain_low": 0.5,
+            "max_tokens": 128,
+            "n_neurons": 16,
+            "window_size": 4,
+        }
+        ctx = spec.default_run_context() | {"n_tasks": 2}
+        accumulate = spec.run_fn(config, seed=0, run_context=ctx)
+        joint = spec.run_fn({**config, "cell": "joint_n16"}, seed=0, run_context=ctx)
+
+        assert 0.0 <= accumulate["test_accuracy"] <= 1.0
+        assert accumulate["solver_mode"] == "accumulate_final"
+        assert accumulate["effective_n_tasks"] == 2
+        assert accumulate["permutation_hash"] == joint["permutation_hash"]
+        assert (
+            accumulate["dataset_metadata"]["processed_hashes"]["permutations"]
+            == joint["dataset_metadata"]["processed_hashes"]["permutations"]
+        )
+        assert accumulate["per_task_accuracy"] == joint["per_task_accuracy"]
+
     def test_convnef_run_fn_accepts_synthetic_stream(self, monkeypatch):
         import torch
 
