@@ -208,6 +208,66 @@ Panel interpretation targets:
   accurate but may be much slower than the final-only solve.
 * `reset`: lower bound that sees only the final permutation.
 
+## H8 streaming-continual diagnostic GPU panel
+
+The first H8 panel landed as a boundary result: exact
+`accumulate_final` and `joint` match, but `woodbury_online` is far
+higher.  The diagnostic panel is designed to explain that mechanism, not
+to chase a best configuration.
+
+Use Colab/GPU again.  The default diagnostic grid is 26 cells × 2 seeds
+and should take about **2 GPU hours on G4**; reserve **3 hours** to allow
+for setup, MNIST download, summary printing, and bundle download.  The
+optional 16k extension can add roughly **2-3 GPU hours**.
+
+Notebook pattern:
+
+```text
+colab/cl_clean/streaming_permuted_smnist_diagnostics.ipynb
+```
+
+Quick validation:
+
+```bash
+python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py --quick --seeds 0
+```
+
+Default diagnostic panel:
+
+```bash
+python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py --seeds 0-1
+```
+
+Optional 16k extension:
+
+```bash
+python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py --seeds 0-1 --extended
+```
+
+Expected outputs:
+
+```text
+results/cl_clean/gpu_h8_streaming_diagnostics.json
+results/cl_clean/logs/gpu_h8_streaming_diagnostics.log
+results/cl_clean/colab_gpu_configs/base_config_gpu_h8_streaming_diagnostics.json
+results/cl_clean/cl_clean_streaming_smnist_diagnostics_bundle.zip
+```
+
+Read the default panel in this order:
+
+1. `refresh_*`: if `refresh_test_accuracy` falls from the Woodbury
+   accuracy to the exact-solve accuracy, the high Woodbury result is
+   inverse-path/numerical regularization rather than a different
+   sufficient-statistic optimum.
+2. `exact_*` vs `woodbury_*` over alpha: tests whether the exact solve is
+   simply under- or over-regularized.
+3. `t1`, `t2`, `t5`, `t10`: separates streaming feature capacity from
+   10-permutation interference.
+4. `center_first/all/zero`: tests whether first-task center mismatch is
+   causing the exact-solve collapse.
+5. `bs128`, `bs512`, `reverse`: tests whether the Woodbury advantage is
+   batch-size or task-order path dependent.
+
 ## Driver edits
 
 **Do not edit `cl_hp_driver.sh` while a phase that uses it is in

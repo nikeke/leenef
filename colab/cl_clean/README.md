@@ -1,11 +1,13 @@
 # Paper-II continual GPU suites (Colab)
 
-This directory contains two Paper-II Colab packages:
+This directory contains three Paper-II Colab packages:
 
 1. the Split-CIFAR-10 ConvNEF continual panel used in the current
    manuscript; and
-2. the H8 streaming-continual follow-up panel, designed but not yet part
-   of the manuscript claims.
+2. the H8 streaming-continual follow-up panel used in the current
+   manuscript;
+3. the H8 streaming-continual diagnostic panel that explains the
+   exact-solve vs online-Woodbury divergence.
 
 ## Split-CIFAR-10 ConvNEF suite
 
@@ -100,6 +102,51 @@ python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py --seeds 0-4 --ex
 Use G4 if available, L4 fallback.  The suite is expected to be too slow
 for CPU because it multiplies the already-expensive permuted-sMNIST
 streaming solve by 10 task permutations and multiple solver modes.
+
+## H8 streaming continual diagnostics
+
+The diagnostic suite is:
+
+```text
+streaming_permuted_smnist_diagnostics.ipynb
+streaming_permuted_smnist_diagnostics.py
+```
+
+It runs `h8_streaming_permuted_smnist_diag` through the standard phase
+runner.  The default is deliberately diagnostic rather than paper-grade:
+**2 seeds** over 26 targeted cells.  The cells cover:
+
+1. Woodbury refresh diagnostics at 4000 and 8000 neurons;
+2. exact-vs-Woodbury alpha checks at 4000 and 8000 neurons;
+3. task-count decomposition at 1, 2, 5, and 10 permutations;
+4. first-task vs all-permutation oracle vs zero-bias centers for the
+   exact solve;
+5. Woodbury batch-size and task-order path-dependence probes.
+
+Default command:
+
+```bash
+python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py --seeds 0-1
+```
+
+Quick validation:
+
+```bash
+python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py --quick --seeds 0
+```
+
+Optional 16k extension:
+
+```bash
+python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py --seeds 0-1 --extended
+```
+
+Use **G4** if available.  Based on the completed H8 G4 panel, the
+default diagnostic grid should take about **2 GPU hours** end-to-end.
+Reserve **3 hours** to include setup, MNIST download, summary, and bundle
+download.  The optional 16k extension can add roughly **2-3 more GPU
+hours**, so run it only if the 4000/8000 diagnostics do not answer the
+mechanism question.
 
 ## Quick validation
 

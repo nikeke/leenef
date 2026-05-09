@@ -853,6 +853,262 @@ def _streaming_cl_run(config: dict, seed: int, run_context: dict) -> dict:
     }
 
 
+def _parse_streaming_diag_cell(raw: object, config: dict, run_context: dict) -> dict[str, object]:
+    """Parse H8 diagnostic labels.
+
+    Labels are underscore-delimited so they remain usable as phase-runner
+    ``cell`` values, for example ``refresh_n4000_a1e-3_t10`` or
+    ``exact_center_all_n4000_a1e-3_t10``.
+    """
+
+    text = str(raw)
+    parts = text.split("_")
+    mode = parts[0]
+    if mode not in {"exact", "woodbury", "refresh"}:
+        raise ValueError(f"unknown streaming diagnostic mode {mode!r} in {text!r}")
+
+    parsed: dict[str, object] = {
+        "mode": mode,
+        "n_neurons": int(config["n_neurons"]),
+        "alpha": float(config["alpha"]),
+        "n_tasks": int(run_context.get("n_tasks", config.get("n_tasks", 10))),
+        "center_policy": str(config.get("center_policy", "first")),
+        "batch_size": int(config.get("batch_size", 256)),
+        "train_order": "forward",
+    }
+
+    i = 1
+    while i < len(parts):
+        tok = parts[i]
+        if tok == "center":
+            i += 1
+            if i >= len(parts):
+                raise ValueError(f"missing center policy in {text!r}")
+            parsed["center_policy"] = parts[i]
+        elif tok == "reverse":
+            parsed["train_order"] = "reverse"
+        elif tok.startswith("bs"):
+            parsed["batch_size"] = int(tok[2:])
+        elif tok.startswith("n"):
+            parsed["n_neurons"] = int(tok[1:])
+        elif tok.startswith("a"):
+            parsed["alpha"] = float(tok[1:])
+        elif tok.startswith("t"):
+            parsed["n_tasks"] = int(tok[1:])
+        else:
+            raise ValueError(f"unknown streaming diagnostic token {tok!r} in {text!r}")
+        i += 1
+
+    if parsed["center_policy"] not in {"first", "all", "zero", "random"}:
+        raise ValueError(f"unsupported center policy {parsed['center_policy']!r}")
+    return parsed
+
+
+def _streaming_centers(
+    *,
+    x_train: torch.Tensor,
+    perms: tuple[torch.Tensor, ...],
+    center_samples: int,
+    policy: str,
+    rng: torch.Generator,
+) -> torch.Tensor | None:
+    if policy == "random":
+        return None
+    center_idx = torch.randint(x_train.shape[0], (center_samples,), generator=rng)
+    if policy in {"first", "zero"}:
+        return x_train[center_idx][:, perms[0]].unsqueeze(-1).contiguous()
+    task_idx = torch.randint(len(perms), (center_samples,), generator=rng)
+    perm_stack = torch.stack(perms)
+    return x_train[center_idx].gather(1, perm_stack[task_idx]).unsqueeze(-1).contiguous()
+
+
+def _streaming_normal_eq_diagnostics(model: StreamingNEFClassifier) -> dict[str, float]:
+    out: dict[str, float] = {}
+    if hasattr(model, "_ata") and model._ata is not None:
+        ata = model._ata
+        diag = ata.diagonal()
+        out.update(
+            {
+                "ata_trace": float(torch.trace(ata).item()),
+                "ata_diag_mean": float(diag.mean().item()),
+                "ata_diag_std": float(diag.std().item()),
+                "decoder_norm": float(model.decoders.data.norm().item()),
+            }
+        )
+    return out
+
+
+def _streaming_inverse_diagnostics(
+    model: StreamingNEFClassifier, *, max_n: int
+) -> dict[str, float]:
+    if not hasattr(model, "_M_inv") or model._M_inv is None or model._M_inv.shape[0] > max_n:
+        return {}
+    inv = model._M_inv
+    diag = inv.diagonal()
+    return {
+        "inverse_symmetry_max_abs": float((inv - inv.T).abs().max().item()),
+        "inverse_diag_min": float(diag.min().item()),
+        "inverse_diag_max": float(diag.max().item()),
+    }
+
+
+def _streaming_diag_run(config: dict, seed: int, run_context: dict) -> dict:
+    """Diagnostic H8 panel for explaining Woodbury/exact-solve divergence."""
+
+    set_cl_seed(seed)
+    config = dict(config)
+    run_context = dict(run_context)
+    diag = _parse_streaming_diag_cell(config.get("cell"), config, run_context)
+
+    n_tasks = int(diag["n_tasks"])
+    n_neurons = int(diag["n_neurons"])
+    alpha = float(diag["alpha"])
+    center_policy = str(diag["center_policy"])
+    solver_mode = "accumulate_final" if diag["mode"] == "exact" else "woodbury_online"
+    device = torch.device(
+        str(config.get("device", "cuda" if torch.cuda.is_available() else "cpu"))
+    )
+    batch_size = int(diag["batch_size"])
+    eval_batch_size = int(config.get("eval_batch_size", batch_size))
+    max_tokens = int(config.get("max_tokens", 50_000))
+    window_size = int(config.get("window_size", 10))
+    center_samples = int(config.get("center_samples", 4096))
+    chunk_stats = bool(config.get("chunk_stats", True))
+    train_subset = int(config.get("train_eval_samples", 0))
+
+    bundle = load_base_dataset("MNIST")
+    x_train = bundle.x_train
+    y_train = bundle.y_train
+    x_test = bundle.x_test
+    y_test = bundle.y_test
+    d_in = int(x_train.shape[1])
+    perms = _make_sequence_permutations(seed=seed, n_tasks=n_tasks, d_in=d_in)
+    train_perms = tuple(reversed(perms)) if diag["train_order"] == "reverse" else perms
+    perm_hash = _permutation_hash(perms)
+
+    rngs = _make_subrngs(seed)
+    centers = _streaming_centers(
+        x_train=x_train,
+        perms=perms,
+        center_samples=center_samples,
+        policy=center_policy,
+        rng=rngs["center_index"],
+    )
+    model = StreamingNEFClassifier(
+        d_timestep=1,
+        n_neurons=n_neurons,
+        d_out=bundle.n_classes,
+        window_size=window_size,
+        activation=str(config.get("activation", "abs")),
+        encoder_strategy=str(config.get("encoder_strategy", "hypersphere")),
+        gain=(float(config["gain_low"]), float(config["gain_high"])),
+        rng=rngs["encoder"],
+        centers=centers,
+    ).to(device)
+    if center_policy == "zero":
+        model.bias.zero_()
+
+    t0 = time.perf_counter()
+    for perm in train_perms:
+        for _, _, xb, yb in _iter_permuted_sequence_batches(
+            x_train, y_train, perm, batch_size=batch_size, device=device
+        ):
+            targets = _sequence_one_hot(yb, bundle.n_classes, device=device)
+            if solver_mode == "accumulate_final":
+                model.accumulate(
+                    xb,
+                    targets,
+                    max_tokens=max_tokens,
+                    chunk_stats=chunk_stats,
+                )
+            else:
+                model.continuous_fit(xb, targets, alpha=alpha, max_tokens=max_tokens)
+    if solver_mode == "accumulate_final":
+        model.solve(alpha=alpha)
+    fit_s = time.perf_counter() - t0
+
+    per_task_acc, avg_acc = _eval_streaming_per_task(
+        model,
+        x_flat=x_test,
+        y=y_test,
+        perms=perms,
+        batch_size=eval_batch_size,
+        device=device,
+    )
+    metrics = {
+        "test_accuracy": avg_acc,
+        "per_task_accuracy": per_task_acc,
+        "fit_time_s": round(fit_s, 4),
+        "diagnostic_mode": str(diag["mode"]),
+        "solver_mode": solver_mode,
+        "effective_n_neurons": n_neurons,
+        "effective_n_tasks": n_tasks,
+        "alpha": alpha,
+        "window_size": window_size,
+        "center_samples": center_samples,
+        "center_policy": center_policy,
+        "batch_size": batch_size,
+        "train_order": str(diag["train_order"]),
+        "permutation_hash": perm_hash,
+        **_streaming_normal_eq_diagnostics(model),
+        **_streaming_inverse_diagnostics(
+            model, max_n=int(config.get("max_inverse_diagnostic_n", 8000))
+        ),
+    }
+
+    if train_subset > 0:
+        _, train_acc = _eval_streaming_per_task(
+            model,
+            x_flat=x_train[:train_subset],
+            y=y_train[:train_subset],
+            perms=perms,
+            batch_size=eval_batch_size,
+            device=device,
+        )
+        metrics["train_subset_accuracy"] = train_acc
+        metrics["train_subset_samples"] = min(train_subset, int(x_train.shape[0]))
+
+    if diag["mode"] == "refresh":
+        before = model.decoders.data.detach().clone()
+        model.refresh_inverse(alpha=alpha)
+        metrics["refresh_decoder_max_abs_diff"] = float(
+            (before - model.decoders.data).abs().max().item()
+        )
+        refresh_per_task, refresh_acc = _eval_streaming_per_task(
+            model,
+            x_flat=x_test,
+            y=y_test,
+            perms=perms,
+            batch_size=eval_batch_size,
+            device=device,
+        )
+        metrics["refresh_test_accuracy"] = refresh_acc
+        metrics["refresh_per_task_accuracy"] = refresh_per_task
+        metrics["refresh_gap_pp"] = round((refresh_acc - avg_acc) * 100, 6)
+
+    metrics["stream_metadata"] = {
+        "base_dataset": "MNIST",
+        "scenario": "permuted_smnist_stream_diagnostic",
+        "n_tasks": n_tasks,
+        "n_classes": bundle.n_classes,
+        "sequence_shape": [d_in, 1],
+        "stream_seed": seed,
+        "permutation_hash": perm_hash,
+    }
+    metrics["dataset_metadata"] = {
+        "base_dataset": "MNIST",
+        "scenario": "permuted_smnist_stream_diagnostic",
+        "n_tasks": n_tasks,
+        "n_classes": bundle.n_classes,
+        "raw_hashes": dict(bundle.raw_hashes),
+        "processed_hashes": {
+            **dict(bundle.processed_hashes),
+            "permutations": perm_hash,
+        },
+    }
+    return metrics
+
+
 def _nef_cl_context_factory(*, base_dataset: str, scenario: str, n_tasks: int) -> ContextFn:
     def _ctx() -> dict:
         return {
@@ -959,6 +1215,20 @@ register(
         description=(
             "Paper II follow-up streaming continual panel: StreamingNEFClassifier "
             "on a 10-task permuted sequential-MNIST stream."
+        ),
+    )
+)
+
+register(
+    ExperimentSpec(
+        name="h8_streaming_permuted_smnist_diag",
+        run_fn=_streaming_diag_run,
+        default_run_context=_streaming_cl_context,
+        primary_metric="test_accuracy",
+        higher_is_better=True,
+        description=(
+            "Diagnostic H8 panel for explaining exact-solve vs online-Woodbury "
+            "divergence in streaming continual permuted sMNIST."
         ),
     )
 )

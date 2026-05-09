@@ -209,10 +209,24 @@ class TestPhaseBRegistrations:
             _normalize_centers_mode,
             _parse_capacity_cell,
             _parse_solver_alpha_cell,
+            _parse_streaming_diag_cell,
         )
 
         assert _parse_capacity_cell("n5000_t20") == (5000, 20)
         assert _parse_solver_alpha_cell("woodbury_online_a0.1") == ("woodbury_online", 0.1)
+        assert _parse_streaming_diag_cell(
+            "exact_center_all_n4000_a1e-3_t10",
+            {"n_neurons": 100, "alpha": 0.01, "batch_size": 64},
+            {"n_tasks": 2},
+        ) == {
+            "mode": "exact",
+            "n_neurons": 4000,
+            "alpha": 1e-3,
+            "n_tasks": 10,
+            "center_policy": "all",
+            "batch_size": 64,
+            "train_order": "forward",
+        }
         assert _normalize_centers_mode(None) == "none"
         assert parse_convnef_cell("first_task_n2000") == ("first_task", 2000)
 
@@ -312,6 +326,64 @@ class TestPhaseBRegistrations:
             == joint["dataset_metadata"]["processed_hashes"]["permutations"]
         )
         assert accumulate["per_task_accuracy"] == joint["per_task_accuracy"]
+
+    def test_h8_streaming_diagnostic_refresh_on_synthetic_mnist(self, monkeypatch):
+        import torch
+
+        from benchmarks.sl_clean.datasets import DatasetBundle, _hash_tensor
+
+        g = torch.Generator().manual_seed(456)
+        x_train = torch.rand(30, 12, generator=g)
+        y_train = torch.arange(30, dtype=torch.int64) % 3
+        x_test = torch.rand(15, 12, generator=g)
+        y_test = torch.arange(15, dtype=torch.int64) % 3
+        fake_bundle = DatasetBundle(
+            name="MNIST",
+            x_train=x_train,
+            y_train=y_train,
+            x_test=x_test,
+            y_test=y_test,
+            n_classes=3,
+            preprocessing="synthetic_flat",
+            raw_hashes={"synthetic": "true"},
+            processed_hashes={
+                "x_train": _hash_tensor(x_train),
+                "y_train": _hash_tensor(y_train),
+                "x_test": _hash_tensor(x_test),
+                "y_test": _hash_tensor(y_test),
+            },
+        )
+        monkeypatch.setattr(experiments, "load_base_dataset", lambda name: fake_bundle)
+
+        spec = experiments.get("h8_streaming_permuted_smnist_diag")
+        metrics = spec.run_fn(
+            {
+                "cell": "refresh_n12_a1e-2_t2",
+                "activation": "abs",
+                "alpha": 0.01,
+                "batch_size": 10,
+                "center_samples": 6,
+                "chunk_stats": True,
+                "device": "cpu",
+                "encoder_strategy": "hypersphere",
+                "eval_batch_size": 5,
+                "gain_high": 2.0,
+                "gain_low": 0.5,
+                "max_tokens": 128,
+                "n_neurons": 12,
+                "train_eval_samples": 6,
+                "window_size": 3,
+            },
+            seed=0,
+            run_context=spec.default_run_context() | {"n_tasks": 2},
+        )
+
+        assert 0.0 <= metrics["test_accuracy"] <= 1.0
+        assert 0.0 <= metrics["refresh_test_accuracy"] <= 1.0
+        assert metrics["diagnostic_mode"] == "refresh"
+        assert metrics["effective_n_tasks"] == 2
+        assert "refresh_decoder_max_abs_diff" in metrics
+        assert "train_subset_accuracy" in metrics
 
     def test_convnef_run_fn_accepts_synthetic_stream(self, monkeypatch):
         import torch
