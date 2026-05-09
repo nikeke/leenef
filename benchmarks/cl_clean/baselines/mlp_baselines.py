@@ -136,18 +136,18 @@ def _evaluate_per_task(
     model.eval()
     with torch.no_grad():
         for task in stream.tasks:
-            x, y = task.x_test, task.y_test
+            y = task.y_test
             n_correct = 0
-            for s in range(0, x.shape[0], chunk):
-                e = min(s + chunk, x.shape[0])
-                xb = x[s:e]
+            for s in range(0, y.shape[0], chunk):
+                e = min(s + chunk, y.shape[0])
+                xb = task.test_inputs(start=s, end=e)
                 if device is not None:
                     xb = xb.to(device)
                 pred = model(xb).argmax(dim=1).cpu()
                 n_correct += int((pred == y[s:e]).sum())
-            per_task.append(round(n_correct / x.shape[0], 6))
+            per_task.append(round(n_correct / y.shape[0], 6))
             n_correct_total += n_correct
-            n_total += x.shape[0]
+            n_total += y.shape[0]
     model.train()
     return per_task, round(n_correct_total / n_total, 6)
 
@@ -210,7 +210,13 @@ def finetune_run(config: dict, seed: int, run_context: dict) -> dict:
     for task in stream.tasks:
         for _ in range(cfg.epochs_per_task):
             _train_epoch(
-                model, task.x_train, task.y_train, cfg=cfg, optim=optim, rng=rng, device=device
+                model,
+                task.train_inputs(),
+                task.y_train,
+                cfg=cfg,
+                optim=optim,
+                rng=rng,
+                device=device,
             )
     fit_s = time.perf_counter() - t0
     per_task, avg = _evaluate_per_task(model, stream, device=device)
@@ -226,7 +232,7 @@ def joint_run(config: dict, seed: int, run_context: dict) -> dict:
     stream, cfg, rng, device = _make_stream_and_cfg(config, seed, run_context)
     model = _build_mlp(cfg, seed=seed * 1_000_003 + 1).to(device)
     optim = torch.optim.Adam(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
-    all_x = torch.cat([t.x_train for t in stream.tasks], dim=0)
+    all_x = torch.cat([t.train_inputs() for t in stream.tasks], dim=0)
     all_y = torch.cat([t.y_train for t in stream.tasks], dim=0)
     total_epochs = cfg.epochs_per_task * stream.n_tasks
     t0 = time.perf_counter()
@@ -297,7 +303,7 @@ def ewc_run(config: dict, seed: int, run_context: dict) -> dict:
         for _ in range(cfg.epochs_per_task):
             _train_epoch(
                 model,
-                task.x_train,
+                task.train_inputs(),
                 task.y_train,
                 cfg=cfg,
                 optim=optim,
@@ -306,7 +312,12 @@ def ewc_run(config: dict, seed: int, run_context: dict) -> dict:
                 device=device,
             )
         f = _diag_fisher(
-            model, task.x_train, task.y_train, n_samples=fisher_samples, rng=rng, device=device
+            model,
+            task.train_inputs(),
+            task.y_train,
+            n_samples=fisher_samples,
+            rng=rng,
+            device=device,
         )
         a = {name: p.detach().clone() for name, p in model.named_parameters() if p.requires_grad}
         accumulated.append((f, a))
@@ -370,8 +381,8 @@ def er_run(config: dict, seed: int, run_context: dict) -> dict:
     t0 = time.perf_counter()
     for task in stream.tasks:
         for _ in range(cfg.epochs_per_task):
-            er_train_epoch(task.x_train, task.y_train)
-        reservoir_add(task.x_train, task.y_train)
+            er_train_epoch(task.train_inputs(), task.y_train)
+        reservoir_add(task.train_inputs(), task.y_train)
     fit_s = time.perf_counter() - t0
     per_task, avg = _evaluate_per_task(model, stream, device=device)
     return _result_envelope(stream, per_task, avg, fit_s)

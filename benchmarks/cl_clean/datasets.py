@@ -135,6 +135,29 @@ class TaskSplit:
     y_train: Tensor
     x_test: Tensor
     y_test: Tensor
+    permutation: Tensor | None = None
+
+    def train_inputs(
+        self,
+        *,
+        start: int | None = None,
+        end: int | None = None,
+        indices: Tensor | None = None,
+    ) -> Tensor:
+        x = self.x_train
+        if indices is not None:
+            x = x[indices]
+        elif start is not None or end is not None:
+            x = x[slice(start, end)]
+        if self.permutation is None:
+            return x
+        return x[:, self.permutation].contiguous()
+
+    def test_inputs(self, *, start: int | None = None, end: int | None = None) -> Tensor:
+        x = self.x_test if start is None and end is None else self.x_test[slice(start, end)]
+        if self.permutation is None:
+            return x
+        return x[:, self.permutation].contiguous()
 
 
 @dataclass(frozen=True)
@@ -222,7 +245,13 @@ def _split_stream(bundle: DatasetBundle, *, n_tasks: int, stream_seed: int) -> T
 
 
 def _permuted_stream(bundle: DatasetBundle, *, n_tasks: int, stream_seed: int) -> TaskStream:
-    """Domain-incremental: same labels, fresh pixel permutation per task."""
+    """Domain-incremental: same labels, fresh pixel permutation per task.
+
+    The task objects share the base train/test tensors and only carry
+    their permutation. Inputs are materialized on demand via
+    ``TaskSplit.train_inputs`` / ``test_inputs`` so large B3 grids do not
+    keep one full copied dataset per task resident in memory.
+    """
     if bundle.sequence_shape is not None:
         raise ValueError(
             f"permuted stream expects a flat dataset; got sequence_shape={bundle.sequence_shape}"
@@ -235,16 +264,15 @@ def _permuted_stream(bundle: DatasetBundle, *, n_tasks: int, stream_seed: int) -
     tasks: list[TaskSplit] = []
     all_classes = tuple(range(bundle.n_classes))
     for t, perm in enumerate(perms):
-        x_train = bundle.x_train[:, perm].contiguous()
-        x_test = bundle.x_test[:, perm].contiguous()
         tasks.append(
             TaskSplit(
                 task_index=t,
                 classes=all_classes,
-                x_train=x_train,
+                x_train=bundle.x_train,
                 y_train=bundle.y_train,
-                x_test=x_test,
+                x_test=bundle.x_test,
                 y_test=bundle.y_test,
+                permutation=perm,
             )
         )
 

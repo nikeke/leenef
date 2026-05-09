@@ -1,0 +1,96 @@
+{
+  "by_value": {
+    "all_data_n10000": {
+      "mean_feature_time_s": 0.49050000000000005,
+      "mean_fit_time_s": 14.94127,
+      "mean_forgetting": 0.09271,
+      "mean_test_accuracy": 0.7287,
+      "mean_wall_time_s": 16.80511,
+      "n": 10,
+      "se_fit_time_s": 0.13797045984155037,
+      "se_test_accuracy": 0.0010091800852397236,
+      "se_wall_time_s": 0.5270031639057462
+    },
+    "all_data_n20000": {
+      "mean_feature_time_s": 0.54394,
+      "mean_fit_time_s": 83.46438,
+      "mean_forgetting": 0.08449999999999999,
+      "mean_test_accuracy": 0.74719,
+      "mean_wall_time_s": 85.19873,
+      "n": 10,
+      "se_fit_time_s": 0.004030957978225672,
+      "se_test_accuracy": 0.0008947314929320636,
+      "se_wall_time_s": 0.007619376614920623
+    },
+    "first_task_n10000": {
+      "mean_feature_time_s": 0.35399,
+      "mean_fit_time_s": 14.845410000000001,
+      "mean_forgetting": 0.09486,
+      "mean_test_accuracy": 0.72655,
+      "mean_wall_time_s": 16.32415,
+      "n": 10,
+      "se_fit_time_s": 0.0019466466893952401,
+      "se_test_accuracy": 0.0008665705074859501,
+      "se_wall_time_s": 0.006105521180774592
+    },
+    "first_task_n20000": {
+      "mean_feature_time_s": 0.54823,
+      "mean_fit_time_s": 83.46317,
+      "mean_forgetting": 0.08426,
+      "mean_test_accuracy": 0.74506,
+      "mean_wall_time_s": 85.20494,
+      "n": 10,
+      "se_fit_time_s": 0.004735470174943833,
+      "se_test_accuracy": 0.0010037928073063677,
+      "se_wall_time_s": 0.008382815756057017
+    },
+    "joint_n10000": {
+      "mean_feature_time_s": 0.0,
+      "mean_fit_time_s": 7.613840000000001,
+      "mean_forgetting": 0.0,
+      "mean_test_accuracy": 0.7287,
+      "mean_wall_time_s": 8.14039,
+      "n": 10,
+      "se_fit_time_s": 0.003044820739113104,
+      "se_test_accuracy": 0.0010091800852397236,
+      "se_wall_time_s": 0.005287689056247138
+    },
+    "joint_n20000": {
+      "mean_feature_time_s": 0.0,
+      "mean_fit_time_s": 29.56423,
+      "mean_forgetting": 0.0,
+      "mean_test_accuracy": 0.74719,
+      "mean_wall_time_s": 30.14464,
+      "n": 10,
+      "se_fit_time_s": 0.00792658045930138,
+      "se_test_accuracy": 0.0008947314929320636,
+      "se_wall_time_s": 0.008276810980081446
+    }
+  },
+  "code_identity": "a89221e4b319f454fa4318318ecf3cf8eb3b1ecb",
+  "comparisons": {
+    "all_data_20000_minus_10000_pp": 1.8490000000000006,
+    "joint_10000_wall_speedup_vs_all_data": 2.0644109188871784,
+    "joint_20000_minus_10000_pp": 1.8490000000000006,
+    "joint_20000_wall_speedup_vs_all_data": 2.826330982887837,
+    "n10000_all_minus_first_pp": 0.21499999999999853,
+    "n10000_joint_minus_all_pp": 0.0,
+    "n20000_all_minus_first_pp": 0.21300000000000763,
+    "n20000_joint_minus_all_pp": 0.0
+  },
+  "experiment": "c1_convnef_split_cifar10",
+  "run_context": {
+    "base_dataset": "CIFAR10",
+    "experiment_kind": "nef_continual",
+    "n_tasks": 5,
+    "scenario": "split"
+  },
+  "runner_version": "cl-clean-v1",
+  "seed_policy": {
+    "main_seed": "per-run user-visible seed",
+    "numpy_seed": "np.random.seed(seed)",
+    "python_seed": "random.seed(seed)",
+    "task_stream_seed": "derived deterministically from seed inside the experiment",
+    "torch_seed": "torch.manual_seed(seed)"
+  }
+}

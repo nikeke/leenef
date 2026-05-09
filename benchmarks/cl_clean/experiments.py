@@ -253,6 +253,10 @@ def _parse_solver_alpha_cell(raw: object) -> tuple[str, float]:
     return solver_mode, alpha
 
 
+def _normalize_centers_mode(raw: object) -> str:
+    return "none" if raw is None else str(raw)
+
+
 def _build_layer(
     *,
     d_in: int,
@@ -301,19 +305,86 @@ def _eval_per_task(
     n_total = 0
     with torch.no_grad():
         for task in stream.tasks:
-            x, y = task.x_test, task.y_test
+            y = task.y_test
             n_correct = 0
-            for s in range(0, x.shape[0], chunk):
-                e = min(s + chunk, x.shape[0])
-                xb = x[s:e]
+            for s in range(0, y.shape[0], chunk):
+                e = min(s + chunk, y.shape[0])
+                xb = task.test_inputs(start=s, end=e)
                 if device is not None:
                     xb = xb.to(device)
                 pred = layer(xb).argmax(dim=1).cpu()
                 n_correct += int((pred == y[s:e]).sum())
-            per_task.append(round(n_correct / x.shape[0], 6))
+            per_task.append(round(n_correct / y.shape[0], 6))
             n_correct_total += n_correct
-            n_total += x.shape[0]
+            n_total += y.shape[0]
     return per_task, round(n_correct_total / n_total, 6)
+
+
+def _sample_all_task_centers(stream, *, n_neurons: int, rng: torch.Generator) -> torch.Tensor:
+    first_task = stream.tasks[0]
+    d_in = int(first_task.x_train.shape[1])
+    counts = torch.tensor([task.x_train.shape[0] for task in stream.tasks], dtype=torch.int64)
+    total = int(counts.sum().item())
+    draw = torch.randint(total, (n_neurons,), generator=rng)
+    offsets = torch.cumsum(counts, dim=0)
+    centers = torch.empty(n_neurons, d_in, dtype=first_task.x_train.dtype)
+    prev = 0
+    for task_idx, task in enumerate(stream.tasks):
+        end = int(offsets[task_idx].item())
+        mask = (draw >= prev) & (draw < end)
+        if mask.any():
+            local = draw[mask] - prev
+            centers[mask] = task.train_inputs(indices=local)
+        prev = end
+    return centers
+
+
+def _fit_joint_shuffled_chunks(
+    layer: NEFLayer,
+    stream,
+    *,
+    n_classes: int,
+    joint_chunk: int,
+    rng: torch.Generator,
+    device: torch.device,
+) -> None:
+    chunks: list[tuple[int, int, int]] = []
+    for task_idx, task in enumerate(stream.tasks):
+        for start in range(0, task.x_train.shape[0], joint_chunk):
+            end = min(start + joint_chunk, task.x_train.shape[0])
+            chunks.append((task_idx, start, end))
+
+    order = torch.randperm(len(chunks), generator=rng)
+    for idx in order.tolist():
+        task_idx, start, end = chunks[idx]
+        task = stream.tasks[task_idx]
+        xb = task.train_inputs(start=start, end=end).to(device)
+        yb = _one_hot(task.y_train[start:end], n_classes).to(device)
+        layer.partial_fit(xb, yb)
+
+
+def _fit_accumulate_chunked(
+    layer: NEFLayer,
+    stream,
+    *,
+    n_classes: int,
+    chunk_size: int,
+    device: torch.device,
+    mode: str,
+    alpha: float,
+) -> None:
+    for task in stream.tasks:
+        y_oh_full = _one_hot(task.y_train, n_classes)
+        for start in range(0, task.x_train.shape[0], chunk_size):
+            end = min(start + chunk_size, task.x_train.shape[0])
+            x = task.train_inputs(start=start, end=end).to(device)
+            y_oh = y_oh_full[start:end].to(device)
+            if mode == "accumulate":
+                layer.partial_fit(x, y_oh)
+            elif mode == "woodbury_batch":
+                layer.continuous_fit(x, y_oh, alpha=alpha)
+            else:
+                raise ValueError(f"unsupported chunked fit mode {mode!r}")
 
 
 @torch.no_grad()
@@ -349,13 +420,13 @@ def _fit_growing_centers(
                 f"n_neurons={layer.n_neurons}, n_tasks={n_tasks}"
             )
         idx = torch.randint(task.x_train.shape[0], (end - start,), generator=rng)
-        centers = task.x_train[idx].to(device)
+        centers = task.train_inputs(indices=idx).to(device)
         with torch.no_grad():
             enc = layer.encoders[start:end]
             gain = layer.gain[start:end]
             layer.bias[start:end].copy_(-gain * (centers.float() * enc).sum(dim=1))
 
-        x = task.x_train.to(device)
+        x = task.train_inputs().to(device)
         y_oh = _one_hot(task.y_train, n_classes).to(device)
         acts = layer.encode(x)
         if end < layer.n_neurons:
@@ -421,8 +492,9 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
 
     n_neurons = int(config["n_neurons"])
     alpha = float(config["alpha"])
-    centers_mode = str(config.get("centers_mode", "first_task"))
+    centers_mode = _normalize_centers_mode(config.get("centers_mode", "first_task"))
     solver_mode = str(config.get("solver_mode", "accumulate"))
+    fit_chunk_size = int(config.get("fit_chunk_size", 4096))
     device_str = str(config.get("device", "cpu"))
     device = torch.device(device_str)
 
@@ -430,11 +502,9 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
         idx = torch.randint(
             first_task.x_train.shape[0], (n_neurons,), generator=rngs["center_index"]
         )
-        centers = first_task.x_train[idx]
+        centers = first_task.train_inputs(indices=idx)
     elif centers_mode == "all_tasks":
-        all_x = torch.cat([t.x_train for t in stream.tasks], dim=0)
-        idx = torch.randint(all_x.shape[0], (n_neurons,), generator=rngs["center_index"])
-        centers = all_x[idx]
+        centers = _sample_all_task_centers(stream, n_neurons=n_neurons, rng=rngs["center_index"])
     elif centers_mode == "none":
         centers = None
     elif centers_mode == "growing":
@@ -467,23 +537,33 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
             device=device,
         )
     elif method == "nef_accumulate" and solver_mode == "accumulate":
-        for task in stream.tasks:
-            x = task.x_train.to(device)
-            y_oh = _one_hot(task.y_train, n_classes).to(device)
-            layer.partial_fit(x, y_oh)
+        _fit_accumulate_chunked(
+            layer,
+            stream,
+            n_classes=n_classes,
+            chunk_size=fit_chunk_size,
+            device=device,
+            mode="accumulate",
+            alpha=alpha,
+        )
         layer.solve_accumulated(alpha=alpha)
     elif method == "nef_accumulate" and solver_mode == "woodbury_batch":
-        for task in stream.tasks:
-            x = task.x_train.to(device)
-            y_oh = _one_hot(task.y_train, n_classes).to(device)
-            layer.continuous_fit(x, y_oh, alpha=alpha)
+        _fit_accumulate_chunked(
+            layer,
+            stream,
+            n_classes=n_classes,
+            chunk_size=fit_chunk_size,
+            device=device,
+            mode="woodbury_batch",
+            alpha=alpha,
+        )
     elif method == "nef_accumulate" and solver_mode == "woodbury_online":
         chunk = int(config.get("woodbury_chunk_size", 100))
         for task in stream.tasks:
             y_oh_full = _one_hot(task.y_train, n_classes)
             for s in range(0, task.x_train.shape[0], chunk):
                 e = min(s + chunk, task.x_train.shape[0])
-                x = task.x_train[s:e].to(device)
+                x = task.train_inputs(start=s, end=e).to(device)
                 y_oh = y_oh_full[s:e].to(device)
                 layer.continuous_fit(x, y_oh, alpha=alpha)
         online_decoders = layer.decoders.data.detach().clone()
@@ -499,26 +579,24 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
             "woodbury_batch, or woodbury_online"
         )
     elif method == "nef_joint":
-        # Joint upper bound.  Concatenates the union once, then calls
-        # ``partial_fit`` on shuffled chunks so the code path differs
-        # from ``nef_accumulate`` (per-task in stream order) and the H1
-        # joint-equivalence comparison is a real test rather than a
-        # tautology.  Chunking caps the activity-matrix peak memory at
-        # O(joint_chunk × n_neurons) instead of O(N_total × n_neurons).
-        all_x = torch.cat([t.x_train for t in stream.tasks], dim=0)
-        all_y = torch.cat([t.y_train for t in stream.tasks], dim=0)
+        # Joint upper bound.  Feed the union through ``partial_fit`` in a
+        # globally shuffled chunk order without materializing the full
+        # concatenated dataset, which keeps large B3 permuted grids from
+        # allocating one all-tasks tensor in RAM.
         joint_chunk = int(config.get("joint_chunk_size", 4096))
         joint_g = torch.Generator().manual_seed(seed * 1_000_003 + 7919)
-        order = torch.randperm(all_x.shape[0], generator=joint_g)
-        for s in range(0, all_x.shape[0], joint_chunk):
-            sel = order[s : s + joint_chunk]
-            xb = all_x[sel].to(device)
-            yb = _one_hot(all_y[sel], n_classes).to(device)
-            layer.partial_fit(xb, yb)
+        _fit_joint_shuffled_chunks(
+            layer,
+            stream,
+            n_classes=n_classes,
+            joint_chunk=joint_chunk,
+            rng=joint_g,
+            device=device,
+        )
         layer.solve_accumulated(alpha=alpha)
     elif method == "nef_reset":
         last = stream.tasks[-1]
-        x = last.x_train.to(device)
+        x = last.train_inputs().to(device)
         y_oh = _one_hot(last.y_train, n_classes).to(device)
         layer.partial_fit(x, y_oh)
         layer.solve_accumulated(alpha=alpha)

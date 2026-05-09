@@ -5,6 +5,7 @@
   "centers_mode": "first_task",
   "device": "cpu",
   "encoder_strategy": "hypersphere",
+  "fit_chunk_size": 4096,
   "gain_high": 2.0,
   "gain_low": 0.5,
   "n_neurons": 5000

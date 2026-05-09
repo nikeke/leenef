@@ -1,0 +1,2054 @@
+{
+  "b3_capacity_permuted_cifar10_t5_10000_s0": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "first_task",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 10000
+    },
+    "experiment": "nef_capacity_permuted_cifar10_t5",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "b3_capacity_permuted_cifar10_t5_10000_s0",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "first_task",
+      "dataset_metadata": {
+        "base_dataset": "CIFAR10",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "f33471039184415da0ee7adf603370dd0fae4dd11602fc6ef4a50e6b20a68c77",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "ba08c785f6f6f9f56fd3bead40cefbfc43c9e25d3b2c4fa6d8665820608c9599",
+        "stream_seed": 0
+      },
+      "effective_n_neurons": 10000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 336.5845,
+      "per_task_accuracy": [
+        0.4793,
+        0.4809,
+        0.4835,
+        0.4785,
+        0.4753
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "ba08c785f6f6f9f56fd3bead40cefbfc43c9e25d3b2c4fa6d8665820608c9599",
+      "stream_metadata": {
+        "base_dataset": "CIFAR10",
+        "d_in": 3072,
+        "n_classes": 10,
+        "n_permutations": 5,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "f33471039184415da0ee7adf603370dd0fae4dd11602fc6ef4a50e6b20a68c77",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "ba08c785f6f6f9f56fd3bead40cefbfc43c9e25d3b2c4fa6d8665820608c9599",
+        "stream_seed": 0,
+        "task_classes": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        ]
+      },
+      "test_accuracy": 0.4795
+    },
+    "phase": "b3_capacity_permuted_cifar10_t5",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "CIFAR10",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "permuted"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 10000,
+    "wall_time_s": 354.0425
+  },
+  "b3_capacity_permuted_cifar10_t5_10000_s1": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "first_task",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 10000
+    },
+    "experiment": "nef_capacity_permuted_cifar10_t5",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "b3_capacity_permuted_cifar10_t5_10000_s1",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "first_task",
+      "dataset_metadata": {
+        "base_dataset": "CIFAR10",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "215231d561c1f8f033c32605a87b53ea20c0fbb1b7695aa6382fd1516d3940bb",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "d3dac7cd9375585d6ad08044f3d1d71529e3712efa5b673376444748a4d81366",
+        "stream_seed": 1
+      },
+      "effective_n_neurons": 10000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 334.2248,
+      "per_task_accuracy": [
+        0.4815,
+        0.4868,
+        0.4817,
+        0.4846,
+        0.4793
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "d3dac7cd9375585d6ad08044f3d1d71529e3712efa5b673376444748a4d81366",
+      "stream_metadata": {
+        "base_dataset": "CIFAR10",
+        "d_in": 3072,
+        "n_classes": 10,
+        "n_permutations": 5,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "215231d561c1f8f033c32605a87b53ea20c0fbb1b7695aa6382fd1516d3940bb",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "d3dac7cd9375585d6ad08044f3d1d71529e3712efa5b673376444748a4d81366",
+        "stream_seed": 1,
+        "task_classes": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        ]
+      },
+      "test_accuracy": 0.48278
+    },
+    "phase": "b3_capacity_permuted_cifar10_t5",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "CIFAR10",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "permuted"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 10000,
+    "wall_time_s": 351.3729
+  },
+  "b3_capacity_permuted_cifar10_t5_10000_s2": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "first_task",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 10000
+    },
+    "experiment": "nef_capacity_permuted_cifar10_t5",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "b3_capacity_permuted_cifar10_t5_10000_s2",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "first_task",
+      "dataset_metadata": {
+        "base_dataset": "CIFAR10",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "edeff245ec330c2b6a5953458a65a8f83af20e582c82d064f47996d62e3c4683",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "ce4646644c3ea7f06be682812391ef51ad60ee00249f1a35219b579a314606de",
+        "stream_seed": 2
+      },
+      "effective_n_neurons": 10000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 336.2115,
+      "per_task_accuracy": [
+        0.4726,
+        0.4798,
+        0.476,
+        0.4803,
+        0.4779
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "ce4646644c3ea7f06be682812391ef51ad60ee00249f1a35219b579a314606de",
+      "stream_metadata": {
+        "base_dataset": "CIFAR10",
+        "d_in": 3072,
+        "n_classes": 10,
+        "n_permutations": 5,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "edeff245ec330c2b6a5953458a65a8f83af20e582c82d064f47996d62e3c4683",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "ce4646644c3ea7f06be682812391ef51ad60ee00249f1a35219b579a314606de",
+        "stream_seed": 2,
+        "task_classes": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        ]
+      },
+      "test_accuracy": 0.47732
+    },
+    "phase": "b3_capacity_permuted_cifar10_t5",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "CIFAR10",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "permuted"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 10000,
+    "wall_time_s": 353.7477
+  },
+  "b3_capacity_permuted_cifar10_t5_1000_s0": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "first_task",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 1000
+    },
+    "experiment": "nef_capacity_permuted_cifar10_t5",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "b3_capacity_permuted_cifar10_t5_1000_s0",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "first_task",
+      "dataset_metadata": {
+        "base_dataset": "CIFAR10",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "f33471039184415da0ee7adf603370dd0fae4dd11602fc6ef4a50e6b20a68c77",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "ba08c785f6f6f9f56fd3bead40cefbfc43c9e25d3b2c4fa6d8665820608c9599",
+        "stream_seed": 0
+      },
+      "effective_n_neurons": 1000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 13.162,
+      "per_task_accuracy": [
+        0.4003,
+        0.3915,
+        0.396,
+        0.3931,
+        0.3923
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "ba08c785f6f6f9f56fd3bead40cefbfc43c9e25d3b2c4fa6d8665820608c9599",
+      "stream_metadata": {
+        "base_dataset": "CIFAR10",
+        "d_in": 3072,
+        "n_classes": 10,
+        "n_permutations": 5,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "f33471039184415da0ee7adf603370dd0fae4dd11602fc6ef4a50e6b20a68c77",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "ba08c785f6f6f9f56fd3bead40cefbfc43c9e25d3b2c4fa6d8665820608c9599",
+        "stream_seed": 0,
+        "task_classes": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        ]
+      },
+      "test_accuracy": 0.39464
+    },
+    "phase": "b3_capacity_permuted_cifar10_t5",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "CIFAR10",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "permuted"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 1000,
+    "wall_time_s": 16.7436
+  },
+  "b3_capacity_permuted_cifar10_t5_1000_s1": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "first_task",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 1000
+    },
+    "experiment": "nef_capacity_permuted_cifar10_t5",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "b3_capacity_permuted_cifar10_t5_1000_s1",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "first_task",
+      "dataset_metadata": {
+        "base_dataset": "CIFAR10",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "215231d561c1f8f033c32605a87b53ea20c0fbb1b7695aa6382fd1516d3940bb",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "d3dac7cd9375585d6ad08044f3d1d71529e3712efa5b673376444748a4d81366",
+        "stream_seed": 1
+      },
+      "effective_n_neurons": 1000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 12.728,
+      "per_task_accuracy": [
+        0.3959,
+        0.4003,
+        0.3815,
+        0.3953,
+        0.3913
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "d3dac7cd9375585d6ad08044f3d1d71529e3712efa5b673376444748a4d81366",
+      "stream_metadata": {
+        "base_dataset": "CIFAR10",
+        "d_in": 3072,
+        "n_classes": 10,
+        "n_permutations": 5,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "215231d561c1f8f033c32605a87b53ea20c0fbb1b7695aa6382fd1516d3940bb",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "d3dac7cd9375585d6ad08044f3d1d71529e3712efa5b673376444748a4d81366",
+        "stream_seed": 1,
+        "task_classes": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        ]
+      },
+      "test_accuracy": 0.39286
+    },
+    "phase": "b3_capacity_permuted_cifar10_t5",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "CIFAR10",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "permuted"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 1000,
+    "wall_time_s": 14.8233
+  },
+  "b3_capacity_permuted_cifar10_t5_1000_s2": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "first_task",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 1000
+    },
+    "experiment": "nef_capacity_permuted_cifar10_t5",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "b3_capacity_permuted_cifar10_t5_1000_s2",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "first_task",
+      "dataset_metadata": {
+        "base_dataset": "CIFAR10",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "edeff245ec330c2b6a5953458a65a8f83af20e582c82d064f47996d62e3c4683",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "ce4646644c3ea7f06be682812391ef51ad60ee00249f1a35219b579a314606de",
+        "stream_seed": 2
+      },
+      "effective_n_neurons": 1000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 12.8989,
+      "per_task_accuracy": [
+        0.3931,
+        0.3952,
+        0.4004,
+        0.3934,
+        0.3985
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "ce4646644c3ea7f06be682812391ef51ad60ee00249f1a35219b579a314606de",
+      "stream_metadata": {
+        "base_dataset": "CIFAR10",
+        "d_in": 3072,
+        "n_classes": 10,
+        "n_permutations": 5,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "edeff245ec330c2b6a5953458a65a8f83af20e582c82d064f47996d62e3c4683",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "ce4646644c3ea7f06be682812391ef51ad60ee00249f1a35219b579a314606de",
+        "stream_seed": 2,
+        "task_classes": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        ]
+      },
+      "test_accuracy": 0.39612
+    },
+    "phase": "b3_capacity_permuted_cifar10_t5",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "CIFAR10",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "permuted"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 1000,
+    "wall_time_s": 14.9819
+  },
+  "b3_capacity_permuted_cifar10_t5_2000_s0": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "first_task",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 2000
+    },
+    "experiment": "nef_capacity_permuted_cifar10_t5",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "b3_capacity_permuted_cifar10_t5_2000_s0",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "first_task",
+      "dataset_metadata": {
+        "base_dataset": "CIFAR10",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "f33471039184415da0ee7adf603370dd0fae4dd11602fc6ef4a50e6b20a68c77",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "ba08c785f6f6f9f56fd3bead40cefbfc43c9e25d3b2c4fa6d8665820608c9599",
+        "stream_seed": 0
+      },
+      "effective_n_neurons": 2000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 28.3523,
+      "per_task_accuracy": [
+        0.4282,
+        0.4273,
+        0.4252,
+        0.43,
+        0.4257
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "ba08c785f6f6f9f56fd3bead40cefbfc43c9e25d3b2c4fa6d8665820608c9599",
+      "stream_metadata": {
+        "base_dataset": "CIFAR10",
+        "d_in": 3072,
+        "n_classes": 10,
+        "n_permutations": 5,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "f33471039184415da0ee7adf603370dd0fae4dd11602fc6ef4a50e6b20a68c77",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "ba08c785f6f6f9f56fd3bead40cefbfc43c9e25d3b2c4fa6d8665820608c9599",
+        "stream_seed": 0,
+        "task_classes": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        ]
+      },
+      "test_accuracy": 0.42728
+    },
+    "phase": "b3_capacity_permuted_cifar10_t5",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "CIFAR10",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "permuted"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 2000,
+    "wall_time_s": 32.0626
+  },
+  "b3_capacity_permuted_cifar10_t5_2000_s1": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "first_task",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 2000
+    },
+    "experiment": "nef_capacity_permuted_cifar10_t5",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "b3_capacity_permuted_cifar10_t5_2000_s1",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "first_task",
+      "dataset_metadata": {
+        "base_dataset": "CIFAR10",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "215231d561c1f8f033c32605a87b53ea20c0fbb1b7695aa6382fd1516d3940bb",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "d3dac7cd9375585d6ad08044f3d1d71529e3712efa5b673376444748a4d81366",
+        "stream_seed": 1
+      },
+      "effective_n_neurons": 2000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 28.515,
+      "per_task_accuracy": [
+        0.4242,
+        0.4274,
+        0.4202,
+        0.4242,
+        0.4276
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "d3dac7cd9375585d6ad08044f3d1d71529e3712efa5b673376444748a4d81366",
+      "stream_metadata": {
+        "base_dataset": "CIFAR10",
+        "d_in": 3072,
+        "n_classes": 10,
+        "n_permutations": 5,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "215231d561c1f8f033c32605a87b53ea20c0fbb1b7695aa6382fd1516d3940bb",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "d3dac7cd9375585d6ad08044f3d1d71529e3712efa5b673376444748a4d81366",
+        "stream_seed": 1,
+        "task_classes": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        ]
+      },
+      "test_accuracy": 0.42472
+    },
+    "phase": "b3_capacity_permuted_cifar10_t5",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "CIFAR10",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "permuted"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 2000,
+    "wall_time_s": 32.2926
+  },
+  "b3_capacity_permuted_cifar10_t5_2000_s2": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "first_task",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 2000
+    },
+    "experiment": "nef_capacity_permuted_cifar10_t5",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "b3_capacity_permuted_cifar10_t5_2000_s2",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "first_task",
+      "dataset_metadata": {
+        "base_dataset": "CIFAR10",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "edeff245ec330c2b6a5953458a65a8f83af20e582c82d064f47996d62e3c4683",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "ce4646644c3ea7f06be682812391ef51ad60ee00249f1a35219b579a314606de",
+        "stream_seed": 2
+      },
+      "effective_n_neurons": 2000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 28.8836,
+      "per_task_accuracy": [
+        0.4199,
+        0.4236,
+        0.4269,
+        0.4195,
+        0.4275
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "ce4646644c3ea7f06be682812391ef51ad60ee00249f1a35219b579a314606de",
+      "stream_metadata": {
+        "base_dataset": "CIFAR10",
+        "d_in": 3072,
+        "n_classes": 10,
+        "n_permutations": 5,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "edeff245ec330c2b6a5953458a65a8f83af20e582c82d064f47996d62e3c4683",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "ce4646644c3ea7f06be682812391ef51ad60ee00249f1a35219b579a314606de",
+        "stream_seed": 2,
+        "task_classes": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        ]
+      },
+      "test_accuracy": 0.42348
+    },
+    "phase": "b3_capacity_permuted_cifar10_t5",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "CIFAR10",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "permuted"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 2000,
+    "wall_time_s": 32.781
+  },
+  "b3_capacity_permuted_cifar10_t5_5000_s0": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "first_task",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_capacity_permuted_cifar10_t5",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "b3_capacity_permuted_cifar10_t5_5000_s0",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "first_task",
+      "dataset_metadata": {
+        "base_dataset": "CIFAR10",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "f33471039184415da0ee7adf603370dd0fae4dd11602fc6ef4a50e6b20a68c77",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "ba08c785f6f6f9f56fd3bead40cefbfc43c9e25d3b2c4fa6d8665820608c9599",
+        "stream_seed": 0
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 107.816,
+      "per_task_accuracy": [
+        0.4606,
+        0.4568,
+        0.4557,
+        0.4604,
+        0.4566
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "ba08c785f6f6f9f56fd3bead40cefbfc43c9e25d3b2c4fa6d8665820608c9599",
+      "stream_metadata": {
+        "base_dataset": "CIFAR10",
+        "d_in": 3072,
+        "n_classes": 10,
+        "n_permutations": 5,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "f33471039184415da0ee7adf603370dd0fae4dd11602fc6ef4a50e6b20a68c77",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "ba08c785f6f6f9f56fd3bead40cefbfc43c9e25d3b2c4fa6d8665820608c9599",
+        "stream_seed": 0,
+        "task_classes": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        ]
+      },
+      "test_accuracy": 0.45802
+    },
+    "phase": "b3_capacity_permuted_cifar10_t5",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "CIFAR10",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "permuted"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 5000,
+    "wall_time_s": 117.0534
+  },
+  "b3_capacity_permuted_cifar10_t5_5000_s1": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "first_task",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_capacity_permuted_cifar10_t5",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "b3_capacity_permuted_cifar10_t5_5000_s1",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "first_task",
+      "dataset_metadata": {
+        "base_dataset": "CIFAR10",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "215231d561c1f8f033c32605a87b53ea20c0fbb1b7695aa6382fd1516d3940bb",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "d3dac7cd9375585d6ad08044f3d1d71529e3712efa5b673376444748a4d81366",
+        "stream_seed": 1
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 108.0009,
+      "per_task_accuracy": [
+        0.4617,
+        0.4557,
+        0.4616,
+        0.4601,
+        0.4606
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "d3dac7cd9375585d6ad08044f3d1d71529e3712efa5b673376444748a4d81366",
+      "stream_metadata": {
+        "base_dataset": "CIFAR10",
+        "d_in": 3072,
+        "n_classes": 10,
+        "n_permutations": 5,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "215231d561c1f8f033c32605a87b53ea20c0fbb1b7695aa6382fd1516d3940bb",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "d3dac7cd9375585d6ad08044f3d1d71529e3712efa5b673376444748a4d81366",
+        "stream_seed": 1,
+        "task_classes": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        ]
+      },
+      "test_accuracy": 0.45994
+    },
+    "phase": "b3_capacity_permuted_cifar10_t5",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "CIFAR10",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "permuted"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 5000,
+    "wall_time_s": 117.335
+  },
+  "b3_capacity_permuted_cifar10_t5_5000_s2": {
+    "code_identity": "ed891a3d7bbefb532fe876847b635a1fb871aa43",
+    "config": {
+      "activation": "abs",
+      "alpha": 0.001,
+      "cell": "nef_accumulate",
+      "centers_mode": "first_task",
+      "device": "cpu",
+      "encoder_strategy": "hypersphere",
+      "fit_chunk_size": 4096,
+      "gain_high": 2.0,
+      "gain_low": 0.5,
+      "n_neurons": 5000
+    },
+    "experiment": "nef_capacity_permuted_cifar10_t5",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "n_neurons",
+    "label": "b3_capacity_permuted_cifar10_t5_5000_s2",
+    "metrics": {
+      "alpha": 0.001,
+      "centers_mode": "first_task",
+      "dataset_metadata": {
+        "base_dataset": "CIFAR10",
+        "n_classes": 10,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "edeff245ec330c2b6a5953458a65a8f83af20e582c82d064f47996d62e3c4683",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "ce4646644c3ea7f06be682812391ef51ad60ee00249f1a35219b579a314606de",
+        "stream_seed": 2
+      },
+      "effective_n_neurons": 5000,
+      "effective_n_tasks": 5,
+      "fit_time_s": 107.7637,
+      "per_task_accuracy": [
+        0.4539,
+        0.459,
+        0.4608,
+        0.4559,
+        0.4577
+      ],
+      "solver_mode": "accumulate",
+      "stream_hash": "ce4646644c3ea7f06be682812391ef51ad60ee00249f1a35219b579a314606de",
+      "stream_metadata": {
+        "base_dataset": "CIFAR10",
+        "d_in": 3072,
+        "n_classes": 10,
+        "n_permutations": 5,
+        "n_tasks": 5,
+        "processed_hashes": {
+          "permutations": "edeff245ec330c2b6a5953458a65a8f83af20e582c82d064f47996d62e3c4683",
+          "x_test": "53e7254b7fbf84fd84d2bedbff142db6cd7d44c6b4c353b4836b2bd1fa851c7d",
+          "x_train": "591697577562d9c59ef241082a0bf0fa0ac024361551fbc90f83bb600f0937f2",
+          "y_test": "cbb7365de8ed11f05cc4c3a1e7f78144127c5e851efd83762fb18202461230bb",
+          "y_train": "f5cfe00b0f00968c0cc5ff3b1d2de51b10e33efa277c2986f4e0fa63e58c9f4f"
+        },
+        "raw_hashes": {
+          "data_batch_1": "54636561a3ce25bd3e19253c6b0d8538147b0ae398331ac4a2d86c6d987368cd",
+          "data_batch_2": "766b2cef9fbc745cf056b3152224f7cf77163b330ea9a15f9392beb8b89bc5a8",
+          "data_batch_3": "0f00d98ebfb30b3ec0ad19f9756dc2630b89003e10525f5e148445e82aa6a1f9",
+          "data_batch_4": "3f7bb240661948b8f4d53e36ec720d8306f5668bd0071dcb4e6c947f78e9682b",
+          "data_batch_5": "d91802434d8376bbaeeadf58a737e3a1b12ac839077e931237e0dcd43adcb154",
+          "test_batch": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+        },
+        "scenario": "permuted",
+        "stream_hash": "ce4646644c3ea7f06be682812391ef51ad60ee00249f1a35219b579a314606de",
+        "stream_seed": 2,
+        "task_classes": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        ]
+      },
+      "test_accuracy": 0.45746
+    },
+    "phase": "b3_capacity_permuted_cifar10_t5",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "cl_clean",
+    "run_context": {
+      "base_dataset": "CIFAR10",
+      "experiment_kind": "nef_continual",
+      "n_tasks": 5,
+      "scenario": "permuted"
+    },
+    "runner_version": "cl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "task_stream_seed": "derived deterministically from seed inside the experiment",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": 5000,
+    "wall_time_s": 116.7707
+  }
+}

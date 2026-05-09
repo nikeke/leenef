@@ -11,8 +11,9 @@
 * Execution branch (your branch): **`paper-ii/cl-experiments`**,
   created off `paper-ii/cl-scaffold` after the user has reviewed
   the scaffold.
-* Worktree path: `../leenef-paper-ii` (the user creates it via
-  `git worktree add`).
+* Worktree path: the current repository root,
+  `/home/amnesia/Persistent/src/leenef-cl-experiments`
+  (do **not** assume a separate `../leenef-paper-ii` worktree exists).
 
 The scaffolding session **does not commit** to your branch and does
 not modify `.git/worktrees/`.  If you need a code change to the
@@ -71,15 +72,16 @@ After each phase sentinel:
   configs, dates, max-abs-gap, mean ± SE, and adoption verdicts;
 * append a paragraph to `docs/cl_clean_notes.md` if the panel
   changed the story;
-* hand back to the user.
+* continue straight to the next actionable phase or follow-up task;
+  do **not** stop just because one phase sentinel landed.
 
 ## Kickoff sequence
 
 ```bash
-cd ../leenef-paper-ii
-source venv/bin/activate    # share the parent's venv via $VIRTUAL_ENV symlink
-pytest tests/test_cl_clean.py -q  # sanity
-PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
+cd /home/amnesia/Persistent/src/leenef-cl-experiments
+source ../leenef/venv/bin/activate
+PYTHONPATH=$PWD pytest tests/test_cl_clean.py -q  # sanity
+PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python SEEDS=0-9 \
     bash benchmarks/cl_clean/cl_hp_driver.sh nef_continual_split_mnist
 ```
 
@@ -87,9 +89,9 @@ After B1/B2 are either complete or intentionally restarted on the new
 identity, the follow-up targets are:
 
 ```bash
-PYTHON=$PWD/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b3_capacity
-PYTHON=$PWD/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b4_centers
-PYTHON=$PWD/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b5_solvers
+PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b3_capacity
+PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b4_centers
+PYTHONPATH=$PWD PYTHON=$PWD/../leenef/venv/bin/python bash benchmarks/cl_clean/cl_hp_driver.sh b5_solvers
 ```
 
 Defaults: B3 uses 5 seeds for Permuted-MNIST and 3 seeds for the

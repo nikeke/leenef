@@ -79,6 +79,16 @@ class TestTaskStream:
         s1 = datasets.make_task_stream("MNIST", scenario="split", n_tasks=5, stream_seed=1)
         assert s0.stream_hash != s1.stream_hash
 
+    def test_permuted_stream_materializes_inputs_on_demand(self):
+        import torch
+
+        s = datasets.make_task_stream("MNIST", scenario="permuted", n_tasks=2, stream_seed=0)
+        task = s.tasks[0]
+        assert task.permutation is not None
+        assert task.x_train.data_ptr() == s.tasks[1].x_train.data_ptr()
+        restored = task.train_inputs()[:, torch.argsort(task.permutation)]
+        assert torch.equal(restored, task.x_train)
+
 
 class TestNEFContinual:
     def test_nef_accumulate_matches_nef_joint_on_synthetic_smoke(self):
@@ -195,10 +205,15 @@ class TestPhaseBRegistrations:
 
     def test_grid_cell_parsers(self):
         from benchmarks.cl_clean._c1_convnef_cl_exp import parse_convnef_cell
-        from benchmarks.cl_clean.experiments import _parse_capacity_cell, _parse_solver_alpha_cell
+        from benchmarks.cl_clean.experiments import (
+            _normalize_centers_mode,
+            _parse_capacity_cell,
+            _parse_solver_alpha_cell,
+        )
 
         assert _parse_capacity_cell("n5000_t20") == (5000, 20)
         assert _parse_solver_alpha_cell("woodbury_online_a0.1") == ("woodbury_online", 0.1)
+        assert _normalize_centers_mode(None) == "none"
         assert parse_convnef_cell("first_task_n2000") == ("first_task", 2000)
 
     def test_layer_encoders_and_gains_do_not_depend_on_centers_mode(self):

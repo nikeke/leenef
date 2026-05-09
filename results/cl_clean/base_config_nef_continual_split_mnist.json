@@ -9,6 +9,7 @@
   "epochs_per_task": 5,
   "ewc_lambda": 1000.0,
   "fisher_samples": 200,
+  "fit_chunk_size": 4096,
   "gain_high": 2.0,
   "gain_low": 0.5,
   "hidden": 256,

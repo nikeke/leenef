@@ -28,6 +28,7 @@ mkdir -p "${LOGS_DIR}"
 
 PYTHON="${PYTHON:-python}"
 SEEDS_DEFAULT="${SEEDS:-0,1,2,3,4,5,6,7,8,9}"
+export PYTHONPATH="${PWD}${PYTHONPATH:+:${PYTHONPATH}}"
 
 # DETACH=1 re-launches this driver fully detached via setsid (matches the
 # sl_clean Paper-I pattern).  Stdout/stderr go to a per-experiment log so
@@ -119,6 +120,7 @@ case "${EXPERIMENT}" in
     BASE="${RESULTS_DIR}/base_config_${EXPERIMENT}.json"
     PHASE_NAME="${EXPERIMENT}_panel"
     CELLS="${CELLS:-nef_accumulate,nef_joint,nef_reset,mlp_finetune,mlp_joint,mlp_ewc,mlp_er}"
+    rm -f "${RESULTS_DIR}/${PHASE_NAME}_done"
     if run_phase "${PHASE_NAME}" cell "${CELLS}" \
               "${SEEDS_DEFAULT}" "${BASE}" "${EXPERIMENT}"; then
       touch "${RESULTS_DIR}/${PHASE_NAME}_done"
@@ -137,6 +139,7 @@ case "${EXPERIMENT}" in
     B3_MNIST_N="${B3_MNIST_N:-500,1000,2000,5000,10000}"
     B3_CIFAR_N="${B3_CIFAR_N:-1000,2000,5000,10000}"
     BASE="${RESULTS_DIR}/base_config_b3_capacity.json"
+    rm -f "${RESULTS_DIR}/b3_capacity_done"
     for T in ${B3_MNIST_TASKS:-5 10 20 50 100}; do
       run_phase "b3_capacity_permuted_mnist_t${T}" n_neurons "${B3_MNIST_N}" \
                 "${B3_MNIST_SEEDS}" "${BASE}" "nef_capacity_permuted_mnist_t${T}"
@@ -151,7 +154,7 @@ case "${EXPERIMENT}" in
       for N in 500 10000; do
         SPOT_BASE="${RESULTS_DIR}/base_config_b3_capacity_spot_n${N}.json"
         run_phase "b3_capacity_spot_permuted_mnist_t${T}_n${N}" cell \
-                  "nef_accumulate,nef_joint" "${B3_CIFAR_SEEDS}" \
+                  "nef_accumulate,nef_joint" "${B3_MNIST_SEEDS}" \
                   "${SPOT_BASE}" "nef_capacity_permuted_mnist_t${T}"
       done
     done
@@ -162,6 +165,7 @@ case "${EXPERIMENT}" in
     # Phase B4 — center-adaptation falsifier.
     B4_SEEDS="$(normalize_seeds "${B4_SEEDS:-0-4}")"
     BASE="${RESULTS_DIR}/base_config_b4_centers.json"
+    rm -f "${RESULTS_DIR}/b4_centers_done"
     run_phase b4_centers_split_mnist centers_mode "none,first_task,all_tasks,growing" \
               "${B4_SEEDS}" "${BASE}" nef_continual_split_mnist
     run_phase b4_centers_split_cifar10 centers_mode "none,first_task,all_tasks,growing" \
@@ -174,6 +178,7 @@ case "${EXPERIMENT}" in
     B5_SEEDS="$(normalize_seeds "${B5_SEEDS:-0-4}")"
     BASE="${RESULTS_DIR}/base_config_b5_solvers.json"
     SOLVER_ALPHA_CELLS="${SOLVER_ALPHA_CELLS:-accumulate_a0.001,accumulate_a0.01,accumulate_a0.1,accumulate_a1,accumulate_a10,accumulate_a100,accumulate_a1000,woodbury_batch_a0.001,woodbury_batch_a0.01,woodbury_batch_a0.1,woodbury_batch_a1,woodbury_batch_a10,woodbury_batch_a100,woodbury_batch_a1000,woodbury_online_a0.001,woodbury_online_a0.01,woodbury_online_a0.1,woodbury_online_a1,woodbury_online_a10,woodbury_online_a100,woodbury_online_a1000}"
+    rm -f "${RESULTS_DIR}/b5_solvers_done"
     for EXP in nef_continual_split_mnist nef_continual_permuted_mnist nef_continual_split_cifar10; do
       run_phase "b5_solvers_${EXP#nef_continual_}" solver_alpha_cell "${SOLVER_ALPHA_CELLS}" \
                 "${B5_SEEDS}" "${BASE}" "${EXP}"
