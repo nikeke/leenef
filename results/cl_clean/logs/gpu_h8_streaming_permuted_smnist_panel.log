@@ -1,0 +1,109 @@
+[2026-05-09T13:39:10] phase=gpu_h8_streaming_permuted_smnist_panel experiment=h8_streaming_permuted_smnist knob=cell values=['accumulate_final_n4000', 'accumulate_task_solve_n4000', 'woodbury_online_n4000', 'joint_n4000', 'reset_n4000', 'accumulate_final_n8000', 'woodbury_online_n8000', 'joint_n8000', 'reset_n8000'] seeds=[0, 1, 2, 3, 4] code_identity=1436af7f8cda2a617d465b1f5a0e8db57d3de551
+[2026-05-09T13:39:10]   [1/45] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n4000_s0
+[2026-05-09T13:40:04]   [2/45] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n4000_s1
+[2026-05-09T13:40:57]   [3/45] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n4000_s2
+[2026-05-09T13:41:51]   [4/45] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n4000_s3
+[2026-05-09T13:42:44]   [5/45] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n4000_s4
+[2026-05-09T13:43:37]   [6/45] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_task_solve_n4000_s0
+[2026-05-09T13:44:32]   [7/45] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_task_solve_n4000_s1
+[2026-05-09T13:45:26]   [8/45] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_task_solve_n4000_s2
+[2026-05-09T13:46:20]   [9/45] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_task_solve_n4000_s3
+[2026-05-09T13:47:14]   [10/45] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_task_solve_n4000_s4
+[2026-05-09T13:48:08]   [11/45] run    gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n4000_s0
+[2026-05-09T13:49:32]   [12/45] run    gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n4000_s1
+[2026-05-09T13:50:55]   [13/45] run    gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n4000_s2
+[2026-05-09T13:52:19]   [14/45] run    gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n4000_s3
+[2026-05-09T13:53:43]   [15/45] run    gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n4000_s4
+[2026-05-09T13:55:07]   [16/45] run    gpu_h8_streaming_permuted_smnist_panel_joint_n4000_s0
+[2026-05-09T13:56:00]   [17/45] run    gpu_h8_streaming_permuted_smnist_panel_joint_n4000_s1
+[2026-05-09T13:56:54]   [18/45] run    gpu_h8_streaming_permuted_smnist_panel_joint_n4000_s2
+[2026-05-09T13:57:47]   [19/45] run    gpu_h8_streaming_permuted_smnist_panel_joint_n4000_s3
+[2026-05-09T13:58:40]   [20/45] run    gpu_h8_streaming_permuted_smnist_panel_joint_n4000_s4
+[2026-05-09T13:59:34]   [21/45] run    gpu_h8_streaming_permuted_smnist_panel_reset_n4000_s0
+[2026-05-09T13:59:45]   [22/45] run    gpu_h8_streaming_permuted_smnist_panel_reset_n4000_s1
+[2026-05-09T13:59:57]   [23/45] run    gpu_h8_streaming_permuted_smnist_panel_reset_n4000_s2
+[2026-05-09T14:00:09]   [24/45] run    gpu_h8_streaming_permuted_smnist_panel_reset_n4000_s3
+[2026-05-09T14:00:20]   [25/45] run    gpu_h8_streaming_permuted_smnist_panel_reset_n4000_s4
+[2026-05-09T14:00:32]   [26/45] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n8000_s0
+[2026-05-09T14:02:29]   [27/45] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n8000_s1
+[2026-05-09T14:04:26]   [28/45] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n8000_s2
+[2026-05-09T14:06:23]   [29/45] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n8000_s3
+[2026-05-09T14:08:20]   [30/45] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n8000_s4
+[2026-05-09T14:10:17]   [31/45] run    gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n8000_s0
+[2026-05-09T14:14:02]   [32/45] run    gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n8000_s1
+[2026-05-09T14:17:47]   [33/45] run    gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n8000_s2
+[2026-05-09T14:21:31]   [34/45] run    gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n8000_s3
+[2026-05-09T14:25:16]   [35/45] run    gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n8000_s4
+[2026-05-09T14:29:01]   [36/45] run    gpu_h8_streaming_permuted_smnist_panel_joint_n8000_s0
+[2026-05-09T14:30:58]   [37/45] run    gpu_h8_streaming_permuted_smnist_panel_joint_n8000_s1
+[2026-05-09T14:32:55]   [38/45] run    gpu_h8_streaming_permuted_smnist_panel_joint_n8000_s2
+[2026-05-09T14:34:52]   [39/45] run    gpu_h8_streaming_permuted_smnist_panel_joint_n8000_s3
+[2026-05-09T14:36:49]   [40/45] run    gpu_h8_streaming_permuted_smnist_panel_joint_n8000_s4
+[2026-05-09T14:38:46]   [41/45] run    gpu_h8_streaming_permuted_smnist_panel_reset_n8000_s0
+[2026-05-09T14:39:10]   [42/45] run    gpu_h8_streaming_permuted_smnist_panel_reset_n8000_s1
+[2026-05-09T14:39:35]   [43/45] run    gpu_h8_streaming_permuted_smnist_panel_reset_n8000_s2
+[2026-05-09T14:39:59]   [44/45] run    gpu_h8_streaming_permuted_smnist_panel_reset_n8000_s3
+[2026-05-09T14:40:24]   [45/45] run    gpu_h8_streaming_permuted_smnist_panel_reset_n8000_s4
+[2026-05-09T14:40:48] phase gpu_h8_streaming_permuted_smnist_panel done — 45 rows in /content/leenef/results/cl_clean/gpu_h8_streaming_permuted_smnist_panel.json
+[2026-05-09T14:44:42] phase=gpu_h8_streaming_permuted_smnist_panel experiment=h8_streaming_permuted_smnist knob=cell values=['accumulate_final_n4000', 'accumulate_task_solve_n4000', 'woodbury_online_n4000', 'joint_n4000', 'reset_n4000', 'accumulate_final_n8000', 'woodbury_online_n8000', 'joint_n8000', 'reset_n8000', 'accumulate_final_n16000', 'joint_n16000', 'woodbury_online_n16000'] seeds=[0, 1, 2, 3, 4] code_identity=1436af7f8cda2a617d465b1f5a0e8db57d3de551
+[2026-05-09T14:44:42]   [1/60] skip   gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n4000_s0  (cached)
+[2026-05-09T14:44:42]   [2/60] skip   gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n4000_s1  (cached)
+[2026-05-09T14:44:42]   [3/60] skip   gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n4000_s2  (cached)
+[2026-05-09T14:44:42]   [4/60] skip   gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n4000_s3  (cached)
+[2026-05-09T14:44:42]   [5/60] skip   gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n4000_s4  (cached)
+[2026-05-09T14:44:42]   [6/60] skip   gpu_h8_streaming_permuted_smnist_panel_accumulate_task_solve_n4000_s0  (cached)
+[2026-05-09T14:44:42]   [7/60] skip   gpu_h8_streaming_permuted_smnist_panel_accumulate_task_solve_n4000_s1  (cached)
+[2026-05-09T14:44:42]   [8/60] skip   gpu_h8_streaming_permuted_smnist_panel_accumulate_task_solve_n4000_s2  (cached)
+[2026-05-09T14:44:42]   [9/60] skip   gpu_h8_streaming_permuted_smnist_panel_accumulate_task_solve_n4000_s3  (cached)
+[2026-05-09T14:44:42]   [10/60] skip   gpu_h8_streaming_permuted_smnist_panel_accumulate_task_solve_n4000_s4  (cached)
+[2026-05-09T14:44:42]   [11/60] skip   gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n4000_s0  (cached)
+[2026-05-09T14:44:42]   [12/60] skip   gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n4000_s1  (cached)
+[2026-05-09T14:44:42]   [13/60] skip   gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n4000_s2  (cached)
+[2026-05-09T14:44:42]   [14/60] skip   gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n4000_s3  (cached)
+[2026-05-09T14:44:42]   [15/60] skip   gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n4000_s4  (cached)
+[2026-05-09T14:44:42]   [16/60] skip   gpu_h8_streaming_permuted_smnist_panel_joint_n4000_s0  (cached)
+[2026-05-09T14:44:42]   [17/60] skip   gpu_h8_streaming_permuted_smnist_panel_joint_n4000_s1  (cached)
+[2026-05-09T14:44:42]   [18/60] skip   gpu_h8_streaming_permuted_smnist_panel_joint_n4000_s2  (cached)
+[2026-05-09T14:44:42]   [19/60] skip   gpu_h8_streaming_permuted_smnist_panel_joint_n4000_s3  (cached)
+[2026-05-09T14:44:42]   [20/60] skip   gpu_h8_streaming_permuted_smnist_panel_joint_n4000_s4  (cached)
+[2026-05-09T14:44:42]   [21/60] skip   gpu_h8_streaming_permuted_smnist_panel_reset_n4000_s0  (cached)
+[2026-05-09T14:44:42]   [22/60] skip   gpu_h8_streaming_permuted_smnist_panel_reset_n4000_s1  (cached)
+[2026-05-09T14:44:42]   [23/60] skip   gpu_h8_streaming_permuted_smnist_panel_reset_n4000_s2  (cached)
+[2026-05-09T14:44:42]   [24/60] skip   gpu_h8_streaming_permuted_smnist_panel_reset_n4000_s3  (cached)
+[2026-05-09T14:44:42]   [25/60] skip   gpu_h8_streaming_permuted_smnist_panel_reset_n4000_s4  (cached)
+[2026-05-09T14:44:42]   [26/60] skip   gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n8000_s0  (cached)
+[2026-05-09T14:44:42]   [27/60] skip   gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n8000_s1  (cached)
+[2026-05-09T14:44:42]   [28/60] skip   gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n8000_s2  (cached)
+[2026-05-09T14:44:42]   [29/60] skip   gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n8000_s3  (cached)
+[2026-05-09T14:44:42]   [30/60] skip   gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n8000_s4  (cached)
+[2026-05-09T14:44:42]   [31/60] skip   gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n8000_s0  (cached)
+[2026-05-09T14:44:42]   [32/60] skip   gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n8000_s1  (cached)
+[2026-05-09T14:44:42]   [33/60] skip   gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n8000_s2  (cached)
+[2026-05-09T14:44:42]   [34/60] skip   gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n8000_s3  (cached)
+[2026-05-09T14:44:42]   [35/60] skip   gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n8000_s4  (cached)
+[2026-05-09T14:44:42]   [36/60] skip   gpu_h8_streaming_permuted_smnist_panel_joint_n8000_s0  (cached)
+[2026-05-09T14:44:42]   [37/60] skip   gpu_h8_streaming_permuted_smnist_panel_joint_n8000_s1  (cached)
+[2026-05-09T14:44:42]   [38/60] skip   gpu_h8_streaming_permuted_smnist_panel_joint_n8000_s2  (cached)
+[2026-05-09T14:44:42]   [39/60] skip   gpu_h8_streaming_permuted_smnist_panel_joint_n8000_s3  (cached)
+[2026-05-09T14:44:42]   [40/60] skip   gpu_h8_streaming_permuted_smnist_panel_joint_n8000_s4  (cached)
+[2026-05-09T14:44:42]   [41/60] skip   gpu_h8_streaming_permuted_smnist_panel_reset_n8000_s0  (cached)
+[2026-05-09T14:44:42]   [42/60] skip   gpu_h8_streaming_permuted_smnist_panel_reset_n8000_s1  (cached)
+[2026-05-09T14:44:42]   [43/60] skip   gpu_h8_streaming_permuted_smnist_panel_reset_n8000_s2  (cached)
+[2026-05-09T14:44:42]   [44/60] skip   gpu_h8_streaming_permuted_smnist_panel_reset_n8000_s3  (cached)
+[2026-05-09T14:44:42]   [45/60] skip   gpu_h8_streaming_permuted_smnist_panel_reset_n8000_s4  (cached)
+[2026-05-09T14:44:42]   [46/60] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n16000_s0
+[2026-05-09T14:49:19]   [47/60] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n16000_s1
+[2026-05-09T14:53:55]   [48/60] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n16000_s2
+[2026-05-09T14:58:32]   [49/60] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n16000_s3
+[2026-05-09T15:03:08]   [50/60] run    gpu_h8_streaming_permuted_smnist_panel_accumulate_final_n16000_s4
+[2026-05-09T15:07:44]   [51/60] run    gpu_h8_streaming_permuted_smnist_panel_joint_n16000_s0
+[2026-05-09T15:12:21]   [52/60] run    gpu_h8_streaming_permuted_smnist_panel_joint_n16000_s1
+[2026-05-09T15:16:57]   [53/60] run    gpu_h8_streaming_permuted_smnist_panel_joint_n16000_s2
+[2026-05-09T15:21:33]   [54/60] run    gpu_h8_streaming_permuted_smnist_panel_joint_n16000_s3
+[2026-05-09T15:26:10]   [55/60] run    gpu_h8_streaming_permuted_smnist_panel_joint_n16000_s4
+[2026-05-09T15:30:46]   [56/60] run    gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n16000_s0
+[2026-05-09T15:41:43]   [57/60] run    gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n16000_s1
+[2026-05-09T15:52:40]   [58/60] run    gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n16000_s2
+[2026-05-09T16:03:37]   [59/60] run    gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n16000_s3
+[2026-05-09T16:14:34]   [60/60] run    gpu_h8_streaming_permuted_smnist_panel_woodbury_online_n16000_s4
+[2026-05-09T16:25:31] phase gpu_h8_streaming_permuted_smnist_panel done — 60 rows in /content/leenef/results/cl_clean/gpu_h8_streaming_permuted_smnist_panel.json

@@ -612,3 +612,74 @@ Phase verdict:
   beat the joint ConvNEF upper bound in accuracy; it matches it exactly
   at both neuron counts while paying the expected continual-processing
   time tax.
+
+## H8 — Streaming continual follow-up (Colab GPU)
+
+Experiment: `h8_streaming_permuted_smnist`.
+
+Task stream: 10-task permuted sequential MNIST.  Each task is full
+10-way MNIST under a fresh fixed pixel permutation, reshaped as a
+784-step sequence with one scalar per timestep.  The streaming feature
+map is fixed from first-task centers.
+
+### 2026-05-09 — GPU streaming-sMNIST bundle
+
+* Source workflow:
+  `colab/cl_clean/streaming_permuted_smnist_gpu_suite.py --seeds 0-4`
+  followed by the `--extended` cells.
+* Hardware in the imported rows: CUDA enabled Colab GPU (L4-class in the
+  runner log header).
+* Code identity in all imported rows:
+  `1436af7f8cda2a617d465b1f5a0e8db57d3de551`.
+* Imported artifacts:
+  `results/cl_clean/gpu_h8_streaming_permuted_smnist_panel.json`,
+  `results/cl_clean/logs/gpu_h8_streaming_permuted_smnist_panel.log`,
+  and
+  `results/cl_clean/colab_gpu_configs/base_config_gpu_h8_streaming_permuted_smnist.json`.
+* Rows: 60/60 complete, no error rows, 5 seeds for each of 12 cells.
+* Import caveat: running `analyze_cl_panel` from the current `main`
+  rejects these rows as stale because later CI/test commits changed files
+  under `CODE_IDENTITY_PATHS`.  Manual audit confirms a homogeneous
+  imported bundle with one code identity, one config family, and complete
+  seed coverage; this is the same imported-identity situation as the
+  Phase-C Colab bundle.
+
+H8 panel summary (`test_accuracy`, mean ± SE; `fit_time_s`, mean ± SE):
+
+| Cell | n | Accuracy | Fit time |
+| --- | ---: | ---: | ---: |
+| `accumulate_final_n4000` | 5 | 34.848% ± 5.562% | 46.54s ± 0.04s |
+| `joint_n4000` | 5 | 34.848% ± 5.562% | 46.50s ± 0.00s |
+| `accumulate_task_solve_n4000` | 5 | 34.848% ± 5.562% | 47.16s ± 0.00s |
+| `woodbury_online_n4000` | 5 | 56.360% ± 0.203% | 76.82s ± 0.00s |
+| `reset_n4000` | 5 | 15.841% ± 0.826% | 4.72s ± 0.00s |
+| `accumulate_final_n8000` | 5 | 19.956% ± 1.555% | 103.21s ± 0.00s |
+| `joint_n8000` | 5 | 19.956% ± 1.555% | 103.21s ± 0.00s |
+| `woodbury_online_n8000` | 5 | 58.433% ± 0.204% | 211.05s ± 0.00s |
+| `reset_n8000` | 5 | 12.136% ± 0.439% | 10.68s ± 0.00s |
+| `accumulate_final_n16000` | 5 | 14.403% ± 1.207% | 248.84s ± 0.03s |
+| `joint_n16000` | 5 | 14.403% ± 1.207% | 248.82s ± 0.01s |
+| `woodbury_online_n16000` | 5 | 59.798% ± 0.253% | 629.36s ± 0.01s |
+
+Pairwise checks:
+
+* `accumulate_final` vs `joint`: `max|Δ| = 0.000000 pp` at 4000,
+  8000, and 16000 neurons.
+* `accumulate_task_solve_n4000` vs `accumulate_final_n4000`:
+  `max|Δ| = 0.000000 pp`.
+* `woodbury_online` vs `accumulate_final`: Woodbury is much higher, by
+  +21.512 pp at 4000, +38.477 pp at 8000, and +45.395 pp at 16000.
+* `reset` is a genuine lower bound: 15.8% at 4000 and 12.1% at 8000.
+
+Phase verdict:
+
+* The sufficient-statistic identity still holds through the streaming
+  feature map: final accumulation and one-shot joint solve agree exactly.
+* The useful model in this panel is not the exact final solve.
+  `woodbury_online` is substantially more accurate and improves with
+  neuron count, but no longer matches `accumulate_final`/`joint`.
+* H8 is therefore a boundary result for Paper II.  It supports the
+  algebraic identity but rejects the stronger hope that streaming-NEF
+  continual learning is a free, solver-equivalent extension of the
+  static CL story.  It should be framed as a promising online-Woodbury
+  research line rather than folded into the main theorem.
