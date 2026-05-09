@@ -6,7 +6,7 @@ quantitative pattern that might end up shaping the manuscript.  The
 phase log lives in `cl_clean_sweeps.md`; this file is the *story*
 side of the same coin.
 
-The trilogy is "SSUP" (Sufficient Statistics as the Universal
+The paper series is "SSUP" (Sufficient Statistics as the Universal
 Primitive), of which this is part II.  Style continuity from Paper I
 applies (American English, 1 dp, `g_i`, real TeX math, self-contained
 manuscript).

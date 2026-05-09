@@ -50,134 +50,76 @@ a task stream.
 
 ---
 
-## §1 — Introduction
+## §1 — The six principles of leenef
 
-Catastrophic forgetting is the dominant failure mode of stochastic
-gradient descent on a non-stationary input stream.  The standard
-remedies — regularization on parameter drift (EWC; Kirkpatrick et al.,
-2017; SI; Zenke et al., 2017), replay buffers (Experience Replay;
-Robins, 1995; iCaRL; Rebuffi et al., 2017; MIR; Aljundi et al., 2019),
-and parameter isolation (PackNet; Mallya & Lazebnik, 2018) — are all
-mitigations layered on top of SGD.  They share an architecture in
-which forgetting *can* happen in principle, and the method is doing
-something to make it happen less.
+We build on the *Neural Engineering Framework* of Eliasmith and
+Anderson (2003): a population of neurons with fixed encoders
+represents a vector quantity, and any function of that vector is
+computed by a linear decoder fitted to the population's activity.
+Their book frames this around three principles — representation,
+transformation, and dynamics — and the canonical implementation
+uses spiking leaky-integrate-and-fire neurons whose firing rate
+encodes the represented quantity.  We keep the encoder–decoder
+split, the analytic least-squares fit, and the conceptual freedom
+to compose decoded signals; we depart in three places.
 
-As in Paper I, the trilogy rests on six operational principles:
+- We use **rate neurons with `abs` activation**, not spiking LIF.
+  `abs` is the smallest pointwise nonlinearity that escapes the
+  linear-collapse argument of Paper I §2; it is also what gives our
+  activations the frame-coefficient interpretation that the paper
+  series turns on.
+- We use **data-driven biases**.  The bias of neuron *i* is
+  $b_i = -g_i (e_i \cdot d_i)$ for a sample $d_i$ drawn from the
+  training set, placing the *i*-th `abs` fold on the data
+  manifold rather than on a generic random intercept.
+- We do not use NEF's **dynamics principle** anywhere in this
+  paper.  Streaming and recurrent variants reuse encoders and
+  decoders with pooling, not a recurrent dynamics solve.
+
+When this paper says "NEF" it means this *analytic-rate-`abs`
+specialization*; when distinction matters we call our local
+specialization **leenef**.  Readers who arrive expecting Nengo-
+style spiking populations should read NEF here as "the
+encode–decode pattern of Eliasmith & Anderson, with rate-`abs`
+neurons and data-driven biases."
+
+The SSUP paper series shares six operational claims, distilled
+from the program's running code.  These are *our* distillation;
+P1–P4 inherit from NEF, P5–P6 are leenef-specific.
 
 - **P1 — Encoders are fixed** (random or data-adapted).  Decoders
-  are the only thing we fit.
+  are the only thing we ever fit.
 - **P2 — Decoders fall out of one analytic step:**
-  $D = (A^\top A + \alpha I)^{-1} A^\top Y$.
-- **P3 — $A^\top A$ and $A^\top Y$ are the universe.**  Learning
-  means accumulating sufficient statistics and solving.
+  $D = (A^\top A + \alpha I)^{-1} A^\top Y$.  No learning rate, no schedule, no
+  gradient flow between layers.
+- **P3 — $A^\top A$ and $A^\top Y$ are the universe.**  Continual learning,
+  streaming over time, ensembles, online updates, per-action
+  FQI (Ernst et al., 2005) — all of them are different ways of
+  *additively combining*
+  sufficient statistics.
 - **P4 — Targets $Y$ are the only place where task structure
   enters.**  The encoder does not care what the task is; the
   decoder column does.
 - **P5 — Time is collapsed by pooling, not by recurrence.**  The
-  streaming classifier of Paper I uses delay-line pooling rather
-  than BPTT.
+  streaming classifier mean-pools delay-line activities into a
+  fixed-size representation; no BPTT (Werbos, 1990), no recurrent
+  solve.
 - **P6 — Per-class additivity is what makes continual learning
   work.**  Each class owns its own decoder column, so accumulating
-  new task statistics does not overwrite old class columns.
+  new task statistics never interferes with old columns.
 
-This paper takes the opposite stance.  We adopt the analytic primitive
-of Paper I — fixed encoders, one regularized least-squares solve over
-the resulting features — and observe that it has no forgetting axis to
-manage in the first place.  Two facts conspire.  First, the per-class
-columns of the targets matrix $Y$ are *independent*: only the column
-that owns class $c$ is non-zero on samples of class $c$, so adding new
-training data for a fresh class does not touch the old class-decoder
-columns through $A^\top Y$.  Second, and more importantly, the Gram
-matrix $A^\top A$ — the matrix that *is* shared across all decoder
-columns — is itself **additive over data partitions**:
-
-$$
-A^\top A \;=\; \sum_{t=1}^T A_t^\top A_t,
-\qquad
-A^\top Y \;=\; \sum_{t=1}^T A_t^\top Y_t,
-$$
-
-where $A_t$ is the activity matrix of the $t$-th task's training
-samples through the *fixed* encoder.  Sequentially calling
-`partial_fit` over a stream of tasks and finally `solve_accumulated`
-yields exactly the same decoder as one fit on the union — not "to
-within float precision" as a numerical aspiration, but bit-identical
-in test accuracy as long as both sides use the same $A_t$ and the same
-frozen encoder map.
-
-The point of this paper is to take that algebraic fact through to a
-benchmark-grade evaluation, name what it does and does not say, and
-characterize where it stops being useful.  Concretely:
-
-- **What does and does not change with the data stream.**  The
-  decoder $D$ is the unique minimizer of the same quadratic objective
-  whether the data arrived in five tasks or one, so by construction
-  the model has the *same* test accuracy on a task seen long ago as
-  it would have had if it were trained on that task only yesterday.
-  The phrase "knowledge of old tasks" reduces to "the columns of
-  $A^\top Y$ that those tasks contributed", and they sit in the
-  accumulator as a faithful record.  In the continual-learning
-  literature, "average final accuracy" is one number with a lot
-  of room to hide asymmetric behavior; here it is the same
-  number you would get by ignoring the stream.
-- **Where the regime is competitive and where it is not.**  Paper I
-  established that the analytic primitive is competitive on image
-  classification with strong analytic-feature priors (ConvNEF,
-  receptive-field encoders) and uncompetitive against deep CNNs.
-  We carry that limit straight into Paper II.  On class-incremental
-  splits — the regime where SGD baselines collapse most dramatically —
-  the analytic primitive wins by a wide margin because it does not
-  collapse at all; on domain-incremental Permuted-MNIST it loses to
-  EWC and joint MLP because the static-image accuracy ceiling of a
-  single-layer NEF is below theirs.  The reading is that
-  this paper's contribution is structural and the absolute level
-  inherits whatever Paper I established.
-- **Capacity, not just possibility.**  "No forgetting" is necessary
-  but not sufficient.  We measure the multi-seed Permuted-MNIST
-  capacity matrix $\{n_{\text{neurons}}\} \times \{n_{\text{tasks}}\}$
-  and find an operating curve that, for that benchmark, keeps test
-  accuracy above $\sim 80\,\%$ at roughly $100$ neurons per task
-  (i.e. about $10$ neurons per output dimension per task for a 10-way
-  head).  On harder visual splits even $10\,000$ neurons stay below
-  half that retention level, which is the empirical limiter on how
-  general we are willing to make the rule.
-- **The visual ceiling moves cleanly.**  We import a
-  gradient-free convolutional feature stack (the ConvNEF of Paper I,
-  §5.5) as the front end, fit its analytic NEF head on a stream
-  of tasks via the same `partial_fit`, and shows that the additive
-  property survives the change of features.  The Split-CIFAR-10
-  continual ceiling moves from 49.5 % to 74.7 % at 20 000 neurons,
-  and the continual fit is bit-identical to the joint fit at every
-  neuron count tested.
-
-The contribution is therefore the joint-equivalence theorem and its
-multi-seed validation, the scaling law, the ConvNEF extension, and
-the negative results that say where this stops being a serious
-proposition (Permuted-MNIST domain shift, harder visual splits,
-adaptive features that need gradients).  We argue at the end that
-this is not an isolated CL method but a continuation of the same
-"sufficient statistics as the universal primitive" thesis: Paper I
-showed it on the static side, this paper shows that the data-stream
-axis has length zero under the same primitive, and Paper III will
-show that the target-stream axis does too.
-
-### What we are *not* claiming
-
-We are not claiming this is the strongest continual learner across
-all regimes.  Paper I's image-accuracy ceiling carries through:
-single-layer NEF cannot match a deep CNN on raw CIFAR even when the
-deep CNN is trained jointly, and our ConvNEF is a Coates-style 2011
-feature stack rather than a modern encoder.  We are also not
-claiming that this primitive trivially extends to feature-adaptive
-continual learning.  When the front end itself must change across
-tasks, the additive identity holds only with respect to the fixed
-component, and Paper I's negative result on purely analytic depth is
-the limiter.  We document the working operating regime and label the
-boundary.
+In Paper II, **P3** and **P6** are the whole mechanism.  P3 says that
+the learner's state is the pair $(A^\top A, A^\top Y)$, and those
+statistics add over tasks exactly as they add over mini-batches.  P6
+says that class-incremental targets write into decoder columns rather
+than overwriting a shared classifier head.  Together they turn
+continual learning from a parameter-drift problem into an accounting
+problem: preserve the sufficient statistics, then solve the same
+quadratic objective the joint learner would have solved.
 
 ---
 
-## §2 — Background
+## §2 — Continual-learning frame
 
 ### Catastrophic forgetting and SGD
 
@@ -282,6 +224,60 @@ modern continual-learning splits with multi-seed discipline against
 EWC- and replay-style baselines.  The contribution of this paper
 is to do exactly that under the same artifact discipline as Paper I.
 
+The empirical question is not whether the identity is true; §3.1 proves
+the identity directly.  The question is whether the primitive remains
+useful once it is put under the same pressure as ordinary continual
+learners.  We therefore measure four things.
+
+- **What does and does not change with the data stream.**  The
+  decoder $D$ is the unique minimizer of the same quadratic objective
+  whether the data arrived in five tasks or one, so by construction
+  the model has the *same* test accuracy on a task seen long ago as
+  it would have had if it were trained on that task only yesterday.
+  The phrase "knowledge of old tasks" reduces to "the columns of
+  $A^\top Y$ that those tasks contributed", and they sit in the
+  accumulator as a faithful record.
+- **Where the regime is competitive and where it is not.**  Paper I
+  established that the analytic primitive is competitive on image
+  classification with strong analytic-feature priors (ConvNEF,
+  receptive-field encoders) and uncompetitive against deep CNNs.
+  We carry that limit straight into Paper II.  On class-incremental
+  splits — the regime where SGD baselines collapse most dramatically —
+  the analytic primitive is strongest because it does not collapse at
+  all; on domain-incremental Permuted-MNIST it loses to EWC and joint
+  MLP because the static-image accuracy ceiling of a single-layer NEF
+  is below theirs.  The reading is structural, not triumphalist: this
+  paper's contribution is the no-forgetting identity under fixed
+  features, and the absolute accuracy inherits whatever Paper I
+  established about those features.
+- **Capacity, not just possibility.**  "No forgetting" is necessary
+  but not sufficient.  We measure the multi-seed Permuted-MNIST
+  capacity matrix $\{n_{\text{neurons}}\} \times \{n_{\text{tasks}}\}$
+  and find an operating curve that, for that benchmark, keeps test
+  accuracy above $\sim 80\,\%$ at roughly $100$ neurons per task
+  (i.e. about $10$ neurons per output dimension per task for a 10-way
+  head).  On harder visual splits even $10\,000$ neurons stay below
+  half that retention level, which is the empirical limiter on how
+  general we are willing to make the rule.
+- **The visual ceiling moves cleanly.**  We import a gradient-free
+  convolutional feature stack (the ConvNEF of Paper I, §5.5) as the
+  front end, fit its analytic NEF head on a stream of tasks via the
+  same accumulation path, and show that the additive property survives
+  the change of features.  The Split-CIFAR-10 continual ceiling moves
+  from 49.5 % to 74.7 % at 20 000 neurons, and the continual fit is
+  bit-identical to the joint fit at every neuron count tested.
+
+We are not claiming this is the strongest continual learner across
+all regimes.  Paper I's image-accuracy ceiling carries through:
+single-layer NEF cannot match a deep CNN on raw CIFAR even when the
+deep CNN is trained jointly, and our ConvNEF is a Coates-style 2011
+feature stack rather than a modern encoder.  We are also not claiming
+that this primitive trivially extends to feature-adaptive continual
+learning.  When the front end itself must change across tasks, the
+additive identity holds only with respect to the fixed component, and
+Paper I's negative result on purely analytic depth is the limiter.  We
+document the working operating regime and label the boundary.
+
 ### A note on the four CL evaluation protocols
 
 The continual learning literature distinguishes (van de Ven &
@@ -336,11 +332,7 @@ biases, $\alpha$ at $10^{-3}$ for raw-MNIST-scale features and
 $10^{-2}$ for Split-CIFAR-10 features) and its numerical discipline
 (float64 accumulators, float32 features, code-identity-tagged
 results).  We do not re-derive any of them here; we point to the
-Paper I sections that own each design choice and use them.  The
-six principles of Paper I §1 — in particular **P3** ("$A^\top A$
-and $A^\top Y$ are the universe") and **P6** ("per-class additivity
-is what makes continual learning work") — are the load-bearing
-claims of Paper II as a whole.
+Paper I sections that own each design choice and use them.
 
 ---
 
@@ -786,7 +778,7 @@ on Split-CIFAR-100.  All three MLP-CL baselines collapse to under
 ratio is **~5.0×**: NEF-continual uses 35.8 s where the joint
 MLP uses 180.3 s.
 
-The right reading of this is not "single-layer NEF beats deep
+The right reading of this is not "single-layer NEF is stronger than deep
 MLP".  It is that the joint-MLP upper bound on Split-CIFAR-100,
 on a comparably parameter-budgeted MLP and at a normal training
 budget, is roughly the same as what an analytic NEF gets on the
@@ -812,7 +804,7 @@ Permuted-MNIST is the counterweight.  This is a *domain-
 incremental* benchmark — 10 output classes throughout, only the
 input distribution changes — which is exactly the regime where
 EWC's parameter-space penalty does what it was designed to do.
-EWC lands at 95.6 ± 0.2 %, beating NEF-continual by 1.1 pp; the
+EWC lands at 95.6 ± 0.2 %, 1.1 pp above NEF-continual; the
 joint MLP lands at 98.0 ± 0.0 %, above both.  On wall-clock,
 EWC also wins: 37.5 s vs 154 s for NEF-continual.
 
@@ -827,7 +819,7 @@ and lands NEF-continual underneath the gradient methods that
 benefit from the same domain-incremental easiness.
 
 The second reading is the methodologically important one: when
-you publish "method X beats EWC on Split-MNIST and Split-CIFAR-100",
+you publish "method X is above EWC on Split-MNIST and Split-CIFAR-100",
 it is fair to ask whether the author also tried Permuted-MNIST.
 The answer here is yes, and EWC won on it.  The right summary is
 that sufficient-statistic accumulation is the strongest method in
@@ -962,13 +954,7 @@ $T \in \{5, 10, 20, 50, 100\}$ and
 $n \in \{500, 1\,000, 2\,000, 5\,000, 10\,000\}$, $n = 5$ seeds
 per cell.  Final accuracy on the union of test sets:
 
-|  $n$ \\ $T$  |  5    | 10    | 20    | 50    | 100   |
-|--------------|-------|-------|-------|-------|-------|
-|     500      | 82.6 % | 73.9 % | 61.9 % | 44.1 % | 34.2 % |
-|   1 000      | 88.0 % | 82.5 % | 73.9 % | 56.9 % | 43.9 % |
-|   2 000      | 91.6 % | 88.0 % | 82.2 % | 69.4 % | 56.3 % |
-|   5 000      | 94.5 % | 92.4 % | 89.2 % | 81.4 % | 71.8 % |
-|  10 000      | 95.9 % | 94.5 % | 92.4 % | 87.3 % | 80.8 % |
+![Figure 3 -- Permuted-MNIST capacity heat map.  Cell labels are mean final accuracy in percent over 5 seeds.](figures/cl_f2_capacity_heatmap.png)
 
 All SEs are $\le 0.2$ pp; rounded to 1 dp the CIs are inside the
 last digit.  The diagonal $n / T \in \{100, 100, 100, 100, 100\}$
@@ -1001,8 +987,6 @@ is achieved at ~100 neurons per task; harder visual benchmarks
 sit on a different curve, with dataset-dependent constants".
 We do not extrapolate to a single dataset-independent capacity
 law.
-
-![Figure 3 -- Permuted-MNIST capacity heat map.  Cell labels are mean final accuracy in percent over 5 seeds.](figures/cl_f2_capacity_heatmap.png)
 
 ### §5.6 — ConvNEF lifts the visual ceiling without breaking additivity
 
@@ -1098,7 +1082,7 @@ being washed out by later ones; finetune simply forgets.  The
 analytic primitive does not have to defend anything because the
 data-stream axis has length zero by §3.1.  This is why the
 class-incremental splits — Split-MNIST, Split-CIFAR-10,
-Split-CIFAR-100 — are where the method visibly wins, and why the
+Split-CIFAR-100 — are where the method is most useful, and why the
 strongest numerical claim of the paper (NEF-continual edging past
 joint MLP on Split-CIFAR-100 at ~5× less wall-clock time)
 appears in the regime where SGD methods are weakest.

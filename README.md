@@ -3,7 +3,7 @@
 Machine learning with a rate-based specialization of the Neural
 Engineering Framework (NEF) in PyTorch.
 
-> **Repository status — SSUP trilogy rebuild.** The stable core lives in
+> **Repository status — SSUP paper series rebuild.** The stable core lives in
 > `src/leenef/` and `tests/`.  Active supervised-learning and
 > continual-learning experiments and preserved artifacts live under
 > `benchmarks/{sl_clean,cl_clean}/`, `results/{sl_clean,cl_clean}/`,

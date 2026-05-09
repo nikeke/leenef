@@ -5,7 +5,7 @@ This file collects interpretive observations, theoretical framings, and
 the result JSONs.  Update this as we discover or sharpen things.  When it
 is time to write, this file is the first thing to re-read.
 
-## 0pre. The six principles of leenef (the trilogy's shared opener)
+## 0pre. The six principles of leenef (the SSUP paper series' shared opener)
 
 Distilled from the program's working code (`streaming.py`,
 `layers.py`'s `partial_fit` / `solve_accumulated` / `continuous_fit`,
@@ -48,7 +48,7 @@ end_to_end 98.60 ± 0.02 %, hybrid_e2e 98.69 ± 0.01 %.  Plain
 analytic stacking (greedy/hybrid) loses 3–4 pp; layer-local
 target propagation recovers single-layer accuracy without
 inter-layer gradient flow; full E2E nudges another ~0.1 pp.
-The trilogy still stays single-layer because the depth gain is
+The paper series still stays single-layer because the depth gain is
 small, but the headline reads "purely analytic depth does not
 help" rather than "depth never helps".
 
@@ -875,7 +875,7 @@ If a later reviewer pushes back, "NEF-inspired" / "NEFi" is the
 fallback rename, but we expect the explicit deviations paragraph to
 satisfy good-faith readers.
 
-The trilogy's shared opener (§0pre — the six principles) is *our*
+The SSUP paper series' shared opener (§0pre — the six principles) is *our*
 distillation, not Eliasmith & Anderson's; the paper should make this
 distinction clear by attributing each principle to its origin.
 

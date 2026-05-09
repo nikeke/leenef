@@ -5,7 +5,7 @@ Numbers in `[…]` reference sections of `paper_insights.md` where the
 content lives now.  The text-writing pass will turn each bullet into a
 paragraph; we are not writing prose here.
 
-The trilogy's shared opener (the six principles, §0pre of insights)
+The SSUP paper series' shared opener (the six principles, §0pre of insights)
 goes in front of *all three* papers, so Paper I gets it as §1 and
 Papers II–III repeat it verbatim.  This makes each paper readable in
 isolation and signals continuity.

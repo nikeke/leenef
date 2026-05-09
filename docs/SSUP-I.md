@@ -77,7 +77,7 @@ style spiking populations should read NEF here as "the
 encode–decode pattern of Eliasmith & Anderson, with rate-`abs`
 neurons and data-driven biases."
 
-The trilogy's shared opener is six operational claims, distilled
+The SSUP paper series' shared opener is six operational claims, distilled
 from the program's running code.  These are *our* distillation;
 P1–P4 inherit from NEF, P5–P6 are leenef-specific.
 
@@ -109,7 +109,7 @@ new: §3 (method) is **P1–P4**, §6 (streaming classifier) is **P5**,
 and the multi-layer experiments (Appendix B) are the load-bearing
 negative result that says **P2** does not extend cleanly through
 stacked nonlinearities — which is why we stay single-layer for the
-rest of the trilogy.
+rest of the paper series.
 
 ---
 
@@ -321,7 +321,7 @@ strategy underperform a single wide layer at matched parameter
 budget; only a stronger training rule — local target propagation
 or end-to-end refinement — recovers single-layer accuracy on
 MNIST, and even then it does not exceed it by much (Appendix B).
-This is why the rest of the trilogy stays single-layer.
+This is why the rest of the paper series stays single-layer.
 
 ---
 
@@ -1058,7 +1058,7 @@ on sparse Acrobot (a successor-feature variant clears the
 random-policy floor on a third of seeds) and a still-open
 problem on sparse MountainCar (the current mechanisms do not
 discover the goal event).  Paper III develops these and we
-mention them here only to make the trilogy's shared spine
+mention them here only to make the paper series' shared spine
 visible.
 
 ### A bridge to gradient-trained networks
@@ -1147,7 +1147,7 @@ propagates gradients across layer boundaries, recovers the
 single-layer headline at 98.54 % — the closest thing to a clean
 analytic two-layer result we have.  End-to-end SGD and hybrid_e2e
 push it to 98.6 %–98.7 %, a gain of only ~0.1–0.2 pp over a
-single wide layer.  The trilogy-level reading is:
+single wide layer.  The paper-series-level reading is:
 **the purely analytic primitive does not buy depth on its own**.
 Depth helps only once gradient flow is admitted, and even then
 the win on MNIST is small.  This is why the rest of the work

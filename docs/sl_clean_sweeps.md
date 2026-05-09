@@ -1,7 +1,7 @@
 # sl_clean sweeps — phase log
 
 This document mirrors `attic/docs/rl_clean_sweeps.md` for the
-supervised-learning side of the SSUP trilogy. Every phase
+supervised-learning side of the SSUP paper series. Every phase
 that contributes to a numeric claim in **Paper I — Sufficient Statistics
 as the Universal Primitive** lands here, with:
 
