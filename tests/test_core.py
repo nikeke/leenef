@@ -15,7 +15,14 @@ from leenef.encoders import (
     whitened,
 )
 from leenef.layers import NEFLayer
-from leenef.solvers import lstsq, normal_equations, solve_decoders, tikhonov
+from leenef.solvers import (
+    lstsq,
+    normal_equations,
+    regularization_strength,
+    solve_decoders,
+    solve_from_normal_equations,
+    tikhonov,
+)
 
 # ── Encoders ──────────────────────────────────────────────────────────
 
@@ -383,14 +390,14 @@ class TestSolvers:
 
     def test_tikhonov(self, linear_data):
         A, y = linear_data
-        D = tikhonov(A, y, alpha=1e-4)
+        D = tikhonov(A, y, alpha=(1e-4, "trace"))
         pred = A @ D
         mse = (pred - y).pow(2).mean().item()
         assert mse < 0.5
 
     def test_cholesky(self, linear_data):
         A, y = linear_data
-        D = normal_equations(A, y, alpha=1e-4)
+        D = normal_equations(A, y, alpha=(1e-4, "trace"))
         pred = A @ D
         mse = (pred - y).pow(2).mean().item()
         assert mse < 0.5
@@ -398,8 +405,33 @@ class TestSolvers:
     def test_solve_decoders_dispatch(self, linear_data):
         A, y = linear_data
         for method in ("lstsq", "tikhonov", "cholesky"):
-            D = solve_decoders(A, y, method=method, alpha=1e-4)
+            D = solve_decoders(A, y, method=method, alpha=(1e-4, "trace"))
             assert D.shape == (200, 1)
+
+    def test_regularization_strength_trace_vs_fixed(self):
+        ata = torch.diag(torch.tensor([10.0, 30.0]))
+
+        trace_reg = regularization_strength(ata, alpha=(0.1, "trace"))
+        fixed_reg = regularization_strength(ata, alpha=(0.1, "fixed"))
+
+        assert torch.allclose(trace_reg, torch.tensor(2.0))
+        assert torch.allclose(fixed_reg, torch.tensor(0.1))
+
+    def test_alpha_must_be_policy_pair(self, linear_data):
+        A, y = linear_data
+        with pytest.raises(ValueError, match="explicit .* pair"):
+            solve_decoders(A, y, method="tikhonov", alpha=1e-2)
+
+    def test_solve_from_normal_equations_matches_trace_solver(self, linear_data):
+        A, y = linear_data
+        D_from_activities = tikhonov(A, y, alpha=(1e-3, "trace"))
+        D_from_stats = solve_from_normal_equations(
+            A.T @ A,
+            A.T @ y,
+            alpha=(1e-3, "trace"),
+        )
+
+        assert torch.allclose(D_from_stats, D_from_activities, atol=1e-5, rtol=1e-5)
 
 
 # ── NEFLayer ──────────────────────────────────────────────────────────
@@ -417,7 +449,7 @@ class TestNEFLayer:
         torch.manual_seed(1)
         layer = NEFLayer(1, 500, 1)
         x = torch.linspace(-1, 1, 200).unsqueeze(1)
-        layer.fit(x, x, solver="tikhonov", alpha=1e-4)
+        layer.fit(x, x, solver="tikhonov", alpha=(1e-4, "trace"))
         pred = layer(x)
         mse = (pred - x).pow(2).mean().item()
         assert mse < 0.01
@@ -428,7 +460,7 @@ class TestNEFLayer:
         layer = NEFLayer(1, 1000, 1)
         x = torch.linspace(-1, 1, 300).unsqueeze(1)
         y = x**2
-        layer.fit(x, y, solver="tikhonov", alpha=1e-4)
+        layer.fit(x, y, solver="tikhonov", alpha=(1e-4, "trace"))
         pred = layer(x)
         mse = (pred - y).pow(2).mean().item()
         assert mse < 0.01
@@ -479,7 +511,7 @@ class TestNEFLayer:
         torch.manual_seed(8)
         x = torch.linspace(-1, 1, 200).unsqueeze(1)
         layer = NEFLayer(1, 500, 1, centers=x)
-        layer.fit(x, x, solver="tikhonov", alpha=1e-4)
+        layer.fit(x, x, solver="tikhonov", alpha=(1e-4, "trace"))
         pred = layer(x)
         mse = (pred - x).pow(2).mean().item()
         assert mse < 0.01
@@ -612,12 +644,12 @@ class TestIncrementalFit:
 
         rng1 = torch.Generator().manual_seed(200)
         layer_full = NEFLayer(1, 500, 1, rng=rng1)
-        layer_full.fit(x, y, solver="tikhonov", alpha=1e-2)
+        layer_full.fit(x, y, solver="tikhonov")
 
         rng2 = torch.Generator().manual_seed(200)
         layer_inc = NEFLayer(1, 500, 1, rng=rng2)
         layer_inc.partial_fit(x, y)
-        layer_inc.solve_accumulated(alpha=1e-2)
+        layer_inc.solve_accumulated()
 
         assert torch.allclose(layer_full.decoders.data, layer_inc.decoders.data, atol=1e-4)
 
@@ -631,13 +663,13 @@ class TestIncrementalFit:
         rng1 = torch.Generator().manual_seed(100)
         layer_one = NEFLayer(3, 300, 2, rng=rng1)
         layer_one.partial_fit(x, y)
-        layer_one.solve_accumulated(alpha=1e-2)
+        layer_one.solve_accumulated()
 
         rng2 = torch.Generator().manual_seed(100)
         layer_chunked = NEFLayer(3, 300, 2, rng=rng2)
         for chunk_x, chunk_y in zip(x.split(50), y.split(50)):
             layer_chunked.partial_fit(chunk_x, chunk_y)
-        layer_chunked.solve_accumulated(alpha=1e-2)
+        layer_chunked.solve_accumulated()
 
         assert torch.allclose(layer_one.decoders.data, layer_chunked.decoders.data, atol=1e-3)
 
@@ -674,7 +706,7 @@ class TestContinuousFit:
 
         rng1 = torch.Generator().manual_seed(300)
         layer = NEFLayer(4, 200, 2, rng=rng1)
-        layer.continuous_fit(x, y, alpha=alpha)
+        layer.continuous_fit(x, y, fixed_alpha=alpha)
 
         # Manual solve with same fixed alpha (no trace scaling)
         rng2 = torch.Generator().manual_seed(300)
@@ -699,12 +731,12 @@ class TestContinuousFit:
         rng1 = torch.Generator().manual_seed(310)
         layer = NEFLayer(5, 200, 3, rng=rng1)
         for cx, cy in zip(x.split(50), y.split(50)):
-            layer.continuous_fit(cx, cy, alpha=alpha)
+            layer.continuous_fit(cx, cy, fixed_alpha=alpha)
 
         decoders_woodbury = layer.decoders.data.clone()
 
         # Refresh recomputes inv(ATA + αI) exactly from accumulators
-        layer.refresh_inverse(alpha=alpha)
+        layer.refresh_inverse(fixed_alpha=alpha)
         decoders_refreshed = layer.decoders.data.clone()
 
         # Also compute expected result manually from the same accumulators

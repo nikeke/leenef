@@ -147,7 +147,7 @@ def streaming_run(config: dict, seed: int, run_context: dict) -> dict:
         trace_per_neuron = float(torch.diagonal(clf._ata).mean())
         alpha_eff = max(alpha * trace_per_neuron, alpha)
         if solve_mode == "batch_acc":
-            clf.solve(alpha=alpha_eff)
+            clf.solve(alpha=(alpha_eff, "fixed"))
         elif solve_mode == "accumulate":
             # Pilot already accumulated everything in one shot — but we
             # want to faithfully exercise the multi-batch accumulate path
@@ -161,20 +161,23 @@ def streaming_run(config: dict, seed: int, run_context: dict) -> dict:
                     max_tokens=encode_max_tokens,
                     chunk_stats=chunk_stats,
                 )
-            clf.solve(alpha=alpha_eff)
+            clf.solve(alpha=(alpha_eff, "fixed"))
         else:  # woodbury — needs alpha locked for the M⁻¹ invariant
             clf.reset_continuous()
             for s in range(0, x_train.shape[0], batch_size):
                 e = min(s + batch_size, x_train.shape[0])
                 clf.continuous_fit(
-                    x_train[s:e], Y_oh[s:e], alpha=alpha_eff, max_tokens=encode_max_tokens
+                    x_train[s:e],
+                    Y_oh[s:e],
+                    fixed_alpha=alpha_eff,
+                    max_tokens=encode_max_tokens,
                 )
-            clf.refresh_inverse(alpha=alpha_eff)
+            clf.refresh_inverse(fixed_alpha=alpha_eff)
     else:  # alpha_scale == 'fixed'
         alpha_eff = alpha
         if solve_mode == "batch_acc":
             clf.accumulate(x_train, Y_oh, max_tokens=encode_max_tokens, chunk_stats=chunk_stats)
-            clf.solve(alpha=alpha)
+            clf.solve(alpha=(alpha, "fixed"))
         elif solve_mode == "accumulate":
             for s in range(0, x_train.shape[0], batch_size):
                 e = min(s + batch_size, x_train.shape[0])
@@ -184,14 +187,17 @@ def streaming_run(config: dict, seed: int, run_context: dict) -> dict:
                     max_tokens=encode_max_tokens,
                     chunk_stats=chunk_stats,
                 )
-            clf.solve(alpha=alpha)
+            clf.solve(alpha=(alpha, "fixed"))
         else:  # woodbury
             for s in range(0, x_train.shape[0], batch_size):
                 e = min(s + batch_size, x_train.shape[0])
                 clf.continuous_fit(
-                    x_train[s:e], Y_oh[s:e], alpha=alpha, max_tokens=encode_max_tokens
+                    x_train[s:e],
+                    Y_oh[s:e],
+                    fixed_alpha=alpha,
+                    max_tokens=encode_max_tokens,
                 )
-            clf.refresh_inverse(alpha=alpha)
+            clf.refresh_inverse(fixed_alpha=alpha)
     if device.type == "cuda":
         torch.cuda.synchronize(device)
     fit_s = time.perf_counter() - t0

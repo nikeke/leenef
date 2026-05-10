@@ -14,7 +14,17 @@ from torch import Tensor
 from .activations import make_activation
 from .encoders import make_encoders
 from .layers import _make_gain
-from .solvers import solve_decoders
+from .solvers import (
+    DEFAULT_ALPHA,
+    DEFAULT_FIXED_ALPHA,
+    AlphaPolicy,
+    inverse_from_normal_equations,
+    solve_decoders,
+    solve_from_normal_equations,
+    woodbury_decoders,
+    woodbury_initial_inverse,
+    woodbury_update_inverse_,
+)
 
 
 def _normal_equation_inputs(
@@ -216,7 +226,8 @@ class StreamingNEFClassifier(nn.Module):
         self,
         x_seq: Tensor,
         targets: Tensor,
-        alpha: float = 1e-2,
+        *,
+        fixed_alpha: float = DEFAULT_FIXED_ALPHA,
         max_tokens: int = 50_000,
         stats_dtype: str | torch.dtype | None = None,
     ) -> None:
@@ -225,7 +236,7 @@ class StreamingNEFClassifier(nn.Module):
         Args:
             x_seq:   (N, T, d) input sequences.
             targets: (N, d_out) target values.
-            alpha:   Fixed Tikhonov regularisation strength.
+            fixed_alpha: Fixed Tikhonov regularisation strength.
         """
         A = self.encode_sequence(x_seq, max_tokens=max_tokens)  # (N, n)
         # Match :meth:`accumulate`: float32 GEMM, float64 running stats.
@@ -245,30 +256,27 @@ class StreamingNEFClassifier(nn.Module):
 
         if not hasattr(self, "_M_inv") or self._M_inv is None:
             n = A.shape[1]
-            self._M_inv = torch.eye(n, device=A.device, dtype=torch.float64) / alpha
-            self._woodbury_alpha = alpha
-        elif self._woodbury_alpha != alpha:
+            self._M_inv = woodbury_initial_inverse(
+                n, fixed_alpha=fixed_alpha, device=A.device, dtype=torch.float64
+            )
+            self._woodbury_alpha = fixed_alpha
+        elif self._woodbury_alpha != fixed_alpha:
             raise ValueError(
-                f"continuous_fit: alpha changed mid-stream "
-                f"({self._woodbury_alpha} -> {alpha}); the cached inverse is "
+                f"continuous_fit: fixed_alpha changed mid-stream "
+                f"({self._woodbury_alpha} -> {fixed_alpha}); the cached inverse is "
                 f"invalid for the new regularizer. Call refresh_inverse() or "
-                f"reset_continuous() before changing alpha."
+                f"reset_continuous() before changing fixed_alpha."
             )
 
         k, n = A.shape
         if k >= n:
-            M = self._ata.double().clone()
-            M.diagonal().add_(alpha)
-            self._M_inv = torch.linalg.inv(M)
+            self._M_inv = inverse_from_normal_equations(self._ata, alpha=(fixed_alpha, "fixed"))
         else:
-            A_d = A.double()
-            V = A_d @ self._M_inv
-            C = torch.eye(k, device=A.device, dtype=torch.float64)
-            C.addmm_(A_d, V.T)
-            C_inv_V = torch.linalg.solve(C, V)
-            self._M_inv.sub_(V.T @ C_inv_V)
+            woodbury_update_inverse_(self._M_inv, A)
 
-        self.decoders.data.copy_((self._M_inv @ self._aty.double()).to(self.decoders.dtype))
+        self.decoders.data.copy_(
+            woodbury_decoders(self._M_inv, self._aty, dtype=self.decoders.dtype)
+        )
 
     def _accumulate_encoded(
         self,
@@ -327,11 +335,16 @@ class StreamingNEFClassifier(nn.Module):
         self._accumulate_encoded(A, targets, stats_dtype=stats_dtype)
 
     @torch.no_grad()
-    def solve(self, alpha: float = 1e-2) -> None:
+    def solve(
+        self,
+        *,
+        alpha: AlphaPolicy = DEFAULT_ALPHA,
+    ) -> None:
         """Solve decoders from accumulated statistics.
 
-        Uses fixed (non-trace-scaled) regularisation to match the Woodbury
-        path, so that results are comparable regardless of solve strategy.
+        Defaults to the project trace-scaled ridge policy.  Pass
+        ``alpha=(value, "fixed")`` only when matching a fixed-alpha Woodbury
+        path or an already-computed trace-scaled effective alpha.
         The solve runs in the accumulator dtype (float64 when fed by
         :meth:`accumulate`).
 
@@ -339,34 +352,28 @@ class StreamingNEFClassifier(nn.Module):
         (or :meth:`continuous_fit` calls — they share the same AᵀA/AᵀY).
 
         Args:
-            alpha: Tikhonov regularisation strength (fixed, not trace-scaled).
+            alpha: Explicit ``(value, mode)`` ridge policy.
         """
         if not hasattr(self, "_ata") or self._ata is None:
             raise RuntimeError("No accumulated statistics — call accumulate() first")
-        ATA = self._ata.clone()
-        ATA.diagonal().add_(alpha)
-        # ATA is symmetric positive definite for any alpha > 0, so prefer
-        # Cholesky over the generic LU solve.  Fall back to LU on the
-        # exotic case where numerical noise drives Cholesky to fail.
-        try:
-            L = torch.linalg.cholesky(ATA)
-            D = torch.cholesky_solve(self._aty, L)
-        except RuntimeError:
-            D = torch.linalg.solve(ATA, self._aty)
+        D = solve_from_normal_equations(self._ata, self._aty, alpha=alpha)
         self.decoders.data.copy_(D.to(self.decoders.dtype))
 
     @torch.no_grad()
-    def refresh_inverse(self, alpha: float | None = None) -> None:
+    def refresh_inverse(self, fixed_alpha: float | None = None) -> None:
         """Recompute the inverse exactly from accumulated statistics."""
         if not hasattr(self, "_ata") or self._ata is None:
             raise RuntimeError("No accumulated statistics — call continuous_fit() first")
-        if alpha is None:
-            alpha = getattr(self, "_woodbury_alpha", 1e-2)
-        M = self._ata.double().clone()
-        M.diagonal().add_(alpha)
-        self._M_inv = torch.linalg.inv(M)
-        self._woodbury_alpha = alpha
-        self.decoders.data.copy_((self._M_inv @ self._aty.double()).to(self.decoders.dtype))
+        if fixed_alpha is None:
+            if not hasattr(self, "_woodbury_alpha"):
+                fixed_alpha = DEFAULT_FIXED_ALPHA
+            else:
+                fixed_alpha = self._woodbury_alpha
+        self._M_inv = inverse_from_normal_equations(self._ata, alpha=(fixed_alpha, "fixed"))
+        self._woodbury_alpha = fixed_alpha
+        self.decoders.data.copy_(
+            woodbury_decoders(self._M_inv, self._aty, dtype=self.decoders.dtype)
+        )
 
     def reset_continuous(self) -> None:
         """Clear all continuous-learning state."""

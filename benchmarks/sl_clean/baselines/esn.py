@@ -30,6 +30,8 @@ from dataclasses import dataclass
 
 import torch
 
+from leenef.solvers import solve_spd
+
 
 @dataclass(frozen=True)
 class ESNConfig:
@@ -119,7 +121,7 @@ def _ridge_solve(
     n = S.shape[1]
     A = S.T @ S + alpha * torch.eye(n, dtype=torch.float64, device=S.device)
     B = S.T @ Y
-    W_out = torch.linalg.solve(A, B)
+    W_out = solve_spd(A, B)
     return W_out
 
 

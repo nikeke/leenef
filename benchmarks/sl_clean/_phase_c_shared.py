@@ -19,6 +19,7 @@ from typing import Callable
 import torch
 
 from leenef.encoders import make_encoders
+from leenef.solvers import AlphaPolicy, solve_from_normal_equations
 
 from .datasets import load_dataset
 from .sl_repro import set_sl_seed
@@ -102,7 +103,7 @@ def chunked_accumulate_solve(
     x_train: torch.Tensor,
     y_train_targets: torch.Tensor,
     chunk_size: int,
-    alpha: float,
+    alpha: AlphaPolicy,
 ) -> tuple[torch.Tensor, dict]:
     """Run the accumulate + Cholesky solve and return ``(D, timings)``.
 
@@ -129,10 +130,7 @@ def chunked_accumulate_solve(
     encode_fit_s = time.perf_counter() - t0
 
     t0 = time.perf_counter()
-    reg = alpha * torch.trace(ATA) / n_neurons
-    ATA.diagonal().add_(torch.clamp(reg, min=alpha))
-    L = torch.linalg.cholesky(ATA)
-    D = torch.cholesky_solve(ATY, L)
+    D = solve_from_normal_equations(ATA, ATY, alpha=alpha)
     solve_s = time.perf_counter() - t0
 
     return D, {"encode_fit_time_s": round(encode_fit_s, 4), "solve_time_s": round(solve_s, 4)}

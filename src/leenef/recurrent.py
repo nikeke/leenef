@@ -9,10 +9,20 @@ from .activations import make_activation
 from .encoders import make_encoders
 from .layers import _make_gain
 from .networks import _project_activity_target
-from .solvers import solve_decoders, solve_from_normal_equations
+from .solvers import (
+    DEFAULT_ALPHA,
+    AlphaPolicy,
+    alpha_policy,
+    solve_decoders,
+    solve_from_normal_equations,
+)
 
 _SUPPORTED_TP_SOLVERS = {"tikhonov", "cholesky"}
 _SUPPORTED_STATE_TARGETS = {"reconstruction", "predictive"}
+
+
+def _solver_alpha(solver_kw: dict) -> AlphaPolicy:
+    return alpha_policy(solver_kw.get("alpha", DEFAULT_ALPHA))
 
 
 def _temporal_projection_matrix(state_decoders: Tensor, encoders: Tensor, d_in: int) -> Tensor:
@@ -340,7 +350,7 @@ class RecurrentNEFLayer(nn.Module):
                 f"Unsupported state_target {state_target!r}; expected one of "
                 f"{sorted(_SUPPORTED_STATE_TARGETS)}"
             )
-        alpha = solver_kw.get("alpha", 1e-2)
+        alpha = _solver_alpha(solver_kw)
         output_weights = _temporal_output_weights(
             T, auxiliary_weight, device=seq.device, dtype=seq.dtype
         )
@@ -462,7 +472,9 @@ class RecurrentNEFLayer(nn.Module):
                         s = a @ self.state_decoders
                     if use_auxiliary_output:
                         D_out = solve_from_normal_equations(
-                            AtA_out, AtY_out, alpha=solver_kw.get("alpha", 1e-2)
+                            AtA_out,
+                            AtY_out,
+                            alpha=_solver_alpha(solver_kw),
                         )
                     else:
                         D_out = solve_decoders(a, targets, method=solver, **solver_kw)
@@ -520,7 +532,9 @@ class RecurrentNEFLayer(nn.Module):
                     s = a @ self.state_decoders
                 if use_auxiliary_output:
                     D_out = solve_from_normal_equations(
-                        AtA_out, AtY_out, alpha=solver_kw.get("alpha", 1e-2)
+                        AtA_out,
+                        AtY_out,
+                        alpha=_solver_alpha(solver_kw),
                     )
                 else:
                     D_out = solve_decoders(a, targets, method=solver, **solver_kw)
@@ -748,7 +762,7 @@ class RecurrentNEFLayer(nn.Module):
             )
 
         B, T, d_in = self._validate_training_data(seq, targets)
-        alpha = solver_kw.get("alpha", 1e-2)
+        alpha = _solver_alpha(solver_kw)
         output_weights = _temporal_output_weights(
             T, auxiliary_weight, device=seq.device, dtype=seq.dtype
         )

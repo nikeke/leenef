@@ -117,7 +117,7 @@ def _smoke_run(config: dict, seed: int, run_context: dict) -> dict:
         oh = torch.zeros(x_t.shape[0], n_classes)
         oh[torch.arange(x_t.shape[0]), y_t] = 1.0
         layer.partial_fit(x_t, oh)
-    layer.solve_accumulated(alpha=alpha)
+    layer.solve_accumulated(alpha=(alpha, "trace"))
     fit_s = time.perf_counter() - t0
 
     x_eval_parts, y_eval_parts = [], []
@@ -195,8 +195,8 @@ register(
 #   - The center sub-RNG draws first-task centers (Paper II default —
 #     "first_task" beats "all_tasks" within SE; see plan.md §4 H3).
 #   - ``solve_accumulated`` uses trace-scaled Tikhonov regularization
-#     by default; the α-regime panel sweeps ``alpha_mode`` between
-#     ``trace`` and ``fixed``.
+#     by default; fixed-alpha Woodbury paths use explicitly named
+#     ``fixed_alpha``.
 # ---------------------------------------------------------------------------
 
 
@@ -390,7 +390,7 @@ def _fit_accumulate_chunked(
             if mode == "accumulate":
                 layer.partial_fit(x, y_oh)
             elif mode == "woodbury_batch":
-                layer.continuous_fit(x, y_oh, alpha=alpha)
+                layer.continuous_fit(x, y_oh, fixed_alpha=alpha)
             else:
                 raise ValueError(f"unsupported chunked fit mode {mode!r}")
 
@@ -447,7 +447,9 @@ def _fit_growing_centers(
     layer._ata = ata
     layer._aty = aty
     layer.decoders.data.copy_(
-        solve_from_normal_equations(layer._ata, layer._aty, alpha=alpha).to(layer.decoders.dtype)
+        solve_from_normal_equations(layer._ata, layer._aty, alpha=(alpha, "trace")).to(
+            layer.decoders.dtype
+        )
     )
 
 
@@ -554,7 +556,7 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
             mode="accumulate",
             alpha=alpha,
         )
-        layer.solve_accumulated(alpha=alpha)
+        layer.solve_accumulated(alpha=(alpha, "trace"))
     elif method == "nef_accumulate" and solver_mode == "woodbury_batch":
         _fit_accumulate_chunked(
             layer,
@@ -573,9 +575,9 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
                 e = min(s + chunk, task.x_train.shape[0])
                 x = task.train_inputs(start=s, end=e).to(device)
                 y_oh = y_oh_full[s:e].to(device)
-                layer.continuous_fit(x, y_oh, alpha=alpha)
+                layer.continuous_fit(x, y_oh, fixed_alpha=alpha)
         online_decoders = layer.decoders.data.detach().clone()
-        layer.refresh_inverse(alpha=alpha)
+        layer.refresh_inverse(fixed_alpha=alpha)
         refresh_decoder_max_abs_diff = float(
             (online_decoders - layer.decoders.data).abs().max().cpu()
         )
@@ -601,13 +603,13 @@ def _nef_cl_run(config: dict, seed: int, run_context: dict) -> dict:
             rng=joint_g,
             device=device,
         )
-        layer.solve_accumulated(alpha=alpha)
+        layer.solve_accumulated(alpha=(alpha, "trace"))
     elif method == "nef_reset":
         last = stream.tasks[-1]
         x = last.train_inputs().to(device)
         y_oh = _one_hot(last.y_train, n_classes).to(device)
         layer.partial_fit(x, y_oh)
-        layer.solve_accumulated(alpha=alpha)
+        layer.solve_accumulated(alpha=(alpha, "trace"))
     fit_s = time.perf_counter() - t0
 
     per_task_acc, avg_acc = _eval_per_task(layer, stream, device=device)
@@ -850,7 +852,7 @@ def _streaming_cl_run(config: dict, seed: int, run_context: dict) -> dict:
 
     if solver_mode in {"accumulate_final", "joint", "accumulate_task_solve"}:
         if alpha_scale == "trace" and solver_mode != "accumulate_task_solve":
-            model.solve(alpha=alpha)
+            model.solve(alpha=(alpha, "fixed"))
         else:
             if alpha_scale == "trace":
                 model.reset_continuous()
@@ -866,9 +868,9 @@ def _streaming_cl_run(config: dict, seed: int, run_context: dict) -> dict:
                         stats_dtype=stats_dtype,
                     )
                 if solver_mode == "accumulate_task_solve":
-                    model.solve(alpha=alpha)
+                    model.solve(alpha=(alpha, "fixed"))
             if solver_mode != "accumulate_task_solve":
-                model.solve(alpha=alpha)
+                model.solve(alpha=(alpha, "fixed"))
     elif solver_mode == "woodbury_online":
         if alpha_scale == "trace":
             model.reset_continuous()
@@ -879,7 +881,7 @@ def _streaming_cl_run(config: dict, seed: int, run_context: dict) -> dict:
                 model.continuous_fit(
                     xb,
                     _sequence_one_hot(yb, bundle.n_classes, device=device),
-                    alpha=alpha,
+                    fixed_alpha=alpha,
                     max_tokens=max_tokens,
                     stats_dtype=stats_dtype,
                 )
@@ -896,7 +898,7 @@ def _streaming_cl_run(config: dict, seed: int, run_context: dict) -> dict:
                 chunk_stats=chunk_stats,
                 stats_dtype=stats_dtype,
             )
-        model.solve(alpha=alpha)
+        model.solve(alpha=(alpha, "fixed"))
     else:
         raise ValueError(f"unsupported streaming solver {solver_mode!r}")
     fit_s = time.perf_counter() - t0
@@ -1159,12 +1161,12 @@ def _streaming_diag_run(config: dict, seed: int, run_context: dict) -> dict:
                 model.continuous_fit(
                     xb,
                     targets,
-                    alpha=alpha,
+                    fixed_alpha=alpha,
                     max_tokens=max_tokens,
                     stats_dtype=stats_dtype,
                 )
     if solver_mode == "accumulate_final":
-        model.solve(alpha=alpha)
+        model.solve(alpha=(alpha, "fixed"))
     fit_s = time.perf_counter() - t0
 
     per_task_acc, avg_acc = _eval_streaming_per_task(
@@ -1217,7 +1219,7 @@ def _streaming_diag_run(config: dict, seed: int, run_context: dict) -> dict:
 
     if diag["mode"] == "refresh":
         before = model.decoders.data.detach().clone()
-        model.refresh_inverse(alpha=alpha)
+        model.refresh_inverse(fixed_alpha=alpha)
         metrics["refresh_decoder_max_abs_diff"] = float(
             (before - model.decoders.data).abs().max().item()
         )

@@ -283,7 +283,7 @@ def _run_convnef_cl(
                     pipeline.head.partial_fit(f_aug, t_batch)
                     del f_aug
 
-        pipeline.head.solve_accumulated(alpha=alpha)
+        pipeline.head.solve_accumulated(alpha=(alpha, "trace"))
         fit_times.append(time.perf_counter() - t0)
         accuracy_matrix.append(_evaluate_pipeline_on_tasks(pipeline, tasks, batch_size=batch_size))
 
@@ -333,7 +333,7 @@ def _run_convnef_joint(
     pipeline.fit(
         all_train_images,
         targets,
-        alpha=alpha,
+        alpha=(alpha, "trace"),
         fit_subsample=fit_subsample,
         batch_size=batch_size,
         seed=seed,

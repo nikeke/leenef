@@ -4,6 +4,7 @@ import torch
 
 from benchmarks.sl_clean.datasets import load_mnist
 from leenef.layers import NEFLayer
+from leenef.solvers import solve_spd
 
 bundle = load_mnist()
 x_train, y_train_idx = bundle.x_train, bundle.y_train
@@ -16,8 +17,11 @@ print(f"MNIST: train={x_train.shape}, test={x_test.shape}")
 def linreg(x, y, x_te, y_te, alpha=1e-3):
     n, d = x.shape
     XtX = x.T @ x
+    # Intentional ordinary linear-regression baseline, not a NEF decoder:
+    # keep the historical mean-diagonal ridge policy but route the solve
+    # through leenef.solvers so direct torch solve calls stay centralized.
     XtX = XtX + alpha * (XtX.diagonal().mean()) * torch.eye(d) / d
-    D = torch.linalg.solve(XtX, x.T @ y)
+    D = solve_spd(XtX, x.T @ y)
     pred = (x_te @ D).argmax(dim=1)
     return (pred == y_te).float().mean().item()
 
@@ -39,7 +43,7 @@ for n in [1000, 4000]:
             gain=(0.5, 2.0),
             **biases_kw,
         )
-        layer.fit(x_train, y_train, alpha=1e-3)
+        layer.fit(x_train, y_train, alpha=(1e-3, "trace"))
         pred = layer(x_test).argmax(dim=1)
         acc = (pred == y_test_idx).float().mean().item()
         print(

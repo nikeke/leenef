@@ -8,7 +8,13 @@ from torch import Tensor
 
 from ._rng import fork_generator
 from .layers import NEFLayer
-from .solvers import solve_decoders
+from .solvers import (
+    DEFAULT_ALPHA,
+    alpha_policy,
+    regularized_normal_matrix,
+    solve_decoders,
+    solve_spd,
+)
 
 
 def _ce_targets(targets: Tensor) -> Tensor:
@@ -743,12 +749,10 @@ class NEFNetwork(nn.Module):
             a_out = activities[-1].detach()
             AT_out = a_out.T
             ATA = AT_out @ a_out
-            alpha = solver_kw.get("alpha", 1e-2)
-            reg = alpha * torch.trace(ATA) / ATA.shape[0]
-            ATA.diagonal().add_(reg.clamp(min=alpha))
-            L_out = torch.linalg.cholesky(ATA)
+            alpha = alpha_policy(solver_kw.get("alpha", DEFAULT_ALPHA))
+            ATA = regularized_normal_matrix(ATA, alpha=alpha, copy=False)
 
-            D_out = torch.cholesky_solve(AT_out @ targets, L_out)
+            D_out = solve_spd(ATA, AT_out @ targets)
             self.output.decoders.data.copy_(D_out)
 
             # ── Solve representational decoders for layers 1..L ───
@@ -758,7 +762,7 @@ class NEFNetwork(nn.Module):
             for idx in range(1, n_layers):
                 if idx == n_layers - 1:
                     if repr_noise_std <= 0:
-                        D_repr = torch.cholesky_solve(AT_out @ inputs[idx], L_out)
+                        D_repr = solve_spd(ATA, AT_out @ inputs[idx])
                     else:
                         D_repr = _solve_repr_decoder(
                             a_out,

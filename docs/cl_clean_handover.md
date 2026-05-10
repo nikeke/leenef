@@ -297,10 +297,11 @@ Scope decision after audit:
   operational comparison, but `accumulate` uses trace-scaled alpha while
   Woodbury uses a fixed inverse regularizer.  They should not be used as a
   same-alpha identity proof.
-* **Rerun H8 only.**  `StreamingNEFClassifier.solve()` and
-  `continuous_fit()` intentionally take fixed alpha; Paper I wrapped them
-  in a pilot pass to compute `alpha_eff = alpha * trace(A^T A) / n`, but
-  the H8 CL runner did not.  That was the scale bug.
+* **Rerun H8 only.**  The original H8 runner used the streaming
+  accumulate/solve and Woodbury APIs as fixed-alpha paths.  Paper I wrapped
+  those paths in a pilot pass to compute
+  `alpha_eff = alpha * trace(A^T A) / n`, but the H8 CL runner did not.
+  That was the scale bug.
 
 Stage A — mandatory repair diagnostic (choose alpha and check precision):
 

@@ -121,6 +121,14 @@ rl_clean infrastructure.
 - Encoders + gains are derived from sub-RNGs that depend ONLY on the
   seed, never on the contrasted factor — so the same seed produces
   bit-identical encoders across e.g. all three bias modes.
+- Alpha handling is centralized in `src/leenef/solvers.py`.  The default
+  ridge policy is trace-scaled (`alpha * trace(A^T A) / n`, floored at
+  `alpha`).  Normal-equation APIs should receive an `alpha` policy pair
+  such as `(1e-2, "trace")`; fixed-alpha Woodbury/cached-inverse APIs
+  should use the name `fixed_alpha`.  Do not add raw `torch.linalg.solve`,
+  `cholesky`, `cholesky_ex`, `inv`, `lstsq`, or `torch.cholesky_solve`
+  calls outside `src/leenef/solvers.py` unless the alpha policy is
+  unrelated to NEF/RL ridge regression and documented at the call site.
 
 **Manuscript rules:**
 
@@ -268,10 +276,10 @@ wait_for_b2_panels.sh}` and the B2 launch in
   does not specify scatter write-order.  Use `randperm(N*N)[:k]` and
   decode to `(row, col)` to guarantee unique positions.  Caught in
   `benchmarks/sl_clean/baselines/esn.py` (commit `19ed80d`).
-- **Mid-stream alpha changes with cached Woodbury inverses are silent
+- **Mid-stream fixed-alpha changes with cached Woodbury inverses are silent
   bugs.**  Both `NEFLayer.continuous_fit_encoded` and
-  `StreamingNEFClassifier.continuous_fit` reject changing `alpha`
-  while a `_M_inv` is cached for an earlier `alpha`.  Callers must
+  `StreamingNEFClassifier.continuous_fit` reject changing `fixed_alpha`
+  while a `_M_inv` is cached for an earlier `fixed_alpha`.  Callers must
   call `refresh_inverse()` or `reset_continuous()` first.  See
   commits `b895794`, `45e2db9`.
 - **Cached `nn.Linear`/`nn.LSTM` constructors consume the global RNG**

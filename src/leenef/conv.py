@@ -18,6 +18,7 @@ from torch import Tensor
 from ._rng import fork_generator
 from .activations import make_activation
 from .layers import NEFLayer
+from .solvers import DEFAULT_ALPHA, AlphaPolicy
 
 
 def local_contrast_normalize(x: Tensor, kernel_size: int = 5, eps: float = 1e-6) -> Tensor:
@@ -561,7 +562,7 @@ class ConvNEFPipeline(nn.Module):
         images: Tensor,
         targets: Tensor,
         *,
-        alpha: float = 1e-2,
+        alpha: AlphaPolicy = DEFAULT_ALPHA,
         fit_subsample: int = 10_000,
         batch_size: int = 1000,
         seed: int = 0,
@@ -784,7 +785,7 @@ class ConvNEFEnsemble(nn.Module):
         images: Tensor,
         targets: Tensor,
         *,
-        alpha: float = 1e-2,
+        alpha: AlphaPolicy = DEFAULT_ALPHA,
         fit_subsample: int = 10_000,
         batch_size: int = 1000,
         base_seed: int = 0,

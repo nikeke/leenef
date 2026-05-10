@@ -27,6 +27,7 @@ import torch
 
 from leenef.encoders import make_encoders
 from leenef.layers import NEFLayer
+from leenef.solvers import solve_from_normal_equations
 
 from .datasets import load_dataset
 from .sl_repro import set_sl_seed
@@ -105,7 +106,7 @@ def _smoke_run(config: dict, seed: int, run_context: dict) -> dict:
         rng=torch.Generator().manual_seed(seed),
     )
     t0 = time.perf_counter()
-    layer.fit(x_train, y_train, alpha=float(config["alpha"]))
+    layer.fit(x_train, y_train, alpha=(float(config["alpha"]), "trace"))
     fit_s = time.perf_counter() - t0
 
     with torch.no_grad():
@@ -274,10 +275,7 @@ def _biases_run(config: dict, seed: int, run_context: dict) -> dict:
     encode_fit_s = time.perf_counter() - t0
 
     t0 = time.perf_counter()
-    reg = alpha * torch.trace(ATA) / n_neurons
-    ATA.diagonal().add_(torch.clamp(reg, min=alpha))
-    L = torch.linalg.cholesky(ATA)
-    D = torch.cholesky_solve(ATY, L)
+    D = solve_from_normal_equations(ATA, ATY, alpha=(alpha, "trace"))
     solve_s = time.perf_counter() - t0
 
     def _accuracy(x_split: torch.Tensor, y_split: torch.Tensor) -> float:
@@ -577,10 +575,7 @@ def _b3_run(config: dict, seed: int, run_context: dict) -> dict:
     encode_fit_s = time.perf_counter() - t0
 
     t0 = time.perf_counter()
-    reg = alpha * torch.trace(ATA) / n_neurons
-    ATA.diagonal().add_(torch.clamp(reg, min=alpha))
-    L = torch.linalg.cholesky(ATA)
-    D = torch.cholesky_solve(ATY, L)
+    D = solve_from_normal_equations(ATA, ATY, alpha=(alpha, "trace"))
     solve_s = time.perf_counter() - t0
 
     def _accuracy(x_split: torch.Tensor, y_split: torch.Tensor) -> float:

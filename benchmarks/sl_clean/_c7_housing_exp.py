@@ -19,6 +19,7 @@ import time
 import torch
 
 from leenef.encoders import make_encoders
+from leenef.solvers import solve_from_normal_equations
 
 from ._phase_c_shared import (
     _activation_fn,
@@ -109,10 +110,7 @@ def _c7_run(config: dict, seed: int, run_context: dict) -> dict:
     encode_fit_s = time.perf_counter() - t0
 
     t0 = time.perf_counter()
-    reg = alpha * torch.trace(ATA) / n_neurons
-    ATA.diagonal().add_(torch.clamp(reg, min=alpha))
-    L = torch.linalg.cholesky(ATA)
-    D = torch.cholesky_solve(ATY, L)
+    D = solve_from_normal_equations(ATA, ATY, alpha=(alpha, "trace"))
     solve_s = time.perf_counter() - t0
 
     def _mse(x, y):
