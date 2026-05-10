@@ -784,3 +784,56 @@ Prepared repair package:
 * `colab/cl_clean/streaming_permuted_smnist_gpu_suite.py --alpha-scale trace`
   writes a distinct repaired headline phase once Stage A picks the alpha.
 * Handover details and run commands are in `docs/cl_clean_handover.md`.
+
+### 2026-05-10 — H8 Stage A trace-repair diagnostic imported
+
+Imported:
+
+* `results/cl_clean/gpu_h8_streaming_trace_repair_diagnostics.json`
+* `results/cl_clean/logs/gpu_h8_streaming_trace_repair_diagnostics.log`
+* `results/cl_clean/colab_gpu_configs/base_config_gpu_h8_streaming_diagnostics.json`
+
+Run metadata: 50 rows, seeds 0-1, Google Colab G4
+(`NVIDIA RTX PRO 6000 Blackwell Server Edition`), code identity
+`c391c22b0faa071854ac59a68e5443f98242b835`.
+
+Stage-A read:
+
+| n | stats | nominal $\alpha$ | exact acc. | Woodbury acc. | Woodbury - exact | exact $\|D\|$ | Woodbury $\|D\|$ | $\alpha_{\mathrm{eff}}$ |
+|---:|:---:|---:|---:|---:|---:|---:|---:|---:|
+| 4000 | f32 | $10^{-8}$ | 33.06 ± 3.06 | 56.29 ± 0.40 | +23.23 | 10131.2 | 788.4 | 0.001356 |
+| 4000 | f32 | $10^{-7}$ | 48.82 ± 7.09 | 55.89 ± 0.40 | +7.07 | 2674.0 | 494.4 | 0.01356 |
+| 4000 | f32 | $10^{-6}$ | 54.27 ± 0.40 | 54.27 ± 0.41 | +0.00 | 230.7 | 230.2 | 0.1356 |
+| 4000 | f32 | $10^{-5}$ | 50.11 ± 0.33 | 50.11 ± 0.32 | +0.00 | 87.0 | 86.9 | 1.356 |
+| 4000 | f32 | $10^{-4}$ | 42.69 ± 0.36 | 42.69 ± 0.36 | +0.00 | 27.2 | 27.2 | 13.56 |
+| 8000 | f32 | $10^{-8}$ | 22.58 ± 0.01 | 58.26 ± 0.27 | +35.68 | 24648.1 | 945.2 | 0.001421 |
+| 8000 | f32 | $10^{-7}$ | 39.08 ± 3.86 | 57.98 ± 0.28 | +18.91 | 5609.2 | 543.6 | 0.01421 |
+| 8000 | f32 | $10^{-6}$ | 56.38 ± 0.29 | 56.38 ± 0.29 | +0.00 | 234.6 | 233.1 | 0.1421 |
+| 8000 | f32 | $10^{-5}$ | 52.46 ± 0.30 | 52.45 ± 0.30 | -0.00 | 86.4 | 86.4 | 1.421 |
+| 8000 | f32 | $10^{-4}$ | 45.43 ± 0.26 | 45.43 ± 0.26 | +0.00 | 27.8 | 27.8 | 14.21 |
+
+Precision check at 4000 neurons:
+
+| nominal $\alpha$ | exact f32 acc. | exact f64 acc. | f64 - f32 |
+|---:|---:|---:|---:|
+| $10^{-8}$ | 33.06 ± 3.06 | 56.29 ± 0.39 | +23.23 |
+| $10^{-7}$ | 48.82 ± 7.09 | 55.89 ± 0.40 | +7.07 |
+| $10^{-6}$ | 54.27 ± 0.40 | 54.27 ± 0.41 | +0.00 |
+| $10^{-5}$ | 50.11 ± 0.33 | 50.11 ± 0.33 | +0.00 |
+| $10^{-4}$ | 42.69 ± 0.36 | 42.69 ± 0.36 | +0.00 |
+
+Verdict: trace scaling does repair the exact/Woodbury mismatch once the
+regularizer is large enough.  The smallest tested nominal alpha on the
+exact-solve plateau at both 4000 and 8000 neurons is
+$\alpha = 10^{-6}$; at this value exact and Woodbury match to the
+reported precision at both widths, with decoder norms also matching.
+The float64 exact rows differ dramatically only in the under-regularized
+$10^{-8}$-$10^{-7}$ regime; at the chosen $10^{-6}$ they do not differ
+materially, so float32 statistics remain acceptable for the repaired
+headline unless the extension contradicts this at 8000 or 16000 neurons.
+
+Next step: run the optional Stage-A extension before the 5-seed headline,
+because the planned headline command uses the 16000-neuron extension and
+the current Stage A has not yet tested either 16000 neurons or 8000-neuron
+float64 exact rows.  If the extension preserves the $10^{-6}$ equivalence,
+run Stage B with `--alpha 1e-6 --alpha-scale trace --stats-dtype float32`.
