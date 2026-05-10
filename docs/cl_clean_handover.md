@@ -353,42 +353,46 @@ Stage-A decision rule:
 3. Only after Stage A is imported and checked should the 5-seed headline
    panel be run.
 
-Imported Stage-A verdict (2026-05-10): the default trace-repair grid
-selects nominal `--alpha 1e-6`.  At 4000 and 8000 neurons, exact and
-Woodbury agree at this alpha, and the 4000-neuron float64 exact rows do
-not materially differ from float32.  **Next run the Stage-A extension**,
-not the headline yet, because the planned headline uses the 16000-neuron
-extension and the default Stage A did not test 16000 neurons or
-8000-neuron float64 exact solves.
+Imported Stage-A verdict (2026-05-10): the default trace-repair grid plus
+extension selects nominal `--alpha 1e-6`.  At 4000, 8000, and 16000
+neurons, exact and Woodbury agree at this alpha.  The 4000- and
+8000-neuron float64 exact rows do not materially differ from float32 at
+the chosen alpha, so use `--stats-dtype float32` for the repaired
+headline.  The smaller `1e-8` and `1e-7` nominal alphas remain
+under-regularized in float32, especially at 16000 neurons, and should not
+be used for the headline.
 
 Next command:
 
 ```bash
-python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py \
-    --trace-repair --extended --seeds 0-1
+python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py \
+    --quick --seeds 0 --alpha 1e-6 --alpha-scale trace --stats-dtype float32
 ```
 
-If the extension preserves the `1e-6` exact/Woodbury equivalence, proceed
-to Stage B with `--alpha 1e-6 --alpha-scale trace --stats-dtype float32`.
-
-Stage B — 5-seed repaired headline panel (run only after Stage A picks
-`<alpha>` and `<stats_dtype>`):
+If the quick smoke row completes cleanly, run the full Stage B command:
 
 ```bash
 python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py \
-    --quick --seeds 0 --alpha <alpha> --alpha-scale trace --stats-dtype <stats_dtype>
+    --seeds 0-4 --extended --alpha 1e-6 --alpha-scale trace --stats-dtype float32
+```
+
+Stage B — 5-seed repaired headline panel:
+
+```bash
+python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py \
+    --quick --seeds 0 --alpha 1e-6 --alpha-scale trace --stats-dtype float32
 
 python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py \
-    --seeds 0-4 --extended --alpha <alpha> --alpha-scale trace --stats-dtype <stats_dtype>
+    --seeds 0-4 --extended --alpha 1e-6 --alpha-scale trace --stats-dtype float32
 ```
 
 The repaired headline phase writes a distinct JSON, e.g. for
-`--alpha 1e-7 --stats-dtype float32`:
+`--alpha 1e-6 --stats-dtype float32`:
 
 ```text
-results/cl_clean/gpu_h8_streaming_trace_a1em07_float32_panel.json
-results/cl_clean/logs/gpu_h8_streaming_trace_a1em07_float32_panel.log
-results/cl_clean/colab_gpu_configs/base_config_gpu_h8_streaming_trace_a1em07_float32.json
+results/cl_clean/gpu_h8_streaming_trace_a1em06_float32_panel.json
+results/cl_clean/logs/gpu_h8_streaming_trace_a1em06_float32_panel.log
+results/cl_clean/colab_gpu_configs/base_config_gpu_h8_streaming_trace_a1em06_float32.json
 results/cl_clean/cl_clean_streaming_smnist_gpu_bundle.zip
 ```
 

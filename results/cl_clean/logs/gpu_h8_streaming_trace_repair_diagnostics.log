@@ -50,3 +50,85 @@
 [2026-05-10T12:54:14]   [49/50] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n4000_a1e-4_t10_s0
 [2026-05-10T12:55:20]   [50/50] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n4000_a1e-4_t10_s1
 [2026-05-10T12:56:26] phase gpu_h8_streaming_trace_repair_diagnostics done — 50 rows in /content/leenef/results/cl_clean/gpu_h8_streaming_trace_repair_diagnostics.json
+[2026-05-10T13:48:31] phase=gpu_h8_streaming_trace_repair_diagnostics experiment=h8_streaming_permuted_smnist_diag knob=cell values=['exact_trace_f32_n4000_a1e-8_t10', 'woodbury_trace_f32_n4000_a1e-8_t10', 'exact_trace_f32_n4000_a1e-7_t10', 'woodbury_trace_f32_n4000_a1e-7_t10', 'exact_trace_f32_n4000_a1e-6_t10', 'woodbury_trace_f32_n4000_a1e-6_t10', 'exact_trace_f32_n4000_a1e-5_t10', 'woodbury_trace_f32_n4000_a1e-5_t10', 'exact_trace_f32_n4000_a1e-4_t10', 'woodbury_trace_f32_n4000_a1e-4_t10', 'exact_trace_f32_n8000_a1e-8_t10', 'woodbury_trace_f32_n8000_a1e-8_t10', 'exact_trace_f32_n8000_a1e-7_t10', 'woodbury_trace_f32_n8000_a1e-7_t10', 'exact_trace_f32_n8000_a1e-6_t10', 'woodbury_trace_f32_n8000_a1e-6_t10', 'exact_trace_f32_n8000_a1e-5_t10', 'woodbury_trace_f32_n8000_a1e-5_t10', 'exact_trace_f32_n8000_a1e-4_t10', 'woodbury_trace_f32_n8000_a1e-4_t10', 'exact_trace_f64_n4000_a1e-8_t10', 'exact_trace_f64_n4000_a1e-7_t10', 'exact_trace_f64_n4000_a1e-6_t10', 'exact_trace_f64_n4000_a1e-5_t10', 'exact_trace_f64_n4000_a1e-4_t10', 'exact_trace_f32_n16000_a1e-8_t10', 'woodbury_trace_f32_n16000_a1e-8_t10', 'exact_trace_f32_n16000_a1e-7_t10', 'woodbury_trace_f32_n16000_a1e-7_t10', 'exact_trace_f32_n16000_a1e-6_t10', 'woodbury_trace_f32_n16000_a1e-6_t10', 'exact_trace_f32_n16000_a1e-5_t10', 'woodbury_trace_f32_n16000_a1e-5_t10', 'exact_trace_f32_n16000_a1e-4_t10', 'woodbury_trace_f32_n16000_a1e-4_t10', 'exact_trace_f64_n8000_a1e-8_t10', 'exact_trace_f64_n8000_a1e-7_t10', 'exact_trace_f64_n8000_a1e-6_t10', 'exact_trace_f64_n8000_a1e-5_t10', 'exact_trace_f64_n8000_a1e-4_t10'] seeds=[0, 1] code_identity=c391c22b0faa071854ac59a68e5443f98242b835
+[2026-05-10T13:48:31]   [1/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n4000_a1e-8_t10_s0  (cached)
+[2026-05-10T13:48:31]   [2/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n4000_a1e-8_t10_s1  (cached)
+[2026-05-10T13:48:31]   [3/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n4000_a1e-8_t10_s0  (cached)
+[2026-05-10T13:48:31]   [4/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n4000_a1e-8_t10_s1  (cached)
+[2026-05-10T13:48:31]   [5/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n4000_a1e-7_t10_s0  (cached)
+[2026-05-10T13:48:31]   [6/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n4000_a1e-7_t10_s1  (cached)
+[2026-05-10T13:48:31]   [7/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n4000_a1e-7_t10_s0  (cached)
+[2026-05-10T13:48:31]   [8/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n4000_a1e-7_t10_s1  (cached)
+[2026-05-10T13:48:31]   [9/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n4000_a1e-6_t10_s0  (cached)
+[2026-05-10T13:48:31]   [10/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n4000_a1e-6_t10_s1  (cached)
+[2026-05-10T13:48:31]   [11/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n4000_a1e-6_t10_s0  (cached)
+[2026-05-10T13:48:31]   [12/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n4000_a1e-6_t10_s1  (cached)
+[2026-05-10T13:48:31]   [13/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n4000_a1e-5_t10_s0  (cached)
+[2026-05-10T13:48:31]   [14/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n4000_a1e-5_t10_s1  (cached)
+[2026-05-10T13:48:31]   [15/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n4000_a1e-5_t10_s0  (cached)
+[2026-05-10T13:48:31]   [16/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n4000_a1e-5_t10_s1  (cached)
+[2026-05-10T13:48:31]   [17/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n4000_a1e-4_t10_s0  (cached)
+[2026-05-10T13:48:31]   [18/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n4000_a1e-4_t10_s1  (cached)
+[2026-05-10T13:48:31]   [19/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n4000_a1e-4_t10_s0  (cached)
+[2026-05-10T13:48:31]   [20/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n4000_a1e-4_t10_s1  (cached)
+[2026-05-10T13:48:31]   [21/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n8000_a1e-8_t10_s0  (cached)
+[2026-05-10T13:48:31]   [22/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n8000_a1e-8_t10_s1  (cached)
+[2026-05-10T13:48:31]   [23/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n8000_a1e-8_t10_s0  (cached)
+[2026-05-10T13:48:31]   [24/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n8000_a1e-8_t10_s1  (cached)
+[2026-05-10T13:48:31]   [25/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n8000_a1e-7_t10_s0  (cached)
+[2026-05-10T13:48:31]   [26/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n8000_a1e-7_t10_s1  (cached)
+[2026-05-10T13:48:31]   [27/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n8000_a1e-7_t10_s0  (cached)
+[2026-05-10T13:48:31]   [28/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n8000_a1e-7_t10_s1  (cached)
+[2026-05-10T13:48:31]   [29/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n8000_a1e-6_t10_s0  (cached)
+[2026-05-10T13:48:31]   [30/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n8000_a1e-6_t10_s1  (cached)
+[2026-05-10T13:48:31]   [31/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n8000_a1e-6_t10_s0  (cached)
+[2026-05-10T13:48:31]   [32/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n8000_a1e-6_t10_s1  (cached)
+[2026-05-10T13:48:31]   [33/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n8000_a1e-5_t10_s0  (cached)
+[2026-05-10T13:48:31]   [34/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n8000_a1e-5_t10_s1  (cached)
+[2026-05-10T13:48:31]   [35/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n8000_a1e-5_t10_s0  (cached)
+[2026-05-10T13:48:31]   [36/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n8000_a1e-5_t10_s1  (cached)
+[2026-05-10T13:48:31]   [37/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n8000_a1e-4_t10_s0  (cached)
+[2026-05-10T13:48:31]   [38/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n8000_a1e-4_t10_s1  (cached)
+[2026-05-10T13:48:31]   [39/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n8000_a1e-4_t10_s0  (cached)
+[2026-05-10T13:48:31]   [40/80] skip   gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n8000_a1e-4_t10_s1  (cached)
+[2026-05-10T13:48:31]   [41/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n4000_a1e-8_t10_s0  (cached)
+[2026-05-10T13:48:31]   [42/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n4000_a1e-8_t10_s1  (cached)
+[2026-05-10T13:48:31]   [43/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n4000_a1e-7_t10_s0  (cached)
+[2026-05-10T13:48:31]   [44/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n4000_a1e-7_t10_s1  (cached)
+[2026-05-10T13:48:31]   [45/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n4000_a1e-6_t10_s0  (cached)
+[2026-05-10T13:48:31]   [46/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n4000_a1e-6_t10_s1  (cached)
+[2026-05-10T13:48:31]   [47/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n4000_a1e-5_t10_s0  (cached)
+[2026-05-10T13:48:31]   [48/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n4000_a1e-5_t10_s1  (cached)
+[2026-05-10T13:48:31]   [49/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n4000_a1e-4_t10_s0  (cached)
+[2026-05-10T13:48:31]   [50/80] skip   gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n4000_a1e-4_t10_s1  (cached)
+[2026-05-10T13:48:31]   [51/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n16000_a1e-8_t10_s0
+[2026-05-10T13:53:14]   [52/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n16000_a1e-8_t10_s1
+[2026-05-10T13:57:56]   [53/80] run    gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n16000_a1e-8_t10_s0
+[2026-05-10T14:13:04]   [54/80] run    gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n16000_a1e-8_t10_s1
+[2026-05-10T14:28:13]   [55/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n16000_a1e-7_t10_s0
+[2026-05-10T14:32:55]   [56/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n16000_a1e-7_t10_s1
+[2026-05-10T14:37:37]   [57/80] run    gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n16000_a1e-7_t10_s0
+[2026-05-10T14:52:46]   [58/80] run    gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n16000_a1e-7_t10_s1
+[2026-05-10T15:07:54]   [59/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n16000_a1e-6_t10_s0
+[2026-05-10T15:12:34]   [60/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n16000_a1e-6_t10_s1
+[2026-05-10T15:17:14]   [61/80] run    gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n16000_a1e-6_t10_s0
+[2026-05-10T15:32:23]   [62/80] run    gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n16000_a1e-6_t10_s1
+[2026-05-10T15:47:32]   [63/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n16000_a1e-5_t10_s0
+[2026-05-10T15:52:12]   [64/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n16000_a1e-5_t10_s1
+[2026-05-10T15:56:52]   [65/80] run    gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n16000_a1e-5_t10_s0
+[2026-05-10T16:12:01]   [66/80] run    gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n16000_a1e-5_t10_s1
+[2026-05-10T16:27:09]   [67/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n16000_a1e-4_t10_s0
+[2026-05-10T16:31:49]   [68/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f32_n16000_a1e-4_t10_s1
+[2026-05-10T16:36:29]   [69/80] run    gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n16000_a1e-4_t10_s0
+[2026-05-10T16:51:38]   [70/80] run    gpu_h8_streaming_trace_repair_diagnostics_woodbury_trace_f32_n16000_a1e-4_t10_s1
+[2026-05-10T17:06:47]   [71/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n8000_a1e-8_t10_s0
+[2026-05-10T17:09:31]   [72/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n8000_a1e-8_t10_s1
+[2026-05-10T17:12:15]   [73/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n8000_a1e-7_t10_s0
+[2026-05-10T17:14:59]   [74/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n8000_a1e-7_t10_s1
+[2026-05-10T17:17:44]   [75/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n8000_a1e-6_t10_s0
+[2026-05-10T17:20:28]   [76/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n8000_a1e-6_t10_s1
+[2026-05-10T17:23:12]   [77/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n8000_a1e-5_t10_s0
+[2026-05-10T17:25:56]   [78/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n8000_a1e-5_t10_s1
+[2026-05-10T17:28:40]   [79/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n8000_a1e-4_t10_s0
+[2026-05-10T17:31:24]   [80/80] run    gpu_h8_streaming_trace_repair_diagnostics_exact_trace_f64_n8000_a1e-4_t10_s1
+[2026-05-10T17:34:08] phase gpu_h8_streaming_trace_repair_diagnostics done — 80 rows in /content/leenef/results/cl_clean/gpu_h8_streaming_trace_repair_diagnostics.json

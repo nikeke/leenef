@@ -793,7 +793,7 @@ Imported:
 * `results/cl_clean/logs/gpu_h8_streaming_trace_repair_diagnostics.log`
 * `results/cl_clean/colab_gpu_configs/base_config_gpu_h8_streaming_diagnostics.json`
 
-Run metadata: 50 rows, seeds 0-1, Google Colab G4
+Run metadata: 80 rows after the extension, seeds 0-1, Google Colab G4
 (`NVIDIA RTX PRO 6000 Blackwell Server Edition`), code identity
 `c391c22b0faa071854ac59a68e5443f98242b835`.
 
@@ -822,18 +822,35 @@ Precision check at 4000 neurons:
 | $10^{-5}$ | 50.11 ± 0.33 | 50.11 ± 0.33 | +0.00 |
 | $10^{-4}$ | 42.69 ± 0.36 | 42.69 ± 0.36 | +0.00 |
 
+Extension read at 16000 neurons:
+
+| nominal $\alpha$ | exact acc. | Woodbury acc. | Woodbury - exact | exact $\|D\|$ | Woodbury $\|D\|$ | $\alpha_{\mathrm{eff}}$ |
+|---:|---:|---:|---:|---:|---:|---:|
+| $10^{-8}$ | 12.00 ± 1.01 | 59.62 ± 0.24 | +47.62 | 648841.5 | 1196.9 | 0.001399 |
+| $10^{-7}$ | 17.60 ± 5.66 | 59.61 ± 0.20 | +42.00 | 111792.2 | 615.0 | 0.01399 |
+| $10^{-6}$ | 58.11 ± 0.30 | 58.11 ± 0.31 | +0.01 | 246.0 | 242.0 | 0.1399 |
+| $10^{-5}$ | 54.46 ± 0.41 | 54.46 ± 0.41 | +0.00 | 86.8 | 86.8 | 1.399 |
+| $10^{-4}$ | 48.06 ± 0.36 | 48.07 ± 0.36 | +0.00 | 28.7 | 28.7 | 13.99 |
+
+Precision check at 8000 neurons:
+
+| nominal $\alpha$ | exact f32 acc. | exact f64 acc. | f64 - f32 |
+|---:|---:|---:|---:|
+| $10^{-8}$ | 22.58 ± 0.01 | 58.26 ± 0.28 | +35.68 |
+| $10^{-7}$ | 39.08 ± 3.86 | 57.99 ± 0.28 | +18.91 |
+| $10^{-6}$ | 56.38 ± 0.29 | 56.38 ± 0.30 | +0.00 |
+| $10^{-5}$ | 52.46 ± 0.30 | 52.46 ± 0.30 | -0.00 |
+| $10^{-4}$ | 45.43 ± 0.26 | 45.43 ± 0.26 | +0.00 |
+
 Verdict: trace scaling does repair the exact/Woodbury mismatch once the
 regularizer is large enough.  The smallest tested nominal alpha on the
-exact-solve plateau at both 4000 and 8000 neurons is
+exact-solve plateau at 4000, 8000, and 16000 neurons is
 $\alpha = 10^{-6}$; at this value exact and Woodbury match to the
-reported precision at both widths, with decoder norms also matching.
+reported precision at all three widths, with decoder norms also matching.
 The float64 exact rows differ dramatically only in the under-regularized
 $10^{-8}$-$10^{-7}$ regime; at the chosen $10^{-6}$ they do not differ
-materially, so float32 statistics remain acceptable for the repaired
-headline unless the extension contradicts this at 8000 or 16000 neurons.
+materially at either checked width, so float32 statistics remain
+acceptable for the repaired headline.
 
-Next step: run the optional Stage-A extension before the 5-seed headline,
-because the planned headline command uses the 16000-neuron extension and
-the current Stage A has not yet tested either 16000 neurons or 8000-neuron
-float64 exact rows.  If the extension preserves the $10^{-6}$ equivalence,
-run Stage B with `--alpha 1e-6 --alpha-scale trace --stats-dtype float32`.
+Next step: run the Stage B repaired 5-seed headline with
+`--alpha 1e-6 --alpha-scale trace --stats-dtype float32`.
