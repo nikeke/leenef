@@ -877,10 +877,14 @@ once the stream starts**.  `first_task` is the right choice.
 
 ### §5.4 — Solver mode and $\alpha$: equivalence at the right operating point
 
-The `accumulate-and-solve` and online-Woodbury paths are in
-principle equivalent under exact arithmetic (§3.2).  Empirically
-they agree to within float drift at the tuned $\alpha$ on all
-three datasets we tested.
+The `accumulate-and-solve` and online-Woodbury paths are equivalent
+under exact arithmetic when they are given the same regularized normal
+equation (§3.2).  The table below is a tuned operational comparison:
+`accumulate` uses the trace-scaled solve inherited from
+`solve_accumulated()`, while the Woodbury paths use the fixed inverse
+regularizer required by their cached-$M_t$ update.  Empirically, the
+two operating modes reach the same accuracy plateau on all three
+datasets we tested.
 
 | Dataset         | best `accumulate`        | best `woodbury_batch`   | best `woodbury_online`  |
 |-----------------|--------------------------|--------------------------|--------------------------|
@@ -909,18 +913,17 @@ inter-task query is then the batch's small Woodbury rather than
 a fresh $O(n^3)$ solve.
 
 The Split-CIFAR-10 row is also an $\alpha$-regime story.
-`accumulate`'s sweet spot is $10^{-2}$ but Woodbury's is
-$10^2$, four orders of magnitude apart.  That difference is not
-an algebraic disagreement — it is the same regularizer applied
-to the same Gram matrix — but a conditioning story.  In the
-current float64-accumulator runs, batch-Woodbury and online-
-Woodbury are indistinguishable, and both have a broad accuracy
-plateau: on Split-MNIST and Permuted-MNIST they are essentially
-flat from $\alpha=10^{-3}$ through $\alpha=1$, and on
-Split-CIFAR-10 they recover at large $\alpha$ where the small-
-$\alpha$ solve is under-regularized.  The durable
-point is robustness across a wide $\alpha$ range, not a higher
-best-cell accuracy.
+`accumulate`'s trace-scaled sweet spot is nominal $10^{-2}$, while
+Woodbury's fixed-$\alpha$ sweet spot is $10^2$.  That four-order gap is
+not an additivity failure; it says that the two implementation paths
+expose different knobs for setting the same underlying ridge scale.  In
+the current float64-accumulator runs, batch-Woodbury and online-Woodbury
+are indistinguishable, and both have a broad accuracy plateau: on
+Split-MNIST and Permuted-MNIST they are essentially flat from
+$\alpha=10^{-3}$ through $\alpha=1$, and on Split-CIFAR-10 they recover
+at large fixed $\alpha$ where the small-fixed-$\alpha$ inverse is
+under-regularized.  The durable point is robustness across a wide
+$\alpha$ range, not a higher best-cell accuracy.
 
 We also re-checked the "Woodbury drift" concern from earlier
 single-seed exploration: under float64 accumulators, after the
