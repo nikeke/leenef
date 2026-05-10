@@ -10,6 +10,40 @@ import pytest
 
 from benchmarks.cl_clean import cl_repro, datasets, experiments
 from benchmarks.cl_clean.cl_phase_runner import run_phase
+from benchmarks.sl_clean.datasets import DatasetBundle, _hash_tensor
+
+
+def _synthetic_bundle(
+    *,
+    name: str = "MNIST",
+    n_classes: int = 10,
+    n_features: int = 16,
+    train_per_class: int = 3,
+    test_per_class: int = 2,
+) -> DatasetBundle:
+    import torch
+
+    g = torch.Generator().manual_seed(999)
+    y_train = torch.arange(n_classes, dtype=torch.int64).repeat_interleave(train_per_class)
+    y_test = torch.arange(n_classes, dtype=torch.int64).repeat_interleave(test_per_class)
+    x_train = torch.rand(y_train.shape[0], n_features, generator=g)
+    x_test = torch.rand(y_test.shape[0], n_features, generator=g)
+    return DatasetBundle(
+        name=name,
+        x_train=x_train,
+        y_train=y_train,
+        x_test=x_test,
+        y_test=y_test,
+        n_classes=n_classes,
+        preprocessing="synthetic_flat",
+        raw_hashes={"synthetic": "true"},
+        processed_hashes={
+            "x_train": _hash_tensor(x_train),
+            "y_train": _hash_tensor(y_train),
+            "x_test": _hash_tensor(x_test),
+            "y_test": _hash_tensor(y_test),
+        },
+    )
 
 
 class TestCodeIdentity:
@@ -64,7 +98,10 @@ class TestRunner:
 
 
 class TestTaskStream:
-    def test_split_stream_is_deterministic_and_partitions_classes(self):
+    def test_split_stream_is_deterministic_and_partitions_classes(self, monkeypatch):
+        fake_bundle = _synthetic_bundle()
+        monkeypatch.setitem(datasets._BASE_LOADERS, "MNIST", lambda: fake_bundle)
+
         s1 = datasets.make_task_stream("MNIST", scenario="split", n_tasks=5, stream_seed=0)
         s2 = datasets.make_task_stream("MNIST", scenario="split", n_tasks=5, stream_seed=0)
         assert s1.stream_hash == s2.stream_hash
@@ -74,13 +111,19 @@ class TestTaskStream:
             all_classes.update(t.classes)
         assert all_classes == set(range(10))
 
-    def test_split_stream_seed_changes_hash(self):
+    def test_split_stream_seed_changes_hash(self, monkeypatch):
+        fake_bundle = _synthetic_bundle()
+        monkeypatch.setitem(datasets._BASE_LOADERS, "MNIST", lambda: fake_bundle)
+
         s0 = datasets.make_task_stream("MNIST", scenario="split", n_tasks=5, stream_seed=0)
         s1 = datasets.make_task_stream("MNIST", scenario="split", n_tasks=5, stream_seed=1)
         assert s0.stream_hash != s1.stream_hash
 
-    def test_permuted_stream_materializes_inputs_on_demand(self):
+    def test_permuted_stream_materializes_inputs_on_demand(self, monkeypatch):
         import torch
+
+        fake_bundle = _synthetic_bundle()
+        monkeypatch.setitem(datasets._BASE_LOADERS, "MNIST", lambda: fake_bundle)
 
         s = datasets.make_task_stream("MNIST", scenario="permuted", n_tasks=2, stream_seed=0)
         task = s.tasks[0]
