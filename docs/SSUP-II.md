@@ -30,11 +30,13 @@ joint MLP remain stronger on Permuted-MNIST, and absolute accuracy is
 bounded by the feature map.  Capacity scales smoothly with neuron budget
 per task, and a gradient-free ConvNEF front end lifts Split-CIFAR-10
 from 49.5 % to **74.7 ± 0.1 %** without breaking the additivity identity.
-A streaming-continual follow-up marks the boundary: exact accumulate and
-joint fits still coincide through a mean-pooled delay-line feature map,
-but the exact final solve is weak on 10-task permuted sMNIST, while
-online Woodbury reaches **59.8 ± 0.3 %** without matching the exact
-solve.
+A streaming-continual follow-up marks the boundary: exact accumulate
+and joint fits still coincide through a mean-pooled delay-line feature
+map, but the headline regularizer is many orders of magnitude under
+the trace-fraction scale Paper I established for that feature stack,
+so the exact final solve is weak on 10-task permuted sMNIST while
+online Woodbury reaches **59.8 ± 0.3 %** by acting as an implicit
+regularizer in signal-free directions.
 
 ---
 
@@ -1074,15 +1076,18 @@ well above the reset lower bound and far above the exact final solve at
 larger widths.
 
 The diagnostic panel makes the mechanism clearer.  Refreshing the
-online Woodbury inverse by recomputing it from the accumulated normal
-equations collapses the classifier out of the high-accuracy Woodbury
-regime at every tested width: at $\alpha = 10^{-3}$, 4 000 neurons fall
-from **56.3 ± 0.4 %** before refresh to **19.4 ± 4.5 %** after refresh,
-8 000 neurons fall from **58.3 ± 0.3 %** to **14.6 ± 0.1 %**, and
-16 000 neurons fall from **59.6 ± 0.2 %** to **14.6 ± 0.0 %**.  This is
-not the small float64 drift of §5.4.  The decoder changes are large
-($10^3$ scale in max coefficient difference), so the useful Woodbury
-model is genuinely path-dependent.
+online Woodbury inverse by recomputing it exactly from the accumulated
+normal equations collapses the classifier out of the high-accuracy
+Woodbury regime at every tested width: at $\alpha = 10^{-3}$, 4 000
+neurons fall from **56.3 ± 0.4 %** before refresh to **19.4 ± 4.5 %**
+after refresh, 8 000 neurons fall from **58.3 ± 0.3 %** to
+**14.6 ± 0.1 %**, and 16 000 neurons fall from **59.6 ± 0.2 %** to
+**14.6 ± 0.0 %**.  This is not the small float64 drift of §5.4.  The
+decoder changes are large ($10^3$ scale in max coefficient difference)
+and the decoder norms differ by a factor of about five — at 4 000
+neurons, $\|D_{\mathrm{wood}}\| \approx 848$ versus
+$\|D_{\mathrm{exact}}\| \approx 4327$ — so the two paths land in
+genuinely different solutions, not numerically close ones.
 
 Three additional probes keep the conclusion from becoming too simple.
 First, the Woodbury result is insensitive to the tested regularization
@@ -1092,19 +1097,59 @@ stays at **59.4–59.6 %**.  Second, the exact solve is highly sensitive
 to the feature framing: at 4 000 neurons, changing only the exact-solve
 regularizer from $10^{-3}$ to $10^{-2}$ raises accuracy from
 **38.7 ± 7.6 %** to **55.3 ± 0.6 %**, and zeroing the data-driven bias
-raises the $10^{-3}$ exact solve to **52.7 ± 0.4 %**.  Third, the
-Woodbury score is not a batch-size or task-order accident:
-batch sizes 128, 256, and 512, and reverse task order, all land at
-**56.3 ± 0.4 %** at 4 000 neurons.
+raises the $10^{-3}$ exact solve to **52.7 ± 0.4 %**.  At
+$\alpha = 10^{-2}$ the exact decoder norm drops to about 836, matching
+Woodbury within a factor of two — the two paths agree where ill-conditioning
+is no longer dominant.  Third, the Woodbury score is not a batch-size
+or task-order accident: batch sizes 128, 256, and 512, and reverse task
+order, all land at **56.3 ± 0.4 %** at 4 000 neurons.
 
-The direct reading is that the mean-pooled delay-line feature map has a
-badly conditioned exact final objective under first-task data-driven
-biases.  Online Woodbury supplies a stable and useful inductive bias
-that is robust to batch size, task order, and the tested $\alpha$ range,
-but it is no longer simply "the exact joint ridge solution reached
-online."  This makes the result promising for streaming applications and
-important as a boundary case: streaming continual learning is not a free
-corollary of the exact accumulate/joint identity.
+A single piece of conditioning data ties the panel together.  The
+diagnostic panel logs the trace of $A^\top A$ at the end of training:
+at 4 000 neurons it is $5.25 \times 10^{8}$, with mean diagonal entry
+$1.31 \times 10^{5}$.  Paper I's $\alpha$-as-trace-fraction principle says
+that the regularizer that controls overfitting is the ratio
+$\alpha_{\mathrm{eff}} = \alpha \cdot n / \mathrm{tr}(A^\top A)$.  Here
+that ratio is about $7.6 \times 10^{-12}$ at the headline $\alpha = 10^{-3}$.
+Paper I's static panels operate near $10^{-3}$.  The streaming
+delay-line feature map has trace many orders of magnitude larger than
+the static-image features it is being regularized as if it were, so
+fixed $\alpha = 10^{-3}$ leaves the exact final objective effectively
+unregularized.  In that regime, the math-correct exact ridge inverse
+amplifies float32 GEMM noise from $A^\top A$ in the small-eigenvalue
+subspace where the streaming features carry no signal, producing the
+inflated decoder norm and the accuracy collapse.  Online Woodbury
+starts from $\alpha^{-1} I$ and applies rank-$k$ corrections only inside
+the row space spanned by each batch, so directions that are signal-free
+in the data stay near $\alpha^{-1} I$ and never get inverted on top
+of float noise.  The path is acting as an implicit low-rank regularizer
+on the noise-only subspace — this is why Woodbury's accuracy is stable
+across $\alpha$, batch size, and task order, while exact's is not.
+Raising $\alpha$ or zeroing the bias both push the conditioning back
+into the regime where the math-correct inverse is well-defined, which
+is exactly the regime where the exact and Woodbury accuracies agree
+again.
+
+The direct reading is that the mean-pooled delay-line feature map's
+trace is far outside the regularizer scale that worked for the static
+panels of §§5.1–5.6.  Online Woodbury hides this by behaving as an
+implicit regularizer on signal-free directions; the exact final solve
+does not, so it surfaces the under-regularization as an accuracy
+collapse.  Both paths are correct ridge solves of the same objective in
+exact arithmetic, and both agree where conditioning permits.  We did
+not run a principled trace-scaled $\alpha$ sweep on this benchmark,
+so we record the prediction as an explicit follow-up rather than a
+claim: a Paper-I-style $\alpha = c \cdot \mathrm{tr}(A^\top A) / n$ schedule
+with $c$ in the $10^{-3}$ range, combined with float64 $A^\top A$
+accumulation, should restore exact–Woodbury equivalence on this
+feature map and clarify what fraction of the Woodbury accuracy is
+implicit regularization versus what the exact ridge solution looks
+like at the right scale.  Until that sweep is run, streaming
+continual learning is best read as a separate research line where the
+identity in §3 still holds at the level of $A^\top A$ and $A^\top Y$,
+but the regularizer that turns those statistics into a useful
+classifier has to be set on the streaming feature map's own scale,
+not inherited from static-image defaults.
 
 ![Figure 5 -- Streaming continual follow-up on 10-task permuted sMNIST.  Exact accumulate and joint fits coincide at every width, but online Woodbury is the useful high-accuracy path.  The mechanism probes show that exact inverse refresh collapses the Woodbury decoder, while stronger exact regularization and zero-bias framing recover much of the 4 000-neuron gap.](figures/cl_f5_streaming_continual.png)
 
@@ -1220,17 +1265,35 @@ solve are exactly tied at every tested width.  But that exact solution
 is not the best model in the panel.  Online Woodbury is much more
 accurate, while no longer matching the final exact solve; exact inverse
 refresh destroys the Woodbury advantage rather than merely removing a
-small numerical drift.
+small numerical drift, and the two paths produce decoders whose norms
+differ by about a factor of five at the headline width and $\alpha$.
+
+The mechanism is conditioning, not algebra.  The streaming feature
+map's $A^\top A$ has trace $5.25 \times 10^{8}$ at 4 000 neurons,
+which makes the headline $\alpha = 10^{-3}$ about $10^{-12}$ of the
+mean diagonal entry — many orders of magnitude under the
+trace-fraction scale that worked in Paper I and in §§5.1–5.6.  At that
+scale, the exact ridge inverse aggressively inverts directions where
+the data carries no signal and the only structure is float32 GEMM
+noise from $A^\top A$, which is what produces the inflated decoder
+norm and the accuracy collapse.  Online Woodbury starts from
+$\alpha^{-1} I$ and only modifies the row space spanned by each batch,
+so signal-free directions stay near $\alpha^{-1} I$ and never get
+inverted on top of float noise — an implicit low-rank regularizer that
+is doing real work whenever $\alpha$ is set well below the
+conditioning of the feature map.  Where conditioning is restored
+(stronger $\alpha$, or zero bias), exact and Woodbury agree again.
 
 The right interpretation is not that the identity failed.  It did not.
 The right interpretation is that "same as joint" is only as useful as
-the joint objective and feature map are.  In the static panels the joint
-objective is the thing we want, and the sufficient-statistic primitive
-gets there without forgetting.  In the streaming panel, the exact
-mean-pooled joint solution is fragile to regularization and bias framing,
-while the online inverse path supplies a different and more useful
-inductive bias.  That is promising for streaming applications, but it is
-no longer the clean Paper-II theorem; it is a separate research line.
+the joint objective is, and the regularizer that defines the joint
+objective has to be set on the streaming feature map's own scale.
+Paper I already established the trace-fraction prescription that does
+this for static features; we have not yet run that prescription on the
+streaming feature map.  Until we do, streaming continual is a
+separate research line where the §3 identity holds at the level of
+$A^\top A$ and $A^\top Y$, but the regularizer that turns those
+statistics into a useful classifier is open.
 
 ### Bridge to Paper III
 
@@ -1419,9 +1482,13 @@ coefficient norm and 0.002 pp in test accuracy, and the two
 solvers produce statistically indistinguishable results at the
 tuned $\alpha$.  Whatever benefit the drift was conveying in
 float32 was not separable from its harm.  The streaming result in
-§5.7 is different: exact inverse refresh causes a large decoder change
-and a large accuracy collapse, so it is not the tiny static-panel drift
-reported here.
+§5.7 is different: it is not float drift on a well-conditioned
+matrix at all, but a regime where the headline $\alpha$ is many
+orders of magnitude under the trace-fraction scale of the
+streaming feature map, so the exact ridge solution and the online
+Woodbury solution land in genuinely different basins.  Once
+$\alpha$ is moved back into a well-conditioned regime, the two
+agree again.
 
 **Trace-$\alpha$ as a universal regularizer.**  The intuition that
 $\alpha$ should scale with $\mathrm{tr}(A^\top A) / n$ across

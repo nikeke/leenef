@@ -724,6 +724,24 @@ Diagnostic verdict:
   at 4000 neurons, either $\alpha = 10^{-2}$ or zero bias recovers most
   of the gap to Woodbury.
 * The Woodbury score is stable across the tested $\alpha$ values, batch
-  sizes, and reverse task order.  The likely mechanism is a robust
-  online inductive bias interacting with a badly conditioned mean-pooled
-  delay-line feature map.
+  sizes, and reverse task order.
+* Mechanism, deeper read: the diagnostic also logs `ata_trace` and
+  `ata_diag_mean`.  At 4000 neurons,
+  `ata_trace ≈ 5.25e8`, `ata_diag_mean ≈ 1.31e5`.  The headline
+  `alpha = 1e-3` is therefore about `7.6e-12` of the mean diagonal —
+  many orders of magnitude under the trace-fraction scale Paper I
+  established for static feature stacks (Paper I §6 streaming uses
+  `alpha_scale × alpha × n_neurons`).  Decoder norms confirm the
+  regime: at `alpha = 1e-3, n=4000` the exact decoder norm is `4327`
+  vs Woodbury `848` (5× larger), and at `alpha = 1e-4, n=8000` the
+  exact decoder norm explodes to `2,939,386`.  At `alpha = 1e-2` the
+  exact decoder norm collapses back to `836` and exact accuracy
+  matches Woodbury (`55.3%` vs `54–56%`).  The cleanest interpretation
+  is that the streaming feature map is severely under-regularized at
+  the inherited `alpha = 1e-3`, and Woodbury acts as an implicit
+  low-rank regularizer on signal-free directions (it never inverts
+  them on top of float32 GEMM noise from `(A.T @ A)`), while exact
+  Cholesky/LU does invert them, amplifying the noise into the
+  decoder.  Predicted but not yet measured fix: a Paper-I-style
+  trace-scaled `alpha` plus float64 `A.T @ A` should restore
+  exact–Woodbury equivalence on this benchmark.

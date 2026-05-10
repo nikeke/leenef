@@ -75,11 +75,13 @@ Paper II abstract:
 > bounded by the feature map.  Capacity scales smoothly with neuron budget
 > per task, and a gradient-free ConvNEF front end lifts Split-CIFAR-10
 > from 49.5 % to **74.7 ± 0.1 %** without breaking the additivity identity.
-> A streaming-continual follow-up marks the boundary: exact accumulate and
-> joint fits still coincide through a mean-pooled delay-line feature map,
-> but the exact final solve is weak on 10-task permuted sMNIST, while
-> online Woodbury reaches **59.8 ± 0.3 %** without matching the exact
-> solve.
+> A streaming-continual follow-up marks the boundary: exact accumulate
+> and joint fits still coincide through a mean-pooled delay-line feature
+> map, but the headline regularizer is many orders of magnitude under
+> the trace-fraction scale Paper I established for that feature stack,
+> so the exact final solve is weak on 10-task permuted sMNIST while
+> online Woodbury reaches **59.8 ± 0.3 %** by acting as an implicit
+> regularizer in signal-free directions.
 
 ## Quick start
 
