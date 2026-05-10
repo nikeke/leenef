@@ -265,6 +265,8 @@ class TestPhaseBRegistrations:
             "mode": "exact",
             "n_neurons": 4000,
             "alpha": 1e-3,
+            "alpha_scale": "trace",
+            "stats_dtype": "float32",
             "n_tasks": 10,
             "center_policy": "all",
             "batch_size": 64,
@@ -298,7 +300,10 @@ class TestPhaseBRegistrations:
         assert torch.equal(centered.gain, uncentered.gain)
 
     def test_h8_streaming_cells_are_registered_and_parsed(self):
-        from benchmarks.cl_clean.experiments import _parse_streaming_cell
+        from benchmarks.cl_clean.experiments import (
+            _parse_streaming_cell,
+            _parse_streaming_diag_cell,
+        )
 
         names = experiments.names()
         assert "h8_streaming_permuted_smnist" in names
@@ -310,6 +315,17 @@ class TestPhaseBRegistrations:
             "woodbury_online",
             8000,
         )
+        diag = _parse_streaming_diag_cell(
+            "exact_trace_f64_n4000_a1e-7_t10",
+            {"n_neurons": 100, "alpha": 1e-3},
+            {"n_tasks": 2},
+        )
+        assert diag["mode"] == "exact"
+        assert diag["alpha_scale"] == "trace"
+        assert diag["stats_dtype"] == "float64"
+        assert diag["n_neurons"] == 4000
+        assert diag["alpha"] == 1e-7
+        assert diag["n_tasks"] == 10
 
     def test_h8_streaming_run_fn_accepts_synthetic_mnist(self, monkeypatch):
         import torch
@@ -362,6 +378,8 @@ class TestPhaseBRegistrations:
 
         assert 0.0 <= accumulate["test_accuracy"] <= 1.0
         assert accumulate["solver_mode"] == "accumulate_final"
+        assert accumulate["alpha_scale"] == "trace"
+        assert accumulate["alpha_effective"] >= config["alpha"]
         assert accumulate["effective_n_tasks"] == 2
         assert accumulate["permutation_hash"] == joint["permutation_hash"]
         assert (

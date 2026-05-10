@@ -745,3 +745,42 @@ Diagnostic verdict:
   decoder.  Predicted but not yet measured fix: a Paper-I-style
   trace-scaled `alpha` plus float64 `A.T @ A` should restore
   exact–Woodbury equivalence on this benchmark.
+
+### 2026-05-10 — H8 alpha-scale audit
+
+Audit result: the H8 streaming-continual runner did **not** carry over
+Paper I's trace-scaled streaming regularizer.  Paper I's
+`benchmarks/sl_clean/_streaming_exp.py` computes a pilot
+`alpha_eff = alpha * trace(A^T A) / n` before running the streaming solve
+when `alpha_scale == "trace"`.  The H8 CL runner used
+`StreamingNEFClassifier.solve()` / `continuous_fit()` directly, and those
+APIs intentionally interpret `alpha` as a fixed inverse regularizer.
+
+Impact:
+
+* Static CL headline panels remain valid for this issue:
+  `NEFLayer.solve_accumulated()` calls `solve_from_normal_equations()`,
+  which trace-scales alpha internally.
+* ConvNEF CL remains valid for this issue because its NEF head also uses
+  `solve_accumulated()`.
+* MLP/EWC/ER baselines are unrelated.
+* The old H8 fixed-alpha rows are demoted from headline evidence to a
+  diagnostic showing what happens when the streaming feature map is
+  under-regularized.  Exact `accumulate_final` and `joint` equality still
+  demonstrates additivity through the feature map, but all absolute H8
+  accuracies and the Woodbury/exact comparison need a trace-scaled rerun.
+* The §5.4 solver-mode panel should be read as a tuned operational
+  comparison: `accumulate` uses trace-scaled alpha via
+  `solve_accumulated()`, while Woodbury paths use fixed-alpha inverse
+  updates.  It does not invalidate the additivity theorem, but it is not a
+  same-alpha proof of solver equivalence.
+
+Prepared repair package:
+
+* `benchmarks/cl_clean/experiments.py` now supports `alpha_scale="trace"`
+  and `stats_dtype={"float32","float64"}` for H8.
+* `colab/cl_clean/streaming_permuted_smnist_diagnostics.py --trace-repair`
+  runs the low-cost trace-scaled alpha / precision diagnostic.
+* `colab/cl_clean/streaming_permuted_smnist_gpu_suite.py --alpha-scale trace`
+  writes a distinct repaired headline phase once Stage A picks the alpha.
+* Handover details and run commands are in `docs/cl_clean_handover.md`.

@@ -1,6 +1,7 @@
 {
   "activation": "abs",
   "alpha": 0.001,
+  "alpha_scale": "fixed",
   "batch_size": 256,
   "cell": "refresh_n4000_a1e-3_t10",
   "center_policy": "first",
@@ -14,6 +15,7 @@
   "max_inverse_diagnostic_n": 8000,
   "max_tokens": 50000,
   "n_neurons": 4000,
+  "stats_dtype": "float32",
   "train_eval_samples": 2000,
   "window_size": 10
 }

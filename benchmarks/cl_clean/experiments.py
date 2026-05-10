@@ -716,6 +716,61 @@ def _eval_streaming_per_task(
     return per_task, round(n_correct_total / n_total, 6)
 
 
+def _streaming_stats_dtype(config: dict) -> str:
+    stats_dtype = str(config.get("stats_dtype", "float32"))
+    if stats_dtype not in {"float32", "float64"}:
+        raise ValueError(f"stats_dtype must be 'float32' or 'float64', got {stats_dtype!r}")
+    return stats_dtype
+
+
+def _streaming_alpha_scale(config: dict) -> str:
+    alpha_scale = str(config.get("alpha_scale", "trace"))
+    if alpha_scale not in {"fixed", "trace"}:
+        raise ValueError(f"alpha_scale must be 'fixed' or 'trace', got {alpha_scale!r}")
+    return alpha_scale
+
+
+def _streaming_effective_alpha(
+    model: StreamingNEFClassifier,
+    *,
+    alpha: float,
+    alpha_scale: str,
+) -> tuple[float, float | None, float | None]:
+    if alpha_scale == "fixed":
+        return alpha, None, None
+    if not hasattr(model, "_ata") or model._ata is None:
+        raise RuntimeError("trace-scaled alpha requires accumulated A^T A statistics")
+    ata_trace = float(torch.trace(model._ata).item())
+    trace_per_neuron = ata_trace / model.n_neurons
+    return max(alpha * trace_per_neuron, alpha), ata_trace, trace_per_neuron
+
+
+def _accumulate_streaming_permuted_tasks(
+    model: StreamingNEFClassifier,
+    *,
+    x_flat: torch.Tensor,
+    y: torch.Tensor,
+    perms: tuple[torch.Tensor, ...],
+    n_classes: int,
+    batch_size: int,
+    device: torch.device,
+    max_tokens: int,
+    chunk_stats: bool,
+    stats_dtype: str,
+) -> None:
+    for perm in perms:
+        for _, _, xb, yb in _iter_permuted_sequence_batches(
+            x_flat, y, perm, batch_size=batch_size, device=device
+        ):
+            model.accumulate(
+                xb,
+                _sequence_one_hot(yb, n_classes, device=device),
+                max_tokens=max_tokens,
+                chunk_stats=chunk_stats,
+                stats_dtype=stats_dtype,
+            )
+
+
 def _streaming_cl_run(config: dict, seed: int, run_context: dict) -> dict:
     """Streaming-NEF continual panel on permuted sequential MNIST.
 
@@ -739,7 +794,9 @@ def _streaming_cl_run(config: dict, seed: int, run_context: dict) -> dict:
     batch_size = int(config.get("batch_size", 256))
     eval_batch_size = int(config.get("eval_batch_size", batch_size))
     max_tokens = int(config.get("max_tokens", 50_000))
-    alpha = float(config["alpha"])
+    alpha_nominal = float(config["alpha"])
+    alpha_scale = _streaming_alpha_scale(config)
+    stats_dtype = _streaming_stats_dtype(config)
     window_size = int(config.get("window_size", 10))
     center_samples = int(config.get("center_samples", 4096))
     chunk_stats = bool(config.get("chunk_stats", True))
@@ -769,22 +826,52 @@ def _streaming_cl_run(config: dict, seed: int, run_context: dict) -> dict:
     ).to(device)
 
     t0 = time.perf_counter()
+    alpha_trace: float | None = None
+    alpha_trace_per_neuron: float | None = None
+    if alpha_scale == "trace":
+        pilot_perms = (perms[-1],) if solver_mode == "reset" else perms
+        _accumulate_streaming_permuted_tasks(
+            model,
+            x_flat=x_train,
+            y=y_train,
+            perms=pilot_perms,
+            n_classes=bundle.n_classes,
+            batch_size=batch_size,
+            device=device,
+            max_tokens=max_tokens,
+            chunk_stats=chunk_stats,
+            stats_dtype=stats_dtype,
+        )
+        alpha, alpha_trace, alpha_trace_per_neuron = _streaming_effective_alpha(
+            model, alpha=alpha_nominal, alpha_scale=alpha_scale
+        )
+    else:
+        alpha = alpha_nominal
+
     if solver_mode in {"accumulate_final", "joint", "accumulate_task_solve"}:
-        for perm in perms:
-            for _, _, xb, yb in _iter_permuted_sequence_batches(
-                x_train, y_train, perm, batch_size=batch_size, device=device
-            ):
-                model.accumulate(
-                    xb,
-                    _sequence_one_hot(yb, bundle.n_classes, device=device),
-                    max_tokens=max_tokens,
-                    chunk_stats=chunk_stats,
-                )
-            if solver_mode == "accumulate_task_solve":
-                model.solve(alpha=alpha)
-        if solver_mode != "accumulate_task_solve":
+        if alpha_scale == "trace" and solver_mode != "accumulate_task_solve":
             model.solve(alpha=alpha)
+        else:
+            if alpha_scale == "trace":
+                model.reset_continuous()
+            for perm in perms:
+                for _, _, xb, yb in _iter_permuted_sequence_batches(
+                    x_train, y_train, perm, batch_size=batch_size, device=device
+                ):
+                    model.accumulate(
+                        xb,
+                        _sequence_one_hot(yb, bundle.n_classes, device=device),
+                        max_tokens=max_tokens,
+                        chunk_stats=chunk_stats,
+                        stats_dtype=stats_dtype,
+                    )
+                if solver_mode == "accumulate_task_solve":
+                    model.solve(alpha=alpha)
+            if solver_mode != "accumulate_task_solve":
+                model.solve(alpha=alpha)
     elif solver_mode == "woodbury_online":
+        if alpha_scale == "trace":
+            model.reset_continuous()
         for perm in perms:
             for _, _, xb, yb in _iter_permuted_sequence_batches(
                 x_train, y_train, perm, batch_size=batch_size, device=device
@@ -794,8 +881,11 @@ def _streaming_cl_run(config: dict, seed: int, run_context: dict) -> dict:
                     _sequence_one_hot(yb, bundle.n_classes, device=device),
                     alpha=alpha,
                     max_tokens=max_tokens,
+                    stats_dtype=stats_dtype,
                 )
     elif solver_mode == "reset":
+        if alpha_scale == "trace":
+            model.reset_continuous()
         for _, _, xb, yb in _iter_permuted_sequence_batches(
             x_train, y_train, perms[-1], batch_size=batch_size, device=device
         ):
@@ -804,6 +894,7 @@ def _streaming_cl_run(config: dict, seed: int, run_context: dict) -> dict:
                 _sequence_one_hot(yb, bundle.n_classes, device=device),
                 max_tokens=max_tokens,
                 chunk_stats=chunk_stats,
+                stats_dtype=stats_dtype,
             )
         model.solve(alpha=alpha)
     else:
@@ -826,7 +917,14 @@ def _streaming_cl_run(config: dict, seed: int, run_context: dict) -> dict:
         "solver_mode": solver_mode,
         "effective_n_neurons": n_neurons,
         "effective_n_tasks": n_tasks,
-        "alpha": alpha,
+        "alpha": alpha_nominal,
+        "alpha_scale": alpha_scale,
+        "alpha_effective": round(float(alpha), 9),
+        "alpha_trace": None if alpha_trace is None else round(float(alpha_trace), 6),
+        "alpha_trace_per_neuron": (
+            None if alpha_trace_per_neuron is None else round(float(alpha_trace_per_neuron), 9)
+        ),
+        "stats_dtype": stats_dtype,
         "window_size": window_size,
         "center_samples": center_samples,
         "permutation_hash": perm_hash,
@@ -871,6 +969,8 @@ def _parse_streaming_diag_cell(raw: object, config: dict, run_context: dict) -> 
         "mode": mode,
         "n_neurons": int(config["n_neurons"]),
         "alpha": float(config["alpha"]),
+        "alpha_scale": _streaming_alpha_scale(config),
+        "stats_dtype": _streaming_stats_dtype(config),
         "n_tasks": int(run_context.get("n_tasks", config.get("n_tasks", 10))),
         "center_policy": str(config.get("center_policy", "first")),
         "batch_size": int(config.get("batch_size", 256)),
@@ -893,8 +993,14 @@ def _parse_streaming_diag_cell(raw: object, config: dict, run_context: dict) -> 
             parsed["n_neurons"] = int(tok[1:])
         elif tok.startswith("a"):
             parsed["alpha"] = float(tok[1:])
+        elif tok in {"fixed", "trace"}:
+            parsed["alpha_scale"] = tok
         elif tok.startswith("t"):
             parsed["n_tasks"] = int(tok[1:])
+        elif tok in {"f32", "stats32"}:
+            parsed["stats_dtype"] = "float32"
+        elif tok in {"f64", "stats64"}:
+            parsed["stats_dtype"] = "float64"
         else:
             raise ValueError(f"unknown streaming diagnostic token {tok!r} in {text!r}")
         i += 1
@@ -962,7 +1068,9 @@ def _streaming_diag_run(config: dict, seed: int, run_context: dict) -> dict:
 
     n_tasks = int(diag["n_tasks"])
     n_neurons = int(diag["n_neurons"])
-    alpha = float(diag["alpha"])
+    alpha_nominal = float(diag["alpha"])
+    alpha_scale = str(diag["alpha_scale"])
+    stats_dtype = str(diag["stats_dtype"])
     center_policy = str(diag["center_policy"])
     solver_mode = "accumulate_final" if diag["mode"] == "exact" else "woodbury_online"
     device = torch.device(
@@ -1009,7 +1117,32 @@ def _streaming_diag_run(config: dict, seed: int, run_context: dict) -> dict:
         model.bias.zero_()
 
     t0 = time.perf_counter()
-    for perm in train_perms:
+    alpha_trace: float | None = None
+    alpha_trace_per_neuron: float | None = None
+    if alpha_scale == "trace":
+        _accumulate_streaming_permuted_tasks(
+            model,
+            x_flat=x_train,
+            y=y_train,
+            perms=train_perms,
+            n_classes=bundle.n_classes,
+            batch_size=batch_size,
+            device=device,
+            max_tokens=max_tokens,
+            chunk_stats=chunk_stats,
+            stats_dtype=stats_dtype,
+        )
+        alpha, alpha_trace, alpha_trace_per_neuron = _streaming_effective_alpha(
+            model, alpha=alpha_nominal, alpha_scale=alpha_scale
+        )
+    else:
+        alpha = alpha_nominal
+
+    for perm_idx, perm in enumerate(train_perms):
+        if alpha_scale == "trace" and solver_mode == "accumulate_final":
+            break
+        if alpha_scale == "trace" and perm_idx == 0:
+            model.reset_continuous()
         for _, _, xb, yb in _iter_permuted_sequence_batches(
             x_train, y_train, perm, batch_size=batch_size, device=device
         ):
@@ -1020,9 +1153,16 @@ def _streaming_diag_run(config: dict, seed: int, run_context: dict) -> dict:
                     targets,
                     max_tokens=max_tokens,
                     chunk_stats=chunk_stats,
+                    stats_dtype=stats_dtype,
                 )
             else:
-                model.continuous_fit(xb, targets, alpha=alpha, max_tokens=max_tokens)
+                model.continuous_fit(
+                    xb,
+                    targets,
+                    alpha=alpha,
+                    max_tokens=max_tokens,
+                    stats_dtype=stats_dtype,
+                )
     if solver_mode == "accumulate_final":
         model.solve(alpha=alpha)
     fit_s = time.perf_counter() - t0
@@ -1043,7 +1183,14 @@ def _streaming_diag_run(config: dict, seed: int, run_context: dict) -> dict:
         "solver_mode": solver_mode,
         "effective_n_neurons": n_neurons,
         "effective_n_tasks": n_tasks,
-        "alpha": alpha,
+        "alpha": alpha_nominal,
+        "alpha_scale": alpha_scale,
+        "alpha_effective": round(float(alpha), 9),
+        "alpha_trace": None if alpha_trace is None else round(float(alpha_trace), 6),
+        "alpha_trace_per_neuron": (
+            None if alpha_trace_per_neuron is None else round(float(alpha_trace_per_neuron), 9)
+        ),
+        "stats_dtype": stats_dtype,
         "window_size": window_size,
         "center_samples": center_samples,
         "center_policy": center_policy,

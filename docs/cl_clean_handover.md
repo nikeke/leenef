@@ -114,6 +114,11 @@ artifacts for manual import back into this branch.
 
 ## H8 streaming-continual GPU panel
 
+Status: **superseded by the trace-scaled-alpha repair package below**.
+Do not run the old no-argument commands for new evidence.  They are kept
+only to document the historical fixed-$\alpha$ panel and to reproduce it
+explicitly if needed for audit.
+
 Use Colab/GPU for this panel.  CPU single-task permuted-sMNIST already
 costs tens of minutes per seed at larger neuron counts, and the H8 panel
 multiplies that by 10 task permutations and several solver modes.  A G4
@@ -139,13 +144,15 @@ The notebook follows the Paper-I Colab pattern literally:
 Quick validation:
 
 ```bash
-python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py --quick --seeds 0
+python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py \
+    --quick --seeds 0 --alpha 1e-3 --alpha-scale fixed
 ```
 
-Default full panel:
+Historical fixed-$\alpha$ full panel:
 
 ```bash
-python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py --seeds 0-4
+python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py \
+    --seeds 0-4 --alpha 1e-3 --alpha-scale fixed
 ```
 
 Default cells:
@@ -165,7 +172,8 @@ reset_n8000
 Optional extension (only after the default panel lands):
 
 ```bash
-python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py --seeds 0-4 --extended
+python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py \
+    --seeds 0-4 --extended --alpha 1e-3 --alpha-scale fixed
 ```
 
 The extension adds:
@@ -227,19 +235,22 @@ colab/cl_clean/streaming_permuted_smnist_diagnostics.ipynb
 Quick validation:
 
 ```bash
-python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py --quick --seeds 0
+python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py \
+    --quick --seeds 0
 ```
 
 Default diagnostic panel:
 
 ```bash
-python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py --seeds 0-1
+python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py \
+    --seeds 0-1
 ```
 
 Optional 16k extension:
 
 ```bash
-python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py --seeds 0-1 --extended
+python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py \
+    --seeds 0-1 --extended
 ```
 
 Imported outputs:
@@ -266,6 +277,107 @@ Result read:
    data-driven bias is part of the failure mode.
 5. `bs128`, `bs512`, `reverse`: Woodbury remains 56.3% at 4000 neurons,
    so the advantage is not a tested batch-size or task-order accident.
+
+## H8 trace-scaled-alpha repair package
+
+Status: **ready to run**.  This supersedes the old fixed-$\alpha$ H8
+streaming-continual interpretation.  The old rows remain useful as a
+failure diagnostic, but they are not final Paper-II numbers because the
+panel did not carry over Paper I's trace-scaled streaming regularizer.
+
+Scope decision after audit:
+
+* **Do not rerun the static CL panels** (B1/B3/B4/C1/C2) for this issue.
+  They use `NEFLayer.solve_accumulated()`, which calls
+  `solve_from_normal_equations()` and therefore applies
+  $\alpha \cdot \mathrm{tr}(A^\top A) / n$.
+* **Do not rerun MLP/EWC/ER baselines** for this issue.  They do not use
+  NEF ridge regularization.
+* **Treat §5.4 solver-mode rows carefully.**  They remain a valid tuned
+  operational comparison, but `accumulate` uses trace-scaled alpha while
+  Woodbury uses a fixed inverse regularizer.  They should not be used as a
+  same-alpha identity proof.
+* **Rerun H8 only.**  `StreamingNEFClassifier.solve()` and
+  `continuous_fit()` intentionally take fixed alpha; Paper I wrapped them
+  in a pilot pass to compute `alpha_eff = alpha * trace(A^T A) / n`, but
+  the H8 CL runner did not.  That was the scale bug.
+
+Stage A — mandatory repair diagnostic (choose alpha and check precision):
+
+```bash
+python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py \
+    --quick --trace-repair --seeds 0
+
+python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py \
+    --trace-repair --seeds 0-1
+```
+
+The default trace-repair diagnostic runs 50 rows:
+
+* `exact` and `woodbury` at 4000 and 8000 neurons;
+* trace-scaled nominal alpha in
+  `{1e-8, 1e-7, 1e-6, 1e-5, 1e-4}`;
+* float32 normal-equation GEMMs for the main grid;
+* float64 exact-solve normal-equation GEMMs at 4000 neurons for the same
+  alpha values.
+
+Estimated G4 time: roughly **3-5 hours** for Stage A, based on the prior
+66-row fixed-alpha diagnostic taking 3.3 hours of summed row wall time.
+Use the optional extension only if Stage A leaves ambiguity:
+
+```bash
+python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py \
+    --trace-repair --extended --seeds 0-1
+```
+
+The extension adds 16000-neuron trace-scaled exact/Woodbury rows and
+8000-neuron float64 exact rows.  Estimated G4 time for default+extended:
+roughly **5-8 hours**.
+
+Expected Stage-A outputs:
+
+```text
+results/cl_clean/gpu_h8_streaming_trace_repair_diagnostics.json
+results/cl_clean/logs/gpu_h8_streaming_trace_repair_diagnostics.log
+results/cl_clean/colab_gpu_configs/base_config_gpu_h8_streaming_diagnostics.json
+results/cl_clean/cl_clean_streaming_smnist_diagnostics_bundle.zip
+```
+
+Stage-A decision rule:
+
+1. Pick the smallest trace-scaled nominal alpha whose exact solve is on
+   the accuracy plateau at both 4000 and 8000 neurons.
+2. If float64 exact rows materially differ from float32 exact rows at the
+   chosen alpha, rerun the headline with `--stats-dtype float64`.
+   Otherwise use `float32` statistics for cost.
+3. Only after Stage A is imported and checked should the 5-seed headline
+   panel be run.
+
+Stage B — 5-seed repaired headline panel (run only after Stage A picks
+`<alpha>` and `<stats_dtype>`):
+
+```bash
+python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py \
+    --quick --seeds 0 --alpha <alpha> --alpha-scale trace --stats-dtype <stats_dtype>
+
+python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py \
+    --seeds 0-4 --extended --alpha <alpha> --alpha-scale trace --stats-dtype <stats_dtype>
+```
+
+The repaired headline phase writes a distinct JSON, e.g. for
+`--alpha 1e-7 --stats-dtype float32`:
+
+```text
+results/cl_clean/gpu_h8_streaming_trace_a1em07_float32_panel.json
+results/cl_clean/logs/gpu_h8_streaming_trace_a1em07_float32_panel.log
+results/cl_clean/colab_gpu_configs/base_config_gpu_h8_streaming_trace_a1em07_float32.json
+results/cl_clean/cl_clean_streaming_smnist_gpu_bundle.zip
+```
+
+Estimated G4 time: roughly **4-6 hours** for the 5-seed headline with the
+16k extension.  Trace scaling adds a pilot accumulation pass for Woodbury
+and task-solve cells, so expect it to be slower than the prior fixed-alpha
+panel but still comfortably below an overnight Colab slot.
 
 ## Driver edits
 

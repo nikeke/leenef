@@ -84,19 +84,22 @@ reset_n8000
 Default command:
 
 ```bash
-python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py --seeds 0-4
+python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py \
+  --seeds 0-4 --extended --alpha <chosen-alpha> --alpha-scale trace --stats-dtype <chosen-dtype>
 ```
 
 Quick validation:
 
 ```bash
-python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py --quick --seeds 0
+python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py \
+  --quick --seeds 0 --alpha <chosen-alpha> --alpha-scale trace --stats-dtype <chosen-dtype>
 ```
 
 Optional extension:
 
 ```bash
-python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py --seeds 0-4 --extended
+python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py \
+  --seeds 0-4 --extended --alpha <chosen-alpha> --alpha-scale trace --stats-dtype <chosen-dtype>
 ```
 
 Use G4 if available, L4 fallback.  The suite is expected to be too slow
@@ -126,19 +129,20 @@ runner.  The default is deliberately diagnostic rather than paper-grade:
 Default command:
 
 ```bash
-python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py --seeds 0-1
+python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py --trace-repair --seeds 0-1
 ```
 
 Quick validation:
 
 ```bash
-python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py --quick --seeds 0
+python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py --trace-repair --quick --seeds 0
 ```
 
 Optional 16k extension:
 
 ```bash
-python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py --seeds 0-1 --extended
+python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py \
+  --trace-repair --seeds 0-1 --extended
 ```
 
 Use **G4** if available.  Based on the completed H8 G4 panel, the

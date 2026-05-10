@@ -65,14 +65,26 @@ def _ensure_mnist_raw() -> None:
             shutil.copyfileobj(src, dst)
 
 
-def _write_gpu_config() -> Path:
+def _alpha_label(alpha: float) -> str:
+    return f"{alpha:g}".replace("-", "m").replace(".", "p")
+
+
+def _write_gpu_config(*, alpha: float, alpha_scale: str, stats_dtype: str) -> Path:
     src = RESULTS_DIR / "base_config_h8_streaming_permuted_smnist.json"
     if not src.exists():
         raise FileNotFoundError(f"base config not found: {src}")
     cfg = json.loads(src.read_text())
+    cfg["alpha"] = alpha
+    cfg["alpha_scale"] = alpha_scale
+    cfg["stats_dtype"] = stats_dtype
     cfg["device"] = "cuda"
     GPU_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    dst = GPU_CONFIG_DIR / "base_config_gpu_h8_streaming_permuted_smnist.json"
+    suffix = (
+        "gpu_h8_streaming_permuted_smnist"
+        if alpha_scale == "fixed"
+        else f"gpu_h8_streaming_trace_a{_alpha_label(alpha)}_{stats_dtype}"
+    )
+    dst = GPU_CONFIG_DIR / f"base_config_{suffix}.json"
     dst.write_text(json.dumps(cfg, indent=2, sort_keys=True) + "\n")
     return dst
 
@@ -165,7 +177,15 @@ def _values(*, quick: bool, extended: bool) -> str:
     return ",".join(values)
 
 
-def run_suite(seeds: str, *, quick: bool, extended: bool) -> tuple[list[Path], Path]:
+def run_suite(
+    seeds: str,
+    *,
+    quick: bool,
+    extended: bool,
+    alpha: float,
+    alpha_scale: str,
+    stats_dtype: str,
+) -> tuple[list[Path], Path]:
     from benchmarks.cl_clean.cl_repro import code_identity
     from benchmarks.cl_clean.experiments import names
 
@@ -173,12 +193,17 @@ def run_suite(seeds: str, *, quick: bool, extended: bool) -> tuple[list[Path], P
         raise SystemExit("This checkout does not contain h8_streaming_permuted_smnist.")
 
     print(f"[streaming-suite] code_identity={code_identity()}", flush=True)
-    cfg = _write_gpu_config()
-    phase = (
-        "gpu_h8_streaming_permuted_smnist_quick"
-        if quick
-        else "gpu_h8_streaming_permuted_smnist_panel"
-    )
+    cfg = _write_gpu_config(alpha=alpha, alpha_scale=alpha_scale, stats_dtype=stats_dtype)
+    if quick:
+        phase = (
+            "gpu_h8_streaming_trace_quick"
+            if alpha_scale == "trace"
+            else "gpu_h8_streaming_permuted_smnist_quick"
+        )
+    elif alpha_scale == "trace":
+        phase = f"gpu_h8_streaming_trace_a{_alpha_label(alpha)}_{stats_dtype}_panel"
+    else:
+        phase = "gpu_h8_streaming_permuted_smnist_panel"
     outputs = [
         _run_phase(
             phase=phase,
@@ -196,11 +221,36 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--seeds", default="0-4", help="Seed list/range passed to cl_phase_runner")
     parser.add_argument("--quick", action="store_true", help="Run a one-cell validation")
     parser.add_argument("--extended", action="store_true", help="Also run 16k-neuron cells")
+    parser.add_argument(
+        "--alpha",
+        type=float,
+        default=1e-4,
+        help="Nominal alpha. With --alpha-scale trace this is multiplied by trace(A^T A)/n.",
+    )
+    parser.add_argument(
+        "--alpha-scale",
+        choices=("fixed", "trace"),
+        default="trace",
+        help="Use fixed alpha or Paper-I-style trace-scaled alpha.",
+    )
+    parser.add_argument(
+        "--stats-dtype",
+        choices=("float32", "float64"),
+        default="float32",
+        help="Dtype for normal-equation GEMMs before float64 accumulation.",
+    )
     args = parser.parse_args(argv)
 
     _verify_cuda()
     _ensure_mnist_raw()
-    outputs, bundle = run_suite(args.seeds, quick=args.quick, extended=args.extended)
+    outputs, bundle = run_suite(
+        args.seeds,
+        quick=args.quick,
+        extended=args.extended,
+        alpha=args.alpha,
+        alpha_scale=args.alpha_scale,
+        stats_dtype=args.stats_dtype,
+    )
     for path in outputs:
         _summarize(path)
     print("\n[streaming-suite] result files:")

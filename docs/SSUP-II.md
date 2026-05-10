@@ -30,13 +30,11 @@ joint MLP remain stronger on Permuted-MNIST, and absolute accuracy is
 bounded by the feature map.  Capacity scales smoothly with neuron budget
 per task, and a gradient-free ConvNEF front end lifts Split-CIFAR-10
 from 49.5 % to **74.7 ± 0.1 %** without breaking the additivity identity.
-A streaming-continual follow-up marks the boundary: exact accumulate
-and joint fits still coincide through a mean-pooled delay-line feature
-map, but the headline regularizer is many orders of magnitude under
-the trace-fraction scale Paper I established for that feature stack,
-so the exact final solve is weak on 10-task permuted sMNIST while
-online Woodbury reaches **59.8 ± 0.3 %** by acting as an implicit
-regularizer in signal-free directions.
+A streaming-continual follow-up is being rerun after an audit found
+that its first panel used fixed rather than trace-scaled regularization;
+the fixed-$\alpha$ rows are retained only as a diagnostic showing that
+mean-pooled delay-line features can be badly under-regularized if Paper I's
+scale rule is not carried through.
 
 ---
 
@@ -1035,6 +1033,14 @@ solver-overhead, not numerical disagreement.
 
 ### §5.7 — Streaming continual is a boundary case, not a free corollary
 
+**Status.**  The rows in this section are now treated as a fixed-$\alpha$
+diagnostic, not as the final streaming-continual headline.  The audit after
+the H8 diagnostic bundle found that this panel did not carry over Paper I's
+trace-scaled streaming regularizer.  The exact accumulate/joint equality
+reported below remains valid, but the absolute accuracies and the
+Woodbury/exact split must be rerun under a trace-scaled $\alpha$ policy
+before they can support final claims.
+
 The last panel asks whether the same story carries through the
 streaming classifier of Paper I §6.  Each task is a full MNIST
 classification problem under a fresh fixed pixel permutation, reshaped
@@ -1410,10 +1416,12 @@ single JSON file:
   (10 seeds × 6 cells) and
   `results/cl_clean/gpu_c2_flat_nef_split_cifar10_panel.json`
   (10 seeds × 1 cell).
-- §5.7: `results/cl_clean/gpu_h8_streaming_permuted_smnist_panel.json`,
-  5 seeds × 12 cells, imported from the streaming-sMNIST Colab suite;
-  and `results/cl_clean/gpu_h8_streaming_diagnostics.json`, 2 seeds ×
-  33 cells, imported from the diagnostic Colab suite.
+- §5.7: fixed-$\alpha$ diagnostic rows in
+  `results/cl_clean/gpu_h8_streaming_permuted_smnist_panel.json`,
+  5 seeds × 12 cells, and
+  `results/cl_clean/gpu_h8_streaming_diagnostics.json`, 2 seeds ×
+  33 cells.  These rows are retained for failure analysis; the
+  trace-scaled H8 repair panel is prepared but not yet imported.
 
 **Driver and runner.**  Each panel was launched via
 `benchmarks/cl_clean/cl_phase_runner.py`.  The runner is

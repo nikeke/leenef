@@ -79,6 +79,30 @@ EXTENDED_CELLS = [
     "woodbury_n16000_a1e-2_t10",
 ]
 
+TRACE_REPAIR_CELLS = [
+    # Trace-scaled alpha sweep around the fixed-alpha values that looked
+    # promising in the first diagnostic bundle.  Nominal 1e-7 corresponds
+    # to an effective regularizer near the old fixed 1e-2 at n=4000.
+    *[
+        f"{mode}_trace_f32_n{n}_a{alpha}_t10"
+        for n in (4000, 8000)
+        for alpha in ("1e-8", "1e-7", "1e-6", "1e-5", "1e-4")
+        for mode in ("exact", "woodbury")
+    ],
+    # Precision check: does float64 normal-equation accumulation change the
+    # exact solve once alpha is scaled correctly?
+    *[f"exact_trace_f64_n4000_a{alpha}_t10" for alpha in ("1e-8", "1e-7", "1e-6", "1e-5", "1e-4")],
+]
+
+TRACE_REPAIR_EXTENDED_CELLS = [
+    *[
+        f"{mode}_trace_f32_n16000_a{alpha}_t10"
+        for alpha in ("1e-8", "1e-7", "1e-6", "1e-5", "1e-4")
+        for mode in ("exact", "woodbury")
+    ],
+    *[f"exact_trace_f64_n8000_a{alpha}_t10" for alpha in ("1e-8", "1e-7", "1e-6", "1e-5", "1e-4")],
+]
+
 
 def _verify_cuda() -> None:
     if not torch.cuda.is_available():
@@ -190,16 +214,23 @@ def _bundle_artifacts(outputs: list[Path], configs: list[Path]) -> Path:
     return BUNDLE_PATH
 
 
-def _values(*, quick: bool, extended: bool) -> str:
+def _values(*, quick: bool, extended: bool, trace_repair: bool) -> str:
     if quick:
-        return "refresh_n500_a1e-3_t2"
+        return "exact_trace_f32_n500_a1e-7_t2" if trace_repair else "refresh_n500_a1e-3_t2"
+    if trace_repair:
+        values = list(TRACE_REPAIR_CELLS)
+        if extended:
+            values.extend(TRACE_REPAIR_EXTENDED_CELLS)
+        return ",".join(values)
     values = list(DEFAULT_CELLS)
     if extended:
         values.extend(EXTENDED_CELLS)
     return ",".join(values)
 
 
-def run_suite(seeds: str, *, quick: bool, extended: bool) -> tuple[list[Path], Path]:
+def run_suite(
+    seeds: str, *, quick: bool, extended: bool, trace_repair: bool
+) -> tuple[list[Path], Path]:
     from benchmarks.cl_clean.cl_repro import code_identity
     from benchmarks.cl_clean.experiments import names
 
@@ -208,11 +239,22 @@ def run_suite(seeds: str, *, quick: bool, extended: bool) -> tuple[list[Path], P
 
     print(f"[h8-diagnostics] code_identity={code_identity()}", flush=True)
     cfg = _write_gpu_config()
-    phase = "gpu_h8_streaming_diagnostics_quick" if quick else "gpu_h8_streaming_diagnostics"
+    if quick:
+        phase = (
+            "gpu_h8_streaming_trace_repair_quick"
+            if trace_repair
+            else "gpu_h8_streaming_diagnostics_quick"
+        )
+    else:
+        phase = (
+            "gpu_h8_streaming_trace_repair_diagnostics"
+            if trace_repair
+            else "gpu_h8_streaming_diagnostics"
+        )
     outputs = [
         _run_phase(
             phase=phase,
-            values=_values(quick=quick, extended=extended),
+            values=_values(quick=quick, extended=extended, trace_repair=trace_repair),
             seeds=seeds,
             base_config=cfg,
         )
@@ -230,11 +272,21 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--quick", action="store_true", help="Run a one-cell validation")
     parser.add_argument("--extended", action="store_true", help="Also run 16k-neuron cells")
+    parser.add_argument(
+        "--trace-repair",
+        action="store_true",
+        help="Run the trace-scaled-alpha / float64-statistics H8 repair diagnostic grid",
+    )
     args = parser.parse_args(argv)
 
     _verify_cuda()
     _ensure_mnist_raw()
-    outputs, bundle = run_suite(args.seeds, quick=args.quick, extended=args.extended)
+    outputs, bundle = run_suite(
+        args.seeds,
+        quick=args.quick,
+        extended=args.extended,
+        trace_repair=args.trace_repair,
+    )
     for path in outputs:
         _summarize(path)
     print("\n[h8-diagnostics] result files:")

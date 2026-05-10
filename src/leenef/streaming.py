@@ -17,6 +17,30 @@ from .layers import _make_gain
 from .solvers import solve_decoders
 
 
+def _normal_equation_inputs(
+    activities: Tensor,
+    targets: Tensor,
+    *,
+    stats_dtype: str | torch.dtype | None,
+) -> tuple[Tensor, Tensor]:
+    if stats_dtype is None or stats_dtype == "preserve":
+        A = (
+            activities.float()
+            if activities.dtype in (torch.float16, torch.bfloat16)
+            else activities
+        )
+        T = targets.float() if targets.dtype in (torch.float16, torch.bfloat16) else targets
+        return A, T
+    if stats_dtype in ("float32", torch.float32):
+        return activities.float(), targets.float()
+    if stats_dtype in ("float64", torch.float64):
+        return activities.double(), targets.double()
+    raise ValueError(
+        f"stats_dtype must be one of None, 'preserve', 'float32', or 'float64'; "
+        f"got {stats_dtype!r}"
+    )
+
+
 class StreamingNEFClassifier(nn.Module):
     """Classify variable-length sequences via temporal NEF encoding.
 
@@ -194,6 +218,7 @@ class StreamingNEFClassifier(nn.Module):
         targets: Tensor,
         alpha: float = 1e-2,
         max_tokens: int = 50_000,
+        stats_dtype: str | torch.dtype | None = None,
     ) -> None:
         """Accumulate sequences and update decoders via Woodbury updates.
 
@@ -207,8 +232,9 @@ class StreamingNEFClassifier(nn.Module):
         # Keeping the dtypes aligned across the two paths is what lets
         # H3 (woodbury vs accumulate vs batch_acc) be a real equivalence
         # check rather than a noise floor comparison.
-        ata = (A.T @ A).double()
-        aty = (A.T @ targets).double()
+        A_stats, T_stats = _normal_equation_inputs(A, targets, stats_dtype=stats_dtype)
+        ata = (A_stats.T @ A_stats).double()
+        aty = (A_stats.T @ T_stats).double()
 
         if not hasattr(self, "_ata") or self._ata is None:
             self.register_buffer("_ata", ata)
@@ -244,14 +270,21 @@ class StreamingNEFClassifier(nn.Module):
 
         self.decoders.data.copy_((self._M_inv @ self._aty.double()).to(self.decoders.dtype))
 
-    def _accumulate_encoded(self, A: Tensor, targets: Tensor) -> None:
+    def _accumulate_encoded(
+        self,
+        A: Tensor,
+        targets: Tensor,
+        *,
+        stats_dtype: str | torch.dtype | None = None,
+    ) -> None:
         """Accumulate ``AᵀA`` / ``AᵀY`` from an encoded chunk.
 
         Float32 GEMMs, float64 running stats — see :meth:`accumulate`
         for the rationale.
         """
-        ata = (A.T @ A).double()
-        aty = (A.T @ targets).double()
+        A_stats, T_stats = _normal_equation_inputs(A, targets, stats_dtype=stats_dtype)
+        ata = (A_stats.T @ A_stats).double()
+        aty = (A_stats.T @ T_stats).double()
         if not hasattr(self, "_ata") or self._ata is None:
             self.register_buffer("_ata", ata)
             self.register_buffer("_aty", aty)
@@ -266,6 +299,7 @@ class StreamingNEFClassifier(nn.Module):
         targets: Tensor,
         max_tokens: int = 50_000,
         chunk_stats: bool = False,
+        stats_dtype: str | torch.dtype | None = None,
     ) -> None:
         """Accumulate normal-equation statistics without solving.
 
@@ -287,10 +321,10 @@ class StreamingNEFClassifier(nn.Module):
         """
         if chunk_stats:
             for s, e, A in self._encoded_sequence_chunks(x_seq, max_tokens):
-                self._accumulate_encoded(A, targets[s:e])
+                self._accumulate_encoded(A, targets[s:e], stats_dtype=stats_dtype)
             return
         A = self.encode_sequence(x_seq, max_tokens=max_tokens)  # (N, n) — float32
-        self._accumulate_encoded(A, targets)
+        self._accumulate_encoded(A, targets, stats_dtype=stats_dtype)
 
     @torch.no_grad()
     def solve(self, alpha: float = 1e-2) -> None:
