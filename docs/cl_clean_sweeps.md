@@ -683,3 +683,47 @@ Phase verdict:
   continual learning is a free, solver-equivalent extension of the
   static CL story.  It should be framed as a promising online-Woodbury
   research line rather than folded into the main theorem.
+
+### 2026-05-10 — H8 diagnostic bundle
+
+* Source workflow:
+  `colab/cl_clean/streaming_permuted_smnist_diagnostics.py --seeds 0-1`
+  followed by the `--extended` cells.
+* Hardware in the imported rows: **Google Colab G4 GPU**, CUDA enabled,
+  NVIDIA RTX PRO 6000 Blackwell Server Edition, 95.0 GiB.
+* Code identity in all imported rows:
+  `04ba81858f3f0d2be8a3f4e4a8a03775f21a58dd`.
+* Imported artifacts:
+  `results/cl_clean/gpu_h8_streaming_diagnostics.json`,
+  `results/cl_clean/logs/gpu_h8_streaming_diagnostics.log`, and
+  `results/cl_clean/colab_gpu_configs/base_config_gpu_h8_streaming_diagnostics.json`.
+* Rows: 66/66 complete, no error rows, 2 seeds for each of 33 cells.
+
+Diagnostic summary (`test_accuracy`, mean ± SE):
+
+| Probe | Accuracy |
+| --- | ---: |
+| `refresh_n4000_a1e-3_t10` before refresh | 56.3% ± 0.4% |
+| `refresh_n4000_a1e-3_t10` after exact inverse refresh | 19.4% ± 4.5% |
+| `refresh_n8000_a1e-3_t10` before refresh | 58.3% ± 0.3% |
+| `refresh_n8000_a1e-3_t10` after exact inverse refresh | 14.6% ± 0.1% |
+| `refresh_n16000_a1e-3_t10` before refresh | 59.6% ± 0.2% |
+| `refresh_n16000_a1e-3_t10` after exact inverse refresh | 14.6% ± 0.0% |
+| `exact_n4000_a1e-2_t10` | 55.3% ± 0.6% |
+| `exact_center_zero_n4000_a1e-3_t10` | 52.7% ± 0.4% |
+| `woodbury_bs128_n4000_a1e-3_t10` | 56.3% ± 0.4% |
+| `woodbury_bs512_n4000_a1e-3_t10` | 56.3% ± 0.4% |
+| `woodbury_reverse_n4000_a1e-3_t10` | 56.3% ± 0.4% |
+
+Diagnostic verdict:
+
+* Exact inverse refresh collapses out of the high-Woodbury regime at
+  every width, so the H8 Woodbury result is a real online inverse-path
+  phenomenon, not the tiny static-panel refresh drift of §5.4.
+* The exact solve itself is fragile to regularization and bias framing:
+  at 4000 neurons, either $\alpha = 10^{-2}$ or zero bias recovers most
+  of the gap to Woodbury.
+* The Woodbury score is stable across the tested $\alpha$ values, batch
+  sizes, and reverse task order.  The likely mechanism is a robust
+  online inductive bias interacting with a badly conditioned mean-pooled
+  delay-line feature map.

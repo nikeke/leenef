@@ -16,13 +16,13 @@ responsibility.
 ## Abstract
 
 NEF's regularized least-squares solve over fixed-encoder neural
-activities — $D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$ — is a
-compact sufficient-statistics primitive for supervised learning.  In a
-rate-based specialization we call **leenef**, fixed encoders produce
-frame-coefficient-like activities and only the decoder is fit.  This
-primitive supports fast static classifiers, ensembles, online Woodbury
-updates, GPU-friendly accumulate-and-solve, and a streaming temporal
-classifier.  Under multi-seed, code-identity-tagged evaluation,
+activities — $D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$
+— is a compact sufficient-statistics primitive for supervised learning.
+In a rate-based specialization we call **leenef**, fixed encoders
+produce frame-coefficient-like activities and only the decoder is fit.
+This primitive supports fast static classifiers, ensembles, online
+Woodbury updates, GPU-friendly accumulate-and-solve, and a streaming
+temporal classifier.  Under multi-seed, code-identity-tagged evaluation,
 Stream-NEF reaches **98.45 ± 0.02 %** on row sMNIST: **0.6 pp below** a
 tuned near-best LSTM while using **2.4× less wall-clock time**, and
 **~5 pp above** the completed ESN row panel.  Static image classifiers

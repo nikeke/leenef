@@ -1,0 +1,122 @@
+[2026-05-09T19:55:52] phase=gpu_h8_streaming_diagnostics experiment=h8_streaming_permuted_smnist_diag knob=cell values=['refresh_n4000_a1e-3_t10', 'refresh_n8000_a1e-3_t10', 'exact_n4000_a1e-4_t10', 'woodbury_n4000_a1e-4_t10', 'exact_n4000_a1e-3_t10', 'woodbury_n4000_a1e-3_t10', 'exact_n4000_a1e-2_t10', 'woodbury_n4000_a1e-2_t10', 'exact_n8000_a1e-4_t10', 'woodbury_n8000_a1e-4_t10', 'exact_n8000_a1e-3_t10', 'woodbury_n8000_a1e-3_t10', 'exact_n8000_a1e-2_t10', 'woodbury_n8000_a1e-2_t10', 'exact_n4000_a1e-3_t1', 'woodbury_n4000_a1e-3_t1', 'exact_n4000_a1e-3_t2', 'woodbury_n4000_a1e-3_t2', 'exact_n4000_a1e-3_t5', 'woodbury_n4000_a1e-3_t5', 'exact_center_first_n4000_a1e-3_t10', 'exact_center_all_n4000_a1e-3_t10', 'exact_center_zero_n4000_a1e-3_t10', 'woodbury_bs128_n4000_a1e-3_t10', 'woodbury_bs512_n4000_a1e-3_t10', 'woodbury_reverse_n4000_a1e-3_t10'] seeds=[0, 1] code_identity=04ba81858f3f0d2be8a3f4e4a8a03775f21a58dd
+[2026-05-09T19:55:52]   [1/52] run    gpu_h8_streaming_diagnostics_refresh_n4000_a1e-3_t10_s0
+[2026-05-09T19:57:26]   [2/52] run    gpu_h8_streaming_diagnostics_refresh_n4000_a1e-3_t10_s1
+[2026-05-09T19:58:58]   [3/52] run    gpu_h8_streaming_diagnostics_refresh_n8000_a1e-3_t10_s0
+[2026-05-09T20:03:00]   [4/52] run    gpu_h8_streaming_diagnostics_refresh_n8000_a1e-3_t10_s1
+[2026-05-09T20:07:03]   [5/52] run    gpu_h8_streaming_diagnostics_exact_n4000_a1e-4_t10_s0
+[2026-05-09T20:07:57]   [6/52] run    gpu_h8_streaming_diagnostics_exact_n4000_a1e-4_t10_s1
+[2026-05-09T20:08:52]   [7/52] run    gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-4_t10_s0
+[2026-05-09T20:10:17]   [8/52] run    gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-4_t10_s1
+[2026-05-09T20:11:42]   [9/52] run    gpu_h8_streaming_diagnostics_exact_n4000_a1e-3_t10_s0
+[2026-05-09T20:12:37]   [10/52] run    gpu_h8_streaming_diagnostics_exact_n4000_a1e-3_t10_s1
+[2026-05-09T20:13:32]   [11/52] run    gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-3_t10_s0
+[2026-05-09T20:14:57]   [12/52] run    gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-3_t10_s1
+[2026-05-09T20:16:22]   [13/52] run    gpu_h8_streaming_diagnostics_exact_n4000_a1e-2_t10_s0
+[2026-05-09T20:17:17]   [14/52] run    gpu_h8_streaming_diagnostics_exact_n4000_a1e-2_t10_s1
+[2026-05-09T20:18:12]   [15/52] run    gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-2_t10_s0
+[2026-05-09T20:19:37]   [16/52] run    gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-2_t10_s1
+[2026-05-09T20:21:02]   [17/52] run    gpu_h8_streaming_diagnostics_exact_n8000_a1e-4_t10_s0
+[2026-05-09T20:23:02]   [18/52] run    gpu_h8_streaming_diagnostics_exact_n8000_a1e-4_t10_s1
+[2026-05-09T20:25:02]   [19/52] run    gpu_h8_streaming_diagnostics_woodbury_n8000_a1e-4_t10_s0
+[2026-05-09T20:28:49]   [20/52] run    gpu_h8_streaming_diagnostics_woodbury_n8000_a1e-4_t10_s1
+[2026-05-09T20:32:37]   [21/52] run    gpu_h8_streaming_diagnostics_exact_n8000_a1e-3_t10_s0
+[2026-05-09T20:34:37]   [22/52] run    gpu_h8_streaming_diagnostics_exact_n8000_a1e-3_t10_s1
+[2026-05-09T20:36:36]   [23/52] run    gpu_h8_streaming_diagnostics_woodbury_n8000_a1e-3_t10_s0
+[2026-05-09T20:40:24]   [24/52] run    gpu_h8_streaming_diagnostics_woodbury_n8000_a1e-3_t10_s1
+[2026-05-09T20:44:11]   [25/52] run    gpu_h8_streaming_diagnostics_exact_n8000_a1e-2_t10_s0
+[2026-05-09T20:46:11]   [26/52] run    gpu_h8_streaming_diagnostics_exact_n8000_a1e-2_t10_s1
+[2026-05-09T20:48:11]   [27/52] run    gpu_h8_streaming_diagnostics_woodbury_n8000_a1e-2_t10_s0
+[2026-05-09T20:51:59]   [28/52] run    gpu_h8_streaming_diagnostics_woodbury_n8000_a1e-2_t10_s1
+[2026-05-09T20:55:46]   [29/52] run    gpu_h8_streaming_diagnostics_exact_n4000_a1e-3_t1_s0
+[2026-05-09T20:55:52]   [30/52] run    gpu_h8_streaming_diagnostics_exact_n4000_a1e-3_t1_s1
+[2026-05-09T20:55:57]   [31/52] run    gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-3_t1_s0
+[2026-05-09T20:56:06]   [32/52] run    gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-3_t1_s1
+[2026-05-09T20:56:14]   [33/52] run    gpu_h8_streaming_diagnostics_exact_n4000_a1e-3_t2_s0
+[2026-05-09T20:56:25]   [34/52] run    gpu_h8_streaming_diagnostics_exact_n4000_a1e-3_t2_s1
+[2026-05-09T20:56:36]   [35/52] run    gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-3_t2_s0
+[2026-05-09T20:56:53]   [36/52] run    gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-3_t2_s1
+[2026-05-09T20:57:10]   [37/52] run    gpu_h8_streaming_diagnostics_exact_n4000_a1e-3_t5_s0
+[2026-05-09T20:57:38]   [38/52] run    gpu_h8_streaming_diagnostics_exact_n4000_a1e-3_t5_s1
+[2026-05-09T20:58:05]   [39/52] run    gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-3_t5_s0
+[2026-05-09T20:58:48]   [40/52] run    gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-3_t5_s1
+[2026-05-09T20:59:30]   [41/52] run    gpu_h8_streaming_diagnostics_exact_center_first_n4000_a1e-3_t10_s0
+[2026-05-09T21:00:25]   [42/52] run    gpu_h8_streaming_diagnostics_exact_center_first_n4000_a1e-3_t10_s1
+[2026-05-09T21:01:20]   [43/52] run    gpu_h8_streaming_diagnostics_exact_center_all_n4000_a1e-3_t10_s0
+[2026-05-09T21:02:15]   [44/52] run    gpu_h8_streaming_diagnostics_exact_center_all_n4000_a1e-3_t10_s1
+[2026-05-09T21:03:10]   [45/52] run    gpu_h8_streaming_diagnostics_exact_center_zero_n4000_a1e-3_t10_s0
+[2026-05-09T21:04:04]   [46/52] run    gpu_h8_streaming_diagnostics_exact_center_zero_n4000_a1e-3_t10_s1
+[2026-05-09T21:04:59]   [47/52] run    gpu_h8_streaming_diagnostics_woodbury_bs128_n4000_a1e-3_t10_s0
+[2026-05-09T21:06:35]   [48/52] run    gpu_h8_streaming_diagnostics_woodbury_bs128_n4000_a1e-3_t10_s1
+[2026-05-09T21:08:10]   [49/52] run    gpu_h8_streaming_diagnostics_woodbury_bs512_n4000_a1e-3_t10_s0
+[2026-05-09T21:09:35]   [50/52] run    gpu_h8_streaming_diagnostics_woodbury_bs512_n4000_a1e-3_t10_s1
+[2026-05-09T21:11:00]   [51/52] run    gpu_h8_streaming_diagnostics_woodbury_reverse_n4000_a1e-3_t10_s0
+[2026-05-09T21:12:25]   [52/52] run    gpu_h8_streaming_diagnostics_woodbury_reverse_n4000_a1e-3_t10_s1
+[2026-05-09T21:13:51] phase gpu_h8_streaming_diagnostics done — 52 rows in /content/leenef/results/cl_clean/gpu_h8_streaming_diagnostics.json
+[2026-05-09T21:14:40] phase=gpu_h8_streaming_diagnostics experiment=h8_streaming_permuted_smnist_diag knob=cell values=['refresh_n4000_a1e-3_t10', 'refresh_n8000_a1e-3_t10', 'exact_n4000_a1e-4_t10', 'woodbury_n4000_a1e-4_t10', 'exact_n4000_a1e-3_t10', 'woodbury_n4000_a1e-3_t10', 'exact_n4000_a1e-2_t10', 'woodbury_n4000_a1e-2_t10', 'exact_n8000_a1e-4_t10', 'woodbury_n8000_a1e-4_t10', 'exact_n8000_a1e-3_t10', 'woodbury_n8000_a1e-3_t10', 'exact_n8000_a1e-2_t10', 'woodbury_n8000_a1e-2_t10', 'exact_n4000_a1e-3_t1', 'woodbury_n4000_a1e-3_t1', 'exact_n4000_a1e-3_t2', 'woodbury_n4000_a1e-3_t2', 'exact_n4000_a1e-3_t5', 'woodbury_n4000_a1e-3_t5', 'exact_center_first_n4000_a1e-3_t10', 'exact_center_all_n4000_a1e-3_t10', 'exact_center_zero_n4000_a1e-3_t10', 'woodbury_bs128_n4000_a1e-3_t10', 'woodbury_bs512_n4000_a1e-3_t10', 'woodbury_reverse_n4000_a1e-3_t10', 'refresh_n16000_a1e-3_t10', 'exact_n16000_a1e-4_t10', 'woodbury_n16000_a1e-4_t10', 'exact_n16000_a1e-3_t10', 'woodbury_n16000_a1e-3_t10', 'exact_n16000_a1e-2_t10', 'woodbury_n16000_a1e-2_t10'] seeds=[0, 1] code_identity=04ba81858f3f0d2be8a3f4e4a8a03775f21a58dd
+[2026-05-09T21:14:40]   [1/66] skip   gpu_h8_streaming_diagnostics_refresh_n4000_a1e-3_t10_s0  (cached)
+[2026-05-09T21:14:40]   [2/66] skip   gpu_h8_streaming_diagnostics_refresh_n4000_a1e-3_t10_s1  (cached)
+[2026-05-09T21:14:40]   [3/66] skip   gpu_h8_streaming_diagnostics_refresh_n8000_a1e-3_t10_s0  (cached)
+[2026-05-09T21:14:40]   [4/66] skip   gpu_h8_streaming_diagnostics_refresh_n8000_a1e-3_t10_s1  (cached)
+[2026-05-09T21:14:40]   [5/66] skip   gpu_h8_streaming_diagnostics_exact_n4000_a1e-4_t10_s0  (cached)
+[2026-05-09T21:14:40]   [6/66] skip   gpu_h8_streaming_diagnostics_exact_n4000_a1e-4_t10_s1  (cached)
+[2026-05-09T21:14:40]   [7/66] skip   gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-4_t10_s0  (cached)
+[2026-05-09T21:14:40]   [8/66] skip   gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-4_t10_s1  (cached)
+[2026-05-09T21:14:40]   [9/66] skip   gpu_h8_streaming_diagnostics_exact_n4000_a1e-3_t10_s0  (cached)
+[2026-05-09T21:14:40]   [10/66] skip   gpu_h8_streaming_diagnostics_exact_n4000_a1e-3_t10_s1  (cached)
+[2026-05-09T21:14:40]   [11/66] skip   gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-3_t10_s0  (cached)
+[2026-05-09T21:14:40]   [12/66] skip   gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-3_t10_s1  (cached)
+[2026-05-09T21:14:40]   [13/66] skip   gpu_h8_streaming_diagnostics_exact_n4000_a1e-2_t10_s0  (cached)
+[2026-05-09T21:14:40]   [14/66] skip   gpu_h8_streaming_diagnostics_exact_n4000_a1e-2_t10_s1  (cached)
+[2026-05-09T21:14:40]   [15/66] skip   gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-2_t10_s0  (cached)
+[2026-05-09T21:14:40]   [16/66] skip   gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-2_t10_s1  (cached)
+[2026-05-09T21:14:40]   [17/66] skip   gpu_h8_streaming_diagnostics_exact_n8000_a1e-4_t10_s0  (cached)
+[2026-05-09T21:14:40]   [18/66] skip   gpu_h8_streaming_diagnostics_exact_n8000_a1e-4_t10_s1  (cached)
+[2026-05-09T21:14:40]   [19/66] skip   gpu_h8_streaming_diagnostics_woodbury_n8000_a1e-4_t10_s0  (cached)
+[2026-05-09T21:14:40]   [20/66] skip   gpu_h8_streaming_diagnostics_woodbury_n8000_a1e-4_t10_s1  (cached)
+[2026-05-09T21:14:40]   [21/66] skip   gpu_h8_streaming_diagnostics_exact_n8000_a1e-3_t10_s0  (cached)
+[2026-05-09T21:14:40]   [22/66] skip   gpu_h8_streaming_diagnostics_exact_n8000_a1e-3_t10_s1  (cached)
+[2026-05-09T21:14:40]   [23/66] skip   gpu_h8_streaming_diagnostics_woodbury_n8000_a1e-3_t10_s0  (cached)
+[2026-05-09T21:14:40]   [24/66] skip   gpu_h8_streaming_diagnostics_woodbury_n8000_a1e-3_t10_s1  (cached)
+[2026-05-09T21:14:40]   [25/66] skip   gpu_h8_streaming_diagnostics_exact_n8000_a1e-2_t10_s0  (cached)
+[2026-05-09T21:14:40]   [26/66] skip   gpu_h8_streaming_diagnostics_exact_n8000_a1e-2_t10_s1  (cached)
+[2026-05-09T21:14:40]   [27/66] skip   gpu_h8_streaming_diagnostics_woodbury_n8000_a1e-2_t10_s0  (cached)
+[2026-05-09T21:14:40]   [28/66] skip   gpu_h8_streaming_diagnostics_woodbury_n8000_a1e-2_t10_s1  (cached)
+[2026-05-09T21:14:40]   [29/66] skip   gpu_h8_streaming_diagnostics_exact_n4000_a1e-3_t1_s0  (cached)
+[2026-05-09T21:14:40]   [30/66] skip   gpu_h8_streaming_diagnostics_exact_n4000_a1e-3_t1_s1  (cached)
+[2026-05-09T21:14:40]   [31/66] skip   gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-3_t1_s0  (cached)
+[2026-05-09T21:14:40]   [32/66] skip   gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-3_t1_s1  (cached)
+[2026-05-09T21:14:40]   [33/66] skip   gpu_h8_streaming_diagnostics_exact_n4000_a1e-3_t2_s0  (cached)
+[2026-05-09T21:14:40]   [34/66] skip   gpu_h8_streaming_diagnostics_exact_n4000_a1e-3_t2_s1  (cached)
+[2026-05-09T21:14:40]   [35/66] skip   gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-3_t2_s0  (cached)
+[2026-05-09T21:14:40]   [36/66] skip   gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-3_t2_s1  (cached)
+[2026-05-09T21:14:40]   [37/66] skip   gpu_h8_streaming_diagnostics_exact_n4000_a1e-3_t5_s0  (cached)
+[2026-05-09T21:14:40]   [38/66] skip   gpu_h8_streaming_diagnostics_exact_n4000_a1e-3_t5_s1  (cached)
+[2026-05-09T21:14:40]   [39/66] skip   gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-3_t5_s0  (cached)
+[2026-05-09T21:14:40]   [40/66] skip   gpu_h8_streaming_diagnostics_woodbury_n4000_a1e-3_t5_s1  (cached)
+[2026-05-09T21:14:40]   [41/66] skip   gpu_h8_streaming_diagnostics_exact_center_first_n4000_a1e-3_t10_s0  (cached)
+[2026-05-09T21:14:40]   [42/66] skip   gpu_h8_streaming_diagnostics_exact_center_first_n4000_a1e-3_t10_s1  (cached)
+[2026-05-09T21:14:40]   [43/66] skip   gpu_h8_streaming_diagnostics_exact_center_all_n4000_a1e-3_t10_s0  (cached)
+[2026-05-09T21:14:40]   [44/66] skip   gpu_h8_streaming_diagnostics_exact_center_all_n4000_a1e-3_t10_s1  (cached)
+[2026-05-09T21:14:40]   [45/66] skip   gpu_h8_streaming_diagnostics_exact_center_zero_n4000_a1e-3_t10_s0  (cached)
+[2026-05-09T21:14:40]   [46/66] skip   gpu_h8_streaming_diagnostics_exact_center_zero_n4000_a1e-3_t10_s1  (cached)
+[2026-05-09T21:14:40]   [47/66] skip   gpu_h8_streaming_diagnostics_woodbury_bs128_n4000_a1e-3_t10_s0  (cached)
+[2026-05-09T21:14:40]   [48/66] skip   gpu_h8_streaming_diagnostics_woodbury_bs128_n4000_a1e-3_t10_s1  (cached)
+[2026-05-09T21:14:40]   [49/66] skip   gpu_h8_streaming_diagnostics_woodbury_bs512_n4000_a1e-3_t10_s0  (cached)
+[2026-05-09T21:14:40]   [50/66] skip   gpu_h8_streaming_diagnostics_woodbury_bs512_n4000_a1e-3_t10_s1  (cached)
+[2026-05-09T21:14:40]   [51/66] skip   gpu_h8_streaming_diagnostics_woodbury_reverse_n4000_a1e-3_t10_s0  (cached)
+[2026-05-09T21:14:40]   [52/66] skip   gpu_h8_streaming_diagnostics_woodbury_reverse_n4000_a1e-3_t10_s1  (cached)
+[2026-05-09T21:14:40]   [53/66] run    gpu_h8_streaming_diagnostics_refresh_n16000_a1e-3_t10_s0
+[2026-05-09T21:26:18]   [54/66] run    gpu_h8_streaming_diagnostics_refresh_n16000_a1e-3_t10_s1
+[2026-05-09T21:37:55]   [55/66] run    gpu_h8_streaming_diagnostics_exact_n16000_a1e-4_t10_s0
+[2026-05-09T21:42:37]   [56/66] run    gpu_h8_streaming_diagnostics_exact_n16000_a1e-4_t10_s1
+[2026-05-09T21:47:19]   [57/66] run    gpu_h8_streaming_diagnostics_woodbury_n16000_a1e-4_t10_s0
+[2026-05-09T21:58:21]   [58/66] run    gpu_h8_streaming_diagnostics_woodbury_n16000_a1e-4_t10_s1
+[2026-05-09T22:09:24]   [59/66] run    gpu_h8_streaming_diagnostics_exact_n16000_a1e-3_t10_s0
+[2026-05-09T22:14:06]   [60/66] run    gpu_h8_streaming_diagnostics_exact_n16000_a1e-3_t10_s1
+[2026-05-09T22:18:48]   [61/66] run    gpu_h8_streaming_diagnostics_woodbury_n16000_a1e-3_t10_s0
+[2026-05-09T22:29:50]   [62/66] run    gpu_h8_streaming_diagnostics_woodbury_n16000_a1e-3_t10_s1
+[2026-05-09T22:40:52]   [63/66] run    gpu_h8_streaming_diagnostics_exact_n16000_a1e-2_t10_s0
+[2026-05-09T22:45:34]   [64/66] run    gpu_h8_streaming_diagnostics_exact_n16000_a1e-2_t10_s1
+[2026-05-09T22:50:16]   [65/66] run    gpu_h8_streaming_diagnostics_woodbury_n16000_a1e-2_t10_s0
+[2026-05-09T23:01:19]   [66/66] run    gpu_h8_streaming_diagnostics_woodbury_n16000_a1e-2_t10_s1
+[2026-05-09T23:12:21] phase gpu_h8_streaming_diagnostics done — 66 rows in /content/leenef/results/cl_clean/gpu_h8_streaming_diagnostics.json

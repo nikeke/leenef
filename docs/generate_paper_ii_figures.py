@@ -234,7 +234,11 @@ def figure_f5() -> Path:
     """Streaming continual follow-up on permuted sMNIST."""
 
     rows = _load_rows(RESULTS / "gpu_h8_streaming_permuted_smnist_panel.json")
+    diag_rows = _load_rows(RESULTS / "gpu_h8_streaming_diagnostics.json")
     grouped = _group(rows, lambda r: str(r.get("config", {}).get("cell", r.get("value"))))
+    diag_grouped = _group(
+        diag_rows, lambda r: str(r.get("config", {}).get("cell", r.get("value")))
+    )
     series = [
         ("accumulate_final", "accumulate = joint", "C0", "o"),
         ("woodbury_online", "Woodbury online", "C2", "s"),
@@ -242,7 +246,8 @@ def figure_f5() -> Path:
     ]
     n_values = [4000, 8000, 16000]
 
-    fig, ax = plt.subplots(figsize=(7.4, 4.8))
+    fig, axes = plt.subplots(1, 2, figsize=(13.2, 4.8), gridspec_kw={"width_ratios": [1, 1.25]})
+    ax = axes[0]
     for prefix, label, color, marker in series:
         xs, vals, ses = [], [], []
         for n in n_values:
@@ -261,9 +266,38 @@ def figure_f5() -> Path:
     ax.set_xticklabels([str(n) for n in n_values])
     ax.set_xlabel("streaming neurons")
     ax.set_ylabel("final accuracy across 10 permutations (%)")
-    ax.set_title("Figure 5 -- Streaming continual follow-up")
+    ax.set_title("Width sweep (5 seeds)")
     ax.grid(True, which="both", alpha=0.3)
     ax.legend()
+
+    ax = axes[1]
+    probe_cells = [
+        ("refresh_n4000_a1e-3_t10", "Woodbury\nbefore refresh", "test_accuracy", "C2"),
+        ("refresh_n4000_a1e-3_t10", "After exact\ninverse refresh", "refresh_test_accuracy", "C3"),
+        ("exact_n4000_a1e-3_t10", "Exact\nalpha=1e-3", "test_accuracy", "C0"),
+        ("exact_n4000_a1e-2_t10", "Exact\nalpha=1e-2", "test_accuracy", "C4"),
+        ("exact_center_zero_n4000_a1e-3_t10", "Exact\nzero bias", "test_accuracy", "C5"),
+    ]
+    vals, ses, labels, colors = [], [], [], []
+    for cell, label, metric, color in probe_cells:
+        group = diag_grouped[cell]
+        accs = [100 * _metric(r, metric) for r in group]
+        vals.append(mean(accs))
+        ses.append(_se(accs))
+        labels.append(label)
+        colors.append(color)
+    xs = list(range(len(labels)))
+    ax.bar(xs, vals, yerr=ses, capsize=3, color=colors)
+    ax.set_xticks(xs)
+    ax.set_xticklabels(labels, fontsize=8)
+    ax.set_ylim(0, 65)
+    ax.set_ylabel("accuracy at 4000 neurons (%)")
+    ax.set_title("Mechanism probes (2 seeds)")
+    ax.grid(True, axis="y", alpha=0.3)
+    for x, val in zip(xs, vals):
+        ax.text(x, val + 1.0, f"{val:.1f}", ha="center", va="bottom", fontsize=8)
+
+    fig.suptitle("Figure 5 -- Streaming continual boundary")
     out = FIG_DIR / "cl_f5_streaming_continual.png"
     fig.tight_layout()
     fig.savefig(out, dpi=150)

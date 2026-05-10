@@ -15,22 +15,22 @@ responsibility.
 
 ## Abstract
 
-The regularized least-squares solve
-$D = (A^\top A + \alpha I)^{-1} A^\top Y$ becomes a continual learner
-when the encoder is fixed.  Because $A^\top A$ and $A^\top Y$ add over
-data partitions, sequential `partial_fit` over a task stream produces
-the **same** decoder as joint training over the union of tasks: the
-forgetting axis has length zero by construction.  Across Split-MNIST,
-Permuted-MNIST, Split-CIFAR-10, and Split-CIFAR-100, `nef_accumulate`
-matches `nef_joint` to **0.000000 pp** over 10 seeds.  This collapses the
-class-incremental forgetting modes of the tested gradient baselines
-(Split-MNIST: 97.0 % vs ~20.0 % for MLP-EWC and MLP-finetune), while
-still exposing honest limits: EWC and joint MLP remain stronger on
-Permuted-MNIST, and absolute accuracy is bounded by the feature map.
-Capacity scales smoothly with neuron budget per task, and a
-gradient-free ConvNEF front end lifts Split-CIFAR-10 from 49.5 % to
-**74.7 ± 0.1 %** without breaking the additivity identity.  A
-streaming-continual follow-up marks the boundary: exact accumulate and
+NEF's regularized least-squares solve over fixed-encoder neural
+activities — $D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$
+— is a compact sufficient-statistics primitive for continual learning.
+Because $A^\top A$ and $A^\top Y$ add over data partitions, sequential
+`partial_fit` over a task stream produces the **same** decoder as joint
+training over the union of tasks: the forgetting axis has length zero by
+construction.  Across Split-MNIST, Permuted-MNIST, Split-CIFAR-10, and
+Split-CIFAR-100, `nef_accumulate` matches `nef_joint` to 0.000000 pp
+over 10 seeds.  This collapses the class-incremental forgetting modes of
+the tested gradient baselines (Split-MNIST: **97.0 %** vs ~20.0 % for
+MLP-EWC and MLP-finetune), while still exposing honest limits: EWC and
+joint MLP remain stronger on Permuted-MNIST, and absolute accuracy is
+bounded by the feature map.  Capacity scales smoothly with neuron budget
+per task, and a gradient-free ConvNEF front end lifts Split-CIFAR-10
+from 49.5 % to **74.7 ± 0.1 %** without breaking the additivity identity.
+A streaming-continual follow-up marks the boundary: exact accumulate and
 joint fits still coincide through a mean-pooled delay-line feature map,
 but the exact final solve is weak on 10-task permuted sMNIST, while
 online Woodbury reaches **59.8 ± 0.3 %** without matching the exact
@@ -1039,7 +1039,10 @@ classification problem under a fresh fixed pixel permutation, reshaped
 as a 784-step sequence with one scalar per timestep.  The feature map is
 fixed from first-task centers and the model sees ten task permutations.
 The panel was run on a Google Colab G4 GPU (NVIDIA RTX PRO 6000
-Blackwell Server Edition, 95.0 GiB) with 5 seeds per cell.
+Blackwell Server Edition, 95.0 GiB) with 5 seeds per cell.  A
+follow-up diagnostic panel used the same hardware and 2 seeds per
+cell to test the mechanism rather than to establish paper-grade
+headline values.
 
 | Cell | n | Final accuracy | Fit time |
 | --- | ---: | ---: | ---: |
@@ -1070,18 +1073,40 @@ the online Woodbury path improves monotonically from 56.4 % to 59.8 %,
 well above the reset lower bound and far above the exact final solve at
 larger widths.
 
-This is not the same conclusion as §5.4.  In the static CL panels,
-Woodbury and offline accumulation are solver-equivalent when $\alpha$ is
-tuned.  In this streaming continual panel they are operationally
-different.  The imported rows do not include an exact-inverse refresh
-diagnostic, so we do not claim a mechanism; the conservative reading is
-that repeated online inverse updates are acting as a useful online
-regularizer or numerical path dependency for this ill-conditioned
-mean-pooled delay-line feature map.  That makes the result interesting,
-but it also makes it a boundary result: streaming continual learning is
-not a free corollary of the exact accumulate/joint identity.
+The diagnostic panel makes the mechanism clearer.  Refreshing the
+online Woodbury inverse by recomputing it from the accumulated normal
+equations collapses the classifier out of the high-accuracy Woodbury
+regime at every tested width: at $\alpha = 10^{-3}$, 4 000 neurons fall
+from **56.3 ± 0.4 %** before refresh to **19.4 ± 4.5 %** after refresh,
+8 000 neurons fall from **58.3 ± 0.3 %** to **14.6 ± 0.1 %**, and
+16 000 neurons fall from **59.6 ± 0.2 %** to **14.6 ± 0.0 %**.  This is
+not the small float64 drift of §5.4.  The decoder changes are large
+($10^3$ scale in max coefficient difference), so the useful Woodbury
+model is genuinely path-dependent.
 
-![Figure 5 -- Streaming continual follow-up on 10-task permuted sMNIST.  Exact accumulate and joint fits coincide at every width, but the online Woodbury path is the useful high-accuracy path in this panel.](figures/cl_f5_streaming_continual.png)
+Three additional probes keep the conclusion from becoming too simple.
+First, the Woodbury result is insensitive to the tested regularization
+range: at 4 000 neurons it stays at **56.0–56.3 %** across
+$\alpha \in \{10^{-4}, 10^{-3}, 10^{-2}\}$, and at 16 000 neurons it
+stays at **59.4–59.6 %**.  Second, the exact solve is highly sensitive
+to the feature framing: at 4 000 neurons, changing only the exact-solve
+regularizer from $10^{-3}$ to $10^{-2}$ raises accuracy from
+**38.7 ± 7.6 %** to **55.3 ± 0.6 %**, and zeroing the data-driven bias
+raises the $10^{-3}$ exact solve to **52.7 ± 0.4 %**.  Third, the
+Woodbury score is not a batch-size or task-order accident:
+batch sizes 128, 256, and 512, and reverse task order, all land at
+**56.3 ± 0.4 %** at 4 000 neurons.
+
+The direct reading is that the mean-pooled delay-line feature map has a
+badly conditioned exact final objective under first-task data-driven
+biases.  Online Woodbury supplies a stable and useful inductive bias
+that is robust to batch size, task order, and the tested $\alpha$ range,
+but it is no longer simply "the exact joint ridge solution reached
+online."  This makes the result promising for streaming applications and
+important as a boundary case: streaming continual learning is not a free
+corollary of the exact accumulate/joint identity.
+
+![Figure 5 -- Streaming continual follow-up on 10-task permuted sMNIST.  Exact accumulate and joint fits coincide at every width, but online Woodbury is the useful high-accuracy path.  The mechanism probes show that exact inverse refresh collapses the Woodbury decoder, while stronger exact regularization and zero-bias framing recover much of the 4 000-neuron gap.](figures/cl_f5_streaming_continual.png)
 
 ### §5.8 — Aggregate read
 
@@ -1193,18 +1218,19 @@ features rather than static image features.  The sufficient-statistic
 identity still holds there: the final accumulate solve and the joint
 solve are exactly tied at every tested width.  But that exact solution
 is not the best model in the panel.  Online Woodbury is much more
-accurate, while no longer matching the final exact solve.
+accurate, while no longer matching the final exact solve; exact inverse
+refresh destroys the Woodbury advantage rather than merely removing a
+small numerical drift.
 
 The right interpretation is not that the identity failed.  It did not.
 The right interpretation is that "same as joint" is only as useful as
 the joint objective and feature map are.  In the static panels the joint
 objective is the thing we want, and the sufficient-statistic primitive
 gets there without forgetting.  In the streaming panel, the exact
-mean-pooled joint solution appears to be a poor objective at larger
-widths, while the online inverse path supplies a different and more
-useful inductive bias.  That is promising for streaming applications,
-but it is no longer the clean Paper-II theorem; it is a new research
-line.
+mean-pooled joint solution is fragile to regularization and bias framing,
+while the online inverse path supplies a different and more useful
+inductive bias.  That is promising for streaming applications, but it is
+no longer the clean Paper-II theorem; it is a separate research line.
 
 ### Bridge to Paper III
 
@@ -1322,7 +1348,9 @@ single JSON file:
   `results/cl_clean/gpu_c2_flat_nef_split_cifar10_panel.json`
   (10 seeds × 1 cell).
 - §5.7: `results/cl_clean/gpu_h8_streaming_permuted_smnist_panel.json`,
-  5 seeds × 12 cells, imported from the streaming-sMNIST Colab suite.
+  5 seeds × 12 cells, imported from the streaming-sMNIST Colab suite;
+  and `results/cl_clean/gpu_h8_streaming_diagnostics.json`, 2 seeds ×
+  33 cells, imported from the diagnostic Colab suite.
 
 **Driver and runner.**  Each panel was launched via
 `benchmarks/cl_clean/cl_phase_runner.py`.  The runner is
@@ -1359,7 +1387,9 @@ Colab pattern through
 Google Colab G4 GPU (NVIDIA RTX PRO 6000 Blackwell Server
 Edition, 95.0 GiB); its rows carry a later H8 code identity and
 are audited as a homogeneous imported bundle rather than mixed
-with the CPU B-series rows.
+with the CPU B-series rows.  The H8 diagnostic panel uses the
+same hardware and notebook pattern through
+`colab/cl_clean/streaming_permuted_smnist_diagnostics.ipynb`.
 
 ---
 
@@ -1388,7 +1418,10 @@ artifact: under float64 accumulators, the drift is below $2.3 \times 10^{-5}$ in
 coefficient norm and 0.002 pp in test accuracy, and the two
 solvers produce statistically indistinguishable results at the
 tuned $\alpha$.  Whatever benefit the drift was conveying in
-float32 was not separable from its harm.
+float32 was not separable from its harm.  The streaming result in
+§5.7 is different: exact inverse refresh causes a large decoder change
+and a large accuracy collapse, so it is not the tiny static-panel drift
+reported here.
 
 **Trace-$\alpha$ as a universal regularizer.**  The intuition that
 $\alpha$ should scale with $\mathrm{tr}(A^\top A) / n$ across

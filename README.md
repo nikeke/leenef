@@ -41,13 +41,13 @@ for the repository's present claims, numbers, and caveats.
 Paper I abstract:
 
 > NEF's regularized least-squares solve over fixed-encoder neural
-> activities — $D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$ — is a
-> compact sufficient-statistics primitive for supervised learning.  In a
-> rate-based specialization we call **leenef**, fixed encoders produce
-> frame-coefficient-like activities and only the decoder is fit.  This
-> primitive supports fast static classifiers, ensembles, online Woodbury
-> updates, GPU-friendly accumulate-and-solve, and a streaming temporal
-> classifier.  Under multi-seed, code-identity-tagged evaluation,
+> activities — $D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$
+> — is a compact sufficient-statistics primitive for supervised learning.
+> In a rate-based specialization we call **leenef**, fixed encoders
+> produce frame-coefficient-like activities and only the decoder is fit.
+> This primitive supports fast static classifiers, ensembles, online
+> Woodbury updates, GPU-friendly accumulate-and-solve, and a streaming
+> temporal classifier.  Under multi-seed, code-identity-tagged evaluation,
 > Stream-NEF reaches **98.45 ± 0.02 %** on row sMNIST: **0.6 pp below** a
 > tuned near-best LSTM while using **2.4× less wall-clock time**, and
 > **~5 pp above** the completed ESN row panel.  Static image classifiers
@@ -60,22 +60,22 @@ Paper I abstract:
 
 Paper II abstract:
 
-> The same regularized least-squares solve
-> $D = (A^\top A + \alpha I)^{-1} A^\top Y$ becomes a continual learner
-> when the encoder is fixed.  Because $A^\top A$ and $A^\top Y$ add over
-> data partitions, sequential `partial_fit` over a task stream produces
-> the **same** decoder as joint training over the union of tasks: the
-> forgetting axis has length zero by construction.  Across Split-MNIST,
-> Permuted-MNIST, Split-CIFAR-10, and Split-CIFAR-100, `nef_accumulate`
-> matches `nef_joint` to **0.000000 pp** over 10 seeds.  This collapses the
-> class-incremental forgetting modes of the tested gradient baselines
-> (Split-MNIST: 97.0 % vs ~20.0 % for MLP-EWC and MLP-finetune), while
-> still exposing honest limits: EWC and joint MLP remain stronger on
-> Permuted-MNIST, and absolute accuracy is bounded by the feature map.
-> Capacity scales smoothly with neuron budget per task, and a
-> gradient-free ConvNEF front end lifts Split-CIFAR-10 from 49.5 % to
-> **74.7 ± 0.1 %** without breaking the additivity identity.  A
-> streaming-continual follow-up marks the boundary: exact accumulate and
+> NEF's regularized least-squares solve over fixed-encoder neural
+> activities — $D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$
+> — is a compact sufficient-statistics primitive for continual learning.
+> Because $A^\top A$ and $A^\top Y$ add over data partitions, sequential
+> `partial_fit` over a task stream produces the **same** decoder as joint
+> training over the union of tasks: the forgetting axis has length zero by
+> construction.  Across Split-MNIST, Permuted-MNIST, Split-CIFAR-10, and
+> Split-CIFAR-100, `nef_accumulate` matches `nef_joint` to 0.000000 pp
+> over 10 seeds.  This collapses the class-incremental forgetting modes of
+> the tested gradient baselines (Split-MNIST: **97.0 %** vs ~20.0 % for
+> MLP-EWC and MLP-finetune), while still exposing honest limits: EWC and
+> joint MLP remain stronger on Permuted-MNIST, and absolute accuracy is
+> bounded by the feature map.  Capacity scales smoothly with neuron budget
+> per task, and a gradient-free ConvNEF front end lifts Split-CIFAR-10
+> from 49.5 % to **74.7 ± 0.1 %** without breaking the additivity identity.
+> A streaming-continual follow-up marks the boundary: exact accumulate and
 > joint fits still coincide through a mean-pooled delay-line feature map,
 > but the exact final solve is weak on 10-task permuted sMNIST, while
 > online Woodbury reaches **59.8 ± 0.3 %** without matching the exact

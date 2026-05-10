@@ -215,10 +215,8 @@ The first H8 panel landed as a boundary result: exact
 higher.  The diagnostic panel is designed to explain that mechanism, not
 to chase a best configuration.
 
-Use Colab/GPU again.  The default diagnostic grid is 26 cells × 2 seeds
-and should take about **2 GPU hours on G4**; reserve **3 hours** to allow
-for setup, MNIST download, summary printing, and bundle download.  The
-optional 16k extension can add roughly **2-3 GPU hours**.
+Status: **complete**.  The default diagnostic grid and optional 16k
+extension produced 66 rows: 33 cells × 2 seeds.
 
 Notebook pattern:
 
@@ -244,7 +242,7 @@ Optional 16k extension:
 python -u colab/cl_clean/streaming_permuted_smnist_diagnostics.py --seeds 0-1 --extended
 ```
 
-Expected outputs:
+Imported outputs:
 
 ```text
 results/cl_clean/gpu_h8_streaming_diagnostics.json
@@ -253,20 +251,21 @@ results/cl_clean/colab_gpu_configs/base_config_gpu_h8_streaming_diagnostics.json
 results/cl_clean/cl_clean_streaming_smnist_diagnostics_bundle.zip
 ```
 
-Read the default panel in this order:
+Result read:
 
-1. `refresh_*`: if `refresh_test_accuracy` falls from the Woodbury
-   accuracy to the exact-solve accuracy, the high Woodbury result is
-   inverse-path/numerical regularization rather than a different
-   sufficient-statistic optimum.
-2. `exact_*` vs `woodbury_*` over alpha: tests whether the exact solve is
-   simply under- or over-regularized.
-3. `t1`, `t2`, `t5`, `t10`: separates streaming feature capacity from
-   10-permutation interference.
-4. `center_first/all/zero`: tests whether first-task center mismatch is
-   causing the exact-solve collapse.
-5. `bs128`, `bs512`, `reverse`: tests whether the Woodbury advantage is
-   batch-size or task-order path dependent.
+1. `refresh_*`: exact inverse refresh collapses the high-Woodbury
+   model at every width (e.g. 4000 neurons: 56.3% before refresh,
+   19.4% after refresh; 16000 neurons: 59.6% before, 14.6% after).
+2. `exact_*` vs `woodbury_*` over alpha: Woodbury is almost flat over
+   $10^{-4}$ through $10^{-2}$; the exact solve is much more sensitive.
+3. `t1`, `t2`, `t5`, `t10`: Woodbury degrades smoothly with task count;
+   exact accuracy is already weak at one task under the default
+   first-task bias and $\alpha = 10^{-3}$.
+4. `center_first/all/zero`: zero bias recovers much of the 4000-neuron
+   exact-solve gap (52.7% at $\alpha = 10^{-3}$), so first-task
+   data-driven bias is part of the failure mode.
+5. `bs128`, `bs512`, `reverse`: Woodbury remains 56.3% at 4000 neurons,
+   so the advantage is not a tested batch-size or task-order accident.
 
 ## Driver edits
 
