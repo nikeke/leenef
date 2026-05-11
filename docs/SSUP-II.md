@@ -23,11 +23,12 @@ Because $A^\top A$ and $A^\top Y$ add over data partitions, sequential
 training over the union of tasks: the forgetting axis has length zero by
 construction.  Across Split-MNIST, Permuted-MNIST, Split-CIFAR-10, and
 Split-CIFAR-100, `nef_accumulate` matches `nef_joint` to 0.000000 pp
-over 10 seeds.  This collapses the class-incremental forgetting modes of
-the tested gradient baselines (Split-MNIST: **97.0 %** vs ~20.0 % for
-MLP-EWC and MLP-finetune), while still exposing honest limits: EWC and
-joint MLP remain stronger on Permuted-MNIST, and absolute accuracy is
-bounded by the feature map.  Capacity scales smoothly with neuron budget
+over 10 seeds.  This removes forgetting from the analytic readout and
+collapses the class-incremental failure modes of the tested gradient
+baselines (Split-MNIST: **97.0 %** vs ~20.0 % for MLP-EWC and
+MLP-finetune), while exposing the tradeoff directly: the linear head no
+longer forgets, but absolute accuracy is bounded by the fixed feature map.
+Capacity scales smoothly with neuron budget
 per task, a gradient-free ConvNEF front end lifts Split-CIFAR-10 from
 49.5 % to **74.7 $\pm$ 0.1 %** without breaking the identity, and a
 streaming-continual panel carries the same exact/joint/Woodbury
@@ -53,7 +54,7 @@ to compose decoded signals; we depart in three places.
   `abs` is the smallest pointwise nonlinearity that escapes the
   linear-collapse argument of Paper I §2; it is also what gives our
   activations the frame-coefficient interpretation that the paper
-  series turns on.
+  series uses throughout.
 - We use **data-driven biases**.  The bias of neuron *i* is
   $b_i = -g_i (e_i \cdot d_i)$ for a sample $d_i$ drawn from the
   training set, placing the *i*-th `abs` fold on the data
@@ -78,11 +79,10 @@ P1–P4 inherit from NEF, P5–P6 are leenef-specific.
 - **P2 — Decoders fall out of one analytic step:**
   $D = (A^\top A + \alpha I)^{-1} A^\top Y$.  No learning rate, no schedule, no
   gradient flow between layers.
-- **P3 — $A^\top A$ and $A^\top Y$ are the universe.**  Continual learning,
-  streaming over time, ensembles, online updates, per-action
-  FQI (Ernst et al., 2005) — all of them are different ways of
-  *additively combining*
-  sufficient statistics.
+- **P3 — $A^\top A$ and $A^\top Y$ are the complete sufficient state
+  of the learner.**  Continual learning, streaming over time, ensembles,
+  online updates, per-action FQI (Ernst et al., 2005) — all of them
+  are different ways of *additively combining* sufficient statistics.
 - **P4 — Targets $Y$ are the only place where task structure
   enters.**  The encoder does not care what the task is; the
   decoder column does.
@@ -141,8 +141,8 @@ of mitigations.
   online in the strict sense.
 - **Parameter-isolation methods** dedicate disjoint parameters to
   each task.  PackNet (Mallya & Lazebnik, 2018), Progressive Nets
-  (Rusu et al., 2016), and HAT (Serrà et al., 2018) all variants on
-  this theme.  These prevent forgetting by structurally avoiding
+  (Rusu et al., 2016), and HAT (Serrà et al., 2018) are all variants
+  on this theme.  These prevent forgetting by structurally avoiding
   shared parameters but require a task identifier at evaluation
   and grow the model with the stream.
 - **Bayesian methods** maintain a posterior over parameters and
@@ -156,7 +156,7 @@ loss, augmented with one mechanism that *resists* the loss landscape
 moving.  The accuracy on old tasks is a quantity the method tries
 to preserve, and the failure mode is that it cannot fully succeed.
 
-### Sufficient-statistic accumulation as a fourth family
+### Sufficient-statistic accumulation as an analytic family
 
 The analytic primitive of Paper I sits outside the SGD frame.
 With fixed encoders, the loss
@@ -192,23 +192,47 @@ loss over all tasks seen so far.  Old tasks' contributions are
 not approximated, distilled, or replayed: their sufficient
 statistics are sitting in the accumulator unchanged.
 
-This puts the present method into a fourth, structural family
-sometimes called **sufficient-statistic** or **online-ridge**
-methods (in classical statistics; see e.g. Hoerl & Kennard, 1970;
-the streaming version is the recursive least squares of Söderström
-& Stoica, 1988).  The online-learning version is online ridge
+This puts the present method into another structural family,
+sometimes called **sufficient-statistic**, **online-ridge**, or
+**analytic continual-learning** methods.  The algebra is classical:
+ridge regression is Hoerl & Kennard (1970), the streaming
+matrix-inverse form is recursive least squares (Söderström &
+Stoica, 1988), and the online-learning version is online ridge
 regression / aggregating algorithm for regression (Azoury &
 Warmuth, 2001; Vovk, 2001), whose regret bounds scale with an
 effective feature dimension and whose matrix-inverse form is the
-same Woodbury update of §3.2.  The closest deep-learning relatives
-are the random-feature ELM with online updates (ELM-Online; Liang
-et al., 2006), Bayesian linear regression with random features
-(the conjugate Gaussian-posterior special case), and the analytic
+same Woodbury update of §3.2.  Neighboring examples include
+random-feature ELM with online updates (ELM-Online; Liang et al.,
+2006), Bayesian linear regression with random features (the
+conjugate Gaussian-posterior special case), and the analytic
 inverse models of LSTD in reinforcement learning (Bradtke & Barto,
-1996).  None of these have been benchmark-scale evaluated on
-modern continual-learning splits with multi-seed discipline against
-EWC- and replay-style baselines.  The contribution of this paper
-is to do exactly that under the same artifact discipline as Paper I.
+1996).
+
+The recent continual-learning literature has made this family explicit.
+RanPAC (McDonnell et al., 2023) combines frozen pretrained features
+with a frozen nonlinear random-projection layer and analytic class
+statistics; its strongest results come from putting the same
+"do not update the feature map, solve the readout analytically"
+principle on top of a pretrained ViT.  GACL (Zhuang et al., 2024)
+goes further in the analytic-CL direction, deriving an exemplar-free
+closed-form update for generalized class-incremental learning and
+proving an incremental/joint equivalence under its weight-invariant
+decomposition of exposed and unexposed classes.  ATS (Xie et al.,
+2025) uses RLS as an analytic scheduler for embodied foundation
+models, and PACE (Li et al., 2026) studies analytic classifiers and
+first-session adaptation for pretrained audio CL.  SLCA (Zhang et
+al., 2023) and LwF (Li & Hoiem, 2017) sit nearby but not in the same
+closed-form accumulator family: the former adapts pretrained models
+slowly and aligns classifiers, while the latter preserves old outputs
+by distillation.
+
+Our contribution is therefore not to invent recursive least squares
+or the incremental/joint identity.  It is to place the NEF
+`abs`/data-bias feature map, ConvNEF front end, and Stream-NEF
+delay-line features inside this analytic-CL family; to show exactly
+where the fixed-feature sufficient-statistics primitive succeeds and
+where its representational ceiling appears; and to do so under the
+same multi-seed, code-identity-tagged artifact discipline as Paper I.
 
 The empirical question is not whether the identity is true; §3.1 proves
 the identity directly.  The question is whether the primitive remains
@@ -217,7 +241,7 @@ learners.  We therefore measure four things.
 
 - **What does and does not change with the data stream.**  The
   decoder $D$ is the unique minimizer of the same quadratic objective
-  whether the data arrived in five tasks or one, so by construction
+  whether the data arrived in five tasks or one, so by the identity
   the model has the *same* test accuracy on a task seen long ago as
   it would have had if it were trained on that task only yesterday.
   The phrase "knowledge of old tasks" reduces to "the columns of
@@ -1116,11 +1140,12 @@ also carries the primitive through Paper I's time-collapsed
 Stream-NEF setting: exact, joint, and online Woodbury all coincide
 again once the same trace-scaled regularization policy is used.
 
-We think the right summary is the structural one.  When the
-primitive is "$A^\top A$ and $A^\top Y$ are the universe", the
-data-stream axis simply does not exist for fixed-feature static CL; for
-streaming delay-line features, the exact identity remains true but does
-not by itself guarantee a high static-image-level classifier.
+We think the right summary is the structural one.  When
+$A^\top A$ and $A^\top Y$ are the complete sufficient state of the
+learner, the data-stream axis simply does not exist for fixed-feature
+static CL; for streaming delay-line features, the exact identity remains
+true but does not by itself guarantee a high static-image-level
+classifier.
 
 ---
 
@@ -1158,7 +1183,7 @@ inherits its absolute level from Paper I, and where a static
 NEF is below an MLP, the continual NEF is below the continual
 or joint MLP by the same gap.
 
-### What "by construction" actually delivers
+### What joint equivalence actually delivers
 
 A reasonable critique of the joint-equivalence framing is that
 it merely re-describes ridge regression: of course the closed-
@@ -1241,8 +1266,8 @@ algorithmic.  Under fixed encoders, the regularized least-squares
 solve $D = (A^\top A + \alpha I)^{-1} A^\top Y$ is bit-identical
 in test accuracy whether the data arrived in five tasks or one,
 because $A^\top A$ and $A^\top Y$ are sums over data partitions.
-The continual learner is the same object as the static learner;
-the data-stream axis has length zero by construction.
+The continual learner is the same object as the static learner; the
+data-stream axis has length zero under the joint-equivalence identity.
 
 We verified this empirically across Split-MNIST, Permuted-MNIST,
 Split-CIFAR-10, and Split-CIFAR-100 at 10 seeds each, with the
@@ -1528,6 +1553,9 @@ Li, Z., & Hoiem, D. (2017). Learning without forgetting.
 *IEEE Transactions on Pattern Analysis and Machine Intelligence*,
 40(12), 2935–2947.
 
+Li, C., Zhou, K., & Wang, L. (2026). PACE: Pretrained audio
+continual learning. *ICLR*.
+
 Lopez-Paz, D., & Ranzato, M. (2017). Gradient episodic memory
 for continual learning. *NeurIPS*.
 
@@ -1543,6 +1571,10 @@ McCloskey, M., & Cohen, N. J. (1989). Catastrophic
 interference in connectionist networks: The sequential
 learning problem. *Psychology of Learning and Motivation*,
 24, 109–165.
+
+McDonnell, M. D., Gong, D., Parvaneh, A., Abbasnejad, E., &
+van den Hengel, A. (2023). RanPAC: Random projections and
+pre-trained models for continual learning. *NeurIPS*.
 
 Nguyen, C. V., Li, Y., Bui, T. D., & Turner, R. E. (2018).
 Variational continual learning. *ICLR*.
@@ -1587,5 +1619,17 @@ continual learning. *arXiv:1904.07734*.
 Vovk, V. (2001). Competitive on-line statistics. *International
 Statistical Review*, 69(2), 213–248.
 
+Xie, L., Li, Y., & Zhuang, H. (2025). Analytic task scheduler:
+Recursive least squares based method for continual learning in
+embodied foundation models. *arXiv:2506.09623*.
+
 Zenke, F., Poole, B., & Ganguli, S. (2017). Continual
 learning through synaptic intelligence. *ICML*.
+
+Zhang, G., Wang, L., Kang, G., Chen, L., & Wei, Y. (2023).
+SLCA: Slow learner with classifier alignment for continual
+learning on a pre-trained model. *ICCV*.
+
+Zhuang, H., Chen, Y., Fang, D., He, R., Tong, K., Wei, H.,
+Zeng, Z., & Chen, C. (2024). GACL: Exemplar-free generalized
+analytic continual learning. *NeurIPS*.

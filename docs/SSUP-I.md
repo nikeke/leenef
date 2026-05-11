@@ -51,8 +51,8 @@ to compose decoded signals; we depart in three places.
 - We use **rate neurons with `abs` activation**, not spiking LIF.
   `abs` is the smallest pointwise nonlinearity that escapes the
   linear-collapse argument of §2; it is also what gives our
-  activations the frame-coefficient interpretation that the rest
-  of the paper turns on.
+  activations the frame-coefficient interpretation used throughout
+  the paper.
 - We use **data-driven biases**.  The bias of neuron *i* is
   $b_i = -g_i (e_i \cdot d_i)$ for a sample $d_i$ drawn from the
   training set, placing the *i*-th `abs` fold on the data
@@ -77,11 +77,11 @@ P1–P4 inherit from NEF, P5–P6 are leenef-specific.
 - **P2 — Decoders fall out of one analytic step:**
   $D = (A^\top A + \alpha I)^{-1} A^\top Y$.  No learning rate, no schedule, no
   gradient flow between layers.
-- **P3 — $A^\top A$ and $A^\top Y$ are the universe.**  Continual learning,
-  streaming over time, ensembles, online updates, per-action
-  FQI (Ernst et al., 2005) — all of them are different ways of
-  *additively combining*
-  sufficient statistics.
+- **P3 — $A^\top A$ and $A^\top Y$ are the complete sufficient
+  state of the learner.**  Continual learning, streaming over
+  time, ensembles, online updates, per-action FQI (Ernst et al.,
+  2005) — all of them are different ways of *additively
+  combining* sufficient statistics.
 - **P4 — Targets $Y$ are the only place where task structure
   enters.**  The encoder does not care what the task is; the
   decoder column does.
@@ -268,6 +268,12 @@ implemented:
   itself is kept in float64 to keep updates from drifting.
   Necessary for online deployments; on GPU at large `n` the
   explicit $n \times n$ inverse is the bottleneck.
+
+These equations are classical ridge regression and recursive least
+squares (Hoerl & Kennard, 1970; Söderström & Stoica, 1988), not a new
+estimator.  The paper's claim is that this old sufficient-statistics
+primitive becomes a useful organizing principle when paired with a
+fixed NEF-style `abs` feature map and evaluated as a neural classifier.
 
 §5.3 measures all three on identical accumulated statistics
 and shows that the resulting decoders agree to 0.000 pp on
@@ -675,22 +681,21 @@ the best flat NEF encoder strategy at the *same* analytic head.
 The locality prior, applied hierarchically, is recovering more
 of the natural-image structure than any single-layer choice can.
 
-**What this is not.**  ConvNEF is in the family of Coates et al.
+**Positioning.**  ConvNEF is in the family of Coates et al.
 (2011), Saxe et al. (2011), and the broader "shallow random or
 unsupervised features plus linear readout" line.  Modern deep
 CNNs trained end-to-end with backpropagation reach mid-90s on
 CIFAR-10; ConvNEF closes about a fifth of the raw-pixel-flat-NEF
 to deep-CNN gap, no more.
 
-**What this *is*.**  Evidence that the same primitive — fixed
+**Extensibility.**  Evidence that the same primitive — fixed
 features, analytic readout, no gradient — extends past the raw
 pixel without any change to the solve.  The `partial_fit` /
 `accumulate + solve` machinery from §3 carries over verbatim;
 the only thing that changed is the feature map.  This is the
 piece Paper II picks up and pushes into the continual setting,
-where the additivity of $A^\top A$ over data partitions is what
-makes "no forgetting by construction" a property rather than a
-slogan.
+where the additivity of $A^\top A$ over data partitions is the
+mechanism behind exact joint equivalence.
 
 **Honest framing.**  Three caveats deserve to sit next to the
 table:
@@ -1023,7 +1028,7 @@ We do not exploit this in Paper I — it deserves its own
 careful treatment — but two consequences are worth flagging
 (one is developed below).  First, it gives Paper II
 (continual learning) its primary mechanism for measuring
-drift without extra machinery.  Second, it underwrites the
+drift without extra machinery.  Second, it supports the
 gradient-trained-network bridge sketched below.
 
 ### Continual learning: a forward look
@@ -1160,10 +1165,9 @@ gain comes from full end-to-end gradients.  We have not re-run
 the multi-layer panel under this protocol on Fashion-MNIST.
 
 **Recurrent NEF (state feedback through fixed encoders) is viable
-only when trained end-to-end here.**  The local CPU recurrent rerun was too
-slow, so we moved this panel to Colab L4 and executed recurrent NEF
-plus row-sMNIST comparators under the same committed code.
-Five-seed results:
+only when trained end-to-end here.**  The recurrent panel was evaluated
+on Colab L4 because CPU execution was too slow for a practical
+multi-seed comparison.  Five-seed results:
 
 | method | test accuracy ± SE | end-to-end wall-clock time (L4, s/seed) |
 |--------|--------------------|------------------------------------------|
@@ -1216,6 +1220,7 @@ representation question carried into Paper III.
 - Ernst, D., Geurts, P., & Wehenkel, L. (2005). *Tree-Based Batch Mode Reinforcement Learning*. Journal of Machine Learning Research, 6, 503-556.
 - Huang, G.-B., Zhu, Q.-Y., & Siew, C.-K. (2006). *Extreme Learning Machine: Theory and Applications*. Neurocomputing, 70(1-3), 489-501.
 - Hochreiter, S., & Schmidhuber, J. (1997). *Long Short-Term Memory*. Neural Computation, 9(8), 1735-1780.
+- Hoerl, A. E., & Kennard, R. W. (1970). *Ridge Regression: Biased Estimation for Nonorthogonal Problems*. Technometrics, 12(1), 55-67.
 - Jaeger, H. (2001). *The “Echo State” Approach to Analysing and Training Recurrent Neural Networks—With an Erratum Note*. GMD Report 148, German National Research Center for Information Technology.
 - Johnson, W. B., & Lindenstrauss, J. (1984). *Extensions of Lipschitz mappings into a Hilbert space*. Contemporary Mathematics, 26, 189-206.
 - Kingma, D. P., & Ba, J. (2015). *Adam: A Method for Stochastic Optimization*. International Conference on Learning Representations.
@@ -1226,6 +1231,7 @@ representation question carried into Paper III.
 - Maass, W., Natschläger, T., & Markram, H. (2002). *Real-Time Computing Without Stable States: A New Framework for Neural Computation Based on Perturbations*. Neural Computation, 14(11), 2531-2560.
 - Rahimi, A., & Recht, B. (2007). *Random Features for Large-Scale Kernel Machines*. Advances in Neural Information Processing Systems 20.
 - Saxe, A. M., Koh, P. W., Chen, Z., Bhand, M., Suresh, B., & Ng, A. Y. (2011). *Random Weights and Unsupervised Feature Learning*. Proceedings of the 28th International Conference on Machine Learning.
+- Söderström, T., & Stoica, P. (1988). *System Identification*. Prentice Hall.
 - Werbos, P. J. (1990). *Backpropagation through time: what it does and how to do it*. Proceedings of the IEEE, 78(10), 1550-1560.
 - Warden, P. (2018). *Speech Commands: A Dataset for Limited-Vocabulary Speech Recognition*. arXiv preprint arXiv:1804.03209.
 - Xiao, H., Rasul, K., & Vollgraf, R. (2017). *Fashion-MNIST: a Novel Image Dataset for Benchmarking Machine Learning Algorithms*. arXiv preprint arXiv:1708.07747.

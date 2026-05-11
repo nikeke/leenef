@@ -68,11 +68,12 @@ Paper II abstract:
 > training over the union of tasks: the forgetting axis has length zero by
 > construction.  Across Split-MNIST, Permuted-MNIST, Split-CIFAR-10, and
 > Split-CIFAR-100, `nef_accumulate` matches `nef_joint` to 0.000000 pp
-> over 10 seeds.  This collapses the class-incremental forgetting modes of
-> the tested gradient baselines (Split-MNIST: **97.0 %** vs ~20.0 % for
-> MLP-EWC and MLP-finetune), while still exposing honest limits: EWC and
-> joint MLP remain stronger on Permuted-MNIST, and absolute accuracy is
-> bounded by the feature map.  Capacity scales smoothly with neuron budget
+> over 10 seeds.  This removes forgetting from the analytic readout and
+> collapses the class-incremental failure modes of the tested gradient
+> baselines (Split-MNIST: **97.0 %** vs ~20.0 % for MLP-EWC and
+> MLP-finetune), while exposing the tradeoff directly: the linear head no
+> longer forgets, but absolute accuracy is bounded by the fixed feature map.
+> Capacity scales smoothly with neuron budget
 > per task, a gradient-free ConvNEF front end lifts Split-CIFAR-10 from
 > 49.5 % to **74.7 $\pm$ 0.1 %** without breaking the identity, and a
 > streaming-continual panel carries the same exact/joint/Woodbury
