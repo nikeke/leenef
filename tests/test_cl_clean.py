@@ -182,11 +182,11 @@ class TestAdditivity:
         for chunk in (x[:100], x[100:200], x[200:]):
             i = (x == chunk[0]).all(dim=1).nonzero()[0, 0].item()
             seq.partial_fit(chunk, y[i : i + chunk.shape[0]])
-        seq.solve_accumulated(alpha=1e-2)
+        seq.solve_accumulated()
 
         joint = make()
         joint.partial_fit(x, y)
-        joint.solve_accumulated(alpha=1e-2)
+        joint.solve_accumulated()
 
         gap = (seq.decoders.data - joint.decoders.data).abs().max().item()
         assert gap < 1e-5, f"sequential vs joint decoder gap too large: {gap}"

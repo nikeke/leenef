@@ -752,9 +752,8 @@ Audit result: the H8 streaming-continual runner did **not** carry over
 Paper I's trace-scaled streaming regularizer.  Paper I's
 `benchmarks/sl_clean/_streaming_exp.py` computes a pilot
 `alpha_eff = alpha * trace(A^T A) / n` before running the streaming solve
-when `alpha_scale == "trace"`.  The H8 CL runner used
-`StreamingNEFClassifier.solve()` / `continuous_fit()` directly, and those
-APIs intentionally interpret `alpha` as a fixed inverse regularizer.
+when `alpha_scale == "trace"`.  The H8 CL runner used the streaming
+accumulate/solve and Woodbury paths directly as fixed-alpha paths instead.
 
 Impact:
 

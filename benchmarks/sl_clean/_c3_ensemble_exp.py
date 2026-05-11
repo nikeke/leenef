@@ -143,7 +143,7 @@ def _c3_run(config: dict, seed: int, run_context: dict) -> dict:
             x_train=x_train,
             y_train_targets=Y_oh,
             chunk_size=chunk_size,
-            alpha=alpha,
+            alpha=(alpha, "trace"),
         )
         encode_fit_total += float(timings["encode_fit_time_s"])
         solve_total += float(timings["solve_time_s"])

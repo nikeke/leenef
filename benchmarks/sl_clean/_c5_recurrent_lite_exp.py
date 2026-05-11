@@ -83,6 +83,7 @@ def _c5_run(config: dict, seed: int, run_context: dict) -> dict:
     Y_oh = Y_oh_cpu.to(device)
 
     t0 = time.perf_counter()
+    alpha_policy = (alpha, "trace")
     if strategy == "end_to_end":
         layer.fit_end_to_end(
             x_train,
@@ -91,7 +92,7 @@ def _c5_run(config: dict, seed: int, run_context: dict) -> dict:
             lr=lr,
             batch_size=batch_size,
             loss="ce",
-            alpha=alpha,
+            alpha=alpha_policy,
         )
     elif strategy == "target_prop":
         layer.fit_target_prop(
@@ -100,7 +101,7 @@ def _c5_run(config: dict, seed: int, run_context: dict) -> dict:
             n_iters=n_epochs,
             lr=lr,
             batch_size=batch_size,
-            alpha=alpha,
+            alpha=alpha_policy,
         )
     if device.type == "cuda":
         torch.cuda.synchronize(device)

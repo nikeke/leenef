@@ -51,6 +51,7 @@ from torch import Tensor
 
 from .activations import make_activation
 from .encoders import make_encoders
+from .solvers import lstsq, regularized_normal_matrix, solve_spd
 
 
 def _reset_env(env, seed: int | None):
@@ -810,14 +811,6 @@ class NEFFQIAgent:
             self._aty[a].addmv_(phi_a.T, y_a)
             self._n_accumulated[a] += n_action
 
-    @staticmethod
-    def _solve_spd_vector(matrix: Tensor, rhs: Tensor) -> Tensor:
-        """Solve a regularized SPD system, falling back to a generic solve."""
-        chol, info = torch.linalg.cholesky_ex(matrix)
-        if int(info.item()) == 0:
-            return torch.cholesky_solve(rhs.unsqueeze(1), chol).squeeze(1)
-        return torch.linalg.solve(matrix, rhs)
-
     def _solve_per_action(self, phi: Tensor, actions: np.ndarray, targets: Tensor) -> Tensor:
         """Per-action analytical solve: w_a = (Φ_aᵀ Φ_a + αI)⁻¹ Φ_aᵀ y."""
         W_new = torch.zeros_like(self.W)
@@ -835,13 +828,12 @@ class NEFFQIAgent:
             ATA = phi_a.T @ phi_a
             ATy = phi_a.T @ y_a
 
-            reg = self.alpha * torch.trace(ATA) / self.n_neurons
-            ATA.diagonal().add_(reg.clamp(min=self.alpha))
+            ATA = regularized_normal_matrix(ATA, alpha=(self.alpha, "trace"), copy=False)
 
             try:
-                w = self._solve_spd_vector(ATA, ATy)
+                w = solve_spd(ATA, ATy)
             except torch.linalg.LinAlgError:
-                w = torch.linalg.lstsq(phi_a, y_a.unsqueeze(1)).solution.squeeze(1)
+                w = lstsq(phi_a, y_a.unsqueeze(1)).squeeze(1)
 
             W_new[:, a] = w.float()
 
@@ -875,13 +867,12 @@ class NEFFQIAgent:
             ATA = self._ata[a].clone()
             ATY = self._aty[a].clone()
 
-            reg = self.alpha * torch.trace(ATA) / self.n_neurons
-            ATA.diagonal().add_(reg.clamp(min=self.alpha))
+            ATA = regularized_normal_matrix(ATA, alpha=(self.alpha, "trace"), copy=False)
 
             try:
-                w = self._solve_spd_vector(ATA, ATY)
+                w = solve_spd(ATA, ATY)
             except torch.linalg.LinAlgError:
-                w = torch.linalg.lstsq(ATA, ATY.unsqueeze(1)).solution.squeeze(1)
+                w = lstsq(ATA, ATY.unsqueeze(1)).squeeze(1)
 
             W_new[:, a] = w.float()
 

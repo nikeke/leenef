@@ -70,15 +70,16 @@ def _c4_run(config: dict, seed: int, run_context: dict) -> dict:
     )
 
     t0 = time.perf_counter()
+    alpha_policy = (alpha, "trace")
     if strategy == "greedy":
-        net.fit_greedy(x_train, Y_oh, alpha=alpha)
+        net.fit_greedy(x_train, Y_oh, alpha=alpha_policy)
     elif strategy == "hybrid":
         net.fit_hybrid(
             x_train,
             Y_oh,
             n_iters=n_iters,
             lr=lr,
-            alpha=alpha,
+            alpha=alpha_policy,
             batch_size=batch_size,
             loss="ce",
         )
@@ -88,7 +89,7 @@ def _c4_run(config: dict, seed: int, run_context: dict) -> dict:
             Y_oh,
             n_iters=n_iters,
             lr=lr,
-            alpha=alpha,
+            alpha=alpha_policy,
             batch_size=batch_size,
         )
     elif strategy == "end_to_end":
@@ -97,7 +98,7 @@ def _c4_run(config: dict, seed: int, run_context: dict) -> dict:
             Y_oh,
             n_iters=n_iters,
             lr=lr,
-            alpha=alpha,
+            alpha=alpha_policy,
             batch_size=batch_size,
             loss="ce",
         )
@@ -107,7 +108,7 @@ def _c4_run(config: dict, seed: int, run_context: dict) -> dict:
             Y_oh,
             n_iters=n_iters,
             lr=lr,
-            alpha=alpha,
+            alpha=alpha_policy,
             batch_size=batch_size,
             loss="ce",
         )

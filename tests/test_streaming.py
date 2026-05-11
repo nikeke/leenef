@@ -1,5 +1,6 @@
 """Tests for StreamingNEFClassifier — temporal sequence classification."""
 
+import pytest
 import torch
 
 from leenef.streaming import StreamingNEFClassifier
@@ -79,16 +80,31 @@ class TestStreamingNEFClassifier:
 
         rng1 = torch.Generator().manual_seed(710)
         clf_batch = StreamingNEFClassifier(d, 150, 3, window_size=4, rng=rng1)
-        clf_batch.fit(x_seq, targets, alpha=alpha)
+        clf_batch.fit(x_seq, targets, alpha=(alpha, "trace"))
 
         rng2 = torch.Generator().manual_seed(710)
         clf_cont = StreamingNEFClassifier(d, 150, 3, window_size=4, rng=rng2)
-        clf_cont.continuous_fit(x_seq, targets, alpha=alpha)
+        clf_cont.continuous_fit(x_seq, targets, fixed_alpha=alpha)
 
         # Batch uses trace-scaled alpha, continuous uses fixed — compare
         # that both produce non-trivial decoders of similar magnitude
         assert clf_batch.decoders.data.abs().max() > 0.01
         assert clf_cont.decoders.data.abs().max() > 0.01
+
+    def test_continuous_fit_defaults_to_fixed_alpha(self):
+        """Woodbury paths use an explicitly named fixed-alpha default."""
+        clf = StreamingNEFClassifier(2, 100, 3, window_size=3)
+        clf.continuous_fit(torch.randn(10, 5, 2), torch.randn(10, 3))
+
+        assert clf._woodbury_alpha == 1e-2
+
+    def test_solve_requires_alpha_policy_pair(self):
+        """Accumulated solves accept a single alpha policy argument."""
+        clf = StreamingNEFClassifier(2, 100, 3, window_size=3)
+        clf.accumulate(torch.randn(10, 5, 2), torch.randn(10, 3))
+
+        with pytest.raises(ValueError, match="explicit .* pair"):
+            clf.solve(alpha=1e-2)
 
     def test_continuous_fit_streaming(self):
         """Streaming continuous_fit should produce improving results."""
@@ -172,15 +188,15 @@ class TestStreamingNEFClassifier:
         rng1 = torch.Generator().manual_seed(800)
         clf_w = StreamingNEFClassifier(d, 300, 2, window_size=4, rng=rng1)
         for i in range(0, N, 50):
-            clf_w.continuous_fit(x_seq[i : i + 50], targets[i : i + 50], alpha=alpha)
-        clf_w.refresh_inverse(alpha=alpha)
+            clf_w.continuous_fit(x_seq[i : i + 50], targets[i : i + 50], fixed_alpha=alpha)
+        clf_w.refresh_inverse(fixed_alpha=alpha)
         acc_w = (clf_w(x_seq).argmax(1) == y).float().mean().item()
 
         rng2 = torch.Generator().manual_seed(800)
         clf_a = StreamingNEFClassifier(d, 300, 2, window_size=4, rng=rng2)
         for i in range(0, N, 50):
             clf_a.accumulate(x_seq[i : i + 50], targets[i : i + 50])
-        clf_a.solve(alpha=alpha)
+        clf_a.solve(alpha=(alpha, "fixed"))
         acc_a = (clf_a(x_seq).argmax(1) == y).float().mean().item()
 
         # Both should achieve good accuracy (>70%) and be close to each other
@@ -193,7 +209,7 @@ class TestStreamingNEFClassifier:
         torch.manual_seed(81)
         clf = StreamingNEFClassifier(2, 100, 3, window_size=3)
         clf.accumulate(torch.randn(20, 5, 2), torch.randn(20, 3))
-        clf.solve(alpha=1e-2)
+        clf.solve(alpha=(1e-2, "fixed"))
 
         # _M_inv should not exist (no Woodbury)
         assert not hasattr(clf, "_M_inv") or clf._M_inv is None

@@ -74,7 +74,7 @@ def _c1_run(config: dict, seed: int, run_context: dict) -> dict:
         x_train=x_train,
         y_train_targets=Y_oh,
         chunk_size=chunk_size,
-        alpha=alpha,
+        alpha=(alpha, "trace"),
     )
 
     train_acc = chunked_classification_accuracy(

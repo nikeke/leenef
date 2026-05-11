@@ -59,7 +59,7 @@ def _c6_run(config: dict, seed: int, run_context: dict) -> dict:
     )
 
     t0 = time.perf_counter()
-    pipe.fit(x_train, Y_oh, alpha=alpha, batch_size=500, seed=seed * 9173 + 1)
+    pipe.fit(x_train, Y_oh, alpha=(alpha, "trace"), batch_size=500, seed=seed * 9173 + 1)
     train_time = time.perf_counter() - t0
 
     @torch.no_grad()
