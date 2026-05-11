@@ -73,13 +73,11 @@ Paper II abstract:
 > MLP-EWC and MLP-finetune), while still exposing honest limits: EWC and
 > joint MLP remain stronger on Permuted-MNIST, and absolute accuracy is
 > bounded by the feature map.  Capacity scales smoothly with neuron budget
-> per task, and a gradient-free ConvNEF front end lifts Split-CIFAR-10
-> from 49.5 % to **74.7 ± 0.1 %** without breaking the additivity identity.
-> A streaming-continual follow-up is being rerun after an audit found
-> that its first panel used fixed rather than trace-scaled regularization;
-> the fixed-$\alpha$ rows are retained only as a diagnostic showing that
-> mean-pooled delay-line features can be badly under-regularized if Paper I's
-> scale rule is not carried through.
+> per task, a gradient-free ConvNEF front end lifts Split-CIFAR-10 from
+> 49.5 % to **74.7 $\pm$ 0.1 %** without breaking the identity, and a
+> streaming-continual panel carries the same exact/joint/Woodbury
+> agreement through 10-task permuted sMNIST while revealing a lower
+> mean-pooled-delay-line ceiling of **58.3 $\pm$ 0.2 %** at 16000 neurons.
 
 ## Quick start
 

@@ -134,15 +134,13 @@ Three things make this paper interesting (and not just an "of course"):
   reinforces the same structural theme as B1 — the continual sufficient-
   statistics path can still land on the joint solution — but now in a
   regime where the overall accuracy level is much higher.
-* H8 is the first genuinely important boundary result after the draft.
-  The streaming-continual panel does preserve the exact identity we care
-  about: `accumulate_final` and `joint` match to all stored digits at
-  4000, 8000, and 16000 streaming neurons, and solving after every task
-  at 4000 also leaves the final decoder unchanged.  But the exact final
-  solve is poor and non-monotonic on 10-task permuted sMNIST
-  (34.8%, 20.0%, 14.4%), while online Woodbury reaches 56.4%, 58.4%,
-  and 59.8%.  This should not be claimed as another clean
-  accumulate/joint/woodbury equivalence result.  It says "same as joint"
-  remains true, but the joint objective/feature map may not be the right
-  streaming objective; the online inverse path supplies a useful
-  inductive bias or path dependency that deserves its own follow-up.
+* H8 became a cleaner boundary result after the trace-repair rerun.  The
+  fixed-alpha panel was under-regularized: exact accumulate/joint fell
+  from 34.8% to 14.4% as width grew, while Woodbury stayed near 56-60%.
+  With Paper-I-style trace scaling (`alpha=1e-6`, effective ridge
+  approximately 0.14), `accumulate_final`, `joint`, and
+  `woodbury_online` match again at 4000, 8000, and 16000 neurons
+  (54.3%, 56.6%, 58.3%).  The remaining boundary is representational,
+  not algebraic: mean-pooled delay-line features handle the 10-task
+  permuted-sMNIST stream without forgetting, but with a much lower
+  ceiling than static Permuted-MNIST.

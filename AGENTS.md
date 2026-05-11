@@ -121,6 +121,10 @@ rl_clean infrastructure.
 - Encoders + gains are derived from sub-RNGs that depend ONLY on the
   seed, never on the contrasted factor — so the same seed produces
   bit-identical encoders across e.g. all three bias modes.
+- Never run `sudo` or any other privilege-elevation command without
+  explicit user permission in the current conversation.  If a task needs
+  system packages or root access, stop and ask the user to approve or
+  perform that step.
 
 **Manuscript rules:**
 
@@ -133,6 +137,11 @@ rl_clean infrastructure.
   "new", "recent", "upcoming", or similar merely because they were added
   in the current editing session; reserve chronological language for
   sweep logs and handover notes.
+- Papers are not activity logs.  Main text should present the final
+  validated result and its interpretation, not the sequence of audits,
+  reruns, implementation mistakes, or session chronology that produced
+  it.  Put that history in sweep logs, handover notes, or appendices only
+  when it is methodologically necessary.
 - Once a paper repeats the six principles internally, principle references
   inside that paper should be internal (`P3`, `P6`), not qualified as
   "Paper I, P3" or similar.

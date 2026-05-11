@@ -233,14 +233,15 @@ def figure_f4() -> Path:
 def figure_f5() -> Path:
     """Streaming continual follow-up on permuted sMNIST."""
 
-    rows = _load_rows(RESULTS / "gpu_h8_streaming_permuted_smnist_panel.json")
-    diag_rows = _load_rows(RESULTS / "gpu_h8_streaming_diagnostics.json")
+    rows = _load_rows(RESULTS / "gpu_h8_streaming_trace_a1em06_float32_panel.json")
+    static_rows = _load_rows(RESULTS / "nef_continual_permuted_mnist_panel.json")
     grouped = _group(rows, lambda r: str(r.get("config", {}).get("cell", r.get("value"))))
-    diag_grouped = _group(
-        diag_rows, lambda r: str(r.get("config", {}).get("cell", r.get("value")))
+    static_grouped = _group(
+        static_rows, lambda r: str(r.get("config", {}).get("cell", r.get("value")))
     )
     series = [
-        ("accumulate_final", "accumulate = joint", "C0", "o"),
+        ("accumulate_final", "accumulate final", "C0", "o"),
+        ("joint", "joint", "C1", "D"),
         ("woodbury_online", "Woodbury online", "C2", "s"),
         ("reset", "reset lower bound", "C3", "^"),
     ]
@@ -271,31 +272,25 @@ def figure_f5() -> Path:
     ax.legend()
 
     ax = axes[1]
-    probe_cells = [
-        ("refresh_n4000_a1e-3_t10", "Woodbury\nbefore refresh", "test_accuracy", "C2"),
-        ("refresh_n4000_a1e-3_t10", "After exact\ninverse refresh", "refresh_test_accuracy", "C3"),
-        ("exact_n4000_a1e-3_t10", "Exact\nalpha=1e-3", "test_accuracy", "C0"),
-        ("exact_n4000_a1e-2_t10", "Exact\nalpha=1e-2", "test_accuracy", "C4"),
-        ("exact_center_zero_n4000_a1e-3_t10", "Exact\nzero bias", "test_accuracy", "C5"),
+    context_cells = [
+        ("static\nPermuted-MNIST\nNEF", static_grouped["nef_accumulate"], "C0"),
+        ("streaming\npermuted sMNIST\n4000", grouped["accumulate_final_n4000"], "C5"),
+        ("streaming\npermuted sMNIST\n16000", grouped["accumulate_final_n16000"], "C2"),
+        ("streaming\nreset lower\nbound", grouped["reset_n8000"], "C3"),
     ]
-    vals, ses, labels, colors = [], [], [], []
-    for cell, label, metric, color in probe_cells:
-        group = diag_grouped[cell]
-        accs = [100 * _metric(r, metric) for r in group]
-        vals.append(mean(accs))
-        ses.append(_se(accs))
-        labels.append(label)
-        colors.append(color)
-    xs = list(range(len(labels)))
+    vals = [mean([100 * _metric(r) for r in group]) for _, group, _ in context_cells]
+    ses = [_se([100 * _metric(r) for r in group]) for _, group, _ in context_cells]
+    colors = [color for _, _, color in context_cells]
+    xs = list(range(len(context_cells)))
     ax.bar(xs, vals, yerr=ses, capsize=3, color=colors)
     ax.set_xticks(xs)
-    ax.set_xticklabels(labels, fontsize=8)
-    ax.set_ylim(0, 65)
-    ax.set_ylabel("accuracy at 4000 neurons (%)")
-    ax.set_title("Mechanism probes (2 seeds)")
+    ax.set_xticklabels([label for label, _, _ in context_cells], fontsize=8)
+    ax.set_ylabel("final accuracy (%)")
+    ax.set_ylim(0, 100)
+    ax.set_title("Streaming preserves the primitive, not the static ceiling")
     ax.grid(True, axis="y", alpha=0.3)
     for x, val in zip(xs, vals):
-        ax.text(x, val + 1.0, f"{val:.1f}", ha="center", va="bottom", fontsize=8)
+        ax.text(x, val + 1.5, f"{val:.1f}", ha="center", va="bottom", fontsize=8)
 
     fig.suptitle("Figure 5 -- Streaming continual boundary")
     out = FIG_DIR / "cl_f5_streaming_continual.png"

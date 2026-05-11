@@ -66,8 +66,9 @@ in flight unless you intend to stop and restart those panels.
     `paper-ii/cl-scaffold`, not from `paper-ii/cl-experiments`.
 7. **H8 streaming-continual follow-up** — launched from
    `colab/cl_clean/streaming_permuted_smnist_gpu_suite.ipynb` (or its
-   `.py` runner) on `main`.  This is not yet part of the Paper-II
-   claims; it is the next benchmark-grade panel for the §6 forward look.
+   `.py` runner) on `main`.  Stage B is complete and imported into the
+   Paper-II claims; remaining work is manuscript/figure maintenance unless
+   a reviewer asks for a new diagnostic.
 
 After each phase sentinel:
 
@@ -362,21 +363,13 @@ headline.  The smaller `1e-8` and `1e-7` nominal alphas remain
 under-regularized in float32, especially at 16000 neurons, and should not
 be used for the headline.
 
-Next command:
+Imported Stage-B verdict (2026-05-11): the 5-seed repaired headline
+completed with the same code identity.  `accumulate_final`, `joint`, and
+`woodbury_online` match at every checked width under trace-scaled
+`alpha=1e-6`; the fixed-alpha rows are retained only as a diagnostic.
+No additional H8 experiment is currently queued for Paper II.
 
-```bash
-python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py \
-    --quick --seeds 0 --alpha 1e-6 --alpha-scale trace --stats-dtype float32
-```
-
-If the quick smoke row completes cleanly, run the full Stage B command:
-
-```bash
-python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py \
-    --seeds 0-4 --extended --alpha 1e-6 --alpha-scale trace --stats-dtype float32
-```
-
-Stage B — 5-seed repaired headline panel:
+Stage B — reproduced command:
 
 ```bash
 python -u colab/cl_clean/streaming_permuted_smnist_gpu_suite.py \
@@ -395,11 +388,6 @@ results/cl_clean/logs/gpu_h8_streaming_trace_a1em06_float32_panel.log
 results/cl_clean/colab_gpu_configs/base_config_gpu_h8_streaming_trace_a1em06_float32.json
 results/cl_clean/cl_clean_streaming_smnist_gpu_bundle.zip
 ```
-
-Estimated G4 time: roughly **4-6 hours** for the 5-seed headline with the
-16k extension.  Trace scaling adds a pilot accumulation pass for Woodbury
-and task-solve cells, so expect it to be slower than the prior fixed-alpha
-panel but still comfortably below an overnight Colab slot.
 
 ## Driver edits
 

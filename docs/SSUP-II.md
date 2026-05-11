@@ -28,13 +28,11 @@ the tested gradient baselines (Split-MNIST: **97.0 %** vs ~20.0 % for
 MLP-EWC and MLP-finetune), while still exposing honest limits: EWC and
 joint MLP remain stronger on Permuted-MNIST, and absolute accuracy is
 bounded by the feature map.  Capacity scales smoothly with neuron budget
-per task, and a gradient-free ConvNEF front end lifts Split-CIFAR-10
-from 49.5 % to **74.7 ± 0.1 %** without breaking the additivity identity.
-A streaming-continual follow-up is being rerun after an audit found
-that its first panel used fixed rather than trace-scaled regularization;
-the fixed-$\alpha$ rows are retained only as a diagnostic showing that
-mean-pooled delay-line features can be badly under-regularized if Paper I's
-scale rule is not carried through.
+per task, a gradient-free ConvNEF front end lifts Split-CIFAR-10 from
+49.5 % to **74.7 $\pm$ 0.1 %** without breaking the identity, and a
+streaming-continual panel carries the same exact/joint/Woodbury
+agreement through 10-task permuted sMNIST while revealing a lower
+mean-pooled-delay-line ceiling of **58.3 $\pm$ 0.2 %** at 16000 neurons.
 
 ---
 
@@ -1036,131 +1034,64 @@ solver-overhead, not numerical disagreement.
 
 ### §5.7 — Streaming continual is a boundary case, not a free corollary
 
-**Status.**  The rows in this section are now treated as a fixed-$\alpha$
-diagnostic, not as the final streaming-continual headline.  The audit after
-the H8 diagnostic bundle found that this panel did not carry over Paper I's
-trace-scaled streaming regularizer.  The exact accumulate/joint equality
-reported below remains valid, but the absolute accuracies and the
-Woodbury/exact split must be rerun under a trace-scaled $\alpha$ policy
-before they can support final claims.
-
 The last panel asks whether the same story carries through the
 streaming classifier of Paper I §6.  Each task is a full MNIST
 classification problem under a fresh fixed pixel permutation, reshaped
 as a 784-step sequence with one scalar per timestep.  The feature map is
 fixed from first-task centers and the model sees ten task permutations.
 The panel was run on a Google Colab G4 GPU (NVIDIA RTX PRO 6000
-Blackwell Server Edition, 95.0 GiB) with 5 seeds per cell.  A
-follow-up diagnostic panel used the same hardware and 2 seeds per
-cell to test the mechanism rather than to establish paper-grade
-headline values.
+Blackwell Server Edition, 95.0 GiB) with 5 seeds per cell.  As in
+Paper I's streaming section, $\alpha$ is set relative to the streaming
+feature map's own
+$\mathrm{tr}(A^\top A) / n$ scale rather than inherited as a fixed
+absolute ridge term.
 
 | Cell | n | Final accuracy | Fit time |
 | --- | ---: | ---: | ---: |
-| `accumulate_final` | 4 000 | 34.8 ± 5.6 % | 46.5 ± 0.0 s |
-| `joint` | 4 000 | 34.8 ± 5.6 % | 46.5 ± 0.0 s |
-| `accumulate_task_solve` | 4 000 | 34.8 ± 5.6 % | 47.2 ± 0.0 s |
-| `woodbury_online` | 4 000 | 56.4 ± 0.2 % | 76.8 ± 0.0 s |
-| `reset` | 4 000 | 15.8 ± 0.8 % | 4.7 ± 0.0 s |
-| `accumulate_final` | 8 000 | 20.0 ± 1.6 % | 103.2 ± 0.0 s |
-| `joint` | 8 000 | 20.0 ± 1.6 % | 103.2 ± 0.0 s |
-| `woodbury_online` | 8 000 | 58.4 ± 0.2 % | 211.1 ± 0.0 s |
-| `reset` | 8 000 | 12.1 ± 0.4 % | 10.7 ± 0.0 s |
-| `accumulate_final` | 16 000 | 14.4 ± 1.2 % | 248.8 ± 0.0 s |
-| `joint` | 16 000 | 14.4 ± 1.2 % | 248.8 ± 0.0 s |
-| `woodbury_online` | 16 000 | 59.8 ± 0.3 % | 629.4 ± 0.0 s |
+| `accumulate_final` | 4000 | 54.3 $\pm$ 0.2 % | 46.5 $\pm$ 0.0 s |
+| `joint` | 4000 | 54.3 $\pm$ 0.2 % | 46.4 $\pm$ 0.0 s |
+| `accumulate_task_solve` | 4000 | 54.3 $\pm$ 0.2 % | 93.1 $\pm$ 0.0 s |
+| `woodbury_online` | 4000 | 54.3 $\pm$ 0.2 % | 123.2 $\pm$ 0.0 s |
+| `reset` | 4000 | 26.3 $\pm$ 0.3 % | 9.3 $\pm$ 0.0 s |
+| `accumulate_final` | 8000 | 56.6 $\pm$ 0.2 % | 102.9 $\pm$ 0.0 s |
+| `joint` | 8000 | 56.6 $\pm$ 0.2 % | 102.9 $\pm$ 0.0 s |
+| `woodbury_online` | 8000 | 56.5 $\pm$ 0.2 % | 313.9 $\pm$ 0.0 s |
+| `reset` | 8000 | 24.9 $\pm$ 0.9 % | 21.0 $\pm$ 0.0 s |
+| `accumulate_final` | 16000 | 58.3 $\pm$ 0.2 % | 247.0 $\pm$ 0.0 s |
+| `joint` | 16000 | 58.3 $\pm$ 0.2 % | 247.0 $\pm$ 0.0 s |
+| `woodbury_online` | 16000 | 58.3 $\pm$ 0.2 % | 875.6 $\pm$ 0.1 s |
 
-Two results are clean.  First, the exact sufficient-statistic identity
-does survive the streaming feature map: `accumulate_final` and `joint`
-are identical to all stored accuracy digits at 4 000, 8 000, and
-16 000 neurons.  Solving after every task also leaves the final decoder
-unchanged at 4 000 neurons.  The algebra is not the problem.
+Three results are clean.  First, the sufficient-statistics identity
+survives the streaming feature map: `accumulate_final` and `joint`
+are identical to all stored accuracy digits at 4000, 8000, and
+16000 neurons.  Solving after every task also leaves the final decoder
+unchanged at 4000 neurons.  Second, online Woodbury is operationally
+valid but not a different solution: it matches the exact final solve to
+within 0.02 pp at 8000 neurons and to stored precision at 4000 and
+16000.  Third, accuracy rises smoothly with width, from 54.3 % at
+4000 neurons to 58.3 % at 16000.
 
-Second, the exact final solve is not the useful streaming continual
-model on this benchmark.  The final accumulate/joint accuracy is weak
-and non-monotonic as the streaming feature dimension grows: 34.8 % at
-4 000 neurons, 20.0 % at 8 000, and 14.4 % at 16 000.  In contrast,
-the online Woodbury path improves monotonically from 56.4 % to 59.8 %,
-well above the reset lower bound and far above the exact final solve at
-larger widths.
+The wider meaning is that the SSUP primitive survives the composition
+that matters for this paper series.  Paper I showed that delay-line
+Stream-NEF can turn temporal sequences into fixed activity statistics;
+Paper II shows that those same statistics remain additive over a
+non-stationary task stream.  Time pooling and task accumulation are not
+separate mechanisms here: both reduce to preserving and solving
+$(A^\top A, A^\top Y)$.  The continual-learning part of the problem is
+therefore still solved by P3 and P6.
 
-The diagnostic panel makes the mechanism clearer.  Refreshing the
-online Woodbury inverse by recomputing it exactly from the accumulated
-normal equations collapses the classifier out of the high-accuracy
-Woodbury regime at every tested width: at $\alpha = 10^{-3}$, 4 000
-neurons fall from **56.3 ± 0.4 %** before refresh to **19.4 ± 4.5 %**
-after refresh, 8 000 neurons fall from **58.3 ± 0.3 %** to
-**14.6 ± 0.1 %**, and 16 000 neurons fall from **59.6 ± 0.2 %** to
-**14.6 ± 0.0 %**.  This is not the small float64 drift of §5.4.  The
-decoder changes are large ($10^3$ scale in max coefficient difference)
-and the decoder norms differ by a factor of about five — at 4 000
-neurons, $\|D_{\mathrm{wood}}\| \approx 848$ versus
-$\|D_{\mathrm{exact}}\| \approx 4327$ — so the two paths land in
-genuinely different solutions, not numerically close ones.
+The boundary that remains is representational.  The 10-task
+permuted-sMNIST stream is far above the reset lower bound, but far below
+the static Permuted-MNIST panel of §5.2.  This matches Paper I's
+streaming lesson: mean-pooled delay-line features are cheap and
+analytic, but they discard long-range order information and are more
+fragile under domain shifts than static image features.  For the larger
+program, streaming continual is encouraging because the primitive still
+works when time and task streams are combined; it is also a warning that
+future gains must come from better fixed streaming representations, not
+from additional continual-learning machinery or a different solver.
 
-Three additional probes keep the conclusion from becoming too simple.
-First, the Woodbury result is insensitive to the tested regularization
-range: at 4 000 neurons it stays at **56.0–56.3 %** across
-$\alpha \in \{10^{-4}, 10^{-3}, 10^{-2}\}$, and at 16 000 neurons it
-stays at **59.4–59.6 %**.  Second, the exact solve is highly sensitive
-to the feature framing: at 4 000 neurons, changing only the exact-solve
-regularizer from $10^{-3}$ to $10^{-2}$ raises accuracy from
-**38.7 ± 7.6 %** to **55.3 ± 0.6 %**, and zeroing the data-driven bias
-raises the $10^{-3}$ exact solve to **52.7 ± 0.4 %**.  At
-$\alpha = 10^{-2}$ the exact decoder norm drops to about 836, matching
-Woodbury within a factor of two — the two paths agree where ill-conditioning
-is no longer dominant.  Third, the Woodbury score is not a batch-size
-or task-order accident: batch sizes 128, 256, and 512, and reverse task
-order, all land at **56.3 ± 0.4 %** at 4 000 neurons.
-
-A single piece of conditioning data ties the panel together.  The
-diagnostic panel logs the trace of $A^\top A$ at the end of training:
-at 4 000 neurons it is $5.25 \times 10^{8}$, with mean diagonal entry
-$1.31 \times 10^{5}$.  Paper I's $\alpha$-as-trace-fraction principle says
-that the regularizer that controls overfitting is the ratio
-$\alpha_{\mathrm{eff}} = \alpha \cdot n / \mathrm{tr}(A^\top A)$.  Here
-that ratio is about $7.6 \times 10^{-12}$ at the headline $\alpha = 10^{-3}$.
-Paper I's static panels operate near $10^{-3}$.  The streaming
-delay-line feature map has trace many orders of magnitude larger than
-the static-image features it is being regularized as if it were, so
-fixed $\alpha = 10^{-3}$ leaves the exact final objective effectively
-unregularized.  In that regime, the math-correct exact ridge inverse
-amplifies float32 GEMM noise from $A^\top A$ in the small-eigenvalue
-subspace where the streaming features carry no signal, producing the
-inflated decoder norm and the accuracy collapse.  Online Woodbury
-starts from $\alpha^{-1} I$ and applies rank-$k$ corrections only inside
-the row space spanned by each batch, so directions that are signal-free
-in the data stay near $\alpha^{-1} I$ and never get inverted on top
-of float noise.  The path is acting as an implicit low-rank regularizer
-on the noise-only subspace — this is why Woodbury's accuracy is stable
-across $\alpha$, batch size, and task order, while exact's is not.
-Raising $\alpha$ or zeroing the bias both push the conditioning back
-into the regime where the math-correct inverse is well-defined, which
-is exactly the regime where the exact and Woodbury accuracies agree
-again.
-
-The direct reading is that the mean-pooled delay-line feature map's
-trace is far outside the regularizer scale that worked for the static
-panels of §§5.1–5.6.  Online Woodbury hides this by behaving as an
-implicit regularizer on signal-free directions; the exact final solve
-does not, so it surfaces the under-regularization as an accuracy
-collapse.  Both paths are correct ridge solves of the same objective in
-exact arithmetic, and both agree where conditioning permits.  We did
-not run a principled trace-scaled $\alpha$ sweep on this benchmark,
-so we record the prediction as an explicit follow-up rather than a
-claim: a Paper-I-style $\alpha = c \cdot \mathrm{tr}(A^\top A) / n$ schedule
-with $c$ in the $10^{-3}$ range, combined with float64 $A^\top A$
-accumulation, should restore exact–Woodbury equivalence on this
-feature map and clarify what fraction of the Woodbury accuracy is
-implicit regularization versus what the exact ridge solution looks
-like at the right scale.  Until that sweep is run, streaming
-continual learning is best read as a separate research line where the
-identity in §3 still holds at the level of $A^\top A$ and $A^\top Y$,
-but the regularizer that turns those statistics into a useful
-classifier has to be set on the streaming feature map's own scale,
-not inherited from static-image defaults.
-
-![Figure 5 -- Streaming continual follow-up on 10-task permuted sMNIST.  Exact accumulate and joint fits coincide at every width, but online Woodbury is the useful high-accuracy path.  The mechanism probes show that exact inverse refresh collapses the Woodbury decoder, while stronger exact regularization and zero-bias framing recover much of the 4 000-neuron gap.](figures/cl_f5_streaming_continual.png)
+![Figure 5 -- Streaming continual follow-up on 10-task permuted sMNIST.  Trace-scaled regularization makes exact accumulate, joint, and online Woodbury coincide at every width; the remaining gap is representational, visible in the lower streaming ceiling relative to static Permuted-MNIST.](figures/cl_f5_streaming_continual.png)
 
 ### §5.8 — Aggregate read
 
@@ -1181,14 +1112,15 @@ on splits, the EWC baseline wins on Permuted-MNIST, and the
 joint-MLP upper bound is 1–2 pp ahead on Split-MNIST and
 Split-CIFAR-10 and 0.3 pp *behind* NEF on Split-CIFAR-100.
 The streaming follow-up preserves exact accumulate/joint equality but
-also shows that online Woodbury can become the useful path precisely
-where the exact final solve is weak.
+also carries the primitive through Paper I's time-collapsed
+Stream-NEF setting: exact, joint, and online Woodbury all coincide
+again once the same trace-scaled regularization policy is used.
 
 We think the right summary is the structural one.  When the
 primitive is "$A^\top A$ and $A^\top Y$ are the universe", the
 data-stream axis simply does not exist for fixed-feature static CL; for
 streaming delay-line features, the exact identity remains true but does
-not by itself guarantee a useful classifier.
+not by itself guarantee a high static-image-level classifier.
 
 ---
 
@@ -1264,45 +1196,25 @@ fixed feature extractor — whether random, PCA-fit, or a frozen
 deep network's penultimate layer — composes with `partial_fit`
 and inherits the property.
 
-### Streaming continual: why exactness is not enough
+### Streaming continual: what survives when time enters
 
 The streaming follow-up is the paper's sharpest warning against
 over-reading the identity.  Stream-NEF uses mean-pooled delay-line
 features rather than static image features.  The sufficient-statistic
 identity still holds there: the final accumulate solve and the joint
-solve are exactly tied at every tested width.  But that exact solution
-is not the best model in the panel.  Online Woodbury is much more
-accurate, while no longer matching the final exact solve; exact inverse
-refresh destroys the Woodbury advantage rather than merely removing a
-small numerical drift, and the two paths produce decoders whose norms
-differ by about a factor of five at the headline width and $\alpha$.
+solve are exactly tied at every tested width, and online Woodbury lands
+on the same solution.  The result matters because it composes the two
+axes that motivate the paper series: time can first be collapsed into a
+fixed activity statistic, and a non-stationary task stream can then add
+those statistics without forgetting.
 
-The mechanism is conditioning, not algebra.  The streaming feature
-map's $A^\top A$ has trace $5.25 \times 10^{8}$ at 4 000 neurons,
-which makes the headline $\alpha = 10^{-3}$ about $10^{-12}$ of the
-mean diagonal entry — many orders of magnitude under the
-trace-fraction scale that worked in Paper I and in §§5.1–5.6.  At that
-scale, the exact ridge inverse aggressively inverts directions where
-the data carries no signal and the only structure is float32 GEMM
-noise from $A^\top A$, which is what produces the inflated decoder
-norm and the accuracy collapse.  Online Woodbury starts from
-$\alpha^{-1} I$ and only modifies the row space spanned by each batch,
-so signal-free directions stay near $\alpha^{-1} I$ and never get
-inverted on top of float noise — an implicit low-rank regularizer that
-is doing real work whenever $\alpha$ is set well below the
-conditioning of the feature map.  Where conditioning is restored
-(stronger $\alpha$, or zero bias), exact and Woodbury agree again.
-
-The right interpretation is not that the identity failed.  It did not.
-The right interpretation is that "same as joint" is only as useful as
-the joint objective is, and the regularizer that defines the joint
-objective has to be set on the streaming feature map's own scale.
-Paper I already established the trace-fraction prescription that does
-this for static features; we have not yet run that prescription on the
-streaming feature map.  Until we do, streaming continual is a
-separate research line where the §3 identity holds at the level of
-$A^\top A$ and $A^\top Y$, but the regularizer that turns those
-statistics into a useful classifier is open.
+The right interpretation is not that streaming solves the representation
+problem.  It does not.  Mean-pooled delay-line features reach 58.3 % at
+16000 neurons on 10-task permuted sMNIST, much lower than static
+Permuted-MNIST.  The important point is that the failure mode has moved:
+the continual-learning mechanism and solver identity still hold, so the
+remaining problem is how to build richer fixed streaming features while
+keeping the sufficient-statistics interface intact.
 
 ### Bridge to Paper III
 
@@ -1421,10 +1333,12 @@ single JSON file:
   (10 seeds × 1 cell).
 - §5.7: fixed-$\alpha$ diagnostic rows in
   `results/cl_clean/gpu_h8_streaming_permuted_smnist_panel.json`,
-  5 seeds × 12 cells, and
+  5 seeds × 12 cells;
   `results/cl_clean/gpu_h8_streaming_diagnostics.json`, 2 seeds ×
-  33 cells.  These rows are retained for failure analysis; the
-  trace-scaled H8 repair panel is prepared but not yet imported.
+  33 cells; `results/cl_clean/gpu_h8_streaming_trace_repair_diagnostics.json`,
+  2 seeds × 80 cells; and
+  `results/cl_clean/gpu_h8_streaming_trace_a1em06_float32_panel.json`,
+  5 seeds × 12 cells for the trace-scaled headline.
 
 **Driver and runner.**  Each panel was launched via
 `benchmarks/cl_clean/cl_phase_runner.py`.  The runner is
@@ -1492,14 +1406,11 @@ artifact: under float64 accumulators, the drift is below $2.3 \times 10^{-5}$ in
 coefficient norm and 0.002 pp in test accuracy, and the two
 solvers produce statistically indistinguishable results at the
 tuned $\alpha$.  Whatever benefit the drift was conveying in
-float32 was not separable from its harm.  The streaming result in
-§5.7 is different: it is not float drift on a well-conditioned
-matrix at all, but a regime where the headline $\alpha$ is many
-orders of magnitude under the trace-fraction scale of the
-streaming feature map, so the exact ridge solution and the online
-Woodbury solution land in genuinely different basins.  Once
-$\alpha$ is moved back into a well-conditioned regime, the two
-agree again.
+float32 was not separable from its harm.  The streaming panel in §5.7
+reinforces the same conclusion in a harder feature space: with the
+regularizer set on the streaming feature map's trace scale, exact
+accumulation, joint fitting, and online Woodbury again agree.  Solver
+family is not the source of the accuracy ceiling.
 
 **Trace-$\alpha$ as a universal regularizer.**  The intuition that
 $\alpha$ should scale with $\mathrm{tr}(A^\top A) / n$ across

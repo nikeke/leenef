@@ -742,9 +742,9 @@ Diagnostic verdict:
   low-rank regularizer on signal-free directions (it never inverts
   them on top of float32 GEMM noise from `(A.T @ A)`), while exact
   Cholesky/LU does invert them, amplifying the noise into the
-  decoder.  Predicted but not yet measured fix: a Paper-I-style
-  trace-scaled `alpha` plus float64 `A.T @ A` should restore
-  exact–Woodbury equivalence on this benchmark.
+  decoder.  The later Stage-A/Stage-B repair below tests the predicted
+  Paper-I-style trace-scaled `alpha` fix and restores exact-Woodbury
+  equivalence without requiring float64 statistics at the selected alpha.
 
 ### 2026-05-10 — H8 alpha-scale audit
 
@@ -854,3 +854,42 @@ acceptable for the repaired headline.
 
 Next step: run the Stage B repaired 5-seed headline with
 `--alpha 1e-6 --alpha-scale trace --stats-dtype float32`.
+
+### 2026-05-11 — H8 Stage B repaired headline imported
+
+Imported:
+
+* `results/cl_clean/gpu_h8_streaming_trace_a1em06_float32_panel.json`
+* `results/cl_clean/logs/gpu_h8_streaming_trace_a1em06_float32_panel.log`
+* `results/cl_clean/colab_gpu_configs/base_config_gpu_h8_streaming_trace_a1em06_float32.json`
+
+Run metadata: 60 rows, seeds 0-4, Google Colab G4
+(`NVIDIA RTX PRO 6000 Blackwell Server Edition`), code identity
+`c391c22b0faa071854ac59a68e5443f98242b835`.
+
+Stage-B read:
+
+| Cell | n | Final accuracy | Fit time | $\alpha_{\mathrm{eff}}$ |
+|---|---:|---:|---:|---:|
+| `accumulate_final` | 4000 | 54.31 ± 0.22 | 46.5 ± 0.0 | 0.1374 |
+| `joint` | 4000 | 54.31 ± 0.22 | 46.4 ± 0.0 | 0.1374 |
+| `accumulate_task_solve` | 4000 | 54.31 ± 0.22 | 93.1 ± 0.0 | 0.1374 |
+| `woodbury_online` | 4000 | 54.31 ± 0.22 | 123.2 ± 0.0 | 0.1374 |
+| `reset` | 4000 | 26.30 ± 0.31 | 9.3 ± 0.0 | 0.01375 |
+| `accumulate_final` | 8000 | 56.55 ± 0.22 | 102.9 ± 0.0 | 0.1399 |
+| `joint` | 8000 | 56.55 ± 0.22 | 102.9 ± 0.0 | 0.1399 |
+| `woodbury_online` | 8000 | 56.53 ± 0.21 | 313.9 ± 0.0 | 0.1399 |
+| `reset` | 8000 | 24.87 ± 0.89 | 21.0 ± 0.0 | 0.0140 |
+| `accumulate_final` | 16000 | 58.30 ± 0.24 | 247.0 ± 0.0 | 0.1401 |
+| `joint` | 16000 | 58.30 ± 0.24 | 247.0 ± 0.0 | 0.1401 |
+| `woodbury_online` | 16000 | 58.29 ± 0.25 | 875.6 ± 0.1 | 0.1401 |
+
+Verdict: the repaired headline confirms the Stage-A prediction.  With
+Paper-I-style trace scaling at nominal `alpha=1e-6`, the effective ridge
+is about 0.14 across widths and `accumulate_final`, `joint`, and
+`woodbury_online` match to the reported precision.  The earlier
+fixed-alpha H8 panel remains useful as a diagnostic: it showed how badly
+the exact solve can be under-regularized when the streaming feature-map
+trace is ignored, not a durable Woodbury advantage.  The remaining
+streaming-continual limitation is representational capacity of the
+mean-pooled delay-line feature map under ten pixel permutations.
