@@ -1,0 +1,41 @@
+[proxychains] DLL init: proxychains-ng 4.17
+nohup: ignoring input
+[proxychains] DLL init: proxychains-ng 4.17
+  [nef_fqi/seed=0] ep   25  train_avg= -498.40  eval= -500.00  ε=0.952
+  [nef_fqi/seed=0] ep   50  train_avg= -500.00  eval= -500.00  ε=0.906
+  [nef_fqi/seed=0] ep   75  train_avg= -500.00  eval= -500.00  ε=0.862
+  [nef_fqi/seed=0] ep  100  train_avg= -500.00  eval= -500.00  ε=0.821
+  [nef_fqi/seed=0] ep  125  train_avg= -500.00  eval= -495.00  ε=0.781
+  [nef_fqi/seed=0] ep  150  train_avg= -496.00  eval= -500.00  ε=0.743
+  [nef_fqi/seed=0] ep  175  train_avg= -492.20  eval= -500.00  ε=0.708
+  [nef_fqi/seed=0] ep  200  train_avg= -500.00  eval= -500.00  ε=0.674
+  [nef_fqi/seed=0] ep  225  train_avg= -481.56  eval= -411.60  ε=0.641
+  [nef_fqi/seed=0] ep  250  train_avg= -492.92  eval= -351.00  ε=0.610
+  [nef_fqi/seed=0] ep  275  train_avg= -476.88  eval= -301.40  ε=0.581
+  [nef_fqi/seed=0] ep  300  train_avg= -487.20  eval= -410.20  ε=0.553
+  [nef_fqi/seed=1] ep   25  train_avg= -500.00  eval= -500.00  ε=0.952
+  [nef_fqi/seed=1] ep   50  train_avg= -500.00  eval= -500.00  ε=0.906
+  [nef_fqi/seed=1] ep   75  train_avg= -500.00  eval= -500.00  ε=0.862
+  [nef_fqi/seed=1] ep  100  train_avg= -500.00  eval= -353.60  ε=0.821
+  [nef_fqi/seed=1] ep  125  train_avg= -500.00  eval= -500.00  ε=0.781
+  [nef_fqi/seed=1] ep  150  train_avg= -499.04  eval= -500.00  ε=0.743
+  [nef_fqi/seed=1] ep  175  train_avg= -500.00  eval= -471.40  ε=0.708
+  [nef_fqi/seed=1] ep  200  train_avg= -500.00  eval= -472.80  ε=0.674
+  [nef_fqi/seed=1] ep  225  train_avg= -499.84  eval= -500.00  ε=0.641
+  [nef_fqi/seed=1] ep  250  train_avg= -500.00  eval= -500.00  ε=0.610
+  [nef_fqi/seed=1] ep  275  train_avg= -499.20  eval= -500.00  ε=0.581
+  [nef_fqi/seed=1] ep  300  train_avg= -500.00  eval= -500.00  ε=0.553
+  [nef_fqi/seed=2] ep   25  train_avg= -500.00  eval= -500.00  ε=0.952
+  [nef_fqi/seed=2] ep   50  train_avg= -492.80  eval= -500.00  ε=0.906
+  [nef_fqi/seed=2] ep   75  train_avg= -500.00  eval= -500.00  ε=0.862
+  [nef_fqi/seed=2] ep  100  train_avg= -498.52  eval= -500.00  ε=0.821
+  [nef_fqi/seed=2] ep  125  train_avg= -491.00  eval= -500.00  ε=0.781
+  [nef_fqi/seed=2] ep  150  train_avg= -499.00  eval= -500.00  ε=0.743
+  [nef_fqi/seed=2] ep  175  train_avg= -500.00  eval= -500.00  ε=0.708
+  [nef_fqi/seed=2] ep  200  train_avg= -500.00  eval= -500.00  ε=0.674
+  [nef_fqi/seed=2] ep  225  train_avg= -496.76  eval= -490.80  ε=0.641
+  [nef_fqi/seed=2] ep  250  train_avg= -500.00  eval= -441.60  ε=0.610
+  [nef_fqi/seed=2] ep  275  train_avg= -496.32  eval= -500.00  ε=0.581
+  [nef_fqi/seed=2] ep  300  train_avg= -497.04  eval= -500.00  ε=0.553
+
+Wrote 3 runs to results/rl_sparse/baseline_acrobot_fqi.json

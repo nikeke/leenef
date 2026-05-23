@@ -1,0 +1,13 @@
+[proxychains] DLL init: proxychains-ng 4.17
+nohup: ignoring input
+[proxychains] DLL init: proxychains-ng 4.17
+  [nef_sf_hindsight/seed=1] ep   25  train_avg=    0.00  eval=    0.00  ε=0.915
+  [nef_sf_hindsight/seed=1] ep   50  train_avg=    0.00  eval=    0.00  ε=0.871
+  [nef_sf_hindsight/seed=1] ep   75  train_avg=    0.00  eval=    0.00  ε=0.829
+  [nef_sf_hindsight/seed=1] ep  100  train_avg=    0.00  eval=    0.00  ε=0.789
+  [nef_sf_hindsight/seed=1] ep  125  train_avg=    0.00  eval=    0.00  ε=0.751
+  [nef_sf_hindsight/seed=1] ep  150  train_avg=    0.00  eval=    0.00  ε=0.715
+  [nef_sf_hindsight/seed=1] ep  175  train_avg=    0.00  eval=    0.00  ε=0.680
+  [nef_sf_hindsight/seed=1] ep  200  train_avg=    0.00  eval=    0.00  ε=0.648
+
+Wrote 1 runs to results/rl_sparse/minigrid_doorkey5_seed1.json
