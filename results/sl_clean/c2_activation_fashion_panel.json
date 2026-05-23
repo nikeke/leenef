@@ -5099,6 +5099,5106 @@
     "value": "relu+g1.0_1.0",
     "wall_time_s": 25.3947
   },
+  "c2_activation_fashion_panel_square+g0.1_5.0_s0": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.1_5.0_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.022065,
+        "bias_std": 1.339806,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.5539,
+        "gain_std": 1.415601
+      },
+      "encode_fit_time_s": 28.0772,
+      "factors": {
+        "activation": "square",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.4587,
+      "test_accuracy": 0.8699,
+      "train_accuracy": 0.9034
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.1_5.0",
+    "wall_time_s": 34.3655
+  },
+  "c2_activation_fashion_panel_square+g0.1_5.0_s1": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.1_5.0_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": -0.03119,
+        "bias_std": 1.340601,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.562716,
+        "gain_std": 1.436293
+      },
+      "encode_fit_time_s": 28.3501,
+      "factors": {
+        "activation": "square",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.398,
+      "test_accuracy": 0.8704,
+      "train_accuracy": 0.90285
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.1_5.0",
+    "wall_time_s": 34.7151
+  },
+  "c2_activation_fashion_panel_square+g0.1_5.0_s2": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.1_5.0_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.015526,
+        "bias_std": 1.342874,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.528757,
+        "gain_std": 1.417044
+      },
+      "encode_fit_time_s": 29.3827,
+      "factors": {
+        "activation": "square",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.3838,
+      "test_accuracy": 0.8719,
+      "train_accuracy": 0.903683
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.1_5.0",
+    "wall_time_s": 35.7944
+  },
+  "c2_activation_fashion_panel_square+g0.1_5.0_s3": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.1_5.0_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.017042,
+        "bias_std": 1.331917,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.565022,
+        "gain_std": 1.413795
+      },
+      "encode_fit_time_s": 28.1351,
+      "factors": {
+        "activation": "square",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.4324,
+      "test_accuracy": 0.8716,
+      "train_accuracy": 0.904317
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.1_5.0",
+    "wall_time_s": 34.2666
+  },
+  "c2_activation_fashion_panel_square+g0.1_5.0_s4": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.1_5.0_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.002926,
+        "bias_std": 1.333601,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.574152,
+        "gain_std": 1.405753
+      },
+      "encode_fit_time_s": 28.9789,
+      "factors": {
+        "activation": "square",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.4326,
+      "test_accuracy": 0.8711,
+      "train_accuracy": 0.903833
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.1_5.0",
+    "wall_time_s": 35.4542
+  },
+  "c2_activation_fashion_panel_square+g0.1_5.0_s5": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.1_5.0_s5",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.022228,
+        "bias_std": 1.359754,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.555711,
+        "gain_std": 1.415011
+      },
+      "encode_fit_time_s": 27.5037,
+      "factors": {
+        "activation": "square",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.5031,
+      "test_accuracy": 0.8706,
+      "train_accuracy": 0.904233
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 5,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.1_5.0",
+    "wall_time_s": 34.0546
+  },
+  "c2_activation_fashion_panel_square+g0.1_5.0_s6": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.1_5.0_s6",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.018617,
+        "bias_std": 1.330232,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.55939,
+        "gain_std": 1.386927
+      },
+      "encode_fit_time_s": 28.9631,
+      "factors": {
+        "activation": "square",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.4548,
+      "test_accuracy": 0.8734,
+      "train_accuracy": 0.903483
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 6,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.1_5.0",
+    "wall_time_s": 35.2663
+  },
+  "c2_activation_fashion_panel_square+g0.1_5.0_s7": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.1_5.0_s7",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": -0.020121,
+        "bias_std": 1.321133,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.562143,
+        "gain_std": 1.415074
+      },
+      "encode_fit_time_s": 28.437,
+      "factors": {
+        "activation": "square",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.41,
+      "test_accuracy": 0.8741,
+      "train_accuracy": 0.903183
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 7,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.1_5.0",
+    "wall_time_s": 34.7878
+  },
+  "c2_activation_fashion_panel_square+g0.1_5.0_s8": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.1_5.0_s8",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.019266,
+        "bias_std": 1.286727,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.507745,
+        "gain_std": 1.397135
+      },
+      "encode_fit_time_s": 28.0997,
+      "factors": {
+        "activation": "square",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.4141,
+      "test_accuracy": 0.8733,
+      "train_accuracy": 0.90315
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 8,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.1_5.0",
+    "wall_time_s": 34.5705
+  },
+  "c2_activation_fashion_panel_square+g0.1_5.0_s9": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.1_5.0_s9",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.034464,
+        "bias_std": 1.313363,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.581823,
+        "gain_std": 1.427971
+      },
+      "encode_fit_time_s": 28.4661,
+      "factors": {
+        "activation": "square",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.4237,
+      "test_accuracy": 0.8717,
+      "train_accuracy": 0.904
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 9,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.1_5.0",
+    "wall_time_s": 34.3756
+  },
+  "c2_activation_fashion_panel_square+g0.5_2.0_s0": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.5_2.0_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.011223,
+        "bias_std": 0.60701,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.251194,
+        "gain_std": 0.433347
+      },
+      "encode_fit_time_s": 28.096,
+      "factors": {
+        "activation": "square",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.4078,
+      "test_accuracy": 0.8734,
+      "train_accuracy": 0.909967
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.5_2.0",
+    "wall_time_s": 34.3813
+  },
+  "c2_activation_fashion_panel_square+g0.5_2.0_s1": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.5_2.0_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": -0.015608,
+        "bias_std": 0.605125,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.253893,
+        "gain_std": 0.439682
+      },
+      "encode_fit_time_s": 27.7192,
+      "factors": {
+        "activation": "square",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.3436,
+      "test_accuracy": 0.8737,
+      "train_accuracy": 0.90915
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.5_2.0",
+    "wall_time_s": 34.0574
+  },
+  "c2_activation_fashion_panel_square+g0.5_2.0_s2": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.5_2.0_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.010157,
+        "bias_std": 0.608788,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.243497,
+        "gain_std": 0.433789
+      },
+      "encode_fit_time_s": 28.3661,
+      "factors": {
+        "activation": "square",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.4068,
+      "test_accuracy": 0.8742,
+      "train_accuracy": 0.909833
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.5_2.0",
+    "wall_time_s": 34.5741
+  },
+  "c2_activation_fashion_panel_square+g0.5_2.0_s3": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.5_2.0_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.008113,
+        "bias_std": 0.604185,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.254599,
+        "gain_std": 0.432794
+      },
+      "encode_fit_time_s": 26.8873,
+      "factors": {
+        "activation": "square",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.4462,
+      "test_accuracy": 0.8733,
+      "train_accuracy": 0.909767
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.5_2.0",
+    "wall_time_s": 33.5339
+  },
+  "c2_activation_fashion_panel_square+g0.5_2.0_s4": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.5_2.0_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.002276,
+        "bias_std": 0.60429,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.257393,
+        "gain_std": 0.430333
+      },
+      "encode_fit_time_s": 27.7878,
+      "factors": {
+        "activation": "square",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.4621,
+      "test_accuracy": 0.8746,
+      "train_accuracy": 0.909533
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.5_2.0",
+    "wall_time_s": 34.0826
+  },
+  "c2_activation_fashion_panel_square+g0.5_2.0_s5": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.5_2.0_s5",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.00914,
+        "bias_std": 0.614571,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.251748,
+        "gain_std": 0.433167
+      },
+      "encode_fit_time_s": 27.9981,
+      "factors": {
+        "activation": "square",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.4636,
+      "test_accuracy": 0.8747,
+      "train_accuracy": 0.91005
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 5,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.5_2.0",
+    "wall_time_s": 34.5166
+  },
+  "c2_activation_fashion_panel_square+g0.5_2.0_s6": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.5_2.0_s6",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.009637,
+        "bias_std": 0.602562,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.252875,
+        "gain_std": 0.42457
+      },
+      "encode_fit_time_s": 27.9536,
+      "factors": {
+        "activation": "square",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.4464,
+      "test_accuracy": 0.8772,
+      "train_accuracy": 0.9107
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 6,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.5_2.0",
+    "wall_time_s": 34.1892
+  },
+  "c2_activation_fashion_panel_square+g0.5_2.0_s7": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.5_2.0_s7",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": -0.009993,
+        "bias_std": 0.598368,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.253717,
+        "gain_std": 0.433186
+      },
+      "encode_fit_time_s": 28.7368,
+      "factors": {
+        "activation": "square",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.3887,
+      "test_accuracy": 0.8775,
+      "train_accuracy": 0.909133
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 7,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.5_2.0",
+    "wall_time_s": 34.9462
+  },
+  "c2_activation_fashion_panel_square+g0.5_2.0_s8": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.5_2.0_s8",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.008611,
+        "bias_std": 0.591216,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.237065,
+        "gain_std": 0.427694
+      },
+      "encode_fit_time_s": 28.5291,
+      "factors": {
+        "activation": "square",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.4678,
+      "test_accuracy": 0.8771,
+      "train_accuracy": 0.909717
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 8,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.5_2.0",
+    "wall_time_s": 34.6765
+  },
+  "c2_activation_fashion_panel_square+g0.5_2.0_s9": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g0.5_2.0_s9",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.014656,
+        "bias_std": 0.596251,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.259742,
+        "gain_std": 0.437134
+      },
+      "encode_fit_time_s": 29.225,
+      "factors": {
+        "activation": "square",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.4278,
+      "test_accuracy": 0.8748,
+      "train_accuracy": 0.910183
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 9,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g0.5_2.0",
+    "wall_time_s": 35.6637
+  },
+  "c2_activation_fashion_panel_square+g1.0_1.0_s0": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g1.0_1.0_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.00952,
+        "bias_std": 0.456799,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 28.8676,
+      "factors": {
+        "activation": "square",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.3801,
+      "test_accuracy": 0.876,
+      "train_accuracy": 0.914917
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g1.0_1.0",
+    "wall_time_s": 35.04
+  },
+  "c2_activation_fashion_panel_square+g1.0_1.0_s1": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g1.0_1.0_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": -0.012912,
+        "bias_std": 0.452881,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 28.0344,
+      "factors": {
+        "activation": "square",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.4,
+      "test_accuracy": 0.875,
+      "train_accuracy": 0.914967
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g1.0_1.0",
+    "wall_time_s": 34.3129
+  },
+  "c2_activation_fashion_panel_square+g1.0_1.0_s2": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g1.0_1.0_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.011514,
+        "bias_std": 0.460526,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 28.3707,
+      "factors": {
+        "activation": "square",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.3908,
+      "test_accuracy": 0.8771,
+      "train_accuracy": 0.914933
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g1.0_1.0",
+    "wall_time_s": 34.8568
+  },
+  "c2_activation_fashion_panel_square+g1.0_1.0_s3": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g1.0_1.0_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.00617,
+        "bias_std": 0.456956,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 28.6938,
+      "factors": {
+        "activation": "square",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.3628,
+      "test_accuracy": 0.875,
+      "train_accuracy": 0.914283
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g1.0_1.0",
+    "wall_time_s": 35.1216
+  },
+  "c2_activation_fashion_panel_square+g1.0_1.0_s4": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g1.0_1.0_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.002941,
+        "bias_std": 0.455787,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 28.8026,
+      "factors": {
+        "activation": "square",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.3976,
+      "test_accuracy": 0.8767,
+      "train_accuracy": 0.914833
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g1.0_1.0",
+    "wall_time_s": 35.3706
+  },
+  "c2_activation_fashion_panel_square+g1.0_1.0_s5": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g1.0_1.0_s5",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.004975,
+        "bias_std": 0.462249,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 28.3509,
+      "factors": {
+        "activation": "square",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.4524,
+      "test_accuracy": 0.8765,
+      "train_accuracy": 0.915433
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 5,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g1.0_1.0",
+    "wall_time_s": 34.7546
+  },
+  "c2_activation_fashion_panel_square+g1.0_1.0_s6": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g1.0_1.0_s6",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.00839,
+        "bias_std": 0.452069,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 28.6723,
+      "factors": {
+        "activation": "square",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.4032,
+      "test_accuracy": 0.8781,
+      "train_accuracy": 0.915133
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 6,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g1.0_1.0",
+    "wall_time_s": 35.1819
+  },
+  "c2_activation_fashion_panel_square+g1.0_1.0_s7": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g1.0_1.0_s7",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": -0.008167,
+        "bias_std": 0.451377,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 27.9892,
+      "factors": {
+        "activation": "square",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.4103,
+      "test_accuracy": 0.877,
+      "train_accuracy": 0.915083
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 7,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g1.0_1.0",
+    "wall_time_s": 34.4684
+  },
+  "c2_activation_fashion_panel_square+g1.0_1.0_s8": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g1.0_1.0_s8",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.00578,
+        "bias_std": 0.459881,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 28.4146,
+      "factors": {
+        "activation": "square",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.4528,
+      "test_accuracy": 0.879,
+      "train_accuracy": 0.914433
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 8,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g1.0_1.0",
+    "wall_time_s": 34.7637
+  },
+  "c2_activation_fashion_panel_square+g1.0_1.0_s9": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "square+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_square+g1.0_1.0_s9",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.008746,
+        "bias_std": 0.451469,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 27.6599,
+      "factors": {
+        "activation": "square",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.4364,
+      "test_accuracy": 0.8767,
+      "train_accuracy": 0.914483
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 9,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "square+g1.0_1.0",
+    "wall_time_s": 33.9449
+  },
+  "c2_activation_fashion_panel_step+g0.1_5.0_s0": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.1_5.0_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.022065,
+        "bias_std": 1.339806,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.5539,
+        "gain_std": 1.415601
+      },
+      "encode_fit_time_s": 26.5761,
+      "factors": {
+        "activation": "step",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.454,
+      "test_accuracy": 0.8603,
+      "train_accuracy": 0.905167
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.1_5.0",
+    "wall_time_s": 33.1817
+  },
+  "c2_activation_fashion_panel_step+g0.1_5.0_s1": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.1_5.0_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": -0.03119,
+        "bias_std": 1.340601,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.562716,
+        "gain_std": 1.436293
+      },
+      "encode_fit_time_s": 26.6083,
+      "factors": {
+        "activation": "step",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.3912,
+      "test_accuracy": 0.8642,
+      "train_accuracy": 0.903867
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.1_5.0",
+    "wall_time_s": 32.7672
+  },
+  "c2_activation_fashion_panel_step+g0.1_5.0_s2": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.1_5.0_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.015526,
+        "bias_std": 1.342874,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.528757,
+        "gain_std": 1.417044
+      },
+      "encode_fit_time_s": 27.5371,
+      "factors": {
+        "activation": "step",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.3999,
+      "test_accuracy": 0.86,
+      "train_accuracy": 0.90435
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.1_5.0",
+    "wall_time_s": 33.8525
+  },
+  "c2_activation_fashion_panel_step+g0.1_5.0_s3": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.1_5.0_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.017042,
+        "bias_std": 1.331917,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.565022,
+        "gain_std": 1.413795
+      },
+      "encode_fit_time_s": 27.0963,
+      "factors": {
+        "activation": "step",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.4206,
+      "test_accuracy": 0.8627,
+      "train_accuracy": 0.904317
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.1_5.0",
+    "wall_time_s": 33.5383
+  },
+  "c2_activation_fashion_panel_step+g0.1_5.0_s4": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.1_5.0_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.002926,
+        "bias_std": 1.333601,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.574152,
+        "gain_std": 1.405753
+      },
+      "encode_fit_time_s": 26.8594,
+      "factors": {
+        "activation": "step",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.4775,
+      "test_accuracy": 0.8622,
+      "train_accuracy": 0.904133
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.1_5.0",
+    "wall_time_s": 33.2362
+  },
+  "c2_activation_fashion_panel_step+g0.1_5.0_s5": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.1_5.0_s5",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.022228,
+        "bias_std": 1.359754,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.555711,
+        "gain_std": 1.415011
+      },
+      "encode_fit_time_s": 26.9195,
+      "factors": {
+        "activation": "step",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.4371,
+      "test_accuracy": 0.862,
+      "train_accuracy": 0.90465
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 5,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.1_5.0",
+    "wall_time_s": 33.4731
+  },
+  "c2_activation_fashion_panel_step+g0.1_5.0_s6": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.1_5.0_s6",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.018617,
+        "bias_std": 1.330232,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.55939,
+        "gain_std": 1.386927
+      },
+      "encode_fit_time_s": 27.3651,
+      "factors": {
+        "activation": "step",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.4429,
+      "test_accuracy": 0.8594,
+      "train_accuracy": 0.904967
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 6,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.1_5.0",
+    "wall_time_s": 33.7862
+  },
+  "c2_activation_fashion_panel_step+g0.1_5.0_s7": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.1_5.0_s7",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": -0.020121,
+        "bias_std": 1.321133,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.562143,
+        "gain_std": 1.415074
+      },
+      "encode_fit_time_s": 26.4673,
+      "factors": {
+        "activation": "step",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.3641,
+      "test_accuracy": 0.8577,
+      "train_accuracy": 0.90315
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 7,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.1_5.0",
+    "wall_time_s": 32.8404
+  },
+  "c2_activation_fashion_panel_step+g0.1_5.0_s8": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.1_5.0_s8",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.019266,
+        "bias_std": 1.286727,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.507745,
+        "gain_std": 1.397135
+      },
+      "encode_fit_time_s": 26.8973,
+      "factors": {
+        "activation": "step",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.3879,
+      "test_accuracy": 0.8636,
+      "train_accuracy": 0.904867
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 8,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.1_5.0",
+    "wall_time_s": 33.0117
+  },
+  "c2_activation_fashion_panel_step+g0.1_5.0_s9": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.1_5.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.1_5.0_s9",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.034464,
+        "bias_std": 1.313363,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 2.581823,
+        "gain_std": 1.427971
+      },
+      "encode_fit_time_s": 27.1034,
+      "factors": {
+        "activation": "step",
+        "gain_high": 5.0,
+        "gain_low": 0.1
+      },
+      "solve_time_s": 0.4076,
+      "test_accuracy": 0.8617,
+      "train_accuracy": 0.905133
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 9,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.1_5.0",
+    "wall_time_s": 33.3599
+  },
+  "c2_activation_fashion_panel_step+g0.5_2.0_s0": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.5_2.0_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.011223,
+        "bias_std": 0.60701,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.251194,
+        "gain_std": 0.433347
+      },
+      "encode_fit_time_s": 25.2075,
+      "factors": {
+        "activation": "step",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.4633,
+      "test_accuracy": 0.8603,
+      "train_accuracy": 0.9052
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.5_2.0",
+    "wall_time_s": 31.86
+  },
+  "c2_activation_fashion_panel_step+g0.5_2.0_s1": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.5_2.0_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": -0.015608,
+        "bias_std": 0.605125,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.253893,
+        "gain_std": 0.439682
+      },
+      "encode_fit_time_s": 25.4458,
+      "factors": {
+        "activation": "step",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.3415,
+      "test_accuracy": 0.8642,
+      "train_accuracy": 0.903817
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.5_2.0",
+    "wall_time_s": 31.3154
+  },
+  "c2_activation_fashion_panel_step+g0.5_2.0_s2": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.5_2.0_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.010157,
+        "bias_std": 0.608788,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.243497,
+        "gain_std": 0.433789
+      },
+      "encode_fit_time_s": 25.0025,
+      "factors": {
+        "activation": "step",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.4187,
+      "test_accuracy": 0.86,
+      "train_accuracy": 0.904383
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.5_2.0",
+    "wall_time_s": 31.1044
+  },
+  "c2_activation_fashion_panel_step+g0.5_2.0_s3": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.5_2.0_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.008113,
+        "bias_std": 0.604185,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.254599,
+        "gain_std": 0.432794
+      },
+      "encode_fit_time_s": 24.4766,
+      "factors": {
+        "activation": "step",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.3884,
+      "test_accuracy": 0.8627,
+      "train_accuracy": 0.9043
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.5_2.0",
+    "wall_time_s": 30.8163
+  },
+  "c2_activation_fashion_panel_step+g0.5_2.0_s4": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.5_2.0_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.002276,
+        "bias_std": 0.60429,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.257393,
+        "gain_std": 0.430333
+      },
+      "encode_fit_time_s": 25.0938,
+      "factors": {
+        "activation": "step",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.346,
+      "test_accuracy": 0.8622,
+      "train_accuracy": 0.904133
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.5_2.0",
+    "wall_time_s": 31.1283
+  },
+  "c2_activation_fashion_panel_step+g0.5_2.0_s5": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.5_2.0_s5",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.00914,
+        "bias_std": 0.614571,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.251748,
+        "gain_std": 0.433167
+      },
+      "encode_fit_time_s": 26.3341,
+      "factors": {
+        "activation": "step",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.4305,
+      "test_accuracy": 0.862,
+      "train_accuracy": 0.904583
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 5,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.5_2.0",
+    "wall_time_s": 32.4541
+  },
+  "c2_activation_fashion_panel_step+g0.5_2.0_s6": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.5_2.0_s6",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.009637,
+        "bias_std": 0.602562,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.252875,
+        "gain_std": 0.42457
+      },
+      "encode_fit_time_s": 26.0361,
+      "factors": {
+        "activation": "step",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.4198,
+      "test_accuracy": 0.8594,
+      "train_accuracy": 0.9049
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 6,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.5_2.0",
+    "wall_time_s": 32.1898
+  },
+  "c2_activation_fashion_panel_step+g0.5_2.0_s7": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.5_2.0_s7",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": -0.009993,
+        "bias_std": 0.598368,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.253717,
+        "gain_std": 0.433186
+      },
+      "encode_fit_time_s": 26.8849,
+      "factors": {
+        "activation": "step",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.3993,
+      "test_accuracy": 0.8575,
+      "train_accuracy": 0.903167
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 7,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.5_2.0",
+    "wall_time_s": 32.9738
+  },
+  "c2_activation_fashion_panel_step+g0.5_2.0_s8": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.5_2.0_s8",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.008611,
+        "bias_std": 0.591216,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.237065,
+        "gain_std": 0.427694
+      },
+      "encode_fit_time_s": 27.5461,
+      "factors": {
+        "activation": "step",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.3981,
+      "test_accuracy": 0.8635,
+      "train_accuracy": 0.9048
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 8,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.5_2.0",
+    "wall_time_s": 33.8009
+  },
+  "c2_activation_fashion_panel_step+g0.5_2.0_s9": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g0.5_2.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g0.5_2.0_s9",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.014656,
+        "bias_std": 0.596251,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.259742,
+        "gain_std": 0.437134
+      },
+      "encode_fit_time_s": 27.4811,
+      "factors": {
+        "activation": "step",
+        "gain_high": 2.0,
+        "gain_low": 0.5
+      },
+      "solve_time_s": 0.4387,
+      "test_accuracy": 0.8616,
+      "train_accuracy": 0.905167
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 9,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g0.5_2.0",
+    "wall_time_s": 33.7876
+  },
+  "c2_activation_fashion_panel_step+g1.0_1.0_s0": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g1.0_1.0_s0",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.00952,
+        "bias_std": 0.456799,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 27.0404,
+      "factors": {
+        "activation": "step",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.4087,
+      "test_accuracy": 0.8603,
+      "train_accuracy": 0.90515
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 0,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g1.0_1.0",
+    "wall_time_s": 33.2049
+  },
+  "c2_activation_fashion_panel_step+g1.0_1.0_s1": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g1.0_1.0_s1",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": -0.012912,
+        "bias_std": 0.452881,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 26.8551,
+      "factors": {
+        "activation": "step",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.3875,
+      "test_accuracy": 0.8642,
+      "train_accuracy": 0.903833
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 1,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g1.0_1.0",
+    "wall_time_s": 33.3199
+  },
+  "c2_activation_fashion_panel_step+g1.0_1.0_s2": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g1.0_1.0_s2",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.011514,
+        "bias_std": 0.460526,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 26.0909,
+      "factors": {
+        "activation": "step",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.4138,
+      "test_accuracy": 0.8601,
+      "train_accuracy": 0.904317
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 2,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g1.0_1.0",
+    "wall_time_s": 32.7499
+  },
+  "c2_activation_fashion_panel_step+g1.0_1.0_s3": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g1.0_1.0_s3",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.00617,
+        "bias_std": 0.456956,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 26.0048,
+      "factors": {
+        "activation": "step",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.3945,
+      "test_accuracy": 0.8627,
+      "train_accuracy": 0.9043
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 3,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g1.0_1.0",
+    "wall_time_s": 32.3027
+  },
+  "c2_activation_fashion_panel_step+g1.0_1.0_s4": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g1.0_1.0_s4",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.002941,
+        "bias_std": 0.455787,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 26.3843,
+      "factors": {
+        "activation": "step",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.4515,
+      "test_accuracy": 0.8621,
+      "train_accuracy": 0.904167
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 4,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g1.0_1.0",
+    "wall_time_s": 32.9709
+  },
+  "c2_activation_fashion_panel_step+g1.0_1.0_s5": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g1.0_1.0_s5",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.004975,
+        "bias_std": 0.462249,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 26.5004,
+      "factors": {
+        "activation": "step",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.4495,
+      "test_accuracy": 0.8619,
+      "train_accuracy": 0.904567
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 5,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g1.0_1.0",
+    "wall_time_s": 32.8445
+  },
+  "c2_activation_fashion_panel_step+g1.0_1.0_s6": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g1.0_1.0_s6",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.00839,
+        "bias_std": 0.452069,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 26.7421,
+      "factors": {
+        "activation": "step",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.4222,
+      "test_accuracy": 0.8594,
+      "train_accuracy": 0.904933
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 6,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g1.0_1.0",
+    "wall_time_s": 33.6313
+  },
+  "c2_activation_fashion_panel_step+g1.0_1.0_s7": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g1.0_1.0_s7",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": -0.008167,
+        "bias_std": 0.451377,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 27.7377,
+      "factors": {
+        "activation": "step",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.4358,
+      "test_accuracy": 0.8575,
+      "train_accuracy": 0.9032
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 7,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g1.0_1.0",
+    "wall_time_s": 34.1362
+  },
+  "c2_activation_fashion_panel_step+g1.0_1.0_s8": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g1.0_1.0_s8",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.00578,
+        "bias_std": 0.459881,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 26.6378,
+      "factors": {
+        "activation": "step",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.4392,
+      "test_accuracy": 0.8635,
+      "train_accuracy": 0.90485
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 8,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g1.0_1.0",
+    "wall_time_s": 32.7848
+  },
+  "c2_activation_fashion_panel_step+g1.0_1.0_s9": {
+    "code_identity": "a045f57fe2a3df4d0da1063fd658a98e4fbce6b3",
+    "config": {
+      "alpha": 0.001,
+      "cell": "step+g1.0_1.0",
+      "chunk_size": 5000,
+      "encoder_strategy": "hypersphere",
+      "n_neurons": 5000,
+      "patch_size": 5
+    },
+    "experiment": "c2_activation_fashion",
+    "hardware": {
+      "cpu_count": 12,
+      "cuda_available": false,
+      "torch_version": "2.10.0+cu128"
+    },
+    "higher_is_better": true,
+    "knob": "cell",
+    "label": "c2_activation_fashion_panel_step+g1.0_1.0_s9",
+    "metrics": {
+      "dataset_metadata": {
+        "d_in": 784,
+        "dataset": "FashionMNIST",
+        "n_classes": 10,
+        "n_test": 10000,
+        "n_train": 60000,
+        "preprocessing": "div255_flat",
+        "processed_hashes": {
+          "x_test": "0c0f08b9d95e81a9c662a7e200cbb82a22e7669e3a79c4e861585d1dbf736efd",
+          "x_train": "c8e7985e4e6a3382c3c25c81a43502a695894fef5d797f4c58a637801efb1612",
+          "y_test": "d51d859896c55775b9e9e219b77ff03bcec1b6ac322f313544dc3f9e7bc94fae",
+          "y_train": "e3245b63f7c40d1c8b652835f19744d970c1613b40ddac6bcfc87b9c46e16a0b"
+        },
+        "raw_hashes": {
+          "test_images": "5b4141f0afbad91edebe8549f8fcffe087ea10ca49f1dbef5c9a5cd8815ce37b",
+          "test_labels": "0402a96d92fd2663957122ceb108a494c5af83dab82d92729df917d7dec38c34",
+          "train_images": "c59f468a2f672dc815687fe0f83887768d799fd8a3f3276145d20f83aa44d888",
+          "train_labels": "bad3541b69d912435c50bb6ba87bec294ff4f6a2e1246121d8633921760443d9"
+        }
+      },
+      "diagnostics": {
+        "bias_mean": 0.008746,
+        "bias_std": 0.451469,
+        "encoder_norm_mean": 1.0,
+        "gain_mean": 1.0,
+        "gain_std": 0.0
+      },
+      "encode_fit_time_s": 26.6134,
+      "factors": {
+        "activation": "step",
+        "gain_high": 1.0,
+        "gain_low": 1.0
+      },
+      "solve_time_s": 0.4085,
+      "test_accuracy": 0.8618,
+      "train_accuracy": 0.9052
+    },
+    "phase": "c2_activation_fashion_panel",
+    "primary_metric": "test_accuracy",
+    "result_namespace": "sl_clean",
+    "run_context": {
+      "d_in": 784,
+      "dataset": "FashionMNIST",
+      "experiment_kind": "fashion_singlelayer_c2_activation_panel",
+      "image_shape": [
+        28,
+        28
+      ],
+      "n_classes": 10,
+      "n_test": 10000,
+      "n_train": 60000,
+      "preprocessing": "div255_flat"
+    },
+    "runner_version": "sl-clean-v1",
+    "seed": 9,
+    "seed_policy": {
+      "data_split_seed": "derived deterministically from seed inside the experiment",
+      "main_seed": "per-run user-visible seed",
+      "numpy_seed": "np.random.seed(seed)",
+      "python_seed": "random.seed(seed)",
+      "torch_seed": "torch.manual_seed(seed)"
+    },
+    "value": "step+g1.0_1.0",
+    "wall_time_s": 33.2549
+  },
   "c2_activation_fashion_panel_tanh+g0.1_5.0_s0": {
     "code_identity": "9bfe9d9c7eacc013c2d83a42389245e47db129fe",
     "config": {

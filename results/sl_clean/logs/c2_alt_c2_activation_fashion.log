@@ -1,0 +1,68 @@
+[proxychains] DLL init: proxychains-ng 4.17
+[proxychains] DLL init: proxychains-ng 4.17
+================================================================
+  PHASE c2_activation_fashion_panel  exp=c2_activation_fashion  cells=step+g0.5_2.0,step+g1.0_1.0,step+g0.1_5.0,square+g0.5_2.0,square+g1.0_1.0,square+g0.1_5.0  seeds=0-9
+================================================================
+[proxychains] DLL init: proxychains-ng 4.17
+[2026-05-23T08:33:01] phase=c2_activation_fashion_panel experiment=c2_activation_fashion knob=cell values=['step+g0.5_2.0', 'step+g1.0_1.0', 'step+g0.1_5.0', 'square+g0.5_2.0', 'square+g1.0_1.0', 'square+g0.1_5.0'] seeds=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9] code_identity=a045f57fe2a3df4d0da1063fd658a98e4fbce6b3
+[2026-05-23T08:33:01]   [1/60] run    c2_activation_fashion_panel_step+g0.5_2.0_s0
+[2026-05-23T08:33:33]   [2/60] run    c2_activation_fashion_panel_step+g0.5_2.0_s1
+[2026-05-23T08:34:04]   [3/60] run    c2_activation_fashion_panel_step+g0.5_2.0_s2
+[2026-05-23T08:34:35]   [4/60] run    c2_activation_fashion_panel_step+g0.5_2.0_s3
+[2026-05-23T08:35:06]   [5/60] run    c2_activation_fashion_panel_step+g0.5_2.0_s4
+[2026-05-23T08:35:37]   [6/60] run    c2_activation_fashion_panel_step+g0.5_2.0_s5
+[2026-05-23T08:36:10]   [7/60] run    c2_activation_fashion_panel_step+g0.5_2.0_s6
+[2026-05-23T08:36:42]   [8/60] run    c2_activation_fashion_panel_step+g0.5_2.0_s7
+[2026-05-23T08:37:15]   [9/60] run    c2_activation_fashion_panel_step+g0.5_2.0_s8
+[2026-05-23T08:37:49]   [10/60] run    c2_activation_fashion_panel_step+g0.5_2.0_s9
+[2026-05-23T08:38:22]   [11/60] run    c2_activation_fashion_panel_step+g1.0_1.0_s0
+[2026-05-23T08:38:56]   [12/60] run    c2_activation_fashion_panel_step+g1.0_1.0_s1
+[2026-05-23T08:39:29]   [13/60] run    c2_activation_fashion_panel_step+g1.0_1.0_s2
+[2026-05-23T08:40:02]   [14/60] run    c2_activation_fashion_panel_step+g1.0_1.0_s3
+[2026-05-23T08:40:34]   [15/60] run    c2_activation_fashion_panel_step+g1.0_1.0_s4
+[2026-05-23T08:41:07]   [16/60] run    c2_activation_fashion_panel_step+g1.0_1.0_s5
+[2026-05-23T08:41:40]   [17/60] run    c2_activation_fashion_panel_step+g1.0_1.0_s6
+[2026-05-23T08:42:14]   [18/60] run    c2_activation_fashion_panel_step+g1.0_1.0_s7
+[2026-05-23T08:42:48]   [19/60] run    c2_activation_fashion_panel_step+g1.0_1.0_s8
+[2026-05-23T08:43:21]   [20/60] run    c2_activation_fashion_panel_step+g1.0_1.0_s9
+[2026-05-23T08:43:54]   [21/60] run    c2_activation_fashion_panel_step+g0.1_5.0_s0
+[2026-05-23T08:44:27]   [22/60] run    c2_activation_fashion_panel_step+g0.1_5.0_s1
+[2026-05-23T08:45:00]   [23/60] run    c2_activation_fashion_panel_step+g0.1_5.0_s2
+[2026-05-23T08:45:34]   [24/60] run    c2_activation_fashion_panel_step+g0.1_5.0_s3
+[2026-05-23T08:46:07]   [25/60] run    c2_activation_fashion_panel_step+g0.1_5.0_s4
+[2026-05-23T08:46:41]   [26/60] run    c2_activation_fashion_panel_step+g0.1_5.0_s5
+[2026-05-23T08:47:14]   [27/60] run    c2_activation_fashion_panel_step+g0.1_5.0_s6
+[2026-05-23T08:47:48]   [28/60] run    c2_activation_fashion_panel_step+g0.1_5.0_s7
+[2026-05-23T08:48:21]   [29/60] run    c2_activation_fashion_panel_step+g0.1_5.0_s8
+[2026-05-23T08:48:54]   [30/60] run    c2_activation_fashion_panel_step+g0.1_5.0_s9
+[2026-05-23T08:49:27]   [31/60] run    c2_activation_fashion_panel_square+g0.5_2.0_s0
+[2026-05-23T08:50:01]   [32/60] run    c2_activation_fashion_panel_square+g0.5_2.0_s1
+[2026-05-23T08:50:36]   [33/60] run    c2_activation_fashion_panel_square+g0.5_2.0_s2
+[2026-05-23T08:51:10]   [34/60] run    c2_activation_fashion_panel_square+g0.5_2.0_s3
+[2026-05-23T08:51:44]   [35/60] run    c2_activation_fashion_panel_square+g0.5_2.0_s4
+[2026-05-23T08:52:18]   [36/60] run    c2_activation_fashion_panel_square+g0.5_2.0_s5
+[2026-05-23T08:52:52]   [37/60] run    c2_activation_fashion_panel_square+g0.5_2.0_s6
+[2026-05-23T08:53:27]   [38/60] run    c2_activation_fashion_panel_square+g0.5_2.0_s7
+[2026-05-23T08:54:02]   [39/60] run    c2_activation_fashion_panel_square+g0.5_2.0_s8
+[2026-05-23T08:54:36]   [40/60] run    c2_activation_fashion_panel_square+g0.5_2.0_s9
+[2026-05-23T08:55:12]   [41/60] run    c2_activation_fashion_panel_square+g1.0_1.0_s0
+[2026-05-23T08:55:47]   [42/60] run    c2_activation_fashion_panel_square+g1.0_1.0_s1
+[2026-05-23T08:56:21]   [43/60] run    c2_activation_fashion_panel_square+g1.0_1.0_s2
+[2026-05-23T08:56:56]   [44/60] run    c2_activation_fashion_panel_square+g1.0_1.0_s3
+[2026-05-23T08:57:31]   [45/60] run    c2_activation_fashion_panel_square+g1.0_1.0_s4
+[2026-05-23T08:58:07]   [46/60] run    c2_activation_fashion_panel_square+g1.0_1.0_s5
+[2026-05-23T08:58:41]   [47/60] run    c2_activation_fashion_panel_square+g1.0_1.0_s6
+[2026-05-23T08:59:17]   [48/60] run    c2_activation_fashion_panel_square+g1.0_1.0_s7
+[2026-05-23T08:59:51]   [49/60] run    c2_activation_fashion_panel_square+g1.0_1.0_s8
+[2026-05-23T09:00:26]   [50/60] run    c2_activation_fashion_panel_square+g1.0_1.0_s9
+[2026-05-23T09:01:00]   [51/60] run    c2_activation_fashion_panel_square+g0.1_5.0_s0
+[2026-05-23T09:01:34]   [52/60] run    c2_activation_fashion_panel_square+g0.1_5.0_s1
+[2026-05-23T09:02:09]   [53/60] run    c2_activation_fashion_panel_square+g0.1_5.0_s2
+[2026-05-23T09:02:45]   [54/60] run    c2_activation_fashion_panel_square+g0.1_5.0_s3
+[2026-05-23T09:03:19]   [55/60] run    c2_activation_fashion_panel_square+g0.1_5.0_s4
+[2026-05-23T09:03:55]   [56/60] run    c2_activation_fashion_panel_square+g0.1_5.0_s5
+[2026-05-23T09:04:29]   [57/60] run    c2_activation_fashion_panel_square+g0.1_5.0_s6
+[2026-05-23T09:05:04]   [58/60] run    c2_activation_fashion_panel_square+g0.1_5.0_s7
+[2026-05-23T09:05:39]   [59/60] run    c2_activation_fashion_panel_square+g0.1_5.0_s8
+[2026-05-23T09:06:13]   [60/60] run    c2_activation_fashion_panel_square+g0.1_5.0_s9
+[2026-05-23T09:06:48] phase c2_activation_fashion_panel done — 150 rows in results/sl_clean/c2_activation_fashion_panel.json
