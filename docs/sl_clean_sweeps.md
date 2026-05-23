@@ -96,7 +96,7 @@ the ground truth for any future claim audit.
 | C2   | c2_activation_mnist_panel | c2_activation_mnist | `cell` (activation × gain) | Paper I activation/gain ablation — MNIST |
 | C2.1 | c2_activation_fashion_panel | c2_activation_fashion | `cell` (activation × gain) | Paper I activation/gain ablation — Fashion-MNIST |
 | C2.2 | c2_activation_cifar10_panel | c2_activation_cifar10 | `cell` (activation × gain) | Paper I activation/gain ablation — CIFAR-10 |
-| C2.alt | c2_activation_{mnist,fashion,cifar10}_panel | c2_activation_* | `cell` (`step`, `square` only) | exploratory extension of §5.4 activation table |
+| C2.alt | c2_activation_{mnist,fashion,cifar10}_panel | c2_activation_* | `cell` (same-identity activation extension) | §5.4 activation table audit |
 | C3   | c3_ensemble_cifar10_panel | c3_ensemble_cifar10 | `cell` (ensemble size × encoder) | Paper I ensemble / RF panel — CIFAR-10 |
 | C4   | c4_multilayer_mnist_panel | c4_multilayer_mnist | `cell` (training strategy) | Paper I multilayer strategy panel — MNIST |
 | C4.1 | c4_multilayer_cifar10_panel | c4_multilayer_cifar10 | `cell` (training strategy) | Paper I multilayer strategy panel — CIFAR-10 |
@@ -852,7 +852,8 @@ ReLU.
 
 **Code / data identity.**
 
-- `code_identity` for all 90 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- `code_identity` for the current 90-row rerun:
+  `a045f57fe2a3df4d0da1063fd658a98e4fbce6b3`
 - Dataset hashes match the shared MNIST raw bytes under the worktree's
   `data/` symlink to `../leenef/data`
 
@@ -903,7 +904,8 @@ gain range still matters only marginally.
 
 **Code / data identity.**
 
-- `code_identity` for all 90 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- `code_identity` for the current 90-row rerun:
+  `a045f57fe2a3df4d0da1063fd658a98e4fbce6b3`
 - Dataset hashes match the shared Fashion-MNIST raw bytes under the
   worktree's `data/` symlink to `../leenef/data`
 
@@ -958,7 +960,8 @@ gain.**
 
 **Code / data identity.**
 
-- `code_identity` for all 90 rows: `9bfe9d9c7eacc013c2d83a42389245e47db129fe`
+- `code_identity` for the current 90-row rerun:
+  `a045f57fe2a3df4d0da1063fd658a98e4fbce6b3`
 - Dataset hashes match the shared CIFAR-10 raw bytes under the
   worktree's `data/` symlink to `../leenef/data`
 
@@ -973,44 +976,60 @@ SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
 
 ## C2.alt — step and square activation extension
 
-**Question.** Do a binary threshold (`step`) or quadratic (`square`)
-activation change the §5.4 activation story enough to justify a
-same-identity rerun of the original `abs`/ReLU/`tanh` rows?
+**Question.** After rerunning the original activation cells under the
+same identity, do a binary threshold (`step`) or quadratic (`square`)
+activation change the §5.4 activation story?
 
-**Setup.** MNIST, Fashion-MNIST, and CIFAR-10; `activation ∈ {step,
-square}` × `gain ∈ {(0.5,2.0), (1.0,1.0), (0.1,5.0)}` × 10 seeds = 60
-new rows per dataset, 180 rows total.  Hypersphere encoders,
-data-driven biases, `n_neurons=5000`, trace-scaled `α=1e-3`, chunked
-normal-equation accumulation with Cholesky solve.  Existing
-`abs`/ReLU/`tanh` rows in the same JSON files remain on the older
-`9bfe9d...` identity and are therefore **context only**, not
-same-identity comparators.
+**Setup.** MNIST, Fashion-MNIST, and CIFAR-10; first rerun the original
+`abs`/ReLU/`tanh` 3×3 panel under the current identity, then add
+`step` at the same three gains and `square` at six extra capped/lower
+gain settings.  All rows use 10 seeds, hypersphere encoders,
+data-driven biases, `n_neurons=5000`, trace-scaled `α=1e-3`, and the
+chunked normal-equation Cholesky solve.  The result JSON files now hold
+older identities too; the table below uses only the current
+`a045f57...` rows.
 
 ### Per-cell test accuracy (mean ± SE, n=10)
 
 | cell | MNIST | Fashion-MNIST | CIFAR-10 |
 |---|---:|---:|---:|
+| abs+g0.5_2.0 | 97.04 ± 0.01 | 87.78 ± 0.05 | 49.45 ± 0.11 |
+| abs+g1.0_1.0 | 97.05 ± 0.02 | **87.81 ± 0.05** | 49.33 ± 0.09 |
+| abs+g0.1_5.0 | 96.99 ± 0.02 | 87.65 ± 0.05 | 49.66 ± 0.11 |
+| relu+g0.5_2.0 | 97.05 ± 0.03 | 87.65 ± 0.05 | 49.45 ± 0.07 |
+| relu+g1.0_1.0 | **97.06 ± 0.02** | 87.73 ± 0.05 | 49.26 ± 0.07 |
+| relu+g0.1_5.0 | 96.94 ± 0.02 | 87.48 ± 0.03 | 49.52 ± 0.11 |
+| tanh+g0.5_2.0 | 96.77 ± 0.02 | 87.11 ± 0.05 | 48.60 ± 0.09 |
+| tanh+g1.0_1.0 | 96.70 ± 0.03 | 86.80 ± 0.03 | 47.99 ± 0.07 |
+| tanh+g0.1_5.0 | 96.89 ± 0.03 | 87.51 ± 0.04 | 49.02 ± 0.09 |
 | step+g0.5_2.0 | 95.80 ± 0.05 | 86.13 ± 0.06 | 44.95 ± 0.08 |
 | step+g1.0_1.0 | 95.80 ± 0.05 | 86.14 ± 0.06 | 44.95 ± 0.07 |
 | step+g0.1_5.0 | 95.80 ± 0.04 | 86.14 ± 0.06 | 44.95 ± 0.07 |
+| square+g0.0_1.0 | 96.74 ± 0.02 | 87.14 ± 0.04 | 49.69 ± 0.14 |
+| square+g0.0_0.75 | 96.74 ± 0.02 | 87.14 ± 0.04 | 49.69 ± 0.14 |
+| square+g0.1_0.75 | 96.87 ± 0.02 | 87.34 ± 0.04 | 49.88 ± 0.13 |
+| square+g0.1_1.0 | 96.84 ± 0.02 | 87.29 ± 0.04 | 49.84 ± 0.11 |
+| square+g0.25_1.0 | 96.93 ± 0.02 | 87.50 ± 0.05 | **49.90 ± 0.11** |
+| square+g0.5_1.0 | 96.96 ± 0.02 | 87.66 ± 0.03 | 49.63 ± 0.12 |
 | square+g0.5_2.0 | 96.93 ± 0.02 | 87.50 ± 0.05 | 49.90 ± 0.11 |
 | square+g1.0_1.0 | 96.97 ± 0.02 | 87.67 ± 0.04 | 49.50 ± 0.12 |
 | square+g0.1_5.0 | 96.76 ± 0.02 | 87.18 ± 0.04 | 49.74 ± 0.13 |
 
-**Verdict.** `step` is a clear negative result: it is nearly invariant
-to gain, loses about 1 pp on MNIST/Fashion relative to the old
-top-tier context rows, and loses roughly 4.5–5 pp on CIFAR-10.  `square`
-is more interesting.  On MNIST and Fashion-MNIST it is close but still
-below the old `abs`/ReLU context rows.  On CIFAR-10, however,
-`square+g0.5_2.0` reaches `49.90% ± 0.11`, above the old-context
-`abs`/ReLU band.  Because the old rows use a different code identity,
-this is not yet a supported win; it is enough signal to justify rerunning
-the original C2 cells under the current `a045f57...` identity before
-changing the manuscript table.
+**Verdict.** The same-identity rerun leaves the original story intact:
+`abs`/ReLU are effectively tied on MNIST and CIFAR-10, `abs` keeps the
+small Fashion-MNIST edge, and `tanh` trails unless wide gain partially
+rescues it.  `step` is a clear negative result: it is gain-invariant and
+especially poor on CIFAR-10.  `square` is the only interesting addition:
+it remains below `abs`/ReLU on MNIST and Fashion-MNIST but reaches
+`49.90% ± 0.11` on CIFAR-10 for `g0.25_1.0` and `g0.5_2.0`, about
+0.24 pp above the best `abs` row.  That improvement is not decisive
+against the combined SE, and lower capped gains did not sharpen it, so
+the manuscript should present square as a CIFAR-10 hint rather than a
+new default.
 
 **Code / data identity.**
 
-- `code_identity` for all 180 new rows:
+- `code_identity` for all current C2 rows:
   `a045f57fe2a3df4d0da1063fd658a98e4fbce6b3`
 - Dataset hashes match the shared MNIST, Fashion-MNIST, and CIFAR-10 raw
   bytes under the worktree's `data/` symlink to `../leenef/data`.
@@ -1018,6 +1037,14 @@ changing the manuscript table.
 ### Reproduce
 
 ```bash
+SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/run_c2_alt_activations.sh
+
+VALUES=abs+g0.5_2.0,abs+g1.0_1.0,abs+g0.1_5.0,relu+g0.5_2.0,relu+g1.0_1.0,relu+g0.1_5.0,tanh+g0.5_2.0,tanh+g1.0_1.0,tanh+g0.1_5.0,square+g0.1_1.0,square+g0.25_1.0,square+g0.5_1.0 \
+SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
+  bash benchmarks/sl_clean/run_c2_alt_activations.sh
+
+VALUES=square+g0.0_1.0,square+g0.0_0.75,square+g0.1_0.75 \
 SEEDS=0-9 PYTHON=../leenef/venv/bin/python \
   bash benchmarks/sl_clean/run_c2_alt_activations.sh
 ```

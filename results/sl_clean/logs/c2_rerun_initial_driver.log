@@ -1,0 +1,16 @@
+[proxychains] DLL init: proxychains-ng 4.17
+[proxychains] DLL init: proxychains-ng 4.17
+[proxychains] DLL init: proxychains-ng 4.17
+[proxychains] DLL init: proxychains-ng 4.17
+[proxychains] DLL init: proxychains-ng 4.17
+[proxychains] DLL init: proxychains-ng 4.17
+[run_c2_alt_activations] launching c2_activation_mnist (seeds=0-9; values=abs+g0.5_2.0,abs+g1.0_1.0,abs+g0.1_5.0,relu+g0.5_2.0,relu+g1.0_1.0,relu+g0.1_5.0,tanh+g0.5_2.0,tanh+g1.0_1.0,tanh+g0.1_5.0,square+g0.1_1.0,square+g0.25_1.0,square+g0.5_1.0) -> /home/amnesia/Persistent/src/leenef-alt-act/results/sl_clean/logs/c2_alt_c2_activation_mnist.log
+[run_c2_alt_activations] launching c2_activation_fashion (seeds=0-9; values=abs+g0.5_2.0,abs+g1.0_1.0,abs+g0.1_5.0,relu+g0.5_2.0,relu+g1.0_1.0,relu+g0.1_5.0,tanh+g0.5_2.0,tanh+g1.0_1.0,tanh+g0.1_5.0,square+g0.1_1.0,square+g0.25_1.0,square+g0.5_1.0) -> /home/amnesia/Persistent/src/leenef-alt-act/results/sl_clean/logs/c2_alt_c2_activation_fashion.log
+[run_c2_alt_activations] launching c2_activation_cifar10 (seeds=0-9; values=abs+g0.5_2.0,abs+g1.0_1.0,abs+g0.1_5.0,relu+g0.5_2.0,relu+g1.0_1.0,relu+g0.1_5.0,tanh+g0.5_2.0,tanh+g1.0_1.0,tanh+g0.1_5.0,square+g0.1_1.0,square+g0.25_1.0,square+g0.5_1.0) -> /home/amnesia/Persistent/src/leenef-alt-act/results/sl_clean/logs/c2_alt_c2_activation_cifar10.log
+[run_c2_alt_activations] launched PIDs: 1668 1669 1675
+[run_c2_alt_activations] sentinel will be touched on success: results/sl_clean/c2_alt_activations_done
+[run_c2_alt_activations] PID 1668 OK
+[run_c2_alt_activations] PID 1669 OK
+[run_c2_alt_activations] PID 1675 OK
+[proxychains] DLL init: proxychains-ng 4.17
+[run_c2_alt_activations] all panels complete

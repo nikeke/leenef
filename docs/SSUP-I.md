@@ -587,8 +587,8 @@ helps until the representation, not the solver, becomes the
 bottleneck.
 
 **Activation choice.**  At fixed $n = 5000$ with hypersphere
-encoders and data-driven biases, `abs`, `relu`, and `tanh`
-behave like this:
+encoders and data-driven biases, the activation panel behaves like
+this:
 
 | activation × gain | MNIST | Fashion-MNIST | CIFAR-10 |
 |-------------------|---:|---:|---:|
@@ -601,6 +601,11 @@ behave like this:
 | tanh · `U(0.5, 2.0)` | 96.77 ± 0.02 | 87.11 ± 0.05 | 48.60 ± 0.09 |
 | tanh · fixed 1.0     | 96.70 ± 0.03 | 86.81 ± 0.03 | 47.99 ± 0.07 |
 | tanh · `U(0.1, 5.0)` | 96.89 ± 0.03 | 87.51 ± 0.04 | 49.02 ± 0.09 |
+| step · `U(0.5, 2.0)` | 95.80 ± 0.05 | 86.13 ± 0.06 | 44.95 ± 0.08 |
+| square · fixed 1.0 | 96.97 ± 0.02 | 87.67 ± 0.04 | 49.50 ± 0.12 |
+| square · `U(0.25, 1.0)` | 96.93 ± 0.02 | 87.50 ± 0.05 | 49.90 ± 0.11 |
+| square · `U(0.1, 0.75)` | 96.87 ± 0.02 | 87.34 ± 0.04 | 49.88 ± 0.13 |
+| square · `U(0.1, 5.0)` | 96.76 ± 0.02 | 87.18 ± 0.04 | 49.74 ± 0.13 |
 
 On MNIST the whole `abs`/ReLU family sits inside `96.94–97.06 %`
 with overlapping SEs — no signal that picks `abs` over ReLU at
@@ -608,11 +613,14 @@ this width.  On the harder Fashion-MNIST, **`abs` keeps a small
 but consistent edge**: the two best cells are both `abs`
 (`87.78`, `87.81 %`), the best ReLU cell trails by `0.08 pp`
 (within SE), and `tanh` is `0.3–1.0 pp` behind the leaders.  On
-CIFAR-10, `abs` and ReLU again overlap, while the best cell is the
-wide-gain `abs` configuration and narrow/fixed-gain `tanh` is
-clearly worse.  Tanh recovers part of the gap under the wide-gain
-spread because saturation is mitigated when many neurons sit at
-small gain.
+CIFAR-10, `abs` and ReLU again overlap.  A square activation is the
+one mild surprise: capped-gain square cells reach `49.9 %`, about
+`0.2–0.4 pp` above the best `abs`/ReLU cells but not outside the
+combined SE.  The effect is therefore suggestive rather than a new
+default, especially because square remains below `abs`/ReLU on MNIST
+and Fashion-MNIST.  Narrow/fixed-gain `tanh` is clearly worse, while
+wide gain partly rescues it because saturation is mitigated when many
+neurons sit at small gain.
 
 The reading the §2 algebra supports: `abs` and ReLU are the
 same minimal nonlinearity up to a sign-flip
@@ -625,16 +633,15 @@ exactly what the small Fashion-MNIST edge looks like.  We keep
 and consistent with the algebra.
 
 `tanh` is robustly worse across the panel ($-0.2 \ldots 0.4$ pp on
-MNIST, $-0.3 \ldots 1.0$ pp on Fashion, $-0.5 \ldots 1.7$ pp on CIFAR-10).
-Saturation cancels the benefit of over-representation: a `tanh`
-neuron only carries information about whether $(e_i \cdot x)$ is
-"small" or "large", not its magnitude.  This is consistent with
-the §2 frame-coefficient picture, which requires a nonlinearity
-that preserves magnitude information.  Practical implication:
-the project default `abs` is defensible, but `relu` is a clean
-fallback at no measurable cost on raw image classification — one
-to keep in mind when a deployment constraint disallows the
-two-sided fold.
+MNIST, $-0.3 \ldots 1.0$ pp on Fashion, $-0.5 \ldots 1.7$ pp on CIFAR-10),
+and a hard `step` activation is worse still (`44.95 %` on CIFAR-10).
+Both discard too much magnitude information: `tanh` saturates it and
+`step` binarizes it.  This is consistent with the §2 frame-coefficient
+picture, which requires a nonlinearity that preserves a useful
+coefficient magnitude.  Practical implication: the project default
+`abs` is defensible, `relu` is a clean fallback at no measurable cost
+on raw image classification, and square is an interesting CIFAR-10
+variant rather than a robust replacement.
 
 ### §5.5 — Beyond random global features: ConvNEF
 

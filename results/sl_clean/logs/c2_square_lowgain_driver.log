@@ -1,0 +1,16 @@
+[proxychains] DLL init: proxychains-ng 4.17
+[proxychains] DLL init: proxychains-ng 4.17
+[proxychains] DLL init: proxychains-ng 4.17
+[proxychains] DLL init: proxychains-ng 4.17
+[proxychains] DLL init: proxychains-ng 4.17
+[proxychains] DLL init: proxychains-ng 4.17
+[run_c2_alt_activations] launching c2_activation_mnist (seeds=0-9; values=square+g0.0_1.0,square+g0.0_0.75,square+g0.1_0.75) -> /home/amnesia/Persistent/src/leenef-alt-act/results/sl_clean/logs/c2_alt_c2_activation_mnist.log
+[run_c2_alt_activations] launching c2_activation_fashion (seeds=0-9; values=square+g0.0_1.0,square+g0.0_0.75,square+g0.1_0.75) -> /home/amnesia/Persistent/src/leenef-alt-act/results/sl_clean/logs/c2_alt_c2_activation_fashion.log
+[run_c2_alt_activations] launching c2_activation_cifar10 (seeds=0-9; values=square+g0.0_1.0,square+g0.0_0.75,square+g0.1_0.75) -> /home/amnesia/Persistent/src/leenef-alt-act/results/sl_clean/logs/c2_alt_c2_activation_cifar10.log
+[run_c2_alt_activations] launched PIDs: 18457 18458 18459
+[run_c2_alt_activations] sentinel will be touched on success: results/sl_clean/c2_alt_activations_done
+[run_c2_alt_activations] PID 18457 OK
+[run_c2_alt_activations] PID 18458 OK
+[run_c2_alt_activations] PID 18459 OK
+[proxychains] DLL init: proxychains-ng 4.17
+[run_c2_alt_activations] all panels complete
