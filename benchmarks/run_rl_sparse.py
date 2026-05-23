@@ -110,6 +110,7 @@ def _build_agent(
     goal_random_prob: float,
     goal_action_mode: str,
     eval_goal: list[float] | None,
+    device: str,
 ):
     """Construct an agent of the given variant from the rl_clean base config.
 
@@ -119,6 +120,10 @@ def _build_agent(
     fqi_iters, recenter_interval, tau) are dropped silently for SF.
     """
     if variant == "nef_fqi":
+        if device != "cpu":
+            raise ValueError(
+                "CUDA sparse runner currently supports successor-feature variants only"
+            )
         cfg = dict(base_config)
         return NEFFQIAgent(d_obs=d_obs, n_actions=n_actions, seed=seed, **cfg)
     if variant in ("nef_sf", "nef_sf_novelty", "nef_sf_hindsight", "nef_sf_hindsight_directional"):
@@ -150,8 +155,9 @@ def _build_agent(
                 goal_action_mode=goal_action_mode,
                 eval_goal=eval_goal,
                 directional_readout=variant == "nef_sf_hindsight_directional",
+                device=device,
             )
-        return NEFSFAgent(**common)
+        return NEFSFAgent(**common, device=device)
     raise ValueError(f"Unknown variant {variant!r}, expected one of {VARIANTS}")
 
 
@@ -217,6 +223,8 @@ def _train(
     goal_random_prob: float,
     goal_action_mode: str,
     eval_goal: list[float] | None,
+    device: str,
+    collect_agent_diagnostics: bool,
     verbose: bool,
 ) -> dict:
     set_rl_seed(seed)
@@ -238,6 +246,7 @@ def _train(
         goal_random_prob=goal_random_prob,
         goal_action_mode=goal_action_mode,
         eval_goal=eval_goal,
+        device=device,
     )
 
     warmup_env = _make_env(env_name)
@@ -286,6 +295,7 @@ def _train(
     env.close()
 
     metrics = sparse_metric_summary(eval_history, threshold=0.0)
+    agent_diagnostics = _agent_diagnostics(agent) if collect_agent_diagnostics else {}
     return {
         "variant": variant,
         "seed": seed,
@@ -297,10 +307,11 @@ def _train(
         "eval_history": eval_history,
         "diagnostics": diag.summary(),
         "sparse_metrics": metrics,
-        "agent_diagnostics": _agent_diagnostics(agent),
+        "agent_diagnostics": agent_diagnostics,
         "intrinsic_total": round(float(sum(intrinsic_history)), 6),
         "intrinsic_history": [round(v, 4) for v in intrinsic_history],
         "time_s": round(t_elapsed, 2),
+        "device": device,
     }
 
 
@@ -350,6 +361,17 @@ def main(argv=None):
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument(
+        "--device",
+        choices=("cpu", "cuda", "auto"),
+        default="cpu",
+        help="Device for successor-feature tensors. 'auto' uses CUDA when available.",
+    )
+    parser.add_argument(
+        "--skip-agent-diagnostics",
+        action="store_true",
+        help="Skip expensive end-of-run eigensolve/leverage diagnostics.",
+    )
+    parser.add_argument(
         "--config-override",
         action="append",
         default=[],
@@ -361,6 +383,15 @@ def main(argv=None):
     eval_goal_parsed: list[float] | None = None
     if args.eval_goal is not None:
         eval_goal_parsed = [float(x) for x in args.eval_goal.split(",")]
+    device = (
+        "cuda"
+        if args.device == "auto" and torch.cuda.is_available()
+        else "cpu"
+        if args.device == "auto"
+        else args.device
+    )
+    if device == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("--device cuda requested but torch.cuda.is_available() is false")
 
     base_config = _load_base_config()
     for kv in args.config_override:
@@ -398,6 +429,8 @@ def main(argv=None):
             "goal_random_prob": args.goal_random_prob,
             "goal_action_mode": args.goal_action_mode,
             "eval_goal": args.eval_goal,
+            "device": device,
+            "skip_agent_diagnostics": args.skip_agent_diagnostics,
         },
     )
     metadata["seed_policy"] = seed_policy()
@@ -407,8 +440,20 @@ def main(argv=None):
     if args.output is not None and args.output.exists():
         try:
             existing = json.loads(args.output.read_text())
-            if isinstance(existing, dict) and isinstance(existing.get("runs"), list):
+            existing_meta = (
+                {k: v for k, v in existing.items() if k != "runs"}
+                if isinstance(existing, dict)
+                else {}
+            )
+            current_meta = {k: v for k, v in metadata.items() if k != "runs"}
+            if (
+                isinstance(existing, dict)
+                and isinstance(existing.get("runs"), list)
+                and existing_meta == current_meta
+            ):
                 runs = list(existing["runs"])
+            elif not args.quiet:
+                print(f"  ignoring non-matching existing output: {args.output}", flush=True)
         except json.JSONDecodeError:
             pass
 
@@ -437,6 +482,8 @@ def main(argv=None):
                 goal_random_prob=args.goal_random_prob,
                 goal_action_mode=args.goal_action_mode,
                 eval_goal=eval_goal_parsed,
+                device=device,
+                collect_agent_diagnostics=not args.skip_agent_diagnostics,
                 verbose=not args.quiet,
             )
             runs.append(result)

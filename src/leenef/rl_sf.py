@@ -84,6 +84,7 @@ class NEFSuccessor:
         features_kwargs: dict | None = None,
         directional_goal: np.ndarray | list[float] | None = None,
         directional_eps: float = 1e-6,
+        device: str | torch.device | None = None,
         seed: int = 0,
     ):
         if forget_factor is not None and not 0.0 < forget_factor <= 1.0:
@@ -101,8 +102,15 @@ class NEFSuccessor:
         self.n_step = n_step
         self.forget_factor = forget_factor
         self.directional_eps = float(directional_eps)
+        self.device = torch.device("cpu" if device is None else device)
 
-        self.features = NEFFeatures(d_obs, n_neurons, seed=seed, **(features_kwargs or {}))
+        self.features = NEFFeatures(
+            d_obs,
+            n_neurons,
+            seed=seed,
+            device=self.device,
+            **(features_kwargs or {}),
+        )
         if directional_goal is None:
             self._directional_goal: np.ndarray | None = None
         else:
@@ -115,28 +123,62 @@ class NEFSuccessor:
         self.directional_readout = self._directional_goal is not None
 
         # Per-action sufficient statistics, all float64.
-        self._ata = torch.zeros(self.n_actions, n_neurons, n_neurons, dtype=torch.float64)
+        self._ata = torch.zeros(
+            self.n_actions,
+            n_neurons,
+            n_neurons,
+            dtype=torch.float64,
+            device=self.device,
+        )
         if self.directional_readout:
             self._aty_phi: Tensor | None = None
-            self._aty_directional = torch.zeros(self.n_actions, n_neurons, dtype=torch.float64)
+            self._aty_directional = torch.zeros(
+                self.n_actions,
+                n_neurons,
+                dtype=torch.float64,
+                device=self.device,
+            )
         else:
             self._aty_phi = torch.zeros(
-                self.n_actions, n_neurons, n_neurons, dtype=torch.float64
+                self.n_actions,
+                n_neurons,
+                n_neurons,
+                dtype=torch.float64,
+                device=self.device,
             )  # right-hand side for Ψ_a:  Σ φ(s_t) ⊗ ψ̂(s_t,a)
             self._aty_directional = None
         self._aty_r = torch.zeros(
-            self.n_actions, n_neurons, dtype=torch.float64
+            self.n_actions,
+            n_neurons,
+            dtype=torch.float64,
+            device=self.device,
         )  # right-hand side for w_a:    Σ φ(s_t) · r_t
-        self._n_accumulated = torch.zeros(self.n_actions, dtype=torch.long)
+        self._n_accumulated = torch.zeros(self.n_actions, dtype=torch.long, device=self.device)
 
         # Decoders (zero-initialized; populated by solve).
         if self.directional_readout:
             self.Psi: Tensor | None = None
-            self.D_goal = torch.zeros(self.n_actions, n_neurons, dtype=torch.float32)
+            self.D_goal = torch.zeros(
+                self.n_actions,
+                n_neurons,
+                dtype=torch.float32,
+                device=self.device,
+            )
         else:
-            self.Psi = torch.zeros(self.n_actions, n_neurons, n_neurons, dtype=torch.float32)
+            self.Psi = torch.zeros(
+                self.n_actions,
+                n_neurons,
+                n_neurons,
+                dtype=torch.float32,
+                device=self.device,
+            )
             self.D_goal = None
-        self.W_r = torch.zeros(self.n_actions, n_neurons, dtype=torch.float32)
+        self.W_r = torch.zeros(
+            self.n_actions,
+            n_neurons,
+            dtype=torch.float32,
+            device=self.device,
+        )
 
         # Episode buffer of (obs, action, reward) triples; flushed on done.
         self._episode_transitions: list[tuple[np.ndarray, int, float]] = []
@@ -160,7 +202,9 @@ class NEFSuccessor:
         done: bool,
     ) -> None:
         """Record one transition and flush sufficient statistics on episode end."""
-        self.features.update_stats(torch.from_numpy(np.stack([obs, next_obs])).float())
+        self.features.update_stats(
+            torch.from_numpy(np.stack([obs, next_obs])).float().to(self.device)
+        )
         self._episode_transitions.append((obs, int(action), float(reward)))
         self._total_steps += 1
         if done:
@@ -173,7 +217,11 @@ class NEFSuccessor:
         if not transitions:
             return
 
-        states = torch.tensor(np.array([t[0] for t in transitions]), dtype=torch.float32)
+        states = torch.tensor(
+            np.array([t[0] for t in transitions]),
+            dtype=torch.float32,
+            device=self.device,
+        )
         actions = np.array([t[1] for t in transitions])
         rewards = np.array([t[2] for t in transitions], dtype=np.float64)
 
@@ -201,7 +249,7 @@ class NEFSuccessor:
             if not mask.any():
                 continue
             phi_a = phi[mask]  # (T_a, n)
-            r_a = torch.from_numpy(rewards[mask])  # (T_a,)
+            r_a = torch.from_numpy(rewards[mask]).to(self.device)  # (T_a,)
 
             self._ata[a].addmm_(phi_a.T, phi_a)
             if self.directional_readout:
@@ -271,7 +319,9 @@ class NEFSuccessor:
         if self._directional_goal is None:
             raise RuntimeError("directional_unit requested without a directional_goal")
         with torch.no_grad():
-            phi_g = self.features.encode(torch.from_numpy(self._directional_goal).float()).double()
+            phi_g = self.features.encode(
+                torch.from_numpy(self._directional_goal).float().to(self.device)
+            ).double()
             norm = float(torch.linalg.vector_norm(phi_g).item())
         if norm < self.directional_eps:
             raise ValueError("directional_goal encodes to a near-zero feature vector")
@@ -331,6 +381,7 @@ class NEFSuccessor:
             )
         with torch.no_grad():
             s = obs if isinstance(obs, Tensor) else torch.from_numpy(obs).float()
+            s = s.to(self.device)
             phi = self.features.encode(s)  # (n,) or (B, n)
             assert self.Psi is not None
             if phi.dim() == 1:
@@ -345,6 +396,7 @@ class NEFSuccessor:
         assert self.D_goal is not None
         with torch.no_grad():
             s = obs if isinstance(obs, Tensor) else torch.from_numpy(obs).float()
+            s = s.to(self.device)
             phi = self.features.encode(s)
             return phi @ self.D_goal.T
 
@@ -354,6 +406,7 @@ class NEFSuccessor:
             return self.directional_q_values(obs)
         with torch.no_grad():
             s = obs if isinstance(obs, Tensor) else torch.from_numpy(obs).float()
+            s = s.to(self.device)
             phi = self.features.encode(s)
             assert self.Psi is not None
             if phi.dim() == 1:
@@ -366,6 +419,7 @@ class NEFSuccessor:
         """One-step reward estimate ``r̂(s, a) = φ(s) · w_a`` for each action."""
         with torch.no_grad():
             s = obs if isinstance(obs, Tensor) else torch.from_numpy(obs).float()
+            s = s.to(self.device)
             phi = self.features.encode(s)
             if phi.dim() == 1:
                 return phi @ self.W_r.T  # (a,)
@@ -440,6 +494,7 @@ class NEFSFAgent:
         warmup_episodes: int = 0,
         features_kwargs: dict | None = None,
         directional_goal: np.ndarray | list[float] | None = None,
+        device: str | torch.device | None = None,
         seed: int = 0,
     ):
         if novelty_beta < 0:
@@ -457,8 +512,10 @@ class NEFSFAgent:
             forget_factor=forget_factor,
             features_kwargs=features_kwargs,
             directional_goal=directional_goal,
+            device=device,
             seed=seed,
         )
+        self.device = self.successor.device
         self.n_actions = int(n_actions)
         self.n_neurons = int(n_neurons)
         self.gamma = float(gamma)
@@ -540,7 +597,7 @@ class NEFSFAgent:
         if self.novelty_beta == 0.0 or self._novelty_inv is None:
             return 0.0
         with torch.no_grad():
-            s = torch.from_numpy(obs).float()
+            s = torch.from_numpy(obs).float().to(self.device)
             phi = self.successor.features.encode(s).double()
             quad = float((phi @ self._novelty_inv @ phi).item())
         return self.novelty_beta * float(np.sqrt(max(quad, 0.0) + self.novelty_eps))
@@ -756,10 +813,10 @@ class NEFHindsightSFAgent(NEFSFAgent):
     def _draw_random_direction(self) -> Tensor:
         """Sample a unit vector uniformly on the n-sphere in feature space."""
         n = self.successor.features.n_neurons
-        v = torch.from_numpy(self.rng.standard_normal(n).astype(np.float64))
+        v = torch.from_numpy(self.rng.standard_normal(n).astype(np.float64)).to(self.device)
         norm = float(torch.linalg.vector_norm(v).item())
         if norm < self.goal_eps:
-            v = torch.zeros(n, dtype=torch.float64)
+            v = torch.zeros(n, dtype=torch.float64, device=self.device)
             v[0] = 1.0
             return v
         return v / norm
@@ -797,7 +854,9 @@ class NEFHindsightSFAgent(NEFSFAgent):
         idx = int(self.rng.integers(len(self._goal_buffer)))
         g = self._goal_buffer[idx]
         with torch.no_grad():
-            phi_g = self.successor.features.encode(torch.from_numpy(g).float()).double()
+            phi_g = self.successor.features.encode(
+                torch.from_numpy(g).float().to(self.device)
+            ).double()
             norm = float(torch.linalg.vector_norm(phi_g).item())
         if norm < self.goal_eps:
             self._current_goal = None
@@ -820,7 +879,7 @@ class NEFHindsightSFAgent(NEFSFAgent):
         if self._directional_hindsight_readout:
             return self.successor.directional_q_values(obs)
         with torch.no_grad():
-            s = torch.from_numpy(obs).float()
+            s = torch.from_numpy(obs).float().to(self.device)
             phi = self.successor.features.encode(s)  # (n,) float32
             psi = torch.einsum("n,anm->am", phi, self.Psi)  # (a, n) float32
             return psi @ self._current_goal_phi.to(psi.dtype)  # (a,)
@@ -833,7 +892,7 @@ class NEFHindsightSFAgent(NEFSFAgent):
             return self._eval_goal_phi
         with torch.no_grad():
             phi_g = self.successor.features.encode(
-                torch.from_numpy(self._eval_goal).float()
+                torch.from_numpy(self._eval_goal).float().to(self.device)
             ).double()
             norm = float(torch.linalg.vector_norm(phi_g).item())
         if norm < self.goal_eps:
@@ -856,7 +915,7 @@ class NEFHindsightSFAgent(NEFSFAgent):
         if self._directional_hindsight_readout:
             return self.successor.directional_q_values(obs)
         with torch.no_grad():
-            s = torch.from_numpy(obs).float()
+            s = torch.from_numpy(obs).float().to(self.device)
             phi = self.successor.features.encode(s)
             psi = torch.einsum("n,anm->am", phi, self.Psi)
             return psi @ eval_phi.to(psi.dtype)

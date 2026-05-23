@@ -135,6 +135,24 @@ def test_successor_q_value_shapes():
     assert qb.shape == (3, 3)
 
 
+def test_successor_respects_configured_device():
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    sf = NEFSuccessor(
+        d_obs=2,
+        n_actions=2,
+        n_neurons=16,
+        gamma=0.95,
+        seed=0,
+        device=device,
+        directional_goal=[0.0, 0.0],
+    )
+    assert sf._ata.device.type == device
+    obs = np.array([0.5, -0.2], dtype=np.float32)
+    q = sf.q_values(obs)
+    assert q.device.type == device
+    assert q.shape == (2,)
+
+
 def test_successor_forget_factor_decays_statistics():
     sf = NEFSuccessor(d_obs=1, n_actions=2, n_neurons=8, gamma=0.9, forget_factor=0.5, seed=0)
     env = SparseChainEnv(n_states=4, gamma=0.9, max_steps=12)
