@@ -82,12 +82,16 @@ class NEFSuccessor:
         n_step: int | None = 50,
         forget_factor: float | None = None,
         features_kwargs: dict | None = None,
+        directional_goal: np.ndarray | list[float] | None = None,
+        directional_eps: float = 1e-6,
         seed: int = 0,
     ):
         if forget_factor is not None and not 0.0 < forget_factor <= 1.0:
             raise ValueError(f"forget_factor must be in (0, 1], got {forget_factor!r}")
         if n_step is not None and n_step <= 0:
             raise ValueError(f"n_step must be positive or None, got {n_step!r}")
+        if directional_eps <= 0:
+            raise ValueError(f"directional_eps must be > 0, got {directional_eps!r}")
 
         self.d_obs = d_obs
         self.n_actions = int(n_actions)
@@ -96,21 +100,42 @@ class NEFSuccessor:
         self.alpha = float(alpha)
         self.n_step = n_step
         self.forget_factor = forget_factor
+        self.directional_eps = float(directional_eps)
 
         self.features = NEFFeatures(d_obs, n_neurons, seed=seed, **(features_kwargs or {}))
+        if directional_goal is None:
+            self._directional_goal: np.ndarray | None = None
+        else:
+            goal = np.asarray(directional_goal, dtype=np.float32)
+            if goal.shape != (d_obs,):
+                raise ValueError(
+                    f"directional_goal must have shape ({d_obs},), got {tuple(goal.shape)}"
+                )
+            self._directional_goal = goal
+        self.directional_readout = self._directional_goal is not None
 
         # Per-action sufficient statistics, all float64.
         self._ata = torch.zeros(self.n_actions, n_neurons, n_neurons, dtype=torch.float64)
-        self._aty_phi = torch.zeros(
-            self.n_actions, n_neurons, n_neurons, dtype=torch.float64
-        )  # right-hand side for Ψ_a:  Σ φ(s_t) ⊗ ψ̂(s_t,a)
+        if self.directional_readout:
+            self._aty_phi: Tensor | None = None
+            self._aty_directional = torch.zeros(self.n_actions, n_neurons, dtype=torch.float64)
+        else:
+            self._aty_phi = torch.zeros(
+                self.n_actions, n_neurons, n_neurons, dtype=torch.float64
+            )  # right-hand side for Ψ_a:  Σ φ(s_t) ⊗ ψ̂(s_t,a)
+            self._aty_directional = None
         self._aty_r = torch.zeros(
             self.n_actions, n_neurons, dtype=torch.float64
         )  # right-hand side for w_a:    Σ φ(s_t) · r_t
         self._n_accumulated = torch.zeros(self.n_actions, dtype=torch.long)
 
         # Decoders (zero-initialized; populated by solve).
-        self.Psi = torch.zeros(self.n_actions, n_neurons, n_neurons, dtype=torch.float32)
+        if self.directional_readout:
+            self.Psi: Tensor | None = None
+            self.D_goal = torch.zeros(self.n_actions, n_neurons, dtype=torch.float32)
+        else:
+            self.Psi = torch.zeros(self.n_actions, n_neurons, n_neurons, dtype=torch.float32)
+            self.D_goal = None
         self.W_r = torch.zeros(self.n_actions, n_neurons, dtype=torch.float32)
 
         # Episode buffer of (obs, action, reward) triples; flushed on done.
@@ -155,24 +180,39 @@ class NEFSuccessor:
         with torch.no_grad():
             phi = self.features.encode(states).double()  # (T, n)
 
-        psi_targets = self._compute_successor_targets(phi, rewards.size)
-
         beta = self.forget_factor
         if beta is not None:
             self._ata.mul_(beta)
-            self._aty_phi.mul_(beta)
+            if self._aty_phi is not None:
+                self._aty_phi.mul_(beta)
+            if self._aty_directional is not None:
+                self._aty_directional.mul_(beta)
             self._aty_r.mul_(beta)
+
+        if self.directional_readout:
+            directional_targets = self._compute_directional_targets(phi, rewards.size)
+            psi_targets = None
+        else:
+            psi_targets = self._compute_successor_targets(phi, rewards.size)
+            directional_targets = None
 
         for a in range(self.n_actions):
             mask = actions == a
             if not mask.any():
                 continue
             phi_a = phi[mask]  # (T_a, n)
-            psi_a = psi_targets[mask]  # (T_a, n)
             r_a = torch.from_numpy(rewards[mask])  # (T_a,)
 
             self._ata[a].addmm_(phi_a.T, phi_a)
-            self._aty_phi[a].addmm_(phi_a.T, psi_a)
+            if self.directional_readout:
+                assert self._aty_directional is not None
+                assert directional_targets is not None
+                self._aty_directional[a].addmv_(phi_a.T, directional_targets[mask])
+            else:
+                assert self._aty_phi is not None
+                assert psi_targets is not None
+                psi_a = psi_targets[mask]  # (T_a, n)
+                self._aty_phi[a].addmm_(phi_a.T, psi_a)
             self._aty_r[a].addmv_(phi_a.T, r_a)
             self._n_accumulated[a] += int(mask.sum())
 
@@ -207,6 +247,41 @@ class NEFSuccessor:
             psi[t] = G
         return psi
 
+    def _compute_scalar_returns(self, values: Tensor, T: int) -> Tensor:
+        out = torch.zeros_like(values)
+        if self.n_step is None or self.n_step >= T:
+            G = torch.zeros((), dtype=values.dtype, device=values.device)
+            for t in reversed(range(T)):
+                G = values[t] + self.gamma * G
+                out[t] = G
+            return out
+
+        H = int(self.n_step)
+        gamma_H = self.gamma**H
+        G = torch.zeros((), dtype=values.dtype, device=values.device)
+        for t in reversed(range(T)):
+            G = values[t] + self.gamma * G
+            back_idx = t + H
+            if back_idx < T:
+                G = G - gamma_H * values[back_idx]
+            out[t] = G
+        return out
+
+    def _directional_unit(self) -> Tensor:
+        if self._directional_goal is None:
+            raise RuntimeError("directional_unit requested without a directional_goal")
+        with torch.no_grad():
+            phi_g = self.features.encode(torch.from_numpy(self._directional_goal).float()).double()
+            norm = float(torch.linalg.vector_norm(phi_g).item())
+        if norm < self.directional_eps:
+            raise ValueError("directional_goal encodes to a near-zero feature vector")
+        return phi_g / norm
+
+    def _compute_directional_targets(self, phi: Tensor, T: int) -> Tensor:
+        """Truncated-MC successor targets projected onto the configured goal direction."""
+        values = phi @ self._directional_unit()
+        return self._compute_scalar_returns(values, T)
+
     def _compute_reward_targets(self, rewards: np.ndarray) -> np.ndarray:
         """Reward target is the immediate reward for that (s, a) transition."""
         return rewards
@@ -230,10 +305,18 @@ class NEFSuccessor:
                 alpha=(self.alpha, "trace"),
                 copy=True,
             )
-            Psi_a = solve_spd(ATA, self._aty_phi[a])  # (n, n)
+            if self.directional_readout:
+                assert self._aty_directional is not None
+                d_goal = solve_spd(ATA, self._aty_directional[a])  # (n,)
+                assert self.D_goal is not None
+                self.D_goal[a] = d_goal.float()
+            else:
+                assert self._aty_phi is not None
+                Psi_a = solve_spd(ATA, self._aty_phi[a])  # (n, n)
+                assert self.Psi is not None
+                self.Psi[a] = Psi_a.float()
             w_a = solve_spd(ATA, self._aty_r[a])  # (n,)
 
-            self.Psi[a] = Psi_a.float()
             self.W_r[a] = w_a.float()
 
         self._solve_count += 1
@@ -242,19 +325,37 @@ class NEFSuccessor:
 
     def successor(self, obs: np.ndarray | Tensor) -> Tensor:
         """Per-action successor representation ``ψ(s, a)`` of shape ``(n_actions, n_neurons)``."""
+        if self.directional_readout:
+            raise RuntimeError(
+                "Full successor vectors are unavailable in directional_readout mode"
+            )
         with torch.no_grad():
             s = obs if isinstance(obs, Tensor) else torch.from_numpy(obs).float()
             phi = self.features.encode(s)  # (n,) or (B, n)
+            assert self.Psi is not None
             if phi.dim() == 1:
                 # Ψ stored as (n_actions, n, n); ψ_a = φ @ Ψ_a -> (n_actions, n)
                 return torch.einsum("n,anm->am", phi, self.Psi)
             return torch.einsum("bn,anm->bam", phi, self.Psi)
 
-    def q_values(self, obs: np.ndarray | Tensor) -> Tensor:
-        """Q(s, a) = ψ(s, a) · w_a, returning ``(n_actions,)`` or ``(B, n_actions)``."""
+    def directional_q_values(self, obs: np.ndarray | Tensor) -> Tensor:
+        """Q from the configured directional successor readout."""
+        if not self.directional_readout:
+            raise RuntimeError("directional_q_values requires directional_readout=True")
+        assert self.D_goal is not None
         with torch.no_grad():
             s = obs if isinstance(obs, Tensor) else torch.from_numpy(obs).float()
             phi = self.features.encode(s)
+            return phi @ self.D_goal.T
+
+    def q_values(self, obs: np.ndarray | Tensor) -> Tensor:
+        """Q(s, a) = ψ(s, a) · w_a, returning ``(n_actions,)`` or ``(B, n_actions)``."""
+        if self.directional_readout:
+            return self.directional_q_values(obs)
+        with torch.no_grad():
+            s = obs if isinstance(obs, Tensor) else torch.from_numpy(obs).float()
+            phi = self.features.encode(s)
+            assert self.Psi is not None
             if phi.dim() == 1:
                 psi = torch.einsum("n,anm->am", phi, self.Psi)  # (a, n)
                 return (psi * self.W_r).sum(dim=1)  # (a,)
@@ -338,6 +439,7 @@ class NEFSFAgent:
         novelty_eps: float = 1e-8,
         warmup_episodes: int = 0,
         features_kwargs: dict | None = None,
+        directional_goal: np.ndarray | list[float] | None = None,
         seed: int = 0,
     ):
         if novelty_beta < 0:
@@ -354,6 +456,7 @@ class NEFSFAgent:
             n_step=n_step,
             forget_factor=forget_factor,
             features_kwargs=features_kwargs,
+            directional_goal=directional_goal,
             seed=seed,
         )
         self.n_actions = int(n_actions)
@@ -390,11 +493,17 @@ class NEFSFAgent:
 
     @property
     def Psi(self) -> Tensor:  # noqa: N802 (mirrors NEFSuccessor)
+        if self.successor.Psi is None:
+            raise RuntimeError("Psi is unavailable in directional_readout mode")
         return self.successor.Psi
 
     @property
     def W_r(self) -> Tensor:  # noqa: N802
         return self.successor.W_r
+
+    @property
+    def directional_readout(self) -> bool:
+        return self.successor.directional_readout
 
     # -- exploration schedule -------------------------------------------------
 
@@ -580,8 +689,15 @@ class NEFHindsightSFAgent(NEFSFAgent):
         goal_random_prob: float = 0.5,
         goal_action_mode: str = "epsilon",
         eval_goal: np.ndarray | list[float] | None = None,
+        directional_readout: bool = False,
         **kwargs,
     ):
+        if directional_readout:
+            if eval_goal is None:
+                raise ValueError("directional_readout requires eval_goal")
+            if goal_mode != "eval_goal":
+                raise ValueError("directional_readout requires goal_mode='eval_goal'")
+            kwargs["directional_goal"] = eval_goal
         super().__init__(d_obs=d_obs, n_actions=n_actions, **kwargs)
         if goal_buffer_size <= 0:
             raise ValueError(f"goal_buffer_size must be > 0, got {goal_buffer_size!r}")
@@ -589,10 +705,10 @@ class NEFHindsightSFAgent(NEFSFAgent):
             raise ValueError(f"goal_horizon must be > 0, got {goal_horizon!r}")
         if goal_warmup_solves < 0:
             raise ValueError(f"goal_warmup_solves must be >= 0, got {goal_warmup_solves!r}")
-        if goal_mode not in ("buffer", "random_direction", "mixed"):
+        if goal_mode not in ("buffer", "random_direction", "mixed", "eval_goal"):
             raise ValueError(
                 f"goal_mode must be one of 'buffer', 'random_direction', "
-                f"'mixed'; got {goal_mode!r}"
+                f"'mixed', 'eval_goal'; got {goal_mode!r}"
             )
         if not (0.0 <= goal_random_prob <= 1.0):
             raise ValueError(f"goal_random_prob must be in [0,1], got {goal_random_prob!r}")
@@ -608,6 +724,7 @@ class NEFHindsightSFAgent(NEFSFAgent):
         self.goal_mode = goal_mode
         self.goal_random_prob = float(goal_random_prob)
         self.goal_action_mode = goal_action_mode
+        self._directional_hindsight_readout = bool(directional_readout)
 
         if eval_goal is None:
             self._eval_goal: np.ndarray | None = None
@@ -648,6 +765,16 @@ class NEFHindsightSFAgent(NEFSFAgent):
         return v / norm
 
     def _resample_goal(self) -> None:
+        if self.goal_mode == "eval_goal":
+            eval_phi = self._ensure_eval_goal_phi()
+            self._current_goal = self._eval_goal
+            self._current_goal_phi = eval_phi
+            self._steps_on_goal = 0
+            self._goal_resample_count += 1
+            if eval_phi is not None:
+                self._goal_buffer_count += 1
+            return
+
         if self.goal_mode == "random_direction":
             use_random = True
         elif self.goal_mode == "mixed":
@@ -690,6 +817,8 @@ class NEFHindsightSFAgent(NEFSFAgent):
         """
         if self._current_goal_phi is None:
             return None
+        if self._directional_hindsight_readout:
+            return self.successor.directional_q_values(obs)
         with torch.no_grad():
             s = torch.from_numpy(obs).float()
             phi = self.successor.features.encode(s)  # (n,) float32
@@ -724,6 +853,8 @@ class NEFHindsightSFAgent(NEFSFAgent):
         eval_phi = self._ensure_eval_goal_phi()
         if eval_phi is None:
             return super().q_values(obs)
+        if self._directional_hindsight_readout:
+            return self.successor.directional_q_values(obs)
         with torch.no_grad():
             s = torch.from_numpy(obs).float()
             phi = self.successor.features.encode(s)
@@ -801,4 +932,5 @@ class NEFHindsightSFAgent(NEFSFAgent):
             "current_goal_active": self._current_goal_phi is not None,
             "goal_mode": self.goal_mode,
             "goal_action_mode": self.goal_action_mode,
+            "directional_readout": self._directional_hindsight_readout,
         }

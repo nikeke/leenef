@@ -194,6 +194,62 @@ def test_init_validates_goal_action_mode():
         NEFHindsightSFAgent(goal_action_mode="invalid", **_common_kwargs())
 
 
+def test_directional_readout_requires_eval_goal_mode():
+    with pytest.raises(ValueError, match="requires eval_goal"):
+        NEFHindsightSFAgent(
+            directional_readout=True,
+            goal_mode="eval_goal",
+            **_common_kwargs(),
+        )
+    with pytest.raises(ValueError, match="goal_mode='eval_goal'"):
+        NEFHindsightSFAgent(
+            directional_readout=True,
+            eval_goal=np.ones(4, dtype=np.float32),
+            **_common_kwargs(),
+        )
+
+
+def test_directional_readout_matches_full_eval_goal_projection():
+    """For a fixed eval goal, directional readout should match full Ψ projection."""
+    goal = np.array([0.5, -0.25, 0.1, 0.0], dtype=np.float32)
+    full = NEFHindsightSFAgent(
+        **_common_kwargs(
+            n_neurons=64,
+            goal_mode="eval_goal",
+            goal_action_mode="commit",
+            eval_goal=goal,
+        )
+    )
+    directional = NEFHindsightSFAgent(
+        **_common_kwargs(
+            n_neurons=64,
+            goal_mode="eval_goal",
+            goal_action_mode="commit",
+            eval_goal=goal,
+            directional_readout=True,
+        )
+    )
+
+    rng = np.random.default_rng(123)
+    obs_seq = [rng.normal(size=4).astype(np.float32) for _ in range(50)]
+    actions = rng.integers(0, 2, size=49)
+    rewards = rng.normal(size=49)
+    for i, obs in enumerate(obs_seq[:-1]):
+        done = i == len(obs_seq) - 2
+        for agent in (full, directional):
+            agent.update(obs, int(actions[i]), float(rewards[i]), obs_seq[i + 1], done)
+    full.solve()
+    directional.solve()
+
+    probe = rng.normal(size=4).astype(np.float32)
+    torch.testing.assert_close(
+        directional.q_values(probe),
+        full.q_values(probe),
+        rtol=2e-4,
+        atol=2e-4,
+    )
+
+
 def test_commit_mode_takes_goal_action_every_step():
     """In commit mode + after warmup, every action is goal-Q greedy (modulo ties)."""
     agent = NEFHindsightSFAgent(

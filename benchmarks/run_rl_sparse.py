@@ -50,7 +50,13 @@ from leenef.rl_diag import (
 )
 from leenef.rl_sf import NEFHindsightSFAgent, NEFSFAgent
 
-VARIANTS = ("nef_fqi", "nef_sf", "nef_sf_novelty", "nef_sf_hindsight")
+VARIANTS = (
+    "nef_fqi",
+    "nef_sf",
+    "nef_sf_novelty",
+    "nef_sf_hindsight",
+    "nef_sf_hindsight_directional",
+)
 
 
 class _MiniGridFlatNorm(gym.ObservationWrapper):
@@ -115,7 +121,7 @@ def _build_agent(
     if variant == "nef_fqi":
         cfg = dict(base_config)
         return NEFFQIAgent(d_obs=d_obs, n_actions=n_actions, seed=seed, **cfg)
-    if variant in ("nef_sf", "nef_sf_novelty", "nef_sf_hindsight"):
+    if variant in ("nef_sf", "nef_sf_novelty", "nef_sf_hindsight", "nef_sf_hindsight_directional"):
         bonus = float(novelty_beta) if variant == "nef_sf_novelty" else 0.0
         common = dict(
             d_obs=d_obs,
@@ -133,7 +139,7 @@ def _build_agent(
             novelty_beta=bonus,
             seed=seed,
         )
-        if variant == "nef_sf_hindsight":
+        if variant in ("nef_sf_hindsight", "nef_sf_hindsight_directional"):
             return NEFHindsightSFAgent(
                 **common,
                 goal_buffer_size=int(goal_buffer_size),
@@ -143,6 +149,7 @@ def _build_agent(
                 goal_random_prob=float(goal_random_prob),
                 goal_action_mode=goal_action_mode,
                 eval_goal=eval_goal,
+                directional_readout=variant == "nef_sf_hindsight_directional",
             )
         return NEFSFAgent(**common)
     raise ValueError(f"Unknown variant {variant!r}, expected one of {VARIANTS}")
@@ -317,11 +324,12 @@ def main(argv=None):
     parser.add_argument("--goal-warmup-solves", type=int, default=1)
     parser.add_argument(
         "--goal-mode",
-        choices=("buffer", "random_direction", "mixed"),
+        choices=("buffer", "random_direction", "mixed", "eval_goal"),
         default="buffer",
         help="hindsight goal sampling: buffer=visited states (default), "
         "random_direction=uniform unit vector in feature space, "
-        "mixed=coin-flip with --goal-random-prob.",
+        "mixed=coin-flip with --goal-random-prob, "
+        "eval_goal=reuse --eval-goal as the training goal.",
     )
     parser.add_argument("--goal-random-prob", type=float, default=0.5)
     parser.add_argument(
