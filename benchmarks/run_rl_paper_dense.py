@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import time
 from multiprocessing import Pool
 from pathlib import Path
@@ -36,6 +37,9 @@ from leenef.rl import NEFFQIAgent, NEFFQIEnsemble
 RESULT_NAMESPACE = "rl_paper_dense"
 RUNNER_VERSION = "rl-paper-dense-v1"
 RESULTS_DIR = Path("results") / "rl_paper" / "dense"
+
+_TORCH_THREADS = int(os.environ.get("TORCH_NUM_THREADS", os.environ.get("OMP_NUM_THREADS", "1")))
+torch.set_num_threads(max(1, _TORCH_THREADS))
 
 FINAL_LUNAR_CONFIG = {
     "n_neurons": 6000,
