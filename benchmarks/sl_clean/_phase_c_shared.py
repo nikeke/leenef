@@ -48,7 +48,11 @@ def _activation_fn(name: str) -> Callable[[torch.Tensor], None]:
         return lambda t: t.clamp_(min=0.0)
     if name == "tanh":
         return torch.Tensor.tanh_
-    raise ValueError(f"unknown activation {name!r}; phase-c supports abs/relu/tanh")
+    if name == "step":
+        return lambda t: t.copy_(t > 0.0)
+    if name == "square":
+        return torch.Tensor.square_
+    raise ValueError(f"unknown activation {name!r}; phase-c supports abs/relu/tanh/step/square")
 
 
 def build_encoders_and_biases(

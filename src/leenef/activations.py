@@ -45,6 +45,20 @@ class Identity(nn.Module):
         return x
 
 
+class Step(nn.Module):
+    """Binary threshold activation at zero."""
+
+    def forward(self, x: Tensor) -> Tensor:
+        return (x > 0).to(dtype=x.dtype)
+
+
+class Square(nn.Module):
+    """Pointwise square activation."""
+
+    def forward(self, x: Tensor) -> Tensor:
+        return x.square()
+
+
 ACTIVATIONS = {
     "relu": nn.ReLU,
     "softplus": nn.Softplus,
@@ -52,6 +66,8 @@ ACTIVATIONS = {
     "abs": Abs,
     "linear": Identity,
     "identity": Identity,
+    "step": Step,
+    "square": Square,
 }
 
 

@@ -1,8 +1,8 @@
 """C2 — activation × gain ablation.
 
 Knob is ``cell`` = ``"{activation}+g{gain_low}_{gain_high}"``, e.g.
-``"abs+g0.5_2.0"``.  9-cell grid:
-  activation ∈ {abs, relu, tanh}
+``"abs+g0.5_2.0"``.  15-cell grid:
+  activation ∈ {abs, relu, tanh, step, square}
   gain      ∈ {(0.5,2.0), (1.0,1.0), (0.1,5.0)}
 where (1.0,1.0) is the degenerate fixed-gain control and (0.1,5.0) is
 a wider gain spread to test the diversity hypothesis.
@@ -28,7 +28,7 @@ from ._phase_c_shared import (
     set_sl_seed,
 )
 
-_C2_ACTIVATIONS = ("abs", "relu", "tanh")
+_C2_ACTIVATIONS = ("abs", "relu", "tanh", "step", "square")
 _C2_GAIN_RANGES: tuple[tuple[float, float], ...] = (
     (0.5, 2.0),  # project default
     (1.0, 1.0),  # fixed-gain control
@@ -195,7 +195,8 @@ C2_CIFAR10_BASE_CONFIG: dict[str, object] = {**C2_BASE_CONFIG, "chunk_size": 250
 
 C2_DESCRIPTION = (
     "C2 activation × gain-range ablation. Knob 'cell' = "
-    "'{activation}+g{low}_{high}'.  9-cell grid: "
-    "activation ∈ {abs, relu, tanh}, gain ∈ {(0.5,2.0), (1.0,1.0), (0.1,5.0)}.  "
+    "'{activation}+g{low}_{high}'.  15-cell grid: "
+    "activation ∈ {abs, relu, tanh, step, square}, "
+    "gain ∈ {(0.5,2.0), (1.0,1.0), (0.1,5.0)}.  "
     "n_neurons=5000, encoder=hypersphere, bias=data_driven, alpha=1e-3."
 )

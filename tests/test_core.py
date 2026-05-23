@@ -632,6 +632,22 @@ class TestAbs:
         assert torch.equal(act(x), expected)
 
 
+class TestStep:
+    def test_step_activation(self):
+        act = make_activation("step")
+        x = torch.tensor([-2.0, 0.0, 3.0])
+        expected = torch.tensor([0.0, 0.0, 1.0])
+        assert torch.equal(act(x), expected)
+
+
+class TestSquare:
+    def test_square_activation(self):
+        act = make_activation("square")
+        x = torch.tensor([-2.0, 0.0, 3.0])
+        expected = torch.tensor([4.0, 0.0, 9.0])
+        assert torch.equal(act(x), expected)
+
+
 # ── Incremental fit ──────────────────────────────────────────────────
 
 

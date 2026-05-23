@@ -291,7 +291,7 @@ c7_housing)
         DEFAULT_SEEDS="0-9"
         ;;
       c2_activation_*)
-        DEFAULT_CELLS="abs+g0.5_2.0,abs+g1.0_1.0,abs+g0.1_5.0,relu+g0.5_2.0,relu+g1.0_1.0,relu+g0.1_5.0,tanh+g0.5_2.0,tanh+g1.0_1.0,tanh+g0.1_5.0"
+        DEFAULT_CELLS="abs+g0.5_2.0,abs+g1.0_1.0,abs+g0.1_5.0,relu+g0.5_2.0,relu+g1.0_1.0,relu+g0.1_5.0,tanh+g0.5_2.0,tanh+g1.0_1.0,tanh+g0.1_5.0,step+g0.5_2.0,step+g1.0_1.0,step+g0.1_5.0,square+g0.5_2.0,square+g1.0_1.0,square+g0.1_5.0"
         DEFAULT_SEEDS="0-9"
         ;;
       c3_ensemble_cifar10)
