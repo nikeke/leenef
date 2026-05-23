@@ -1,16 +1,42 @@
 # Sparse-reward NEF-RL — exploration notes
 
-Companion to `docs/rl_clean_sweeps.md`. This document records the
-sparse-reward exploration that grew out of the rl_clean program: what
-question we were after, which mechanisms we tried, what worked,
-what failed and why, and what the residual open questions are.
+Companion to `docs/SSUP-I.md` (single-layer / streaming supervised
+learning) and `docs/SSUP-II.md` (continual learning by accumulation).
+These two papers fix the leenef program; the present document is the
+record of carrying that same program into sparse-reward RL, with an
+eye toward a future SSUP-III.
 
-These notes are intended to be the canonical record. Procedural
-shortcuts taken while co-running with the rl_clean P3b/P8 sweeps
-mean the *timings* in this work are not directly comparable to the
-clean sweep numbers, but the *qualitative claims* below are
-multi-seed and reproducible from the JSONs in `results/rl_sparse/`
-plus the toy regression in `results/rl_sparse/sparse_chain.json`.
+The supervised and CL papers established a vocabulary — six numbered
+principles **P1–P6** — that we will reuse below. P1 (fixed encoders),
+P2 (one analytic decoder solve), P3 ($A^\top A$ and $A^\top Y$ as the
+complete sufficient state), P4 ($Y$ is where the task enters), P5
+(time collapsed by pooling, not by recurrence), and P6 (per-class
+additivity for class-incremental CL). The mechanisms below are all
+expressions of P1–P4 in an RL context; P5 and P6 have natural RL
+analogs but were not the bottleneck for the experiments reported
+here.
+
+**Context note (rebase, May 2026).** When this work began, RL had a
+parallel `rl_clean` program with its own base configuration and
+sweep notes. During the SSUP-I/II finalization, that program was
+consolidated and moved to `attic/docs/rl_clean_*.md` and
+`attic/results/rl_clean/` as part of the clean restart that
+restructured `benchmarks/`, `docs/`, `results/`, and `notebooks/`
+into the `sl_clean / cl_clean / rl_clean` layout. The RL **agent**
+(`src/leenef/rl.py`, `NEFFQIAgent`) was not changed semantically; only
+its alpha-regularization plumbing was centralized through the new
+`solvers.regularized_normal_matrix` + `solvers.solve_spd` helpers,
+selecting the trace-scaled policy `alpha=(α, "trace")` that
+NEF-FQI was already using inline. The `rl_clean` numbers from
+`attic/docs/rl_clean_sweeps.md` therefore still describe the same
+agent; they are *historical context*, not parallel work to be
+matched.
+
+These notes are intended to be the canonical record for the
+sparse-reward line going forward. Reproducible from the JSONs in
+`results/rl_sparse/` plus the toy regression in
+`results/rl_sparse/sparse_chain.json`. Procedural caveats from
+exploration (small-n network, co-running CPU) are flagged in line.
 
 ## 1. Framing
 
@@ -34,7 +60,7 @@ terminal transition and γ<1 propagating it through long horizons:
   closed-form solve fits *exactly* to whatever bootstrap targets it
   receives, amplifying noise. This is the same instability that
   drove the rl_clean program toward Monte-Carlo n-step targets in
-  the first place (`docs/rl_notes.md` §6, §8.8).
+  the first place (`attic/docs/rl_notes.md` §6, §8.8).
 
 So the core question for this work was:
 
@@ -43,24 +69,55 @@ So the core question for this work was:
 > (`AᵀA`, `AᵀY`, fixed encoders, additive sufficient statistics,
 > optional pooling)?
 
-### 1.2 The leenef essence
+### 1.2 The six principles, read in RL
 
-Distilled from `streaming.py`, `layers.py` (`partial_fit` /
-`solve_accumulated` / `continuous_fit`), the CL accumulator results,
-and the working pieces of `rl.py`:
+SSUP-I §1 and SSUP-II §1 define the six principles. Each has a direct
+sparse-reward reading; the mechanism stack in §2 is just the
+disciplined application of P1–P4.
 
-1. Encoders are **fixed** (random or data-adapted).
-2. Decoders fall out of **one** analytic step.
-3. `AᵀA` and `AᵀY` are the universe; everything is an additive
-   combination of sufficient statistics.
-4. `Y` is the only place where task structure enters.
-5. Time is collapsed by **pooling**, not recurrence (streaming
-   classifier).
-6. **Per-class additivity** is what makes CL work: each output
-   column owns its own decoder, so accumulating new task statistics
-   never interferes with old columns.
+- **P1 — Encoders are fixed.** In RL, the encoder φ(s, a) is
+  selected once and never adapts to the reward signal. Sparse
+  reward cannot break φ; it can only fail to write into the
+  decoder.
+- **P2 — One analytic decoder solve.** Per-action FQI fits
+  $D_a = (\Phi_a^\top \Phi_a + \alpha I)^{-1} \Phi_a^\top Y_a$ in
+  one step. There is no learning rate to tune away the
+  pathological-loss-landscape effects that sparse reward typically
+  produces in gradient methods; instead the failure mode is
+  visible directly in $Y_a$ (cf. §1.1).
+- **P3 — $A^\top A$ and $A^\top Y$ are the complete sufficient
+  state.** RL n-step returns, replay buffers, and online RLS
+  decay are all expressions of "*additively combine sufficient
+  statistics across visits*". The successor decoder (D1 below) is
+  a second sufficient-statistics solve on the *same* $A^\top A$.
+  D2 (novelty) is read directly off $(A^\top A + \alpha I)^{-1}$
+  with no extra storage.
+- **P4 — Targets $Y$ are the only place where task structure
+  enters.** Hindsight relabeling (D4) writes the task into the
+  *(state, goal)* axis of the encoder input and into $Y$; the
+  `eval_goal` projection is a one-line eval-time use of the same
+  axis, no extra solve.
+- **P5 — Time is collapsed by pooling.** The streaming classifier
+  of SSUP-I §6 has a natural RL analog (pool windows of φ(s) over
+  a rollout, regress trajectory return). We did *not* exercise
+  this in the present round (cf. §6); it remains the most
+  attractive deferred direction.
+- **P6 — Per-class additivity.** The RL analog is *per-action*
+  additivity: each action owns its own $A_a^\top A_a$, $A_a^\top
+  Y_a$. NEF-FQI already obeys this, and it is exactly what makes
+  the D1 successor decoder a drop-in second statistic on the same
+  encoder.
 
-Anything bolted onto NEF-RL needed to live within (1)–(6). No
+So the core question for this work, restated in SSUP vocabulary:
+
+> Under P1–P4, can we put non-trivial structure into $Y$ for
+> sparse-reward tasks without breaking P3's "one-analytic-solve"
+> discipline? In particular, can we keep one shared $A^\top A$ /
+> $A^\top Y$ inversion at the heart of the agent and modulate the
+> task signal entirely through $Y$ — without target networks,
+> gradient descent, or reward shaping?
+
+Everything in §2 is constructed inside that constraint. No
 gradient-trained auxiliary networks, no target-network schedules,
 no learning rate.
 
@@ -136,14 +193,24 @@ own.
 
 No extra solve. No reward shaping. No gradient.
 
-## 3. Headline results
+## 3. Headline results (exploratory, n=2000, 3 seeds)
+
+> **Status caveat.** Every number in §3 is from a 3-seed
+> exploration at `n_neurons=2000` to keep the per-action Ψ memory
+> tractable while co-running with the SSUP-II finalization on the
+> same CPU. The SSUP paper series reports its headlines at 10
+> seeds and full-width networks; the analog for this work is the
+> P10–P12 plan in §10 below (10-seed, n=6000+, fresh-base
+> rerun). The mechanism conclusions (which D-stack works on which
+> env, where eval_goal applies) are robust across seeds in the
+> 3-seed range and are taken as load-bearing; the specific
+> numbers should be reproduced at full width before they go into a
+> paper.
 
 All numbers below are from multi-seed runs on three seeds {0, 1, 2}
-under the rl_clean seed protocol (warmup/training/eval policy fixed
-in `benchmarks/run_rl_sparse.py`). Forget factor and n_neurons noted
-per row; the rl_clean base config drifted during this work, so
-sparse-reward runs used a smaller `n_neurons=2000` to keep the
-per-action Ψ cost tractable.
+under the same seed protocol as the attic'd `rl_clean` line
+(warmup/training/eval policies fixed in `benchmarks/run_rl_sparse.py`).
+Forget factor and n_neurons noted per row.
 
 ### 3.1 MountainCar-v0
 
@@ -345,7 +412,7 @@ These were considered and consciously deferred:
 - **Reward shaping.** Intrinsic novelty (D2) is tagged separately
   and ablated; never folded into the reported reward.
 - **Knob sweeps over broadness, min_relative, recentering** as a
-  sparse-reward fix. Per `docs/rl_review.md` §2.5, the bottleneck
+  sparse-reward fix. Per `attic/docs/rl_review.md` §2.5, the bottleneck
   is mechanistic. Confirmed empirically: changing `n_neurons`
   6000→2000 did not move plain FQI/SF off the wall on MC, and the
   hindsight + eval_goal stack worked at n=2000.
@@ -373,56 +440,336 @@ regression. When the env's actions have wildly different horizons
 (see §5), do not rely on eval_goal projection; fall back to
 training-time goal injection or to D2-augmented exploration.
 
-## 8. Open questions / follow-ups
+## 8. Open questions / follow-ups, with likelihood-of-payoff estimates
 
-1. **Programmatic goal-obs capture for image envs.** The MiniGrid
-   negative result is solvable: place the agent at the goal cell
-   (or use the env's `mission`/grid representation) to construct an
-   observation vector usable as `eval_goal`. Once that handle is in
-   place, rerun MiniGrid-DoorKey-5x5 with the same D1+D4+eval_goal
-   stack. Stretch: MiniGrid-FourRooms.
-2. **Generalization study of eval_goal.** Sweep eval_goal *near*
-   but not *at* the optimal terminal state: how robust is the
-   projection? On MC, what happens if we eval against
-   `[0.45, 0.0]` or `[0.5, 0.07]`? We expect a smooth degradation;
-   measuring it would map the basin of the mechanism.
-3. **Ψ stability vs forget_factor scan.** Acrobot showed a
-   qualitative jump from ff=0.999 to ff=0.9999. A small scan
-   (0.999, 0.9995, 0.9999, 0.99995) would locate the boundary and
-   tell us whether to expose forget_factor as a per-task default
-   in the driver.
-4. **Magnitude-normalized ψ projection** (§5). One-line change:
-   `Q(s, a; g*) = (ψ(s, a) / ‖ψ(s, a)‖) · u(g*)`. Tradeoff: bakes
-   a strong prior. Worth a chain + MC + Acrobot ablation; if it
-   does not hurt MC/Acrobot, it could be the default and would
-   buy us applicability on toy chains and on terminating-action
-   envs.
-5. **Coupling to rl_clean base-config drift.** The sparse-reward
-   stack inherits its base config from rl_clean. Each rl_clean
-   adoption (notably forget_factor and gamma) should trigger a
-   re-validation of MC/Acrobot under the new base. The toy
-   sparse-chain regression test makes this cheap to check.
-6. **Toy sparse-chain as a regression test.** `sparse_chain.json`
-   is the cheapest self-contained signal that mechanism changes do
-   not break SF or D2. Cost is on the order of a minute total;
-   adding it to a CI smoke would catch sign errors and off-by-one
-   bugs in n-step successor targets that are otherwise invisible
-   inside seed noise on real benchmarks.
+Each follow-up below is rated on two axes: **likelihood of producing
+an interesting finding** (high / med / low) and **cost** (small if a
+day or less of CPU + coding, medium if a few days, large if it
+needs a full sweep or new infrastructure). "Interesting" here means
+"changes the mechanism story, adds an env to the working set, or
+sharpens a paper-worthy claim", not "moves seed-mean by 5%".
 
-## 9. File map
+### 8.A — Replication / hygiene (these are the §10 P10–P12 plan)
+
+1. **Full-width, 10-seed replication of MC + Acrobot.** Rerun the
+   `nef_sf_hindsight` + `eval_goal` headline at `n_neurons=6000`
+   (the SSUP-I/II default range) across 10 seeds. Adopts the
+   SSUP-II reporting bar.
+   *Likelihood: very high (necessary for credibility).
+   Cost: medium.* This is the work without which §3 numbers
+   cannot enter a paper.
+
+2. **Toy sparse-chain as CI smoke.** Add `pytest` invocation of
+   `benchmarks/run_sparse_chain.py` with K=5, 200 ep, 1 seed,
+   asserting policy_correct=1. ~10 s wall.
+   *Likelihood: low (it just locks in a regression target).
+   Cost: small.*
+
+3. **Coupling to whatever replaces rl_clean.** The attic'd
+   `rl_clean` base config (n=6000, γ=0.98, α=0.1, n_step=100,
+   ff=0.999, broadness=0) was the dense-reward starting point.
+   When the future SSUP-III ([rl_clean's successor]) settles on
+   its own dense-reward base, mirror it here and rerun §3.
+   *Likelihood: high (any base shift can invalidate ff defaults).
+   Cost: small once the new base lands.*
+
+### 8.B — Likely mechanism wins
+
+4. **Magnitude-normalized ψ projection** (§5 caveat).  
+   Change: `Q(s,a;g*) = (ψ(s,a)/‖ψ(s,a)‖) · u(g*)`. One-line patch
+   in `NEFHindsightSFAgent._eval_goal_q`. If it makes the toy
+   chain solvable without hurting MC/Acrobot, it becomes the
+   default and we gain the terminating-action regime.
+   *Likelihood: high (the artifact in §5 is mechanical and
+   normalization is the obvious fix).
+   Cost: small.*
+
+5. **Programmatic goal-obs capture for image envs (MiniGrid).**
+   Programmatic placement of the agent at the goal cell to read
+   off an observation usable as `eval_goal`, or use the env's
+   `mission`-conditioned representation. With that handle, the
+   D1+D4+eval_goal stack should apply to DoorKey-5x5 and
+   FourRooms.
+   *Likelihood: high (the negative result in §3.4 is purely a
+   missing handle, not a mechanism flaw).
+   Cost: medium (needs MiniGrid wrapper work, possibly a
+   reset-to-cell shim).*
+
+6. **`forget_factor` scan on Acrobot.** Acrobot went from "all
+   −500" to "−106 to −125 best" between ff=0.999 and ff=0.9999.
+   A scan over {0.999, 0.9995, 0.9999, 0.99995, 0.99999} maps the
+   boundary and tells us if `forget_factor` should be exposed as
+   a per-task default (e.g. tied to `n_step` or episode length).
+   *Likelihood: medium-high (the gap is large, so a smooth curve
+   would be informative; a sharp threshold even more so).
+   Cost: small at 3 seeds, medium at 10.*
+
+### 8.C — Plausibility studies (might surprise either way)
+
+7. **eval_goal *generalization* sweep.** On MC, evaluate the
+   trained Ψ against goals near but not at `[0.5, 0.0]`:
+   `[0.45, 0.0]`, `[0.5, 0.07]`, `[0.5, −0.07]`, `[0.4, 0.0]`.
+   Maps the basin of the projection mechanism; tells us whether
+   `eval_goal` is a "point-target" mechanism or a "direction"
+   mechanism in φ-space. On Acrobot do the same with the natural
+   continuous parametrization of "upright".
+   *Likelihood: medium (could either reveal a smooth basin —
+   nice paper figure — or a brittle point — also interesting,
+   because it would imply Ψ has memorized the exact relabel
+   target).
+   Cost: small (eval-time only, no retraining).*
+
+8. **Sparser hindsight (`goal_horizon` ablation).** Currently we
+   relabel against any state visited later in the episode. Sweep
+   the relabeling horizon and the buffer composition. The
+   question is whether the eval_goal projection benefits from
+   *dense* hindsight (Ψ sees many directions) or from *sparse*
+   hindsight near the eventual task goal.
+   *Likelihood: medium (could clarify why D2 was unnecessary on
+   MC/Acrobot — D4's HER may already be doing the exploration
+   work).
+   Cost: small.*
+
+9. **A second sparse env with a *natural* goal observation.** The
+   "Reacher" sparse-reward family in `gym-robotics`, or a
+   ManiSkill-2 reach task, has `(state, goal)` natively in the
+   observation. This bypasses the MiniGrid handle problem.
+   Confirms that D1+D4+eval_goal is not MC/Acrobot-specific.
+   *Likelihood: medium-high if installation is tractable
+   (`gym-robotics` is the cleanest); same mechanism story should
+   apply.
+   Cost: medium (env wiring + driver pass).*
+
+### 8.D — Speculative / SSUP-III material
+
+10. **Trajectory-level pooling for RL (P5 transplant from
+    SSUP-I §6).** Pool a window of φ(s_t) over a rollout into a
+    fixed-size feature and regress trajectory return. Action
+    selection from a trajectory-level Q is awkward (we don't have
+    point-wise Q), but trajectory-Q could be used as a *baseline*
+    or a *credit signal* alongside per-step FQI; or for option
+    selection in a hierarchical setup. This is the SSUP-III
+    analog of the streaming classifier.
+    *Likelihood: medium (very leenef-faithful; nontrivial design
+    work to be useful for control; potentially a paper-grade
+    contribution).
+    Cost: large.*
+
+11. **Per-task additivity (P6 transplant) for *task-incremental*
+    RL.** Each task adds to per-action $A_a^\top A_a$ /
+    $A_a^\top Y_a$; on a *new* task, the (state, task-id) encoder
+    input adds a new column to Ψ. This is the natural RL analog
+    of SSUP-II's "forgetting axis has length zero by construction"
+    claim. CL-RL is a notoriously hard benchmark family.
+    *Likelihood: medium-high for a clear claim ("no forgetting
+    in the analytic readout"); medium for absolute return on
+    standard CL-RL benchmarks where the feature ceiling will
+    bite.
+    Cost: large (needs a task-incremental driver and 2+ task
+    suites).*
+
+12. **Bootstrap-free SF *with* multi-step pooling.** Currently SF
+    uses Monte-Carlo n-step on φ. SSUP-I's pooling
+    (`StreamingNEFClassifier`) suggests pooling φ over a window
+    *before* regressing — turning the per-step successor solve
+    into a windowed solve. Could give a stable middle ground
+    between fully-MC (high variance) and fully-bootstrapped
+    (analytical fit amplifies noise).
+    *Likelihood: medium.
+    Cost: medium.*
+
+13. **`broadness` / `min_relative` sweeps from SSUP-I in the RL
+    setting.** SSUP-I §5 mapped the regularization regimes; we
+    have not tested whether sparse RL is in the same regime.
+    Sparse-reward Y_a is heavily zero, so the trace of Φ_aᵀΦ_a
+    dominates the effective α and may push us toward
+    over-regularization.
+    *Likelihood: medium-low (`attic/docs/rl_review.md` §2.5 argued the bottleneck
+    is mechanistic, not regularization). But the trace-scaled α
+    centralization on main is a good moment to recheck.
+    Cost: small.*
+
+14. **PuckWorld / Pendulum-sparse / FrozenLake.** A small sparse
+    benchmark suite beyond MC and Acrobot would harden the
+    mechanism claim. PuckWorld is closest to MC's spirit but with
+    a continuous-direction goal; sparse-Pendulum tests the
+    eval_goal mechanism on a periodic state space.
+    *Likelihood: medium (potential for genuine extension or for
+    discovering a new failure mode).
+    Cost: medium.*
+
+## 9. Replication plan (P10–P12)
+
+The §3 numbers are *exploratory*. Before any of them enter SSUP-III
+they need to be redone at the SSUP-I/II reporting bar. Concrete
+plan, in order:
+
+- **P10 — Full-width replication.** `nef_sf_hindsight` +
+  `eval_goal` on MC and Acrobot at `n_neurons=6000` (one
+  configuration, fresh dense-reward base inherited from whatever
+  has replaced `attic/rl_clean`). 3 seeds first to spot
+  regressions, then expand to 10.
+- **P11 — 10-seed headline.** Adopt 10 seeds for the MC and
+  Acrobot rows in §3.1 / §3.2 once P10 has confirmed
+  qualitative agreement. Report mean ± SE on best_eval,
+  robust_eval, final_eval; quote 3 seeds explicitly *only* for
+  the LunarLander dense regression (which is a sanity check, not
+  a headline).
+- **P12 — Toy chain regression in CI.** Add a short pytest entry
+  that runs `nef_sf_novelty` on K=5 with one seed and asserts
+  policy_correct=1 and goal_reached=1. Catches sign / off-by-one
+  drift in n-step successor targets that is invisible inside
+  seed noise on the real envs.
+
+The likelihood that P10 will *reproduce* the §3 mechanism story is
+high — the 3-seed signal is qualitatively decisive, and the
+mechanism (D1+D4+eval_goal) does not depend on `n_neurons` in any
+sensitive way. The likelihood that the specific numbers will
+*shift* with the new dense-reward base is also high; the bar to
+clear is the SSUP-II reporting standard, not the exploratory
+numbers in §3.
+
+## 10. Big-picture reflection — what remains stuck, and what isn't
+
+Reading §1–§9 as a whole, here is where I currently stand on the
+sparse-reward question. This is the section to read if §3 looks
+like a paper-grade win and you wonder why the rest of the document
+is hedged.
+
+### 10.1 What works and why
+
+The D1+D4+`eval_goal` stack solves MC and Acrobot from sparse
+reward, with three seeds, without gradient descent, without a
+target network, without reward shaping, and using **one** $A^\top
+A$ inversion per action. That is the result. It works because of
+the SSUP-I/II setup, not in spite of it:
+
+- The fixed encoder φ([s; g]) projects the joint state-goal pair
+  into a fixed high-dimensional space. Hindsight relabeling
+  populates this space with the *connectivity* of trajectories,
+  not with reward-driven targets.
+- The successor decoder Ψ is a P3 statistic over φ: $\Psi_a =
+  (\Phi_a^\top \Phi_a + \alpha I)^{-1} \Phi_a^\top \Phi^+_a$, where
+  $\Phi^+_a$ is the Monte-Carlo n-step accumulation of φ. No
+  reward enters Ψ — it is purely *trajectory-derived*.
+- The `eval_goal` projection at evaluation time reads off the
+  policy by asking "which action's ψ best aligns with the
+  encoder direction of the true goal?" One linear projection, no
+  retraining.
+
+This is the cleanest expression of P4 ("Y is the only place where
+task structure enters") that I have seen in this work. Ψ is
+task-blind; the task enters only at eval, only as a one-line
+inner product, and only with the goal vector φ([0.5, 0.0]) or
+φ([−1, 0, 1, 0, 0, 0]).
+
+### 10.2 What is genuinely stuck
+
+Three distinct blockers — each different in character.
+
+- **Image observations have no goal handle.** MiniGrid is stuck
+  not because the mechanism is wrong but because we cannot point
+  at an "observation at the goal". This is a *plumbing* problem,
+  not a mechanism problem. Follow-up #5 in §8.B is the path.
+- **Terminating-action / heterogeneous-horizon MDPs.** The chain
+  (§5) breaks `eval_goal` projection because magnitudes of ψ
+  reflect *horizon* rather than *direction*. Follow-up #4 in
+  §8.B (length-normalized ψ projection) is the obvious fix; it
+  may break MC/Acrobot in ways we don't yet understand, hence the
+  ablation. *This is the one mechanism caveat that I think could
+  be either trivial or deep.*
+- **Long-horizon credit and forgetting.** Acrobot already needed
+  ff=0.9999 (vs 0.999 on MC). Anything materially longer than
+  Acrobot (500-step episodes) will need a different decay regime,
+  or a different statistic altogether. The honest next test
+  here is a sparse Pendulum, not LunarLander-sparse — Pendulum's
+  geometry is closest to Acrobot's.
+
+### 10.3 What is *not* stuck but looks scary
+
+- **Sample efficiency** is a known-unscary problem in this line
+  of work. The §3 MC numbers come from ≤ 300 episodes of 200 max
+  steps. That is competitive with dense-reward gradient
+  baselines on MC, and the per-action Ψ solve runs in seconds.
+- **Stability across seeds.** All three §3 wins (MC, Acrobot
+  ff=0.9999) are 3/3 seed-stable. The mechanism is not
+  fragile; numbers vary by ~20% across seeds but the qualitative
+  outcome is fixed.
+- **Sensitivity to `forget_factor`.** Acrobot wanted 0.9999, MC
+  wanted 0.999. That is a *finding*, not a knob to tune away.
+  Follow-up #6 in §8.B will tell us whether to expose it as a
+  per-task default.
+
+### 10.4 Why the SSUP-III paper isn't ready yet
+
+Three things missing, in priority order:
+
+1. **10 seeds and a full-width network**, per §9. The §3 numbers
+   are exploratory; SSUP-II's bar is 10 seeds on
+   `nef_accumulate`. Until P10/P11 are done the paper has nothing
+   to lead with.
+2. **A second working env beyond MC and Acrobot.** Either a
+   solved MiniGrid (follow-up #5 in §8.B) or a sparse-Pendulum
+   (follow-up #14 in §8.D). One more env converts "mechanism
+   works on two envs" to "mechanism works on a family"; this is
+   the difference between a workshop note and a paper.
+3. **An ablation table over D1 vs D1+D2 vs D1+D4 vs
+   D1+D4+eval_goal**, on each working env, at full width and 10
+   seeds. The exploratory data in §3 already implies the
+   ablation, but a clean, paper-grade ablation has not been run.
+
+The toy chain (§4) is also load-bearing for the *mechanism caveat*
+story: it shows where `eval_goal` does not apply and gives us a
+cheap regression target for future SF / novelty changes. It is not
+a paper headline, but it is the cleanest single piece of mechanism
+clarity in this work.
+
+### 10.5 The SSUP-III shape, tentatively
+
+If P10/P11 land, the shape of the paper is roughly:
+
+- §1: Six principles in RL, parallel to SSUP-I §1 and SSUP-II §1.
+  P1–P4 are load-bearing; P6 has an RL analog (per-action
+  additivity in $A_a^\top A_a$); P5 is the speculative
+  direction (§8.D).
+- §2: NEF-FQI as the dense-reward base, faithful to the
+  attic'd `rl_clean` line; one analytic solve per action.
+- §3: Where sparse reward breaks the dense recipe (the
+  Y-signal failure of §1.1), and three mechanisms (D1 / D2 / D4)
+  each a re-use of an existing leenef primitive.
+- §4: The `eval_goal` projection as the decisive *eval-time*
+  mechanism, the one-line addition that turns hindsight-trained
+  Ψ into a useful policy.
+- §5: Results on MC + Acrobot + (one more env from §8.B/§8.D),
+  10 seeds, full width; ablations; the toy chain caveat from §5
+  as the mechanism-boundary section.
+- §6: Discussion: what the eval_goal projection tells us about
+  the geometry of Ψ, and why hindsight + projection in an
+  analytic-solve setting is not the same operation as hindsight
+  + gradient descent.
+
+This is recognizably a SSUP-III: it sits between SSUP-I's
+"single analytic step" and SSUP-II's "sufficient statistics
+accumulate", and it lands a third claim — "$Y$-only modulation
+via hindsight + eval-time projection" — that completes the family.
+
+## 11. File map
 
 | Artifact | Role |
 |---|---|
-| `src/leenef/rl.py` | `NEFFQIAgent` (D0 baseline) |
-| `src/leenef/rl_sf.py` | `NEFSuccessor`, `NEFSFAgent`, `NEFHindsightSFAgent` (D1+D2+D4) |
+| `src/leenef/rl.py` | `NEFFQIAgent` (D0 baseline) — unchanged in semantics on main; alpha plumbing centralized through `solvers.regularized_normal_matrix` + `solvers.solve_spd` after `8cd844c` |
+| `src/leenef/rl_sf.py` | `NEFSuccessor`, `NEFSFAgent`, `NEFHindsightSFAgent` (D1+D2+D4). Still uses an inline regularize+chol pattern; cleanup to use the new helpers is mechanical and not behavior-changing |
 | `src/leenef/rl_diag.py` | `SparseChainEnv`, `optimal_q()`, leverage diagnostics |
 | `benchmarks/run_rl_sparse.py` | Multi-env driver; `nef_fqi` / `nef_sf` / `nef_sf_hindsight` variants; `--eval-goal`; MiniGrid wrapper |
-| `benchmarks/run_sparse_chain.py` | Toy chain regression driver — Q* + policy + eval_goal grading |
-| `tests/test_rl_sf.py` | `test_successor_solve_recovers_chain_optimal_q` and the eval_goal/extrinsic invariants |
+| `benchmarks/run_sparse_chain.py` | Toy chain regression driver — Q* + policy + `eval_goal` grading |
+| `tests/test_rl_sf.py` | `test_successor_solve_recovers_chain_optimal_q` and the `eval_goal` / extrinsic invariants |
 | `results/rl_sparse/*.json` | Multi-seed run dumps (one per condition) |
 | `results/rl_sparse/sparse_chain.json` | Toy regression sweep |
+| `docs/SSUP-I.md` | Single-layer + streaming supervised paper; P1–P6 vocabulary |
+| `docs/SSUP-II.md` | CL-by-accumulation paper; P3 + P6 as the load-bearing principles for additive sufficient-statistics learning |
+| `attic/docs/rl_*.md` | Historical RL notes from the pre-restart `rl_clean` line — context, not parallel work |
 
-## 10. One-paragraph summary
+## 12. One-paragraph summary
 
 For sparse-reward control, the leenef-faithful stack is **D1**
 (NEFSuccessor: a second analytical solve on the same encoder, with
