@@ -111,9 +111,18 @@ def code_version() -> str | None:
         return head
     if not diff and not untracked:
         return head
-    dirty_hash = hashlib.sha256(f"{diff}\n--untracked--\n{untracked}".encode("utf-8")).hexdigest()[
-        :12
-    ]
+    untracked_hasher = hashlib.sha256()
+    for rel_path in sorted(path for path in untracked.splitlines() if path):
+        path = repo_root / rel_path
+        if path.is_file():
+            untracked_hasher.update(rel_path.encode("utf-8"))
+            untracked_hasher.update(b"\0")
+            untracked_hasher.update(path.read_bytes())
+            untracked_hasher.update(b"\0")
+    dirty_hash = hashlib.sha256(
+        f"{diff}\n--untracked--\n{untracked}\n--untracked-content--\n".encode("utf-8")
+        + untracked_hasher.digest()
+    ).hexdigest()[:12]
     return f"{head}-dirty-{dirty_hash}"
 
 
