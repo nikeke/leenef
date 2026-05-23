@@ -42,6 +42,8 @@ import numpy as np
 import torch
 from torch import Tensor
 
+from .solvers import regularization_strength, regularized_normal_matrix, solve_spd
+
 # ---------------------------------------------------------------------------
 # Sparse-reward chain MDP
 # ---------------------------------------------------------------------------
@@ -344,13 +346,10 @@ def leverage_stats(
         Dict of mean / std / min / max / percentile leverage.  All
         quantities are ordinary floats for JSON serialization.
     """
-    n_neurons = ata.shape[0]
-    M = ata.clone().double()
-    reg = alpha * torch.trace(M) / n_neurons
-    M.diagonal().add_(reg.clamp(min=alpha))
+    M = regularized_normal_matrix(ata.double(), alpha=(alpha, "trace"), copy=True)
     phi64 = phi_samples.double()
     # Solve M x = φ, then leverage = φ · x.
-    sol = torch.linalg.solve(M, phi64.T)  # (n_neurons, N)
+    sol = solve_spd(M, phi64.T)  # (n_neurons, N)
     leverage = (phi64 * sol.T).sum(dim=1).clamp(min=0.0)
     novelty = 1.0 / (leverage.sqrt() + 1e-12)
     return {
@@ -372,11 +371,9 @@ def solve_conditioning(ata: Tensor, alpha: float) -> dict[str, float]:
     and the resulting condition number.  Mirrors the trace-scaled
     regularization rule used in :class:`NEFFQIAgent`.
     """
-    n_neurons = ata.shape[0]
     M = ata.clone().double()
     tr = torch.trace(M).item()
-    reg = alpha * tr / n_neurons
-    eff_reg = max(reg, alpha)
+    eff_reg = float(regularization_strength(M, alpha=(alpha, "trace")).item())
     M.diagonal().add_(eff_reg)
     eigs = torch.linalg.eigvalsh(M)
     eig_min = float(eigs.min().item())

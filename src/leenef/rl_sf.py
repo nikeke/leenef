@@ -39,6 +39,7 @@ import torch
 from torch import Tensor
 
 from .rl import NEFFeatures
+from .solvers import inverse_from_normal_equations, regularized_normal_matrix, solve_spd
 
 
 class NEFSuccessor:
@@ -212,16 +213,6 @@ class NEFSuccessor:
 
     # -- solving --------------------------------------------------------------
 
-    @staticmethod
-    def _solve_spd(matrix: Tensor, rhs: Tensor) -> Tensor:
-        """Cholesky-backed multi-RHS solve with a generic fallback."""
-        chol, info = torch.linalg.cholesky_ex(matrix)
-        if int(info.item()) == 0:
-            if rhs.dim() == 1:
-                return torch.cholesky_solve(rhs.unsqueeze(1), chol).squeeze(1)
-            return torch.cholesky_solve(rhs, chol)
-        return torch.linalg.solve(matrix, rhs)
-
     def solve(self) -> None:
         """Solve for all per-action ``Ψ_a`` and ``w_a`` simultaneously.
 
@@ -234,16 +225,13 @@ class NEFSuccessor:
             if self._n_accumulated[a] < 10:
                 continue
 
-            ATA = self._ata[a].clone()
-            reg = self.alpha * torch.trace(ATA) / self.n_neurons
-            ATA.diagonal().add_(reg.clamp(min=self.alpha))
-
-            try:
-                Psi_a = self._solve_spd(ATA, self._aty_phi[a])  # (n, n)
-                w_a = self._solve_spd(ATA, self._aty_r[a])  # (n,)
-            except torch.linalg.LinAlgError:
-                Psi_a = torch.linalg.lstsq(ATA, self._aty_phi[a]).solution
-                w_a = torch.linalg.lstsq(ATA, self._aty_r[a].unsqueeze(1)).solution.squeeze(1)
+            ATA = regularized_normal_matrix(
+                self._ata[a],
+                alpha=(self.alpha, "trace"),
+                copy=True,
+            )
+            Psi_a = solve_spd(ATA, self._aty_phi[a])  # (n, n)
+            w_a = solve_spd(ATA, self._aty_r[a])  # (n,)
 
             self.Psi[a] = Psi_a.float()
             self.W_r[a] = w_a.float()
@@ -435,18 +423,8 @@ class NEFSFAgent:
         if self.novelty_beta == 0.0:
             self._novelty_inv = None
             return
-        ata = self.successor.gram_matrix(action=None).clone()
-        reg = self.alpha * torch.trace(ata) / self.n_neurons
-        ata.diagonal().add_(reg.clamp(min=self.alpha))
-        try:
-            chol, info = torch.linalg.cholesky_ex(ata)
-            if int(info.item()) == 0:
-                inv = torch.cholesky_inverse(chol)
-            else:
-                inv = torch.linalg.pinv(ata)
-        except torch.linalg.LinAlgError:
-            inv = torch.linalg.pinv(ata)
-        self._novelty_inv = inv  # float64
+        ata = self.successor.gram_matrix(action=None)
+        self._novelty_inv = inverse_from_normal_equations(ata, alpha=(self.alpha, "trace"))
 
     def novelty(self, obs: np.ndarray) -> float:
         """``β · sqrt(φ(s)ᵀ (AᵀA + αI)⁻¹ φ(s))`` (0 before any solve)."""
