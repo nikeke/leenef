@@ -1,4 +1,4 @@
-# Sufficient Statistics as the Universal Primitive (Part I)
+# Sufficient Statistics as a Universal Primitive? (Part I)
 
 ## Supervised Learning via the Neural Engineering Framework
 
@@ -49,10 +49,10 @@ split, the analytic least-squares fit, and the conceptual freedom
 to compose decoded signals; we depart in three places.
 
 - We use **rate neurons with `abs` activation**, not spiking LIF.
-  `abs` is the smallest pointwise nonlinearity that escapes the
+  `abs` is a minimal departure from linearity that escapes the
   linear-collapse argument of §2; it is also what gives our
-  activations the frame-coefficient interpretation used throughout
-  the paper.
+  activations the frame-coefficient-magnitude interpretation used
+  throughout the paper.
 - We use **data-driven biases**.  The bias of neuron *i* is
   $b_i = -g_i (e_i \cdot d_i)$ for a sample $d_i$ drawn from the
   training set, placing the *i*-th `abs` fold on the data
@@ -69,8 +69,10 @@ encode–decode pattern of Eliasmith & Anderson, with rate-`abs`
 neurons and data-driven biases."
 
 The SSUP paper series' shared opener is six operational claims, distilled
-from the program's running code.  These are *our* distillation;
-P1–P4 inherit from NEF, P5–P6 are leenef-specific.
+from the program's running code.  These are *our* distillation: P1–P2
+inherit directly from NEF's encoder/decoder split and analytic decoder
+fit; P3–P4 are the sufficient-statistics reading of that fixed-feature
+solve; P5–P6 are leenef-specific.
 
 - **P1 — Encoders are fixed** (random or data-adapted).  Decoders
   are the only thing we ever fit.
@@ -89,9 +91,11 @@ P1–P4 inherit from NEF, P5–P6 are leenef-specific.
   streaming classifier mean-pools delay-line activities into a
   fixed-size representation; no BPTT (Werbos, 1990), no recurrent
   solve.
-- **P6 — Per-class additivity is what makes continual learning
-  work.**  Each class owns its own decoder column, so accumulating
-  new task statistics never interferes with old columns.
+- **P6 — Per-class additivity is what makes class-incremental
+  continual learning work.**  With fixed features, stable output
+  semantics, and one-hot class targets, each class owns its own
+  decoder column, so accumulating new task statistics never overwrites
+  old columns.
   (Forward-look — owned by Paper II; we exhibit the additivity
   property here without claiming it solves CL.)
 
@@ -131,8 +135,8 @@ is a single-seed sanity check; the comparator (97.08 ± 0.04 %)
 is from the corresponding 10-seed raw-MNIST panel.
 
 The minimal repair is a pointwise nonlinearity that is *not*
-representable as a linear scaling.  `abs` is the smallest such
-repair we can imagine:
+representable as a linear scaling.  `abs` is the simplest such
+repair we use here:
 
 $$
 a_i = |g_i \cdot e_i \cdot x|
@@ -180,7 +184,8 @@ will recur throughout the paper:
   default $U(0.5, 2.0)$ range and a fixed $g_i \equiv 1$ perform within
   seed noise on raw image classification (§5.4); we keep gain
   diversity as the project default because it is the NEF-canonical
-  setting and because it pays off in the streaming variant.
+  setting and gives a cheap spread of measurement scales, not because
+  this paper isolates it as a streaming gain-ablation result.
 - **Bias placement** (§5.1) selects where each `abs` fold sits
   in input space.  The next paragraph shows why this matters
   more than it might appear.
@@ -190,11 +195,11 @@ will recur throughout the paper:
 Real data lives on (or near) a low-dimensional manifold inside
 the ambient input space.  Two complementary roles emerge.
 
-- **Random encoders** approximate a near-isometric measurement
-  of that manifold (Johnson–Lindenstrauss style; Johnson &
-  Lindenstrauss, 1984).  Enough random directions in high dimension preserve
-  pairwise distances and angles, so the data manifold's geometry
-  is carried faithfully into the *n*-neuron frame coefficients.
+- **Random encoders** provide many linear measurements of that
+  manifold.  By analogy with Johnson–Lindenstrauss behavior for
+  finite point clouds (Johnson & Lindenstrauss, 1984), enough random
+  directions in high dimension can preserve useful pairwise geometry
+  before the `abs` fold supplies the nonlinear feature map.
 - **Data-driven biases** place each neuron's measurement origin
   *on* the manifold itself.  The global frame becomes a
   *manifold-aware local* frame: tangent-style coordinates from
@@ -271,9 +276,13 @@ implemented:
 
 These equations are classical ridge regression and recursive least
 squares (Hoerl & Kennard, 1970; Söderström & Stoica, 1988), not a new
-estimator.  The paper's claim is that this old sufficient-statistics
-primitive becomes a useful organizing principle when paired with a
-fixed NEF-style `abs` feature map and evaluated as a neural classifier.
+estimator.  We use "sufficient statistics" in this fixed-feature ridge
+sense: once the encoder map is fixed, the pair $(A^\top A, A^\top Y)$
+fully determines the Tikhonov estimator.  We do not mean sufficiency
+for arbitrary data-generating distributions or learned feature maps.
+The paper's claim is that this old primitive becomes a useful
+organizing principle when paired with a fixed NEF-style `abs` feature
+map and evaluated as a neural classifier.
 
 §5.3 measures all three on identical accumulated statistics
 and shows that the resulting decoders agree to 0.000 pp on
@@ -764,7 +773,7 @@ The same task with two contemporaneous baselines re-implemented
 under our seeding and code-identity discipline: LSTM (Hochreiter &
 Schmidhuber, 1997) and ESN (Jaeger, 2001).
 
-![Stream-NEF dominates the ESN on row sMNIST and only ties it on permuted sMNIST at much larger reservoir width; the permuted-panel ESN cell at n equals 2000 matches the Stream-NEF cell at n equals 16000 well within the joint standard error.](figures/f6_streaming_accuracy.png)
+![Stream-NEF outperforms the ESN on row sMNIST and only ties it on permuted sMNIST at much larger reservoir width; the permuted-panel ESN cell at n equals 2000 matches the Stream-NEF cell at n equals 16000 well within the joint standard error.](figures/f6_streaming_accuracy.png)
 
 ![Wall-clock time versus accuracy on row sMNIST. The fastest Stream-NEF cells are lower-accuracy, but the 8000-neuron cell sits above the ESN panel and below the LSTM frontier at substantially lower wall-clock time.](figures/f7_streaming_wall_accuracy.png)
 
@@ -775,7 +784,7 @@ Schmidhuber, 1997) and ESN (Jaeger, 2001).
 | fast near-best LSTM (h64, l2, lr 3e-3) | 99.07 ± 0.03 % | 227 | 5 |
 | best ESN (n = 2 000, sr 0.95, leak 0.3) | 93.52 ± 0.06 % | 454 | 5 |
 
-The triangle is concrete.  Stream-NEF *dominates* the ESN
+The triangle is concrete.  Stream-NEF *outperforms* the ESN
 baseline by ~5 pp **with ~5× less wall-clock time** (the
 apples-to-apples gradient-free comparison: both fit only a linear
 readout on top of fixed nonlinear features).  Stream-NEF *trails*
@@ -786,11 +795,13 @@ is less dramatic, and more useful: a smaller near-best LSTM
 reaches 99.07 % in 227 s/seed, so Stream-NEF uses ~2.4× less
 wall-clock time and is ~0.6 pp lower relative to that cell.  We do
 not present this as
-"we beat LSTM" — the recurrent literature has dozens of variants
-in the 99–99.5 % range on row sMNIST.  We present it as
-cost-vs-quality at a fixed compute envelope: a gradient-free
-analytic-solve method gets close enough to make time-to-result
-part of the scientific comparison.
+"we beat LSTM" — the recurrent literature has many stronger sequence
+models, including NEF-adjacent LMUs (Voelker et al., 2019) and modern
+state-space models such as HiPPO/S4/LRU and Mamba (Gu et al., 2020;
+Gu et al., 2022; Orvieto et al., 2023; Gu & Dao, 2023).  We present it
+as cost-vs-quality at a fixed compute envelope: a gradient-free
+analytic-solve method gets close enough to make time-to-result part of
+the scientific comparison.
 
 ### §6.3 — Permuted sMNIST results
 
@@ -851,7 +862,7 @@ methods plus what the recurrent literature has reported
 elsewhere.
 
 The headline reading is simple.  On row sMNIST Stream-NEF
-dominates the ESN (the coherent-slice geometry favors mean
+outperforms the ESN (the coherent-slice geometry favors mean
 pool); on permuted sMNIST the two methods converge from
 opposite directions and the ESN gets there with fewer
 parameters (the distributed-signal geometry favors recurrent
@@ -941,13 +952,15 @@ can follow the threads back to where the ideas originated.
 
 **Replications and re-framings.**
 
-- **Single-layer NEF on MNIST is in the same family as the
-  Extreme Learning Machine** (Huang et al., 2006).  The solver
-  is identical — Tikhonov ridge regression on fixed features —
-  and the empirical accuracies on MNIST line up with two
-  decades of ELM literature.  Our contribution at the
-  single-layer level is *the framing and the engineering*, not
-  a new family of feature extractors.
+- **Single-layer NEF on MNIST is in the same family as RVFL, ELM,
+  OS-ELM, and Broad Learning Systems** (Pao et al., 1992;
+  Igelnik & Pao, 1995; Huang et al., 2006; Liang et al., 2006;
+  Chen & Liu, 2018).  The shared solver is Tikhonov ridge
+  regression on fixed or incrementally extended features, and the
+  empirical accuracies on MNIST line up with decades of fixed-feature
+  analytic-readout literature.  Our contribution at the single-layer
+  level is *the NEF/frame framing and the engineering*, not a new
+  family of feature extractors.
 - **Random-feature, kernel-ridge, and reservoir-computing
   literature** has most of the theoretical machinery already.
   Rahimi & Recht (2007) on random features; Jaeger (2001) and
@@ -1115,6 +1128,12 @@ The driver scripts (`benchmarks/sl_clean/sl_hp_driver.sh`,
 This makes any such pipeline resumable from any
 interruption — a property that matters at our wall-clock budget.
 
+The archive is still not a one-command benchmark capsule.  Raw datasets
+live outside Git and are checked by hash after loading; CI validates code
+invariants, not every table value; and wall-clock comparisons are kept
+within hardware-homogeneous panels rather than compared across CPU and
+GPU runs.
+
 The seed budget per claim is documented in
 `docs/sl_clean_sweeps.md`: 10 seeds for headline rows, 5 seeds
 for ablation tables, 3 seeds for appendix-legacy tables.
@@ -1215,12 +1234,17 @@ representation question carried into Paper III.
 ## Literature
 
 - Barreto, A., Dabney, W., Munos, R., Hunt, J. J., Schaul, T., van Hasselt, H., & Silver, D. (2017). *Successor Features for Transfer in Reinforcement Learning*. Advances in Neural Information Processing Systems 30.
+- Chen, C. L. P., & Liu, Z. (2018). *Broad Learning System: An Effective and Efficient Incremental Learning System Without the Need for Deep Architecture*. IEEE Transactions on Neural Networks and Learning Systems, 29(1), 10-24.
 - Coates, A., Lee, H., & Ng, A. Y. (2011). *An Analysis of Single-Layer Networks in Unsupervised Feature Learning*. Proceedings of the Fourteenth International Conference on Artificial Intelligence and Statistics.
 - Eliasmith, C., & Anderson, C. H. (2003). *Neural Engineering: Computation, Representation, and Dynamics in Neurobiological Systems*. MIT Press.
 - Ernst, D., Geurts, P., & Wehenkel, L. (2005). *Tree-Based Batch Mode Reinforcement Learning*. Journal of Machine Learning Research, 6, 503-556.
+- Gu, A., Dao, D., Ermon, S., Rudra, A., & Ré, C. (2020). *HiPPO: Recurrent Memory with Optimal Polynomial Projections*. Advances in Neural Information Processing Systems 33.
+- Gu, A., & Dao, T. (2023). *Mamba: Linear-Time Sequence Modeling with Selective State Spaces*. arXiv preprint arXiv:2312.00752.
+- Gu, A., Goel, K., Dao, T., Rudra, A., & Ré, C. (2022). *Efficiently Modeling Long Sequences with Structured State Spaces*. International Conference on Learning Representations.
 - Huang, G.-B., Zhu, Q.-Y., & Siew, C.-K. (2006). *Extreme Learning Machine: Theory and Applications*. Neurocomputing, 70(1-3), 489-501.
 - Hochreiter, S., & Schmidhuber, J. (1997). *Long Short-Term Memory*. Neural Computation, 9(8), 1735-1780.
 - Hoerl, A. E., & Kennard, R. W. (1970). *Ridge Regression: Biased Estimation for Nonorthogonal Problems*. Technometrics, 12(1), 55-67.
+- Igelnik, B., & Pao, Y. H. (1995). *Stochastic Choice of Basis Functions in Adaptive Function Approximation and the Functional-Link Net*. IEEE Transactions on Neural Networks, 6(6), 1320-1329.
 - Jaeger, H. (2001). *The “Echo State” Approach to Analysing and Training Recurrent Neural Networks—With an Erratum Note*. GMD Report 148, German National Research Center for Information Technology.
 - Johnson, W. B., & Lindenstrauss, J. (1984). *Extensions of Lipschitz mappings into a Hilbert space*. Contemporary Mathematics, 26, 189-206.
 - Kingma, D. P., & Ba, J. (2015). *Adam: A Method for Stochastic Optimization*. International Conference on Learning Representations.
@@ -1228,10 +1252,15 @@ representation question carried into Paper III.
 - Le, Q. V., Jaitly, N., & Hinton, G. E. (2015). *A Simple Way to Initialize Recurrent Networks of Rectified Linear Units*. arXiv preprint arXiv:1504.00941.
 - LeCun, Y., Cortes, C., & Burges, C. J. C. (1998). *The MNIST database of handwritten digits*.
 - Lee, D.-H., Zhang, S., Fischer, A., & Bengio, Y. (2015). *Difference Target Propagation*. Machine Learning, 104(2-3), 255-272.
+- Liang, N.-Y., Huang, G.-B., Saratchandran, P., & Sundararajan, N. (2006). *A Fast and Accurate Online Sequential Learning Algorithm for Feedforward Networks*. IEEE Transactions on Neural Networks, 17(6), 1411-1423.
+- Lukoševičius, M., & Jaeger, H. (2009). *Reservoir Computing Approaches to Recurrent Neural Network Training*. Computer Science Review, 3(3), 127-149.
 - Maass, W., Natschläger, T., & Markram, H. (2002). *Real-Time Computing Without Stable States: A New Framework for Neural Computation Based on Perturbations*. Neural Computation, 14(11), 2531-2560.
+- Orvieto, S., Jing, L., Dowling, M., Atanasov, L., Kretov, M., Cevher, V., & LeCun, Y. (2023). *Resurrecting Recurrent Neural Networks for Long Sequences*. arXiv preprint arXiv:2305.07078.
+- Pao, Y. H., Takefuji, Y., & Lee, P. (1992). *Functional-Link Net Computing: Theory, System Architecture, and Functionalities*. Computer, 25(5), 76-79.
 - Rahimi, A., & Recht, B. (2007). *Random Features for Large-Scale Kernel Machines*. Advances in Neural Information Processing Systems 20.
 - Saxe, A. M., Koh, P. W., Chen, Z., Bhand, M., Suresh, B., & Ng, A. Y. (2011). *Random Weights and Unsupervised Feature Learning*. Proceedings of the 28th International Conference on Machine Learning.
 - Söderström, T., & Stoica, P. (1988). *System Identification*. Prentice Hall.
+- Voelker, A. R., Kajić, I., & Eliasmith, C. (2019). *Legendre Memory Units: Continuous-Time Representation in Recurrent Neural Networks*. Advances in Neural Information Processing Systems 32.
 - Werbos, P. J. (1990). *Backpropagation through time: what it does and how to do it*. Proceedings of the IEEE, 78(10), 1550-1560.
 - Warden, P. (2018). *Speech Commands: A Dataset for Limited-Vocabulary Speech Recognition*. arXiv preprint arXiv:1804.03209.
 - Xiao, H., Rasul, K., & Vollgraf, R. (2017). *Fashion-MNIST: a Novel Image Dataset for Benchmarking Machine Learning Algorithms*. arXiv preprint arXiv:1708.07747.

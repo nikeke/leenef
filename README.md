@@ -66,13 +66,14 @@ Paper II abstract:
 > Because $A^\top A$ and $A^\top Y$ add over data partitions, sequential
 > `partial_fit` over a task stream produces the **same** decoder as joint
 > training over the union of tasks: the forgetting axis has length zero by
-> construction.  Across Split-MNIST, Permuted-MNIST, Split-CIFAR-10, and
-> Split-CIFAR-100, `nef_accumulate` matches `nef_joint` to 0.000000 pp
-> over 10 seeds.  This removes forgetting from the analytic readout and
-> collapses the class-incremental failure modes of the tested gradient
-> baselines (Split-MNIST: **97.0 %** vs ~20.0 % for MLP-EWC and
-> MLP-finetune), while exposing the tradeoff directly: the linear head no
-> longer forgets, but absolute accuracy is bounded by the fixed feature map.
+> construction relative to that joint fixed-feature model.  Across
+> Split-MNIST, Permuted-MNIST, Split-CIFAR-10, and Split-CIFAR-100,
+> `nef_accumulate` matches `nef_joint` to 0.000000 pp over 10 seeds.  This
+> removes forgetting from the analytic readout and collapses the
+> class-incremental failure modes of the tested EWC/finetune baselines
+> (Split-MNIST: **97.0 %** vs ~20.0 %), while remaining above ER at
+> 86.5 % and exposing the tradeoff directly: the linear head no longer
+> forgets, but absolute accuracy is bounded by the fixed feature map.
 > Capacity scales smoothly with neuron budget
 > per task, a gradient-free ConvNEF front end lifts Split-CIFAR-10 from
 > 49.5 % to **74.7 $\pm$ 0.1 %** without breaking the identity, and a
