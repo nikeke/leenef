@@ -746,14 +746,22 @@ class NEFHindsightSFAgent(NEFSFAgent):
         goal_random_prob: float = 0.5,
         goal_action_mode: str = "epsilon",
         eval_goal: np.ndarray | list[float] | None = None,
+        goal_readout_mode: str = "dot",
         directional_readout: bool = False,
         **kwargs,
     ):
+        if goal_readout_mode not in ("dot", "cosine", "future_cosine"):
+            raise ValueError(
+                "goal_readout_mode must be one of 'dot', 'cosine', "
+                f"'future_cosine'; got {goal_readout_mode!r}"
+            )
         if directional_readout:
             if eval_goal is None:
                 raise ValueError("directional_readout requires eval_goal")
             if goal_mode != "eval_goal":
                 raise ValueError("directional_readout requires goal_mode='eval_goal'")
+            if goal_readout_mode != "dot":
+                raise ValueError("directional_readout only supports goal_readout_mode='dot'")
             kwargs["directional_goal"] = eval_goal
         super().__init__(d_obs=d_obs, n_actions=n_actions, **kwargs)
         if goal_buffer_size <= 0:
@@ -781,6 +789,7 @@ class NEFHindsightSFAgent(NEFSFAgent):
         self.goal_mode = goal_mode
         self.goal_random_prob = float(goal_random_prob)
         self.goal_action_mode = goal_action_mode
+        self.goal_readout_mode = goal_readout_mode
         self._directional_hindsight_readout = bool(directional_readout)
 
         if eval_goal is None:
@@ -868,6 +877,19 @@ class NEFHindsightSFAgent(NEFSFAgent):
         self._goal_resample_count += 1
         self._goal_buffer_count += 1
 
+    def _project_successor_to_goal(self, obs: np.ndarray, goal_phi: Tensor) -> Tensor:
+        with torch.no_grad():
+            s = torch.from_numpy(obs).float().to(self.device)
+            phi = self.successor.features.encode(s)  # (n,) float32
+            psi = torch.einsum("n,anm->am", phi, self.Psi)  # (a, n) float32
+            goal = goal_phi.to(psi.dtype)
+            if self.goal_readout_mode == "dot":
+                return psi @ goal
+            if self.goal_readout_mode == "future_cosine":
+                psi = psi - phi.unsqueeze(0)
+            psi_norm = torch.linalg.vector_norm(psi, dim=1).clamp_min(self.goal_eps)
+            return (psi / psi_norm.unsqueeze(1)) @ goal
+
     def goal_q_values(self, obs: np.ndarray) -> Tensor | None:
         """``Q(s, a; g) = ψ(s, a) · u(g)`` for the current goal.
 
@@ -878,11 +900,7 @@ class NEFHindsightSFAgent(NEFSFAgent):
             return None
         if self._directional_hindsight_readout:
             return self.successor.directional_q_values(obs)
-        with torch.no_grad():
-            s = torch.from_numpy(obs).float().to(self.device)
-            phi = self.successor.features.encode(s)  # (n,) float32
-            psi = torch.einsum("n,anm->am", phi, self.Psi)  # (a, n) float32
-            return psi @ self._current_goal_phi.to(psi.dtype)  # (a,)
+        return self._project_successor_to_goal(obs, self._current_goal_phi)
 
     def _ensure_eval_goal_phi(self) -> Tensor | None:
         """Compute and cache ``u(eval_goal) = φ(g*)/‖φ(g*)‖`` lazily."""
@@ -914,11 +932,7 @@ class NEFHindsightSFAgent(NEFSFAgent):
             return super().q_values(obs)
         if self._directional_hindsight_readout:
             return self.successor.directional_q_values(obs)
-        with torch.no_grad():
-            s = torch.from_numpy(obs).float().to(self.device)
-            phi = self.successor.features.encode(s)
-            psi = torch.einsum("n,anm->am", phi, self.Psi)
-            return psi @ eval_phi.to(psi.dtype)
+        return self._project_successor_to_goal(obs, eval_phi)
 
     def select_action(self, obs: np.ndarray) -> int:
         """Action selection with hindsight goal conditioning during training.
@@ -991,5 +1005,6 @@ class NEFHindsightSFAgent(NEFSFAgent):
             "current_goal_active": self._current_goal_phi is not None,
             "goal_mode": self.goal_mode,
             "goal_action_mode": self.goal_action_mode,
+            "goal_readout_mode": self.goal_readout_mode,
             "directional_readout": self._directional_hindsight_readout,
         }

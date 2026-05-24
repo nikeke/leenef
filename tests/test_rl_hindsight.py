@@ -194,6 +194,11 @@ def test_init_validates_goal_action_mode():
         NEFHindsightSFAgent(goal_action_mode="invalid", **_common_kwargs())
 
 
+def test_init_validates_goal_readout_mode():
+    with pytest.raises(ValueError):
+        NEFHindsightSFAgent(goal_readout_mode="invalid", **_common_kwargs())
+
+
 def test_directional_readout_requires_eval_goal_mode():
     with pytest.raises(ValueError, match="requires eval_goal"):
         NEFHindsightSFAgent(
@@ -205,6 +210,14 @@ def test_directional_readout_requires_eval_goal_mode():
         NEFHindsightSFAgent(
             directional_readout=True,
             eval_goal=np.ones(4, dtype=np.float32),
+            **_common_kwargs(),
+        )
+    with pytest.raises(ValueError, match="goal_readout_mode='dot'"):
+        NEFHindsightSFAgent(
+            directional_readout=True,
+            goal_mode="eval_goal",
+            eval_goal=np.ones(4, dtype=np.float32),
+            goal_readout_mode="cosine",
             **_common_kwargs(),
         )
 
@@ -328,6 +341,50 @@ def test_eval_goal_overrides_q_values():
         u = (phi_g / torch.linalg.vector_norm(phi_g)).to(torch.float32)
         phi_s = agent.successor.features.encode(torch.from_numpy(test_obs).float())
         psi = torch.einsum("n,anm->am", phi_s, agent.Psi)
+        expected = psi @ u
+    assert torch.allclose(q_eval, expected, atol=1e-6)
+
+
+def test_eval_goal_cosine_normalizes_successor_vectors():
+    g = np.array([0.5, -0.1, 0.2, 0.3], dtype=np.float32)
+    agent = NEFHindsightSFAgent(eval_goal=g, goal_readout_mode="cosine", **_common_kwargs())
+    rng = np.random.default_rng(8)
+    for _ in range(20):
+        obs = rng.normal(size=4).astype(np.float32)
+        agent.update(obs, 0, 1.0, obs, False)
+    agent.update(obs, 0, 1.0, obs, True)
+    agent.solve()
+
+    test_obs = rng.normal(size=4).astype(np.float32)
+    q_eval = agent.q_values(test_obs)
+    with torch.no_grad():
+        phi_g = agent.successor.features.encode(torch.from_numpy(g).float()).double()
+        u = (phi_g / torch.linalg.vector_norm(phi_g)).to(torch.float32)
+        phi_s = agent.successor.features.encode(torch.from_numpy(test_obs).float())
+        psi = torch.einsum("n,anm->am", phi_s, agent.Psi)
+        psi = psi / torch.linalg.vector_norm(psi, dim=1).clamp_min(agent.goal_eps).unsqueeze(1)
+        expected = psi @ u
+    assert torch.allclose(q_eval, expected, atol=1e-6)
+
+
+def test_eval_goal_future_cosine_removes_current_feature():
+    g = np.array([0.5, -0.1, 0.2, 0.3], dtype=np.float32)
+    agent = NEFHindsightSFAgent(eval_goal=g, goal_readout_mode="future_cosine", **_common_kwargs())
+    rng = np.random.default_rng(9)
+    for _ in range(20):
+        obs = rng.normal(size=4).astype(np.float32)
+        agent.update(obs, 0, 1.0, obs, False)
+    agent.update(obs, 0, 1.0, obs, True)
+    agent.solve()
+
+    test_obs = rng.normal(size=4).astype(np.float32)
+    q_eval = agent.q_values(test_obs)
+    with torch.no_grad():
+        phi_g = agent.successor.features.encode(torch.from_numpy(g).float()).double()
+        u = (phi_g / torch.linalg.vector_norm(phi_g)).to(torch.float32)
+        phi_s = agent.successor.features.encode(torch.from_numpy(test_obs).float())
+        psi = torch.einsum("n,anm->am", phi_s, agent.Psi) - phi_s.unsqueeze(0)
+        psi = psi / torch.linalg.vector_norm(psi, dim=1).clamp_min(agent.goal_eps).unsqueeze(1)
         expected = psi @ u
     assert torch.allclose(q_eval, expected, atol=1e-6)
 

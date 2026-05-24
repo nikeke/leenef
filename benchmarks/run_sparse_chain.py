@@ -162,7 +162,12 @@ def _grade(
     return float(err), bool((greedy == 1).all())
 
 
-def _eval_goal_greedy_correct(agent, env: SparseChainEnv) -> bool | None:
+GOAL_READOUT_MODES = ("dot", "cosine", "future_cosine")
+
+
+def _eval_goal_greedy_correct(
+    agent, env: SparseChainEnv, *, readout_mode: str = "dot"
+) -> bool | None:
     """Greedy policy under the eval_goal projection ``ψ(s,a)·u(φ(g*))``.
 
     Returns ``None`` for agents without a successor decoder (e.g. plain
@@ -185,7 +190,15 @@ def _eval_goal_greedy_correct(agent, env: SparseChainEnv) -> bool | None:
             obs = np.array([s / (n - 1)], dtype=np.float32)
             phi = agent.successor.features.encode(torch.from_numpy(obs))
             psi = torch.einsum("n,anm->am", phi, Psi)  # (n_actions, n_neurons)
-            q = psi @ u  # (n_actions,)
+            if readout_mode == "dot":
+                q = psi @ u
+            else:
+                if readout_mode == "future_cosine":
+                    psi = psi - phi.unsqueeze(0)
+                elif readout_mode != "cosine":
+                    raise ValueError(f"unknown readout_mode {readout_mode!r}")
+                psi_norm = torch.linalg.vector_norm(psi, dim=1).clamp_min(1e-8)
+                q = (psi / psi_norm.unsqueeze(1)) @ u
             if int(q.argmax().item()) != 1:
                 ok_all = False
                 break
@@ -224,7 +237,10 @@ def run_one(
 
     Q_pred = _q_table(agent, env)
     err, ok = _grade(Q_pred, Q_star)
-    eval_goal_ok = _eval_goal_greedy_correct(agent, env)
+    eval_goal_by_mode = {
+        mode: _eval_goal_greedy_correct(agent, env, readout_mode=mode)
+        for mode in GOAL_READOUT_MODES
+    }
     return dict(
         variant=variant,
         n_states=n_states,
@@ -233,7 +249,8 @@ def run_one(
         first_success_episode=first_success,
         q_max_abs_err=err,
         policy_correct=ok,
-        eval_goal_policy_correct=eval_goal_ok,
+        eval_goal_policy_correct=eval_goal_by_mode["dot"],
+        eval_goal_policy_correct_by_mode=eval_goal_by_mode,
         elapsed_s=round(elapsed, 3),
         terminal_count=int(sum(1 for r in returns if r > 0.0)),
     )
@@ -275,6 +292,8 @@ def main() -> None:
                     f"q_err={row['q_max_abs_err']:.4f} "
                     f"policy_ok={row['policy_correct']!s:>5s} "
                     f"eval_goal_ok={row['eval_goal_policy_correct']!s:>5s} "
+                    f"cos={row['eval_goal_policy_correct_by_mode']['cosine']!s:>5s} "
+                    f"fcos={row['eval_goal_policy_correct_by_mode']['future_cosine']!s:>5s} "
                     f"({row['elapsed_s']:.2f}s)",
                     flush=True,
                 )
@@ -293,6 +312,8 @@ def main() -> None:
                 policy_ok=0,
                 eval_goal_ok=0,
                 eval_goal_n=0,
+                eval_goal_mode_ok={mode: 0 for mode in GOAL_READOUT_MODES},
+                eval_goal_mode_n={mode: 0 for mode in GOAL_READOUT_MODES},
                 goal_reached=0,
                 first_success_sum=0,
                 first_success_n=0,
@@ -304,6 +325,10 @@ def main() -> None:
         if r["eval_goal_policy_correct"] is not None:
             a["eval_goal_n"] += 1
             a["eval_goal_ok"] += int(r["eval_goal_policy_correct"])
+        for mode, ok in r.get("eval_goal_policy_correct_by_mode", {}).items():
+            if ok is not None:
+                a["eval_goal_mode_n"][mode] += 1
+                a["eval_goal_mode_ok"][mode] += int(ok)
         a["goal_reached"] += int(r["terminal_count"] > 0)
         if r["first_success_episode"] is not None:
             a["first_success_sum"] += r["first_success_episode"]
@@ -324,6 +349,14 @@ def main() -> None:
                 eval_goal_ok_frac=(
                     None if a["eval_goal_n"] == 0 else a["eval_goal_ok"] / a["eval_goal_n"]
                 ),
+                eval_goal_ok_frac_by_mode={
+                    mode: (
+                        None
+                        if a["eval_goal_mode_n"][mode] == 0
+                        else a["eval_goal_mode_ok"][mode] / a["eval_goal_mode_n"][mode]
+                    )
+                    for mode in GOAL_READOUT_MODES
+                },
                 goal_reached_frac=a["goal_reached"] / a["seeds"],
                 first_success_mean=(
                     None if first_success_mean is None else round(first_success_mean, 1)
@@ -348,11 +381,15 @@ def main() -> None:
     print(f"\nWrote {len(rows)} runs and {len(summary)} summary entries to {args.output}")
 
     print(
-        "\nSummary (variant, n_states): q_err_mean | policy_ok | eval_goal_ok | goal_reached | mean_first_success"
+        "\nSummary (variant, n_states): q_err_mean | policy_ok | "
+        "eval_goal(dot/cos/fcos) | goal_reached | mean_first_success"
     )
     for s in summary:
         first = "—" if s["first_success_mean"] is None else f"{s['first_success_mean']:.1f}"
-        eg = "—" if s["eval_goal_ok_frac"] is None else f"{s['eval_goal_ok_frac']:.2f}"
+        by_mode = s["eval_goal_ok_frac_by_mode"]
+        eg = "/".join(
+            "—" if by_mode[mode] is None else f"{by_mode[mode]:.2f}" for mode in GOAL_READOUT_MODES
+        )
         print(
             f"  {s['variant']:>16s}  K={s['n_states']:>2d}  "
             f"q_err={s['q_err_mean']:.4f}  "

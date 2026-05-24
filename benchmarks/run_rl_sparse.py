@@ -109,6 +109,7 @@ def _build_agent(
     goal_mode: str,
     goal_random_prob: float,
     goal_action_mode: str,
+    goal_readout_mode: str,
     eval_goal: list[float] | None,
     device: str,
 ):
@@ -153,6 +154,7 @@ def _build_agent(
                 goal_mode=goal_mode,
                 goal_random_prob=float(goal_random_prob),
                 goal_action_mode=goal_action_mode,
+                goal_readout_mode=goal_readout_mode,
                 eval_goal=eval_goal,
                 directional_readout=variant == "nef_sf_hindsight_directional",
                 device=device,
@@ -222,6 +224,7 @@ def _train(
     goal_mode: str,
     goal_random_prob: float,
     goal_action_mode: str,
+    goal_readout_mode: str,
     eval_goal: list[float] | None,
     device: str,
     collect_agent_diagnostics: bool,
@@ -245,6 +248,7 @@ def _train(
         goal_mode=goal_mode,
         goal_random_prob=goal_random_prob,
         goal_action_mode=goal_action_mode,
+        goal_readout_mode=goal_readout_mode,
         eval_goal=eval_goal,
         device=device,
     )
@@ -351,6 +355,14 @@ def main(argv=None):
         "commit=after warmup take goal-greedy every step, ε resamples goal.",
     )
     parser.add_argument(
+        "--goal-readout-mode",
+        choices=("dot", "cosine", "future_cosine"),
+        default="dot",
+        help="Geometry used for full-successor goal projection. dot preserves "
+        "current ψ·u(g) behavior; cosine normalizes ψ(s,a); future_cosine "
+        "normalizes ψ(s,a)-φ(s). Directional readout supports dot only.",
+    )
+    parser.add_argument(
         "--eval-goal",
         type=str,
         default=None,
@@ -428,6 +440,7 @@ def main(argv=None):
             "goal_mode": args.goal_mode,
             "goal_random_prob": args.goal_random_prob,
             "goal_action_mode": args.goal_action_mode,
+            "goal_readout_mode": args.goal_readout_mode,
             "eval_goal": args.eval_goal,
             "device": device,
             "skip_agent_diagnostics": args.skip_agent_diagnostics,
@@ -481,6 +494,7 @@ def main(argv=None):
                 goal_mode=args.goal_mode,
                 goal_random_prob=args.goal_random_prob,
                 goal_action_mode=args.goal_action_mode,
+                goal_readout_mode=args.goal_readout_mode,
                 eval_goal=eval_goal_parsed,
                 device=device,
                 collect_agent_diagnostics=not args.skip_agent_diagnostics,
