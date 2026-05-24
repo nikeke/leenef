@@ -17,29 +17,29 @@ responsibility.
 
 NEF's regularized least-squares solve over fixed-encoder neural
 activities,
-$D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$, is a compact
-sufficient-statistics primitive for reinforcement learning only when the
-target matrix $Y$ is constructed with care.  In supervised learning, $Y$
-is a label matrix; in continual learning, $Y$ remains stable while rows
-arrive over time.  In reinforcement learning, the targets are induced by
-returns, bootstraps, goals, successor features, and the behavior policy.
-This paper treats that target construction as the central problem.  On
-dense-control LunarLander-v3, bootstrapped TD targets fail under the
-analytic solve (`robust_eval` $=-123.8 \pm 13.1$), while a
-non-bootstrapped $100$-step NEF-FQI configuration reaches
-$201.3 \pm 9.8$ over 10 seeds; an in-repository DQN context row reaches
-$129.3 \pm 21.7$ under the same evaluation protocol.  On sparse-control
-tasks, reward absence becomes target absence: MountainCar-v0 remains flat
-for a memory-reduced known-goal directional readout
-($-197.0 \pm 1.7$), but a full-successor random-direction mechanism
-reaches $-158.8 \pm 1.4$ at 2000 neurons; Acrobot-v1 shows the complementary
-case, where a 6000-neuron directional known-goal readout gives a stable
-sparse signal ($-194.9 \pm 10.4$) once successor statistics are retained
-slowly enough.  The result is not a claim that analytic fixed-feature RL
-is a universal control algorithm.  It is a sharper claim: the same
-sufficient-statistics object can support control when the target matrix
-is stable, informative, and matched to the task, and it fails
-diagnostically when those conditions are false.
+$D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$, can be used as
+a compact sufficient-statistics primitive for reinforcement learning when
+the target matrix $Y$ is constructed to match the control problem.  In
+dense control, a non-bootstrapped $100$-step NEF-FQI configuration reaches
+$201.3 \pm 9.8$ robust return on LunarLander-v3 over 10 seeds, crossing
+the common 200-return solved threshold under our evaluation protocol; the
+same analytic control path reaches near-perfect CartPole-v1 best
+evaluation (`best_eval` $=499.4 \pm 0.6$).  An in-repository DQN context row reaches
+$129.3 \pm 21.7$ on LunarLander-v3 under the same protocol.  In sparse
+control, target construction is the result: a full-successor
+random-direction mechanism improves MountainCar-v0 to
+$-158.8 \pm 1.4$ at 2000 neurons, and a 6000-neuron directional
+known-goal readout gives a stable Acrobot-v1 signal
+($-194.9 \pm 10.4$ robust, $-132.1 \pm 6.1$ best) when successor
+statistics are retained slowly enough.  The boundary rows explain the
+conditions rather than replacing the headline: one-step bootstrapped TD
+collapses on LunarLander-v3 ($-123.8 \pm 13.1$), the cheaper directional
+MountainCar readout stays flat ($-197.0 \pm 1.7$), and widening the full
+MountainCar successor model to 6000 neurons costs $5.7\times$ more
+without improving robust return.  The paper's claim is therefore not that
+analytic fixed-feature RL is a universal control algorithm.  It is that
+the same sufficient-statistics object can support successful control when
+$Y$ is stable, informative, and matched to the task.
 
 ---
 
@@ -498,22 +498,32 @@ directional successor readouts.  The same code-identity and seed-policy
 discipline used for supervised and continual panels can be applied to RL
 without changing the mathematical object being audited.
 
-### §6.3 — What not to claim
+### §6.3 — Scope of the claims
 
-There are several claims this paper should not make.
+The paper makes three positive claims.  First, fixed-feature analytic
+control can solve dense-control tasks when the return target is stable
+enough for a global least-squares solve: LunarLander-v3 crosses the common
+200-return solved threshold under our evaluation protocol, and CartPole-v1
+reaches near-perfect best evaluation as a sanity check.  Second,
+sparse-control progress is possible inside the same sufficient-statistics interface when
+successor or goal-conditioned targets make $A^\top Y$ informative before
+the sparse reward has propagated.  Third, the failures are diagnostic:
+they identify target instability, target absence, insufficient goal
+handles, or an overly restrictive successor readout.
 
-It should not claim that fixed-feature analytic RL generally beats deep
-RL.  The DQN row is a useful in-repository context row, not a survey of
-DQN practice.  It should not claim that successor features solve sparse
-reward in general.  MiniGrid remains negative without a goal handle, and
+The paper does not claim that fixed-feature analytic RL generally beats
+deep RL.  The DQN row is an in-repository context row, not a survey of DQN
+practice.  It does not claim that successor features solve sparse reward
+in general.  MiniGrid remains negative without a goal handle, and
 MountainCar needed the more expensive full-successor/random-direction
-variant.  It should not claim that widening fixed features automatically
+variant.  It does not claim that widening fixed features automatically
 helps sparse control.  On MountainCar, 6000 full-successor neurons cost
 about $5.7\times$ the 2000-neuron row and did not improve robust return.
 
-The more defensible claim is also the more reusable one: analytic
-fixed-feature control is a target-construction program.  The successes
-and failures both support that reading.
+The positive claim and the boundary claim are the same claim viewed from
+opposite sides: analytic fixed-feature control is a target-construction
+program.  When the target is stable and informative, the primitive works;
+when the target is moving, absent, or mismatched to the task, it does not.
 
 ### §6.4 — Engineering boundary
 
@@ -531,38 +541,73 @@ intermediate representation: low-rank successor decoders or normalized
 goal-direction readouts that preserve more post-hoc flexibility without
 storing all of $\Psi_a$.
 
+### §6.5 — Follow-up directions
+
+The most immediate follow-up is **successor-readout geometry**.  The
+SparseChain diagnostic suggests that successor-vector magnitude can swamp
+the intended goal direction when action horizons differ.  Magnitude
+normalization, cosine-style goal projection, or whitening in successor
+space would test whether the failed directional cases are really failures
+of temporal prediction or failures of readout geometry.
+
+The second follow-up is **compressed successor representation**.  Full
+successor readouts preserve arbitrary post-hoc goals but scale as
+$O(|\mathcal{A}|n^2)$; directional readouts are cheap but commit to one
+goal direction.  Low-rank successor decoders, random projections of
+successor space, or a small bank of learned goal directions could occupy
+the useful middle ground.
+
+The third follow-up is **continual RL**.  We have not run a paper-grade
+continual-RL benchmark panel, so this paper does not claim a continual-RL
+result.  What we do have is the mechanism that makes such a study
+natural: per-action normal equations, exponential statistic retention,
+and the Paper II result that compatible fixed-feature statistics add
+cleanly across task partitions.  Natural experiments are task sequences
+with changing reward maps, per-goal normal-equation blocks that can be
+combined at decision time, and conflict-aware decoder merging when new
+events or goals appear.
+
+The fourth follow-up is **hybridization with existing RL machinery**.
+Nothing in the sufficient-statistics interface requires the encoder to be
+random forever.  A frozen deep representation, a ConvNEF-style visual
+front end, model-generated rollouts, prioritized replay, or hindsight
+relabeling could all feed the same $A^\top A$ and $A^\top Y$ objects.
+The useful question is not whether those additions are "pure" enough; it
+is whether they make the target matrix more stable or more informative
+without losing the auditability of the analytic head.
+
 ---
 
 ## §7 — Conclusions
 
-The reinforcement-learning part of the SSUP series changes the primitive
-from "fit the labels" to "construct the targets."  The same fixed
-activities and regularized normal equations still apply, but the target
-matrix $Y$ is now a design object.
+The reinforcement-learning part of the SSUP series shows that the
+analytic fixed-feature primitive can be used successfully for control.
+With stable non-bootstrapped return targets, NEF-FQI crosses the common
+200-return solved threshold on LunarLander-v3 under our evaluation
+protocol, reaching $201.3 \pm 9.8$ robust return over 10 seeds, and
+reaches near-perfect best evaluation on CartPole-v1.  With successor and goal-conditioned targets, the same
+sufficient-statistics interface produces useful sparse-control signal:
+MountainCar-v0 improves under the full-successor random-direction
+mechanism, and Acrobot-v1 improves under a memory-reduced directional
+readout with slow statistic retention.
 
-The dense-control evidence supports the target-stability half of that
-claim.  On LunarLander-v3, one-step bootstrapped targets fail under the
-analytic solve, while a final non-bootstrapped 100-step NEF-FQI
-configuration reaches $201.3 \pm 9.8$ robust return over 10 seeds.  The
-same implementation solves CartPole-v1 as a sanity check, and ensemble
-variants do not materially improve the final single agent.
+The conditions are as important as the positives.  Dense control works
+when $Y$ is stable enough for a global least-squares solve; one-step
+bootstrapped targets make $Y$ move and collapse in the tested
+LunarLander-v3 setting.  Sparse control works when successor or
+hindsight-style targets make $A^\top Y$ informative before reward is
+common; it does not work by merely adding width, and it does not work
+without a usable goal handle or a readout matched to the task.
 
-The sparse-control evidence supports the target-informativeness half.
-MountainCar-v0 needs full-successor/random-direction target structure and
-does not benefit from simply widening the full-successor model in the
-tested range.  Acrobot-v1 works with a memory-reduced directional readout
-when successor statistics are retained long enough.  MiniGrid and toy
-diagnostics mark the boundary: without a usable goal handle, or when
-successor magnitude overwhelms intended direction, the target remains
-wrong.
-
-The series-level conclusion is deliberately modest.  Sufficient
-statistics are not a universal algorithm.  They are a universal-looking
-interface: fixed encoders produce activities; $A^\top A$ records feature
-geometry; $A^\top Y$ records what the task asks those features to mean.
-Supervised learning supplies labels.  Continual learning preserves label
-semantics across a stream.  Reinforcement learning must build the target
-it wants to fit.
+This completes the series spine.  Paper I showed that fixed encoders plus
+an analytic decoder can be a useful supervised-learning primitive.  Paper
+II showed that, when target semantics are stable, task streams add into
+the same sufficient statistics without forgetting relative to the joint
+fixed-feature model.  Paper III shows that reinforcement learning is the
+case where the target matrix itself becomes the main design object.
+Supervised learning supplies labels; continual learning preserves label
+semantics across a stream; reinforcement learning must construct the
+target it wants the analytic solver to fit.
 
 ---
 
@@ -656,3 +701,50 @@ Exact driver paths, launch scripts, and preserved logs are repository
 artifacts rather than manuscript claims.  The important reproducibility
 contract is that numeric claims are tied to code identity, seed policy,
 configuration, and per-seed JSON rows.
+
+---
+
+## Appendix B — Negative and boundary results
+
+The main text includes the negative results needed to interpret the
+headline claims.  This appendix collects them in one place.
+
+### B.1 — Dense-control boundaries
+
+- **One-step TD bootstrap on LunarLander-v3.**  The bootstrapped row
+  reaches only $-123.8 \pm 13.1$ robust return over 5 seeds.  This is the
+  main evidence that a global analytic solve needs a stable target matrix
+  rather than a rapidly moving bootstrap target.
+- **Monte-Carlo and small $n$-step ablations.**  Non-bootstrapped targets
+  improve the target-stability problem but are not sufficient at the
+  smaller 4000-neuron ablation setting: $-67.7 \pm 32.3$ for Monte-Carlo
+  and $-38.4 \pm 18.0$ for the small $n$-step row.
+- **Dense-control ensembles.**  Thompson exploration approximately
+  matches the final single agent over 3 seeds, while voting exploration is
+  brittle ($64.5 \pm 81.4$ robust return).  The supervised ensemble story
+  therefore does not automatically transfer to policy selection.
+
+### B.2 — Sparse-control boundaries
+
+- **MountainCar-v0 without the full-successor/random-direction mechanism.**
+  Earlier plain FQI, successor, novelty, and hindsight variants without
+  the evaluation-goal handle stayed at the no-progress return; the
+  6000-neuron directional known-goal row in this paper remains essentially
+  flat at $-197.0 \pm 1.7$.
+- **MountainCar-v0 widening.**  The 6000-neuron full-successor row costs
+  about $5.7\times$ the 2000-neuron row and does not improve robust
+  return.  Width is not the sparse-control answer in this panel.
+- **Acrobot-v1 retention.**  The directional readout needs slow statistic
+  retention.  At forget factor $0.999$, the five-seed robust return is
+  $-296.6 \pm 28.5$, much worse than the $0.9995$ and $0.9999$ rows.
+- **Dense LunarLander-v3 with sparse-goal machinery.**  Hindsight and
+  evaluation-goal machinery hurt rather than help in the dense-reward
+  setting we tested.  Sparse target construction is not a dense-control
+  default.
+- **MiniGrid DoorKey-5x5.**  Without a programmatic goal-observation
+  handle, the random-direction sparse mechanism remains flat.  The method
+  needs a target direction it can actually express.
+- **SparseChain diagnostic.**  Successor-feature novelty helps the harder
+  chain, but evaluation-goal projection can fail when successor-vector
+  magnitude overwhelms direction.  This is the main motivation for the
+  normalized successor-readout follow-up in §6.5.

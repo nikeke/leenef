@@ -86,29 +86,29 @@ Paper III abstract:
 
 > NEF's regularized least-squares solve over fixed-encoder neural
 > activities,
-> $D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$, is a compact
-> sufficient-statistics primitive for reinforcement learning only when the
-> target matrix $Y$ is constructed with care.  In supervised learning, $Y$
-> is a label matrix; in continual learning, $Y$ remains stable while rows
-> arrive over time.  In reinforcement learning, the targets are induced by
-> returns, bootstraps, goals, successor features, and the behavior policy.
-> This paper treats that target construction as the central problem.  On
-> dense-control LunarLander-v3, bootstrapped TD targets fail under the
-> analytic solve (`robust_eval` $=-123.8 \pm 13.1$), while a
-> non-bootstrapped $100$-step NEF-FQI configuration reaches
-> $201.3 \pm 9.8$ over 10 seeds; an in-repository DQN context row reaches
-> $129.3 \pm 21.7$ under the same evaluation protocol.  On sparse-control
-> tasks, reward absence becomes target absence: MountainCar-v0 remains flat
-> for a memory-reduced known-goal directional readout
-> ($-197.0 \pm 1.7$), but a full-successor random-direction mechanism
-> reaches $-158.8 \pm 1.4$ at 2000 neurons; Acrobot-v1 shows the
-> complementary case, where a 6000-neuron directional known-goal readout
-> gives a stable sparse signal ($-194.9 \pm 10.4$) once successor
-> statistics are retained slowly enough.  The result is not a claim that
-> analytic fixed-feature RL is a universal control algorithm.  It is a
-> sharper claim: the same sufficient-statistics object can support control
-> when the target matrix is stable, informative, and matched to the task,
-> and it fails diagnostically when those conditions are false.
+> $D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$, can be used as
+> a compact sufficient-statistics primitive for reinforcement learning when
+> the target matrix $Y$ is constructed to match the control problem.  In
+> dense control, a non-bootstrapped $100$-step NEF-FQI configuration reaches
+> $201.3 \pm 9.8$ robust return on LunarLander-v3 over 10 seeds, crossing
+> the common 200-return solved threshold under our evaluation protocol; the
+> same analytic control path reaches near-perfect CartPole-v1 best
+> evaluation (`best_eval` $=499.4 \pm 0.6$).  An in-repository DQN context row reaches
+> $129.3 \pm 21.7$ on LunarLander-v3 under the same protocol.  In sparse
+> control, target construction is the result: a full-successor
+> random-direction mechanism improves MountainCar-v0 to
+> $-158.8 \pm 1.4$ at 2000 neurons, and a 6000-neuron directional
+> known-goal readout gives a stable Acrobot-v1 signal
+> ($-194.9 \pm 10.4$ robust, $-132.1 \pm 6.1$ best) when successor
+> statistics are retained slowly enough.  The boundary rows explain the
+> conditions rather than replacing the headline: one-step bootstrapped TD
+> collapses on LunarLander-v3 ($-123.8 \pm 13.1$), the cheaper directional
+> MountainCar readout stays flat ($-197.0 \pm 1.7$), and widening the full
+> MountainCar successor model to 6000 neurons costs $5.7\times$ more
+> without improving robust return.  The paper's claim is therefore not that
+> analytic fixed-feature RL is a universal control algorithm.  It is that
+> the same sufficient-statistics object can support successful control when
+> $Y$ is stable, informative, and matched to the task.
 
 ## Quick start
 
