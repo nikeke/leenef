@@ -453,10 +453,14 @@ then the target-construction mechanism has no clear direction to project.
 
 Third, toy sparse-chain diagnostics showed that evaluation-goal projection
 can fail when action horizons differ enough for successor-vector magnitude
-to dominate direction.  This suggests a natural follow-up: normalize or
-otherwise control successor magnitudes when the intended signal is
-directional similarity.  We did not include that follow-up in the present
-headline evidence; it belongs in future mechanism work.
+to dominate direction.  We tested the obvious alternative on MountainCar:
+normalize either the full successor vector or the future increment
+$\psi(s,a)-\phi(s)$ before the goal projection.  Both normalized readouts
+were completely flat over 10 seeds ($-200.0 \pm 0.0$ robust return),
+while the original dot-product readout reproduced the positive
+$-158.8 \pm 1.4$ result.  Magnitude is therefore not merely a nuisance in
+the working MountainCar mechanism; it carries task-relevant temporal
+structure.
 
 ### §5.5 — Sparse-control read
 
@@ -558,21 +562,15 @@ storing all of $\Psi_a$.
 
 ### §6.5 — Follow-up directions
 
-The most immediate follow-up is **successor-readout geometry**.  The
-SparseChain diagnostic suggests that successor-vector magnitude can swamp
-the intended goal direction when action horizons differ.  Magnitude
-normalization, cosine-style goal projection, or whitening in successor
-space would test whether the failed directional cases are really failures
-of temporal prediction or failures of readout geometry.
-
-The second follow-up is **compressed successor representation**.  Full
+The most immediate open follow-up is **compressed successor
+representation**.  Full
 successor readouts preserve arbitrary post-hoc goals but scale as
 $O(|\mathcal{A}|n^2)$; directional readouts are cheap but commit to one
 goal direction.  Low-rank successor decoders, random projections of
 successor space, or a small bank of learned goal directions could occupy
 the useful middle ground.
 
-The third follow-up is **continual RL**.  We have not run a paper-grade
+The second follow-up is **continual RL**.  We have not run a paper-grade
 continual-RL benchmark panel, so this paper does not claim a continual-RL
 result.  What we do have is the mechanism that makes such a study
 natural: per-action normal equations, exponential statistic retention,
@@ -583,7 +581,7 @@ combined at decision time, conflict-aware decoder merging when new
 events or goals appear, and separate reward-map statistics that can
 forget faster than the slower successor backbone.
 
-The fourth follow-up is **hybridization with existing RL machinery**.
+The third follow-up is **hybridization with existing RL machinery**.
 Nothing in the sufficient-statistics interface requires the encoder to be
 random forever.  A frozen deep representation, a ConvNEF-style visual
 front end, model-generated rollouts, prioritized replay, or hindsight
@@ -672,6 +670,11 @@ and the Acrobot retention scan at
 [$0.999$](../results/rl_sparse/gpu/acrobot_directional_ff0p999_scan_n6000.json),
 [$0.9995$](../results/rl_sparse/gpu/acrobot_directional_ff0p9995_scan_n6000.json),
 and [$0.9999$](../results/rl_sparse/gpu/acrobot_directional_ff0p9999_scan_n6000.json).
+
+The successor-readout geometry follow-up is under
+`results/rl_sparse/geometry_gpu/`: [dot](../results/rl_sparse/geometry_gpu/mountaincar_dot_n2000.json),
+[cosine](../results/rl_sparse/geometry_gpu/mountaincar_cosine_n2000.json),
+and [future cosine](../results/rl_sparse/geometry_gpu/mountaincar_future_cosine_n2000.json).
 
 The figure generator is
 [docs/generate_paper_iii_figures.py](generate_paper_iii_figures.py), and
@@ -782,5 +785,10 @@ headline claims.  This appendix collects them in one place.
   needs a target direction it can actually express.
 - **SparseChain diagnostic.**  Successor-feature novelty helps the harder
   chain, but evaluation-goal projection can fail when successor-vector
-  magnitude overwhelms direction.  This is the main motivation for the
-  normalized successor-readout follow-up in §6.5.
+  magnitude overwhelms direction.
+- **MountainCar-v0 normalized successor readouts.**  The direct follow-up
+  to the SparseChain diagnostic did not improve MountainCar.  Cosine and
+  future-cosine readouts both stayed flat at $-200.0 \pm 0.0$ over 10
+  seeds, while the original dot-product readout reproduced the
+  $-158.8 \pm 1.4$ positive.  The working MountainCar readout uses
+  successor magnitude as part of the signal.

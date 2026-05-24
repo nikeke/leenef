@@ -47,6 +47,43 @@ All P1/P2 result files below have zero error records. Raw `.log` files are
 ignored because the JSON files contain the reproducible run records and the logs
 are transient monitoring output.
 
+## Phase P3 -- successor-readout geometry follow-up
+
+Result files:
+
+- `results/rl_sparse/geometry/sparse_chain_geometry.json`
+- `results/rl_sparse/geometry_gpu/mountaincar_dot_n2000.json`
+- `results/rl_sparse/geometry_gpu/mountaincar_cosine_n2000.json`
+- `results/rl_sparse/geometry_gpu/mountaincar_future_cosine_n2000.json`
+
+Design:
+
+- Environment: `MountainCar-v0`
+- Variant: full successor hindsight readout (`nef_sf_hindsight`)
+- Seeds: 0-9
+- Episodes: 300
+- Evaluation: every 25 episodes, 5 deterministic eval episodes
+- Width: 2000 neurons
+- GPU runner code identity: `14f02d76a16aff1490f08fe12b5a28302b6896a0`
+- Readout modes: original dot product, cosine-normalized successor, and
+  cosine-normalized future increment.
+
+| Readout mode | n | robust_eval mean +/- SE | best_eval mean +/- SE | final_eval mean +/- SE | Mean row time |
+|---|---:|---:|---:|---:|---:|
+| `dot` | 10 | -158.8 +/- 1.4 | -149.4 +/- 3.3 | -151.3 +/- 2.1 | 20.8 s |
+| `cosine` | 10 | -200.0 +/- 0.0 | -200.0 +/- 0.0 | -200.0 +/- 0.0 | 22.4 s |
+| `future_cosine` | 10 | -200.0 +/- 0.0 | -200.0 +/- 0.0 | -200.0 +/- 0.0 | 22.4 s |
+
+Takeaways:
+
+- The original dot-product readout exactly preserves the earlier
+  MountainCar full-successor positive.
+- Normalizing the successor vector is not a repair for MountainCar.  Both
+  normalized modes collapse to the no-progress return across all seeds.
+- The SparseChain magnitude artifact remains useful as a diagnostic, but
+  on MountainCar successor magnitude appears to carry behaviorally useful
+  temporal structure.
+
 ## Phase P1 -- mechanism screen
 
 Result file: `results/rl_sparse/sparse_p1_mechanisms.json`

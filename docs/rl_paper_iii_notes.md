@@ -278,7 +278,38 @@ Interpretation:
   memory-reduced directional known-goal readout, while MountainCar needs
   the richer full-successor/random-direction mechanism.
 
-### 3.6 Sparse gaps
+### 3.6 Successor-readout geometry follow-up
+
+The successor-readout geometry follow-up tested whether the SparseChain
+magnitude artifact could be fixed by normalizing the full successor vector
+before projecting it onto the MountainCar goal direction.  The run used
+the 2000-neuron full-successor MountainCar configuration from §3.5,
+CUDA, code identity `14f02d76a16aff1490f08fe12b5a28302b6896a0`, and
+three readout modes:
+
+- `dot`: the original $\psi(s,a) \cdot u(g)$ readout.
+- `cosine`: normalize each $\psi(s,a)$ before the dot product.
+- `future_cosine`: subtract the current feature $\phi(s)$, then normalize
+  $\psi(s,a)-\phi(s)$ before the dot product.
+
+| Readout mode | n | robust eval mean +/- SE | final eval mean +/- SE | best eval mean +/- SE | Mean row time | Interpretation |
+|---|---:|---:|---:|---:|---:|---|
+| `dot` | 10 x 2000 | `-158.8 +/- 1.4` | `-151.3 +/- 2.1` | `-149.4 +/- 3.3` | `20.8 s` | Replicates the full-successor positive. |
+| `cosine` | 10 x 2000 | `-200.0 +/- 0.0` | `-200.0 +/- 0.0` | `-200.0 +/- 0.0` | `22.4 s` | Complete failure. |
+| `future_cosine` | 10 x 2000 | `-200.0 +/- 0.0` | `-200.0 +/- 0.0` | `-200.0 +/- 0.0` | `22.4 s` | Complete failure. |
+
+Interpretation:
+
+- The result falsifies the simple "magnitude normalization will rescue
+  MountainCar" hypothesis.  On the real environment, magnitude is not
+  just a nuisance; it appears to carry behaviorally useful temporal
+  structure for the working full-successor readout.
+- The SparseChain result remains a valid diagnostic of one possible
+  failure mode, but it does not transfer as a repair for MountainCar.
+- The paper should now present successor-readout geometry as a completed
+  negative/boundary result, not as the most immediate future work.
+
+### 3.7 Sparse gaps
 
 - Present MountainCar carefully: it is a positive for full successor
   readout plus random-direction behavior, and a negative for the cheaper
@@ -287,9 +318,9 @@ Interpretation:
   MountainCar, but the cost is about 5.7x the 2000-neuron version with
   no accuracy gain in this panel. Treat widening as a cost/variance
   boundary, not an automatic improvement.
-- Test magnitude-normalized eval-goal projection. The SparseChain
-  failure mechanism is concrete enough that this is the cheapest likely
-  new insight.
+- Magnitude-normalized eval-goal projection is now a negative result:
+  it fixes only isolated toy-chain seeds and completely fails the
+  MountainCar follow-up.
 - Preserve the Acrobot forget-factor boundary as a result, not only a
   tuning note: `0.999` is clearly worse than `0.9995`/`0.9999` in the
   directional full-width panel.
@@ -341,7 +372,7 @@ paper-grade.
 | RL-S0 | Audit sparse `c`/`g` rows and classify evidence status. | Very high | Small | Required before sparse claims. |
 | RL-S1 | Replicate MC + Acrobot eval-goal results. | Very high | Medium-large | Completed: Acrobot directional positive; MountainCar full-successor positive. |
 | RL-S2 | Successor-feature memory feasibility / compression sketch. | High | Medium | Directional CUDA path works; full successor works at 6000 on GPU but has clear cost/variance limits. |
-| RL-S3 | Magnitude-normalized eval-goal projection. | High | Small | Cheapest likely mechanism win. |
+| RL-S3 | Magnitude-normalized eval-goal projection. | High | Small | Completed negative: `cosine` and `future_cosine` are flat on MountainCar. |
 | RL-S4 | Acrobot forget-factor scan. | Medium-high | Small-medium | Completed: `0.999` is much worse than `0.9995`/`0.9999`. |
 | RL-S5 | Eval-goal generalization sweep. | Medium | Small | Nice figure if smooth; useful caveat if brittle. |
 | RL-S6 | MiniGrid goal-observation handle. | Medium-high | Medium | Possible extension, but can become a time sink. |
@@ -356,8 +387,8 @@ Current next package:
 2. Use Acrobot directional and MountainCar full-successor as the two
    sparse positives, with MountainCar directional as a boundary and
    not as a failed headline.
-3. Decide whether to run the optional normalized eval-goal/SparseChain
-   mechanism check before drafting, or leave it as future work.
+3. Treat normalized eval-goal/SparseChain geometry as a boundary result:
+   useful diagnostically, but not a MountainCar repair.
 
 ## 6. Paper III outline seed
 
