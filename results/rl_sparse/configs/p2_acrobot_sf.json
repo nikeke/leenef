@@ -1,0 +1,62 @@
+[
+  {
+    "name": "sf_h50_k1000",
+    "agent_type": "successor",
+    "reward_signal": "success",
+    "overrides": {
+      "n_neurons": 1000,
+      "successor_horizon": 50,
+      "novelty_bonus": 0.0
+    }
+  },
+  {
+    "name": "sf_h100_k1000",
+    "agent_type": "successor",
+    "reward_signal": "success",
+    "overrides": {
+      "n_neurons": 1000,
+      "successor_horizon": 100,
+      "novelty_bonus": 0.0
+    }
+  },
+  {
+    "name": "sf_h200_k1000",
+    "agent_type": "successor",
+    "reward_signal": "success",
+    "overrides": {
+      "n_neurons": 1000,
+      "successor_horizon": 200,
+      "novelty_bonus": 0.0
+    }
+  },
+  {
+    "name": "sf_h100_k2000",
+    "agent_type": "successor",
+    "reward_signal": "success",
+    "overrides": {
+      "n_neurons": 2000,
+      "successor_horizon": 100,
+      "novelty_bonus": 0.0
+    }
+  },
+  {
+    "name": "sf_h100_k1000_nov003",
+    "agent_type": "successor",
+    "reward_signal": "success",
+    "overrides": {
+      "n_neurons": 1000,
+      "successor_horizon": 100,
+      "novelty_bonus": 0.03
+    }
+  },
+  {
+    "name": "sf_h100_k1000_nov01",
+    "agent_type": "successor",
+    "reward_signal": "success",
+    "overrides": {
+      "n_neurons": 1000,
+      "successor_horizon": 100,
+      "novelty_bonus": 0.1
+    }
+  }
+]

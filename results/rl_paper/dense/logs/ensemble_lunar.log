@@ -1,0 +1,130 @@
+[proxychains] DLL init: proxychains-ng 4.17
+Phase ensemble_lunar: 6 pending of 6 planned rows; output=/home/amnesia/Persistent/src/leenef/results/rl_paper/dense/ensemble_lunar.json
+  [lunar_ensemble_thompson3/seed=0] ep=  50 train_avg=  -160.3 eval=  -297.5 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 100 train_avg=  -113.6 eval=  -300.0 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 150 train_avg=   -99.3 eval=  -170.8 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 200 train_avg=   -98.4 eval=  -133.4 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 250 train_avg=   -79.6 eval=  -107.0 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 300 train_avg=   -57.5 eval=   -76.0 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 350 train_avg=   -45.9 eval=  -106.1 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 400 train_avg=   -60.9 eval=   -48.6 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 450 train_avg=   -16.7 eval=   149.7 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 500 train_avg=   -16.2 eval=   117.2 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 550 train_avg=    37.5 eval=   166.5 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 600 train_avg=    63.8 eval=   150.5 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 650 train_avg=    73.9 eval=   144.7 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 700 train_avg=   102.7 eval=   184.0 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 750 train_avg=   129.7 eval=   220.9 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 800 train_avg=   173.8 eval=   203.3 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 850 train_avg=   178.8 eval=   207.5 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 900 train_avg=   202.6 eval=   209.4 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep= 950 train_avg=   209.8 eval=   188.0 eps=nan
+  [lunar_ensemble_thompson3/seed=0] ep=1000 train_avg=   209.0 eval=   189.6 eps=nan
+  saved lunar_ensemble_thompson3 seed=0
+  [lunar_ensemble_thompson3/seed=1] ep=  50 train_avg=  -159.9 eval=  -202.0 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 100 train_avg=  -111.5 eval=  -193.5 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 150 train_avg=  -101.1 eval=  -112.1 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 200 train_avg=   -79.2 eval=  -109.2 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 250 train_avg=   -62.3 eval=   -86.0 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 300 train_avg=   -49.7 eval=  -115.4 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 350 train_avg=   -26.7 eval=     6.9 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 400 train_avg=    -9.8 eval=   104.6 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 450 train_avg=    -5.2 eval=    67.6 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 500 train_avg=     7.9 eval=    53.7 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 550 train_avg=    20.8 eval=   144.5 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 600 train_avg=    56.9 eval=   174.9 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 650 train_avg=    83.0 eval=   173.9 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 700 train_avg=    65.0 eval=   169.8 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 750 train_avg=   103.4 eval=   191.8 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 800 train_avg=   150.5 eval=   189.5 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 850 train_avg=   140.8 eval=   157.7 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 900 train_avg=   151.7 eval=   223.4 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep= 950 train_avg=   196.0 eval=   223.2 eps=nan
+  [lunar_ensemble_thompson3/seed=1] ep=1000 train_avg=   184.4 eval=   225.4 eps=nan
+  saved lunar_ensemble_thompson3 seed=1
+  [lunar_ensemble_thompson3/seed=2] ep=  50 train_avg=  -145.3 eval=  -394.5 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 100 train_avg=  -103.3 eval=   -68.7 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 150 train_avg=   -91.6 eval=  -189.3 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 200 train_avg=   -82.7 eval=  -438.2 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 250 train_avg=   -53.4 eval=  -203.6 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 300 train_avg=   -49.1 eval=  -316.7 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 350 train_avg=   -55.9 eval=  -216.0 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 400 train_avg=   -29.6 eval=   -26.1 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 450 train_avg=   -15.9 eval=    -7.5 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 500 train_avg=    -5.2 eval=    88.3 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 550 train_avg=    13.9 eval=    46.2 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 600 train_avg=    -0.2 eval=    93.6 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 650 train_avg=    27.0 eval=   102.1 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 700 train_avg=    48.3 eval=   150.5 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 750 train_avg=   140.6 eval=   143.8 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 800 train_avg=   119.6 eval=   180.9 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 850 train_avg=   130.8 eval=   167.0 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 900 train_avg=   208.8 eval=   184.7 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep= 950 train_avg=   179.1 eval=   177.9 eps=nan
+  [lunar_ensemble_thompson3/seed=2] ep=1000 train_avg=   165.3 eval=   178.1 eps=nan
+  saved lunar_ensemble_thompson3 seed=2
+  [lunar_ensemble_voting3/seed=0] ep=  50 train_avg=  -140.2 eval=  -163.6 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 100 train_avg=  -104.4 eval=  -206.5 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 150 train_avg=   -88.5 eval=  -123.7 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 200 train_avg=   -84.8 eval=  -213.7 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 250 train_avg=   -73.7 eval=  -111.2 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 300 train_avg=   -94.0 eval=   -71.1 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 350 train_avg=   -88.4 eval=   -90.1 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 400 train_avg=  -100.7 eval=  -140.7 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 450 train_avg=  -106.8 eval=  -128.6 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 500 train_avg=  -107.8 eval=  -100.3 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 550 train_avg=   -96.9 eval=   -98.7 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 600 train_avg=   -93.2 eval=   -97.2 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 650 train_avg=  -102.9 eval=   -96.5 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 700 train_avg=   -94.3 eval=   -97.5 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 750 train_avg=   -97.4 eval=   -96.0 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 800 train_avg=  -103.9 eval=   -97.5 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 850 train_avg=  -103.0 eval=   -96.4 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 900 train_avg=  -105.7 eval=   -97.2 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep= 950 train_avg=   -97.8 eval=   -97.3 eps=nan
+  [lunar_ensemble_voting3/seed=0] ep=1000 train_avg=  -105.0 eval=   -99.4 eps=nan
+  saved lunar_ensemble_voting3 seed=0
+  [lunar_ensemble_voting3/seed=1] ep=  50 train_avg=  -171.9 eval=  -218.5 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 100 train_avg=   -90.6 eval=  -227.5 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 150 train_avg=   -82.4 eval=  -132.5 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 200 train_avg=   -59.2 eval=   -81.0 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 250 train_avg=   -50.1 eval=  -132.6 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 300 train_avg=   -22.0 eval=    54.8 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 350 train_avg=    22.8 eval=   143.7 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 400 train_avg=   131.8 eval=   173.4 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 450 train_avg=   130.9 eval=   191.8 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 500 train_avg=   177.6 eval=   213.4 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 550 train_avg=   193.3 eval=   230.0 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 600 train_avg=   223.4 eval=   228.1 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 650 train_avg=   224.4 eval=   216.9 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 700 train_avg=   206.8 eval=   218.2 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 750 train_avg=   200.5 eval=   203.8 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 800 train_avg=   187.3 eval=   178.8 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 850 train_avg=   207.3 eval=   188.8 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 900 train_avg=   173.2 eval=   176.7 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep= 950 train_avg=   181.6 eval=   136.6 eps=nan
+  [lunar_ensemble_voting3/seed=1] ep=1000 train_avg=   170.7 eval=   150.9 eps=nan
+  saved lunar_ensemble_voting3 seed=1
+  [lunar_ensemble_voting3/seed=2] ep=  50 train_avg=  -138.0 eval=  -291.7 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 100 train_avg=  -103.2 eval=  -286.4 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 150 train_avg=   -77.3 eval=  -222.3 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 200 train_avg=   -80.0 eval=   -79.9 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 250 train_avg=   -61.5 eval=   -97.7 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 300 train_avg=   -43.6 eval=   -48.2 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 350 train_avg=   -26.7 eval=   -17.4 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 400 train_avg=    56.4 eval=   129.0 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 450 train_avg=   133.9 eval=   112.6 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 500 train_avg=   166.4 eval=   142.6 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 550 train_avg=   169.7 eval=   146.2 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 600 train_avg=   192.3 eval=   163.3 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 650 train_avg=   169.5 eval=   181.0 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 700 train_avg=   140.9 eval=   147.7 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 750 train_avg=   168.6 eval=   146.1 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 800 train_avg=   130.7 eval=   150.2 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 850 train_avg=   159.5 eval=   138.2 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 900 train_avg=   170.4 eval=   120.4 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep= 950 train_avg=   144.5 eval=   165.9 eps=nan
+  [lunar_ensemble_voting3/seed=2] ep=1000 train_avg=   113.9 eval=   124.5 eps=nan
+  saved lunar_ensemble_voting3 seed=2
+  lunar_ensemble_thompson3       n= 3 robust=   200.0 ±  12.8 final=   173.1 ±  29.6
+  lunar_ensemble_voting3         n= 3 robust=    64.5 ±  81.4 final=    62.6 ±  79.3

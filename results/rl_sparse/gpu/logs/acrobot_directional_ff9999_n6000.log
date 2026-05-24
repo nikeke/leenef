@@ -1,0 +1,7 @@
+  [nef_sf_hindsight_directional/seed=0] skipping; already in /content/leenef/results/rl_sparse/gpu/acrobot_directional_ff9999_n6000.json
+  [nef_sf_hindsight_directional/seed=1] skipping; already in /content/leenef/results/rl_sparse/gpu/acrobot_directional_ff9999_n6000.json
+  [nef_sf_hindsight_directional/seed=2] skipping; already in /content/leenef/results/rl_sparse/gpu/acrobot_directional_ff9999_n6000.json
+  [nef_sf_hindsight_directional/seed=3] skipping; already in /content/leenef/results/rl_sparse/gpu/acrobot_directional_ff9999_n6000.json
+  [nef_sf_hindsight_directional/seed=4] skipping; already in /content/leenef/results/rl_sparse/gpu/acrobot_directional_ff9999_n6000.json
+
+Wrote 10 runs to /content/leenef/results/rl_sparse/gpu/acrobot_directional_ff9999_n6000.json

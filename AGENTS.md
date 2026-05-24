@@ -150,6 +150,15 @@ rl_clean infrastructure.
   reruns, implementation mistakes, or session chronology that produced
   it.  Put that history in sweep logs, handover notes, or appendices only
   when it is methodologically necessary.
+- Keep research-process-only labels out of manuscript prose.  Internal
+  names such as `sl_clean`, `cl_clean`, `rl_clean`, "clean restart",
+  "Stage A/B", "repair", "rerun", "new config", "extension", or
+  "handover" belong in repository notes and sweep logs, not in the paper.
+  In manuscripts, replace them with reader-facing descriptions of the
+  actual protocol or result ("the multi-seed LunarLander panel", "the
+  final trace-scaled streaming panel", "the successor-feature sparse
+  reward panel").  If chronology is necessary, confine it to an appendix
+  and explain why it affects interpretation.
 - Once a paper repeats the six principles internally, principle references
   inside that paper should be internal (`P3`, `P6`), not qualified as
   "Paper I, P3" or similar.

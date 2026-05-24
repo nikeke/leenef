@@ -1,0 +1,39 @@
+[proxychains] DLL init: proxychains-ng 4.17
+  [nef_sf_hindsight/seed=0] ep   25  train_avg= -256.68  eval= -467.60  ε=0.915
+  [nef_sf_hindsight/seed=0] ep   50  train_avg= -257.72  eval= -275.20  ε=0.871
+  [nef_sf_hindsight/seed=0] ep   75  train_avg= -210.08  eval= -176.80  ε=0.829
+  [nef_sf_hindsight/seed=0] ep  100  train_avg= -180.76  eval= -185.80  ε=0.789
+  [nef_sf_hindsight/seed=0] ep  125  train_avg= -174.08  eval= -153.60  ε=0.751
+  [nef_sf_hindsight/seed=0] ep  150  train_avg= -170.92  eval= -165.40  ε=0.715
+  [nef_sf_hindsight/seed=0] ep  175  train_avg= -192.08  eval= -122.80  ε=0.680
+  [nef_sf_hindsight/seed=0] ep  200  train_avg= -185.12  eval= -137.00  ε=0.648
+  [nef_sf_hindsight/seed=0] ep  225  train_avg= -189.60  eval= -172.40  ε=0.617
+  [nef_sf_hindsight/seed=0] ep  250  train_avg= -212.28  eval= -202.80  ε=0.587
+  [nef_sf_hindsight/seed=0] ep  275  train_avg= -210.04  eval= -165.00  ε=0.559
+  [nef_sf_hindsight/seed=0] ep  300  train_avg= -217.32  eval= -167.60  ε=0.532
+  [nef_sf_hindsight/seed=1] ep   25  train_avg= -222.84  eval= -185.80  ε=0.915
+  [nef_sf_hindsight/seed=1] ep   50  train_avg= -179.60  eval= -133.40  ε=0.871
+  [nef_sf_hindsight/seed=1] ep   75  train_avg= -200.44  eval= -159.80  ε=0.829
+  [nef_sf_hindsight/seed=1] ep  100  train_avg= -156.44  eval= -207.40  ε=0.789
+  [nef_sf_hindsight/seed=1] ep  125  train_avg= -169.52  eval= -136.20  ε=0.751
+  [nef_sf_hindsight/seed=1] ep  150  train_avg= -174.04  eval= -155.80  ε=0.715
+  [nef_sf_hindsight/seed=1] ep  175  train_avg= -166.00  eval= -168.20  ε=0.680
+  [nef_sf_hindsight/seed=1] ep  200  train_avg= -146.24  eval= -136.80  ε=0.648
+  [nef_sf_hindsight/seed=1] ep  225  train_avg= -159.24  eval= -106.20  ε=0.617
+  [nef_sf_hindsight/seed=1] ep  250  train_avg= -183.92  eval= -163.60  ε=0.587
+  [nef_sf_hindsight/seed=1] ep  275  train_avg= -182.16  eval= -195.60  ε=0.559
+  [nef_sf_hindsight/seed=1] ep  300  train_avg= -159.12  eval= -199.20  ε=0.532
+  [nef_sf_hindsight/seed=2] ep   25  train_avg= -349.04  eval= -378.20  ε=0.915
+  [nef_sf_hindsight/seed=2] ep   50  train_avg= -259.12  eval= -332.40  ε=0.871
+  [nef_sf_hindsight/seed=2] ep   75  train_avg= -247.72  eval= -159.20  ε=0.829
+  [nef_sf_hindsight/seed=2] ep  100  train_avg= -185.92  eval= -165.00  ε=0.789
+  [nef_sf_hindsight/seed=2] ep  125  train_avg= -165.52  eval= -158.60  ε=0.751
+  [nef_sf_hindsight/seed=2] ep  150  train_avg= -184.72  eval= -124.80  ε=0.715
+  [nef_sf_hindsight/seed=2] ep  175  train_avg= -183.20  eval= -127.60  ε=0.680
+  [nef_sf_hindsight/seed=2] ep  200  train_avg= -177.76  eval= -206.60  ε=0.648
+  [nef_sf_hindsight/seed=2] ep  225  train_avg= -191.24  eval= -139.00  ε=0.617
+  [nef_sf_hindsight/seed=2] ep  250  train_avg= -251.08  eval= -133.40  ε=0.587
+  [nef_sf_hindsight/seed=2] ep  275  train_avg= -205.40  eval= -236.80  ε=0.559
+  [nef_sf_hindsight/seed=2] ep  300  train_avg= -218.56  eval= -130.40  ε=0.532
+
+Wrote 3 runs to results/rl_sparse/acrobot_hindsight_evalgoal_ff9999.json

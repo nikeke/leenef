@@ -111,8 +111,10 @@ class NEFFeatures:
         seed: int = 0,
         track_activations: bool = False,
         activity_decay: float | None = None,
+        device: str | torch.device | None = None,
     ):
         rng = torch.Generator().manual_seed(seed)
+        self.device = torch.device("cpu" if device is None else device)
         self.n_neurons = n_neurons
         self.d_in = d_in
 
@@ -124,6 +126,7 @@ class NEFFeatures:
         else:
             self.encoders = result
             encoder_centers = None
+        self.encoders = self.encoders.to(self.device)
 
         # Per-neuron gain
         if isinstance(gain, tuple):
@@ -133,6 +136,7 @@ class NEFFeatures:
             self._gain = torch.full((n_neurons,), float(gain))
         else:
             self._gain = gain
+        self._gain = self._gain.to(self.device)
 
         # Biases: data-driven from centers or random
         if encoder_centers is not None:
@@ -144,28 +148,31 @@ class NEFFeatures:
             selected = None
 
         if selected is not None:
-            self.bias = -self._gain * (selected.float() * self.encoders).sum(dim=1)
+            selected = selected.float().to(self.device)
+            self.bias = -self._gain * (selected * self.encoders).sum(dim=1)
         else:
-            self.bias = (2 * torch.rand(n_neurons, generator=rng) - 1) * self._gain
+            rand = torch.rand(n_neurons, generator=rng).to(self.device)
+            self.bias = (2 * rand - 1) * self._gain
 
         # Activation via library factory
         self._act_module = make_activation(activation)
 
         # Running normalization statistics (Welford online algorithm)
-        self._obs_mean = torch.zeros(d_in)
-        self._obs_var = torch.ones(d_in)
+        self._obs_mean = torch.zeros(d_in, device=self.device)
+        self._obs_var = torch.ones(d_in, device=self.device)
         self._obs_count = 0
 
         # Activation tracking for dead neuron detection
         self._track_activations = track_activations
         self._activity_decay = activity_decay
         if activity_decay is not None:
-            self._ema_activity = torch.zeros(n_neurons)
-        self._act_sum = torch.zeros(n_neurons)
+            self._ema_activity = torch.zeros(n_neurons, device=self.device)
+        self._act_sum = torch.zeros(n_neurons, device=self.device)
         self._act_count = 0.0
 
     def update_stats(self, obs_batch: Tensor) -> None:
         """Update running mean/variance with a batch of observations."""
+        obs_batch = obs_batch.to(self.device)
         batch_mean = obs_batch.mean(dim=0)
         batch_var = obs_batch.var(dim=0, correction=0)
         batch_count = obs_batch.shape[0]
@@ -193,6 +200,7 @@ class NEFFeatures:
         squeeze = obs.dim() == 1
         if squeeze:
             obs = obs.unsqueeze(0)
+        obs = obs.to(self.device)
 
         std = (self._obs_var + 1e-8).sqrt()
         x = (obs - self._obs_mean) / std
@@ -221,7 +229,7 @@ class NEFFeatures:
     def mean_activations(self) -> Tensor:
         """Per-neuron mean activation over tracked samples."""
         if self._act_count == 0:
-            return torch.zeros(self.n_neurons)
+            return torch.zeros(self.n_neurons, device=self.device)
         return self._act_sum / self._act_count
 
     def apply_broadness(self, broadness: float, recentered: Tensor) -> None:
@@ -308,10 +316,10 @@ class NEFFeatures:
         if self._activity_decay is not None:
             act = self._ema_activity
             if act.sum() == 0:
-                return torch.tensor([], dtype=torch.long)
+                return torch.tensor([], dtype=torch.long, device=self.device)
         else:
             if self._act_count == 0:
-                return torch.tensor([], dtype=torch.long)
+                return torch.tensor([], dtype=torch.long, device=self.device)
             act = self.mean_activations()
 
         threshold = torch.quantile(act, percentile / 100.0)
@@ -328,8 +336,9 @@ class NEFFeatures:
         """
         if len(indices) == 0:
             return
+        indices = indices.to(self.device)
         std = (self._obs_var + 1e-8).sqrt()
-        normalized = (new_centers.float() - self._obs_mean) / std
+        normalized = (new_centers.float().to(self.device) - self._obs_mean) / std
         dot = (normalized * self.encoders[indices]).sum(dim=1)
         self.bias[indices] = -self._gain[indices] * dot
 

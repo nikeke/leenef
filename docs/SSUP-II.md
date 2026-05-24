@@ -61,8 +61,9 @@ to compose decoded signals; we depart in three places.
   training set, placing the *i*-th `abs` fold on the data
   manifold rather than on a generic random intercept.
 - We do not use NEF's **dynamics principle** anywhere in this
-  paper.  Streaming and recurrent variants reuse encoders and
-  decoders with pooling, not a recurrent dynamics solve.
+  paper series.  Streaming, continual, and control variants reuse
+  encoders and decoders with pooling, accumulation, or target
+  construction, not a recurrent dynamics solve.
 
 When this paper says "NEF" it means this *analytic-rate-`abs`
 specialization*; when distinction matters we call our local
@@ -84,20 +85,21 @@ solve; P5–P6 are leenef-specific.
   gradient flow between layers.
 - **P3 — $A^\top A$ and $A^\top Y$ are the complete sufficient state
   of the learner.**  Continual learning, streaming over time, ensembles,
-  online updates, per-action FQI (Ernst et al., 2005) — all of them
-  are different ways of *additively combining* sufficient statistics.
+  online updates, per-action FQI (Ernst et al., 2005), and successor
+  features are different ways of *additively combining* sufficient
+  statistics or replacing the target block they accumulate.
 - **P4 — Targets $Y$ are the only place where task structure
   enters.**  The encoder does not care what the task is; the
   decoder column does.
-- **P5 — Time is collapsed by pooling, not by recurrence.**  The
-  streaming classifier mean-pools delay-line activities into a
-  fixed-size representation; no BPTT (Werbos, 1990), no recurrent
-  solve.
-- **P6 — Per-class additivity is what makes class-incremental
-  continual learning work.**  With fixed features, stable output
-  semantics, and one-hot class targets, each class owns its own
-  decoder column, so accumulating new task statistics never overwrites
-  old columns.
+- **P5 — Time is summarized before the analytic solve.**  The paper
+  series uses pooled delay-line activities, accumulated task statistics,
+  returns, and successor targets rather than BPTT (Werbos, 1990) or a
+  recurrent dynamics solve.
+- **P6 — Additivity helps when output semantics are stable.**  With
+  fixed features and stable target columns, new observations add
+  statistics rather than overwriting old meanings.  Class-incremental
+  continual learning is the cleanest case; reinforcement learning shows
+  why unstable or mismatched targets must be constructed with care.
 
 In Paper II, **P3** and **P6** are the whole mechanism.  P3 says that
 the learner's state is the pair $(A^\top A, A^\top Y)$, and those

@@ -1,0 +1,919 @@
+{
+  "result_namespace": "rl_paper_dense",
+  "runner_version": "rl-paper-dense-v1",
+  "config": {
+    "phase": "cartpole_sanity",
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "specs": [
+      {
+        "label": "cartpole_nef_mc",
+        "env_name": "CartPole-v1",
+        "kind": "nef",
+        "episodes": 500,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20,
+        "config": {
+          "n_neurons": 2000,
+          "gamma": 0.99,
+          "alpha": 0.1,
+          "epsilon_start": 1.0,
+          "epsilon_end": 0.01,
+          "epsilon_decay": 150,
+          "solve_every": 5,
+          "target_mode": "mc",
+          "forget_factor": 0.999,
+          "fqi_iters": 1,
+          "tau": 0.3,
+          "broadness": 0.0,
+          "recenter_interval": null
+        }
+      }
+    ]
+  },
+  "seed_policy": {
+    "main_seed": "per-run user-visible seed",
+    "warmup_env_seed": "100000 + seed + episode",
+    "training_env_seed": "seed + episode",
+    "evaluation_env_seed": "10000 + episode",
+    "action_space_seed": "matches env.reset seed when provided"
+  },
+  "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+  "run_context": {
+    "phase": "cartpole_sanity",
+    "parallel": 4
+  },
+  "runs": [
+    {
+      "label": "cartpole_nef_mc",
+      "seed": 2,
+      "best_50": 409.0,
+      "final_50": 405.7,
+      "best_eval": 500.0,
+      "final_eval": 407.9,
+      "robust_eval": 397.6,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": 147.9
+        },
+        {
+          "episode": 100,
+          "eval": 500.0
+        },
+        {
+          "episode": 150,
+          "eval": 500.0
+        },
+        {
+          "episode": 200,
+          "eval": 442.7
+        },
+        {
+          "episode": 250,
+          "eval": 394.2
+        },
+        {
+          "episode": 300,
+          "eval": 387.2
+        },
+        {
+          "episode": 350,
+          "eval": 380.9
+        },
+        {
+          "episode": 400,
+          "eval": 391.9
+        },
+        {
+          "episode": 450,
+          "eval": 396.9
+        },
+        {
+          "episode": 500,
+          "eval": 404.0
+        }
+      ],
+      "time_s": 84.3,
+      "phase": "cartpole_sanity",
+      "kind": "nef",
+      "env_name": "CartPole-v1",
+      "config": {
+        "n_neurons": 2000,
+        "gamma": 0.99,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 150,
+        "solve_every": 5,
+        "target_mode": "mc",
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 500,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "cartpole_nef_mc",
+      "seed": 1,
+      "best_50": 429.1,
+      "final_50": 425.8,
+      "best_eval": 500.0,
+      "final_eval": 418.2,
+      "robust_eval": 432.7,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": 198.5
+        },
+        {
+          "episode": 100,
+          "eval": 464.1
+        },
+        {
+          "episode": 150,
+          "eval": 263.1
+        },
+        {
+          "episode": 200,
+          "eval": 500.0
+        },
+        {
+          "episode": 250,
+          "eval": 500.0
+        },
+        {
+          "episode": 300,
+          "eval": 487.9
+        },
+        {
+          "episode": 350,
+          "eval": 391.6
+        },
+        {
+          "episode": 400,
+          "eval": 432.2
+        },
+        {
+          "episode": 450,
+          "eval": 446.3
+        },
+        {
+          "episode": 500,
+          "eval": 419.6
+        }
+      ],
+      "time_s": 85.7,
+      "phase": "cartpole_sanity",
+      "kind": "nef",
+      "env_name": "CartPole-v1",
+      "config": {
+        "n_neurons": 2000,
+        "gamma": 0.99,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 150,
+        "solve_every": 5,
+        "target_mode": "mc",
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 500,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "cartpole_nef_mc",
+      "seed": 3,
+      "best_50": 432.0,
+      "final_50": 419.7,
+      "best_eval": 500.0,
+      "final_eval": 426.4,
+      "robust_eval": 416.5,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": 123.0
+        },
+        {
+          "episode": 100,
+          "eval": 395.9
+        },
+        {
+          "episode": 150,
+          "eval": 500.0
+        },
+        {
+          "episode": 200,
+          "eval": 500.0
+        },
+        {
+          "episode": 250,
+          "eval": 460.1
+        },
+        {
+          "episode": 300,
+          "eval": 334.8
+        },
+        {
+          "episode": 350,
+          "eval": 347.7
+        },
+        {
+          "episode": 400,
+          "eval": 373.9
+        },
+        {
+          "episode": 450,
+          "eval": 430.0
+        },
+        {
+          "episode": 500,
+          "eval": 445.6
+        }
+      ],
+      "time_s": 90.5,
+      "phase": "cartpole_sanity",
+      "kind": "nef",
+      "env_name": "CartPole-v1",
+      "config": {
+        "n_neurons": 2000,
+        "gamma": 0.99,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 150,
+        "solve_every": 5,
+        "target_mode": "mc",
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 500,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "cartpole_nef_mc",
+      "seed": 0,
+      "best_50": 500.0,
+      "final_50": 497.5,
+      "best_eval": 500.0,
+      "final_eval": 500.0,
+      "robust_eval": 500.0,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": 189.6
+        },
+        {
+          "episode": 100,
+          "eval": 274.8
+        },
+        {
+          "episode": 150,
+          "eval": 500.0
+        },
+        {
+          "episode": 200,
+          "eval": 500.0
+        },
+        {
+          "episode": 250,
+          "eval": 500.0
+        },
+        {
+          "episode": 300,
+          "eval": 500.0
+        },
+        {
+          "episode": 350,
+          "eval": 500.0
+        },
+        {
+          "episode": 400,
+          "eval": 500.0
+        },
+        {
+          "episode": 450,
+          "eval": 500.0
+        },
+        {
+          "episode": 500,
+          "eval": 500.0
+        }
+      ],
+      "time_s": 105.2,
+      "phase": "cartpole_sanity",
+      "kind": "nef",
+      "env_name": "CartPole-v1",
+      "config": {
+        "n_neurons": 2000,
+        "gamma": 0.99,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 150,
+        "solve_every": 5,
+        "target_mode": "mc",
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 500,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "cartpole_nef_mc",
+      "seed": 5,
+      "best_50": 297.5,
+      "final_50": 293.3,
+      "best_eval": 500.0,
+      "final_eval": 306.8,
+      "robust_eval": 304.3,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": 201.5
+        },
+        {
+          "episode": 100,
+          "eval": 500.0
+        },
+        {
+          "episode": 150,
+          "eval": 416.4
+        },
+        {
+          "episode": 200,
+          "eval": 264.6
+        },
+        {
+          "episode": 250,
+          "eval": 262.8
+        },
+        {
+          "episode": 300,
+          "eval": 263.1
+        },
+        {
+          "episode": 350,
+          "eval": 271.1
+        },
+        {
+          "episode": 400,
+          "eval": 296.2
+        },
+        {
+          "episode": 450,
+          "eval": 300.1
+        },
+        {
+          "episode": 500,
+          "eval": 316.6
+        }
+      ],
+      "time_s": 73.1,
+      "phase": "cartpole_sanity",
+      "kind": "nef",
+      "env_name": "CartPole-v1",
+      "config": {
+        "n_neurons": 2000,
+        "gamma": 0.99,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 150,
+        "solve_every": 5,
+        "target_mode": "mc",
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 500,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "cartpole_nef_mc",
+      "seed": 4,
+      "best_50": 499.6,
+      "final_50": 499.6,
+      "best_eval": 500.0,
+      "final_eval": 500.0,
+      "robust_eval": 452.6,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": 116.3
+        },
+        {
+          "episode": 100,
+          "eval": 474.4
+        },
+        {
+          "episode": 150,
+          "eval": 207.3
+        },
+        {
+          "episode": 200,
+          "eval": 238.1
+        },
+        {
+          "episode": 250,
+          "eval": 249.4
+        },
+        {
+          "episode": 300,
+          "eval": 270.1
+        },
+        {
+          "episode": 350,
+          "eval": 300.4
+        },
+        {
+          "episode": 400,
+          "eval": 357.7
+        },
+        {
+          "episode": 450,
+          "eval": 500.0
+        },
+        {
+          "episode": 500,
+          "eval": 500.0
+        }
+      ],
+      "time_s": 79.2,
+      "phase": "cartpole_sanity",
+      "kind": "nef",
+      "env_name": "CartPole-v1",
+      "config": {
+        "n_neurons": 2000,
+        "gamma": 0.99,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 150,
+        "solve_every": 5,
+        "target_mode": "mc",
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 500,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "cartpole_nef_mc",
+      "seed": 6,
+      "best_50": 413.8,
+      "final_50": 411.6,
+      "best_eval": 493.6,
+      "final_eval": 409.6,
+      "robust_eval": 391.6,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": 127.2
+        },
+        {
+          "episode": 100,
+          "eval": 275.4
+        },
+        {
+          "episode": 150,
+          "eval": 488.5
+        },
+        {
+          "episode": 200,
+          "eval": 493.6
+        },
+        {
+          "episode": 250,
+          "eval": 422.9
+        },
+        {
+          "episode": 300,
+          "eval": 400.7
+        },
+        {
+          "episode": 350,
+          "eval": 383.5
+        },
+        {
+          "episode": 400,
+          "eval": 382.4
+        },
+        {
+          "episode": 450,
+          "eval": 390.3
+        },
+        {
+          "episode": 500,
+          "eval": 402.1
+        }
+      ],
+      "time_s": 88.9,
+      "phase": "cartpole_sanity",
+      "kind": "nef",
+      "env_name": "CartPole-v1",
+      "config": {
+        "n_neurons": 2000,
+        "gamma": 0.99,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 150,
+        "solve_every": 5,
+        "target_mode": "mc",
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 500,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "cartpole_nef_mc",
+      "seed": 7,
+      "best_50": 378.8,
+      "final_50": 378.8,
+      "best_eval": 500.0,
+      "final_eval": 442.1,
+      "robust_eval": 357.3,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": 213.1
+        },
+        {
+          "episode": 100,
+          "eval": 500.0
+        },
+        {
+          "episode": 150,
+          "eval": 375.6
+        },
+        {
+          "episode": 200,
+          "eval": 303.4
+        },
+        {
+          "episode": 250,
+          "eval": 265.4
+        },
+        {
+          "episode": 300,
+          "eval": 267.2
+        },
+        {
+          "episode": 350,
+          "eval": 288.6
+        },
+        {
+          "episode": 400,
+          "eval": 312.4
+        },
+        {
+          "episode": 450,
+          "eval": 329.9
+        },
+        {
+          "episode": 500,
+          "eval": 429.6
+        }
+      ],
+      "time_s": 75.1,
+      "phase": "cartpole_sanity",
+      "kind": "nef",
+      "env_name": "CartPole-v1",
+      "config": {
+        "n_neurons": 2000,
+        "gamma": 0.99,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 150,
+        "solve_every": 5,
+        "target_mode": "mc",
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 500,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "cartpole_nef_mc",
+      "seed": 8,
+      "best_50": 466.3,
+      "final_50": 361.8,
+      "best_eval": 500.0,
+      "final_eval": 379.9,
+      "robust_eval": 339.9,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": 147.8
+        },
+        {
+          "episode": 100,
+          "eval": 495.3
+        },
+        {
+          "episode": 150,
+          "eval": 500.0
+        },
+        {
+          "episode": 200,
+          "eval": 500.0
+        },
+        {
+          "episode": 250,
+          "eval": 464.6
+        },
+        {
+          "episode": 300,
+          "eval": 357.3
+        },
+        {
+          "episode": 350,
+          "eval": 334.9
+        },
+        {
+          "episode": 400,
+          "eval": 333.4
+        },
+        {
+          "episode": 450,
+          "eval": 339.9
+        },
+        {
+          "episode": 500,
+          "eval": 346.4
+        }
+      ],
+      "time_s": 69.0,
+      "phase": "cartpole_sanity",
+      "kind": "nef",
+      "env_name": "CartPole-v1",
+      "config": {
+        "n_neurons": 2000,
+        "gamma": 0.99,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 150,
+        "solve_every": 5,
+        "target_mode": "mc",
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 500,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "cartpole_nef_mc",
+      "seed": 9,
+      "best_50": 500.0,
+      "final_50": 465.1,
+      "best_eval": 500.0,
+      "final_eval": 492.9,
+      "robust_eval": 497.4,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": 194.3
+        },
+        {
+          "episode": 100,
+          "eval": 488.9
+        },
+        {
+          "episode": 150,
+          "eval": 500.0
+        },
+        {
+          "episode": 200,
+          "eval": 500.0
+        },
+        {
+          "episode": 250,
+          "eval": 500.0
+        },
+        {
+          "episode": 300,
+          "eval": 500.0
+        },
+        {
+          "episode": 350,
+          "eval": 500.0
+        },
+        {
+          "episode": 400,
+          "eval": 500.0
+        },
+        {
+          "episode": 450,
+          "eval": 499.9
+        },
+        {
+          "episode": 500,
+          "eval": 492.2
+        }
+      ],
+      "time_s": 74.8,
+      "phase": "cartpole_sanity",
+      "kind": "nef",
+      "env_name": "CartPole-v1",
+      "config": {
+        "n_neurons": 2000,
+        "gamma": 0.99,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 150,
+        "solve_every": 5,
+        "target_mode": "mc",
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 500,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    }
+  ]
+}

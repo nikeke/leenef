@@ -1,0 +1,170 @@
+[proxychains] DLL init: proxychains-ng 4.17
+Phase bootstrap_lunar: 15 pending of 15 planned rows; output=/home/amnesia/Persistent/src/leenef/results/rl_paper/dense/bootstrap_lunar.json
+  [lunar_nstep_no_bootstrap/seed=3] ep=  50 train_avg=  -186.9 eval=   -66.6 eps=0.906
+  [lunar_nstep_no_bootstrap/seed=2] ep=  50 train_avg=  -175.3 eval=  -415.8 eps=0.906
+  [lunar_nstep_no_bootstrap/seed=1] ep=  50 train_avg=  -157.7 eval=  -197.0 eps=0.906
+  [lunar_nstep_no_bootstrap/seed=0] ep=  50 train_avg=  -158.7 eval=  -312.6 eps=0.906
+  [lunar_nstep_no_bootstrap/seed=3] ep= 100 train_avg=  -121.8 eval=   -84.7 eps=0.821
+  [lunar_nstep_no_bootstrap/seed=1] ep= 100 train_avg=  -115.2 eval=  -163.6 eps=0.821
+  [lunar_nstep_no_bootstrap/seed=0] ep= 100 train_avg=  -124.8 eval=  -175.4 eps=0.821
+  [lunar_nstep_no_bootstrap/seed=2] ep= 100 train_avg=  -126.6 eval=   -65.4 eps=0.821
+  [lunar_nstep_no_bootstrap/seed=3] ep= 150 train_avg=   -91.3 eval=   -62.7 eps=0.743
+  [lunar_nstep_no_bootstrap/seed=1] ep= 150 train_avg=  -117.1 eval=   -97.0 eps=0.743
+  [lunar_nstep_no_bootstrap/seed=0] ep= 150 train_avg=   -95.2 eval=  -101.5 eps=0.743
+  [lunar_nstep_no_bootstrap/seed=2] ep= 150 train_avg=  -118.6 eval=   -60.6 eps=0.743
+  [lunar_nstep_no_bootstrap/seed=3] ep= 200 train_avg=   -74.9 eval=  -167.8 eps=0.674
+  [lunar_nstep_no_bootstrap/seed=1] ep= 200 train_avg=  -102.7 eval=  -131.0 eps=0.674
+  [lunar_nstep_no_bootstrap/seed=0] ep= 200 train_avg=   -98.7 eval=  -104.4 eps=0.674
+  [lunar_nstep_no_bootstrap/seed=2] ep= 200 train_avg=   -87.1 eval=   -48.4 eps=0.674
+  [lunar_nstep_no_bootstrap/seed=3] ep= 250 train_avg=   -60.6 eval=  -387.8 eps=0.610
+  [lunar_nstep_no_bootstrap/seed=2] ep= 250 train_avg=   -72.7 eval=   -86.6 eps=0.610
+  [lunar_nstep_no_bootstrap/seed=0] ep= 250 train_avg=   -76.8 eval=  -125.6 eps=0.610
+  [lunar_nstep_no_bootstrap/seed=1] ep= 250 train_avg=   -84.5 eval=  -388.6 eps=0.610
+  [lunar_nstep_no_bootstrap/seed=3] ep= 300 train_avg=   -52.0 eval=  -182.2 eps=0.553
+  [lunar_nstep_no_bootstrap/seed=1] ep= 300 train_avg=   -76.6 eval=  -111.6 eps=0.553
+  [lunar_nstep_no_bootstrap/seed=2] ep= 300 train_avg=   -60.5 eval=   -69.7 eps=0.553
+  [lunar_nstep_no_bootstrap/seed=0] ep= 300 train_avg=   -62.0 eval=  -112.0 eps=0.553
+  [lunar_nstep_no_bootstrap/seed=3] ep= 350 train_avg=   -38.2 eval=  -152.0 eps=0.502
+  [lunar_nstep_no_bootstrap/seed=2] ep= 350 train_avg=   -54.6 eval=  -167.7 eps=0.502
+  [lunar_nstep_no_bootstrap/seed=1] ep= 350 train_avg=   -55.5 eval=  -126.3 eps=0.502
+  [lunar_nstep_no_bootstrap/seed=0] ep= 350 train_avg=   -76.6 eval=  -139.9 eps=0.502
+  [lunar_nstep_no_bootstrap/seed=3] ep= 400 train_avg=   -40.1 eval=   -23.3 eps=0.455
+  [lunar_nstep_no_bootstrap/seed=1] ep= 400 train_avg=   -43.5 eval=   -67.8 eps=0.455
+  [lunar_nstep_no_bootstrap/seed=2] ep= 400 train_avg=   -51.3 eval=   -54.4 eps=0.455
+  [lunar_nstep_no_bootstrap/seed=0] ep= 400 train_avg=   -42.4 eval=  -205.8 eps=0.455
+  [lunar_nstep_no_bootstrap/seed=3] ep= 450 train_avg=   -78.8 eval=   -63.6 eps=0.413
+  [lunar_nstep_no_bootstrap/seed=1] ep= 450 train_avg=   -52.6 eval=   -76.3 eps=0.413
+  [lunar_nstep_no_bootstrap/seed=2] ep= 450 train_avg=   -51.8 eval=   -37.5 eps=0.413
+  [lunar_nstep_no_bootstrap/seed=0] ep= 450 train_avg=   -65.0 eval=   -90.4 eps=0.413
+  [lunar_nstep_no_bootstrap/seed=3] ep= 500 train_avg=   -24.1 eval=    48.3 eps=0.374
+  [lunar_nstep_no_bootstrap/seed=1] ep= 500 train_avg=   -36.6 eval=   -20.9 eps=0.374
+  saved lunar_nstep_no_bootstrap seed=3
+  saved lunar_nstep_no_bootstrap seed=1
+  [lunar_nstep_no_bootstrap/seed=2] ep= 500 train_avg=   -26.0 eval=    74.6 eps=0.374
+  saved lunar_nstep_no_bootstrap seed=2
+  [lunar_nstep_no_bootstrap/seed=0] ep= 500 train_avg=   -54.4 eval=    -9.6 eps=0.374
+  [lunar_nstep_no_bootstrap/seed=4] ep=  50 train_avg=  -161.8 eval=  -350.6 eps=0.906
+  [lunar_mc_no_bootstrap/seed=0] ep=  50 train_avg=  -161.7 eval=  -790.4 eps=0.906
+  saved lunar_nstep_no_bootstrap seed=0
+  [lunar_mc_no_bootstrap/seed=1] ep=  50 train_avg=  -158.0 eval=  -234.6 eps=0.906
+  [lunar_nstep_no_bootstrap/seed=4] ep= 100 train_avg=  -110.8 eval=   -70.9 eps=0.821
+  [lunar_mc_no_bootstrap/seed=0] ep= 100 train_avg=  -121.5 eval=  -173.5 eps=0.821
+  [lunar_mc_no_bootstrap/seed=2] ep=  50 train_avg=  -180.5 eval=  -379.9 eps=0.906
+  [lunar_mc_no_bootstrap/seed=1] ep= 100 train_avg=  -119.9 eval=  -142.7 eps=0.821
+  [lunar_nstep_no_bootstrap/seed=4] ep= 150 train_avg=  -106.4 eval=   -98.4 eps=0.743
+  [lunar_mc_no_bootstrap/seed=0] ep= 150 train_avg=   -96.2 eval=  -775.4 eps=0.743
+  [lunar_mc_no_bootstrap/seed=2] ep= 100 train_avg=  -122.1 eval=  -119.3 eps=0.821
+  [lunar_mc_no_bootstrap/seed=1] ep= 150 train_avg=  -116.3 eval=   -87.8 eps=0.743
+  [lunar_nstep_no_bootstrap/seed=4] ep= 200 train_avg=   -83.5 eval=   -84.5 eps=0.674
+  [lunar_mc_no_bootstrap/seed=0] ep= 200 train_avg=   -84.8 eval=   -85.7 eps=0.674
+  [lunar_mc_no_bootstrap/seed=2] ep= 150 train_avg=  -108.5 eval=   -87.9 eps=0.743
+  [lunar_mc_no_bootstrap/seed=1] ep= 200 train_avg=  -101.2 eval=   -88.4 eps=0.674
+  [lunar_mc_no_bootstrap/seed=0] ep= 250 train_avg=   -70.9 eval=   -82.7 eps=0.610
+  [lunar_nstep_no_bootstrap/seed=4] ep= 250 train_avg=   -75.3 eval=  -446.8 eps=0.610
+  [lunar_mc_no_bootstrap/seed=2] ep= 200 train_avg=   -83.8 eval=   -69.0 eps=0.674
+  [lunar_mc_no_bootstrap/seed=1] ep= 250 train_avg=   -81.0 eval=   -72.0 eps=0.610
+  [lunar_mc_no_bootstrap/seed=0] ep= 300 train_avg=   -49.3 eval=   -66.5 eps=0.553
+  [lunar_mc_no_bootstrap/seed=2] ep= 250 train_avg=   -72.9 eval=  -106.5 eps=0.610
+  [lunar_nstep_no_bootstrap/seed=4] ep= 300 train_avg=   -65.2 eval=   -60.1 eps=0.553
+  [lunar_mc_no_bootstrap/seed=1] ep= 300 train_avg=   -71.0 eval=   -80.8 eps=0.553
+  [lunar_mc_no_bootstrap/seed=2] ep= 300 train_avg=   -66.5 eval=   -80.2 eps=0.553
+  [lunar_mc_no_bootstrap/seed=0] ep= 350 train_avg=   -42.2 eval=   -44.5 eps=0.502
+  [lunar_nstep_no_bootstrap/seed=4] ep= 350 train_avg=   -40.0 eval=     2.4 eps=0.502
+  [lunar_mc_no_bootstrap/seed=1] ep= 350 train_avg=   -76.1 eval=  -180.4 eps=0.502
+  [lunar_mc_no_bootstrap/seed=2] ep= 350 train_avg=   -59.3 eval=  -100.3 eps=0.502
+  [lunar_mc_no_bootstrap/seed=0] ep= 400 train_avg=   -44.2 eval=   -92.6 eps=0.455
+  [lunar_mc_no_bootstrap/seed=1] ep= 400 train_avg=   -77.6 eval=  -100.7 eps=0.455
+  [lunar_nstep_no_bootstrap/seed=4] ep= 400 train_avg=   -40.1 eval=  -111.1 eps=0.455
+  [lunar_mc_no_bootstrap/seed=2] ep= 400 train_avg=   -49.3 eval=  -159.1 eps=0.455
+  [lunar_mc_no_bootstrap/seed=0] ep= 450 train_avg=   -39.4 eval=   -96.7 eps=0.413
+  [lunar_mc_no_bootstrap/seed=1] ep= 450 train_avg=   -71.1 eval=   -58.0 eps=0.413
+  [lunar_nstep_no_bootstrap/seed=4] ep= 450 train_avg=   -25.8 eval=   -12.2 eps=0.413
+  [lunar_mc_no_bootstrap/seed=0] ep= 500 train_avg=   -42.0 eval=   -95.5 eps=0.374
+  [lunar_mc_no_bootstrap/seed=2] ep= 450 train_avg=   -56.6 eval=    36.8 eps=0.413
+  saved lunar_mc_no_bootstrap seed=0
+  [lunar_mc_no_bootstrap/seed=1] ep= 500 train_avg=   -56.2 eval=  -105.9 eps=0.374
+  saved lunar_mc_no_bootstrap seed=1
+  [lunar_mc_no_bootstrap/seed=3] ep=  50 train_avg=  -166.5 eval=  -158.5 eps=0.906
+  [lunar_nstep_no_bootstrap/seed=4] ep= 500 train_avg=   -22.1 eval=    74.6 eps=0.374
+  [lunar_mc_no_bootstrap/seed=4] ep=  50 train_avg=  -168.8 eval=  -105.8 eps=0.906
+  saved lunar_nstep_no_bootstrap seed=4
+  [lunar_mc_no_bootstrap/seed=2] ep= 500 train_avg=   -22.2 eval=   115.8 eps=0.374
+  saved lunar_mc_no_bootstrap seed=2
+  [lunar_mc_no_bootstrap/seed=3] ep= 100 train_avg=  -120.5 eval=   -62.7 eps=0.821
+  [lunar_mc_no_bootstrap/seed=4] ep= 100 train_avg=  -115.8 eval=  -132.8 eps=0.821
+  [lunar_mc_no_bootstrap/seed=3] ep= 150 train_avg=   -97.4 eval=  -247.4 eps=0.743
+  [lunar_td_bootstrap/seed=0] ep=  50 train_avg=  -184.5 eval=  -305.9 eps=0.906
+  [lunar_mc_no_bootstrap/seed=4] ep= 150 train_avg=  -105.2 eval=   -86.2 eps=0.743
+  [lunar_td_bootstrap/seed=1] ep=  50 train_avg=  -168.5 eval=  -370.2 eps=0.906
+  [lunar_mc_no_bootstrap/seed=3] ep= 200 train_avg=   -78.8 eval=  -143.6 eps=0.674
+  [lunar_mc_no_bootstrap/seed=4] ep= 200 train_avg=   -77.6 eval=  -100.4 eps=0.674
+  [lunar_mc_no_bootstrap/seed=3] ep= 250 train_avg=   -72.6 eval=   -31.8 eps=0.610
+  [lunar_mc_no_bootstrap/seed=4] ep= 250 train_avg=   -72.7 eval=  -122.7 eps=0.610
+  [lunar_td_bootstrap/seed=0] ep= 100 train_avg=  -139.1 eval=  -271.1 eps=0.821
+  [lunar_td_bootstrap/seed=1] ep= 100 train_avg=  -134.4 eval=  -197.3 eps=0.821
+  [lunar_mc_no_bootstrap/seed=3] ep= 300 train_avg=   -52.4 eval=  -140.0 eps=0.553
+  [lunar_mc_no_bootstrap/seed=4] ep= 300 train_avg=   -62.3 eval=  -217.8 eps=0.553
+  [lunar_mc_no_bootstrap/seed=3] ep= 350 train_avg=   -43.8 eval=  -196.5 eps=0.502
+  [lunar_mc_no_bootstrap/seed=4] ep= 350 train_avg=   -68.2 eval=  -268.3 eps=0.502
+  [lunar_td_bootstrap/seed=0] ep= 150 train_avg=  -111.0 eval=  -293.9 eps=0.743
+  [lunar_mc_no_bootstrap/seed=3] ep= 400 train_avg=   -43.7 eval=  -117.9 eps=0.455
+  [lunar_td_bootstrap/seed=1] ep= 150 train_avg=  -141.7 eval=  -245.1 eps=0.743
+  [lunar_mc_no_bootstrap/seed=4] ep= 400 train_avg=   -40.6 eval=  -176.5 eps=0.455
+  [lunar_mc_no_bootstrap/seed=3] ep= 450 train_avg=   -38.0 eval=  -466.3 eps=0.413
+  [lunar_mc_no_bootstrap/seed=4] ep= 450 train_avg=   -28.6 eval=    96.7 eps=0.413
+  [lunar_td_bootstrap/seed=0] ep= 200 train_avg=  -120.0 eval=  -242.4 eps=0.674
+  [lunar_td_bootstrap/seed=1] ep= 200 train_avg=  -118.9 eval=  -148.4 eps=0.674
+  [lunar_mc_no_bootstrap/seed=3] ep= 500 train_avg=    -9.9 eval=    92.7 eps=0.374
+  saved lunar_mc_no_bootstrap seed=3
+  [lunar_mc_no_bootstrap/seed=4] ep= 500 train_avg=     2.4 eval=   112.0 eps=0.374
+  saved lunar_mc_no_bootstrap seed=4
+  [lunar_td_bootstrap/seed=2] ep=  50 train_avg=  -170.8 eval=  -404.8 eps=0.906
+  [lunar_td_bootstrap/seed=3] ep=  50 train_avg=  -181.8 eval=  -391.5 eps=0.906
+  [lunar_td_bootstrap/seed=0] ep= 250 train_avg=   -93.6 eval=  -248.8 eps=0.610
+  [lunar_td_bootstrap/seed=1] ep= 250 train_avg=   -93.9 eval=  -173.6 eps=0.610
+  [lunar_td_bootstrap/seed=2] ep= 100 train_avg=  -152.7 eval=  -374.9 eps=0.821
+  [lunar_td_bootstrap/seed=3] ep= 100 train_avg=  -128.9 eval=  -337.4 eps=0.821
+  [lunar_td_bootstrap/seed=2] ep= 150 train_avg=  -121.6 eval=  -374.1 eps=0.743
+  [lunar_td_bootstrap/seed=0] ep= 300 train_avg=   -90.1 eval=  -166.2 eps=0.553
+  [lunar_td_bootstrap/seed=1] ep= 300 train_avg=   -85.7 eval=  -330.6 eps=0.553
+  [lunar_td_bootstrap/seed=3] ep= 150 train_avg=  -117.3 eval=  -261.7 eps=0.743
+  [lunar_td_bootstrap/seed=2] ep= 200 train_avg=  -101.5 eval=  -175.6 eps=0.674
+  [lunar_td_bootstrap/seed=0] ep= 350 train_avg=   -73.3 eval=  -172.4 eps=0.502
+  [lunar_td_bootstrap/seed=1] ep= 350 train_avg=   -77.0 eval=  -226.4 eps=0.502
+  [lunar_td_bootstrap/seed=3] ep= 200 train_avg=  -121.1 eval=  -168.7 eps=0.674
+  [lunar_td_bootstrap/seed=2] ep= 250 train_avg=   -97.5 eval=  -644.4 eps=0.610
+  [lunar_td_bootstrap/seed=0] ep= 400 train_avg=   -79.7 eval=  -142.5 eps=0.455
+  [lunar_td_bootstrap/seed=1] ep= 400 train_avg=   -64.3 eval=  -204.0 eps=0.455
+  [lunar_td_bootstrap/seed=3] ep= 250 train_avg=  -105.3 eval=  -178.0 eps=0.610
+  [lunar_td_bootstrap/seed=2] ep= 300 train_avg=   -97.3 eval=  -232.7 eps=0.553
+  [lunar_td_bootstrap/seed=0] ep= 450 train_avg=   -58.3 eval=  -120.1 eps=0.413
+  [lunar_td_bootstrap/seed=1] ep= 450 train_avg=   -95.1 eval=   -82.2 eps=0.413
+  [lunar_td_bootstrap/seed=3] ep= 300 train_avg=   -93.7 eval=  -294.1 eps=0.553
+  [lunar_td_bootstrap/seed=2] ep= 350 train_avg=   -74.7 eval=  -144.5 eps=0.502
+  [lunar_td_bootstrap/seed=0] ep= 500 train_avg=   -81.7 eval=   -78.0 eps=0.374
+  saved lunar_td_bootstrap seed=0
+  [lunar_td_bootstrap/seed=3] ep= 350 train_avg=   -71.8 eval=  -141.3 eps=0.502
+  [lunar_td_bootstrap/seed=1] ep= 500 train_avg=   -91.7 eval=   -96.2 eps=0.374
+  saved lunar_td_bootstrap seed=1
+  [lunar_td_bootstrap/seed=4] ep=  50 train_avg=  -184.1 eval=  -404.9 eps=0.906
+  [lunar_td_bootstrap/seed=2] ep= 400 train_avg=   -87.1 eval=  -153.9 eps=0.455
+  [lunar_td_bootstrap/seed=4] ep= 100 train_avg=  -158.9 eval=  -276.1 eps=0.821
+  [lunar_td_bootstrap/seed=3] ep= 400 train_avg=   -49.5 eval=  -156.1 eps=0.455
+  [lunar_td_bootstrap/seed=4] ep= 150 train_avg=  -134.4 eval=  -357.7 eps=0.743
+  [lunar_td_bootstrap/seed=2] ep= 450 train_avg=   -57.9 eval=   -72.6 eps=0.413
+  [lunar_td_bootstrap/seed=3] ep= 450 train_avg=   -70.4 eval=   -66.4 eps=0.413
+  [lunar_td_bootstrap/seed=4] ep= 200 train_avg=   -98.9 eval=  -253.4 eps=0.674
+  [lunar_td_bootstrap/seed=2] ep= 500 train_avg=   -53.4 eval=   -77.6 eps=0.374
+  saved lunar_td_bootstrap seed=2
+  [lunar_td_bootstrap/seed=3] ep= 500 train_avg=   -99.7 eval=   -89.0 eps=0.374
+  saved lunar_td_bootstrap seed=3
+  [lunar_td_bootstrap/seed=4] ep= 250 train_avg=  -102.6 eval=  -123.5 eps=0.610
+  [lunar_td_bootstrap/seed=4] ep= 300 train_avg=   -79.4 eval=  -298.9 eps=0.553
+  [lunar_td_bootstrap/seed=4] ep= 350 train_avg=   -92.1 eval=  -127.1 eps=0.502
+  [lunar_td_bootstrap/seed=4] ep= 400 train_avg=   -63.2 eval=  -365.4 eps=0.455
+  [lunar_td_bootstrap/seed=4] ep= 450 train_avg=   -44.4 eval=   -95.1 eps=0.413
+  [lunar_td_bootstrap/seed=4] ep= 500 train_avg=   -58.1 eval=   -58.5 eps=0.374
+  saved lunar_td_bootstrap seed=4
+  lunar_mc_no_bootstrap          n= 5 robust=   -67.7 ±  32.3 final=     5.6 ±  38.2
+  lunar_nstep_no_bootstrap       n= 5 robust=   -38.4 ±  18.0 final=    24.7 ±  32.3
+  lunar_td_bootstrap             n= 5 robust=  -123.8 ±  13.1 final=   -72.4 ±   3.8

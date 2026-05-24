@@ -1,0 +1,1330 @@
+{
+  "result_namespace": "rl_paper_dense",
+  "runner_version": "rl-paper-dense-v1",
+  "config": {
+    "phase": "lunar_final",
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "specs": [
+      {
+        "label": "lunar_nef_final",
+        "env_name": "LunarLander-v3",
+        "kind": "nef",
+        "episodes": 1000,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20,
+        "config": {
+          "n_neurons": 6000,
+          "gamma": 0.98,
+          "alpha": 0.1,
+          "epsilon_start": 1.0,
+          "epsilon_end": 0.01,
+          "epsilon_decay": 500,
+          "solve_every": 10,
+          "target_mode": "nstep",
+          "n_step": 100,
+          "forget_factor": 0.999,
+          "fqi_iters": 1,
+          "tau": 0.3,
+          "broadness": 0.0,
+          "recenter_interval": null
+        }
+      }
+    ]
+  },
+  "seed_policy": {
+    "main_seed": "per-run user-visible seed",
+    "warmup_env_seed": "100000 + seed + episode",
+    "training_env_seed": "seed + episode",
+    "evaluation_env_seed": "10000 + episode",
+    "action_space_seed": "matches env.reset seed when provided"
+  },
+  "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+  "run_context": {
+    "phase": "lunar_final",
+    "parallel": 4
+  },
+  "runs": [
+    {
+      "label": "lunar_nef_final",
+      "seed": 2,
+      "best_50": 245.0,
+      "final_50": 238.3,
+      "best_eval": 258.7,
+      "final_eval": 235.5,
+      "robust_eval": 239.5,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": -237.7
+        },
+        {
+          "episode": 100,
+          "eval": -113.4
+        },
+        {
+          "episode": 150,
+          "eval": -107.4
+        },
+        {
+          "episode": 200,
+          "eval": -92.5
+        },
+        {
+          "episode": 250,
+          "eval": -90.3
+        },
+        {
+          "episode": 300,
+          "eval": -89.4
+        },
+        {
+          "episode": 350,
+          "eval": -197.5
+        },
+        {
+          "episode": 400,
+          "eval": -619.9
+        },
+        {
+          "episode": 450,
+          "eval": -60.1
+        },
+        {
+          "episode": 500,
+          "eval": -59.7
+        },
+        {
+          "episode": 550,
+          "eval": 90.2
+        },
+        {
+          "episode": 600,
+          "eval": 222.3
+        },
+        {
+          "episode": 650,
+          "eval": 244.5
+        },
+        {
+          "episode": 700,
+          "eval": 240.5
+        },
+        {
+          "episode": 750,
+          "eval": 245.3
+        },
+        {
+          "episode": 800,
+          "eval": 252.0
+        },
+        {
+          "episode": 850,
+          "eval": 244.8
+        },
+        {
+          "episode": 900,
+          "eval": 208.2
+        },
+        {
+          "episode": 950,
+          "eval": 258.7
+        },
+        {
+          "episode": 1000,
+          "eval": 251.7
+        }
+      ],
+      "time_s": 1698.9,
+      "phase": "lunar_final",
+      "kind": "nef",
+      "env_name": "LunarLander-v3",
+      "config": {
+        "n_neurons": 6000,
+        "gamma": 0.98,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 500,
+        "solve_every": 10,
+        "target_mode": "nstep",
+        "n_step": 100,
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 1000,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "lunar_nef_final",
+      "seed": 1,
+      "best_50": 203.4,
+      "final_50": 195.0,
+      "best_eval": 245.4,
+      "final_eval": 225.4,
+      "robust_eval": 219.1,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": -583.8
+        },
+        {
+          "episode": 100,
+          "eval": -262.8
+        },
+        {
+          "episode": 150,
+          "eval": -377.9
+        },
+        {
+          "episode": 200,
+          "eval": -287.6
+        },
+        {
+          "episode": 250,
+          "eval": -203.7
+        },
+        {
+          "episode": 300,
+          "eval": -97.5
+        },
+        {
+          "episode": 350,
+          "eval": -87.8
+        },
+        {
+          "episode": 400,
+          "eval": -201.6
+        },
+        {
+          "episode": 450,
+          "eval": -275.3
+        },
+        {
+          "episode": 500,
+          "eval": -27.4
+        },
+        {
+          "episode": 550,
+          "eval": 205.4
+        },
+        {
+          "episode": 600,
+          "eval": 216.0
+        },
+        {
+          "episode": 650,
+          "eval": 219.8
+        },
+        {
+          "episode": 700,
+          "eval": 195.8
+        },
+        {
+          "episode": 750,
+          "eval": 208.2
+        },
+        {
+          "episode": 800,
+          "eval": 220.6
+        },
+        {
+          "episode": 850,
+          "eval": 245.4
+        },
+        {
+          "episode": 900,
+          "eval": 225.3
+        },
+        {
+          "episode": 950,
+          "eval": 241.8
+        },
+        {
+          "episode": 1000,
+          "eval": 190.3
+        }
+      ],
+      "time_s": 1712.3,
+      "phase": "lunar_final",
+      "kind": "nef",
+      "env_name": "LunarLander-v3",
+      "config": {
+        "n_neurons": 6000,
+        "gamma": 0.98,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 500,
+        "solve_every": 10,
+        "target_mode": "nstep",
+        "n_step": 100,
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 1000,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "lunar_nef_final",
+      "seed": 3,
+      "best_50": 209.4,
+      "final_50": 200.7,
+      "best_eval": 227.5,
+      "final_eval": 181.8,
+      "robust_eval": 209.7,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": -165.8
+        },
+        {
+          "episode": 100,
+          "eval": -121.2
+        },
+        {
+          "episode": 150,
+          "eval": -63.6
+        },
+        {
+          "episode": 200,
+          "eval": -35.0
+        },
+        {
+          "episode": 250,
+          "eval": -31.9
+        },
+        {
+          "episode": 300,
+          "eval": -67.2
+        },
+        {
+          "episode": 350,
+          "eval": -91.5
+        },
+        {
+          "episode": 400,
+          "eval": -77.2
+        },
+        {
+          "episode": 450,
+          "eval": 1.3
+        },
+        {
+          "episode": 500,
+          "eval": 150.5
+        },
+        {
+          "episode": 550,
+          "eval": 201.6
+        },
+        {
+          "episode": 600,
+          "eval": 192.2
+        },
+        {
+          "episode": 650,
+          "eval": 227.5
+        },
+        {
+          "episode": 700,
+          "eval": 216.4
+        },
+        {
+          "episode": 750,
+          "eval": 187.1
+        },
+        {
+          "episode": 800,
+          "eval": 182.3
+        },
+        {
+          "episode": 850,
+          "eval": 223.0
+        },
+        {
+          "episode": 900,
+          "eval": 216.5
+        },
+        {
+          "episode": 950,
+          "eval": 206.5
+        },
+        {
+          "episode": 1000,
+          "eval": 206.2
+        }
+      ],
+      "time_s": 1714.3,
+      "phase": "lunar_final",
+      "kind": "nef",
+      "env_name": "LunarLander-v3",
+      "config": {
+        "n_neurons": 6000,
+        "gamma": 0.98,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 500,
+        "solve_every": 10,
+        "target_mode": "nstep",
+        "n_step": 100,
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 1000,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "lunar_nef_final",
+      "seed": 0,
+      "best_50": 220.9,
+      "final_50": 206.5,
+      "best_eval": 218.8,
+      "final_eval": 225.8,
+      "robust_eval": 204.1,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": -285.1
+        },
+        {
+          "episode": 100,
+          "eval": -187.9
+        },
+        {
+          "episode": 150,
+          "eval": -87.0
+        },
+        {
+          "episode": 200,
+          "eval": -138.3
+        },
+        {
+          "episode": 250,
+          "eval": -47.9
+        },
+        {
+          "episode": 300,
+          "eval": -341.2
+        },
+        {
+          "episode": 350,
+          "eval": -50.9
+        },
+        {
+          "episode": 400,
+          "eval": -35.2
+        },
+        {
+          "episode": 450,
+          "eval": 106.6
+        },
+        {
+          "episode": 500,
+          "eval": 132.7
+        },
+        {
+          "episode": 550,
+          "eval": 192.8
+        },
+        {
+          "episode": 600,
+          "eval": 194.4
+        },
+        {
+          "episode": 650,
+          "eval": 195.3
+        },
+        {
+          "episode": 700,
+          "eval": 205.3
+        },
+        {
+          "episode": 750,
+          "eval": 187.4
+        },
+        {
+          "episode": 800,
+          "eval": 204.7
+        },
+        {
+          "episode": 850,
+          "eval": 218.8
+        },
+        {
+          "episode": 900,
+          "eval": 206.4
+        },
+        {
+          "episode": 950,
+          "eval": 206.4
+        },
+        {
+          "episode": 1000,
+          "eval": 199.5
+        }
+      ],
+      "time_s": 1753.9,
+      "phase": "lunar_final",
+      "kind": "nef",
+      "env_name": "LunarLander-v3",
+      "config": {
+        "n_neurons": 6000,
+        "gamma": 0.98,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 500,
+        "solve_every": 10,
+        "target_mode": "nstep",
+        "n_step": 100,
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 1000,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "lunar_nef_final",
+      "seed": 6,
+      "best_50": 213.6,
+      "final_50": 201.3,
+      "best_eval": 219.9,
+      "final_eval": 222.7,
+      "robust_eval": 213.9,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": -215.3
+        },
+        {
+          "episode": 100,
+          "eval": -266.8
+        },
+        {
+          "episode": 150,
+          "eval": -234.0
+        },
+        {
+          "episode": 200,
+          "eval": -258.0
+        },
+        {
+          "episode": 250,
+          "eval": -288.2
+        },
+        {
+          "episode": 300,
+          "eval": -108.9
+        },
+        {
+          "episode": 350,
+          "eval": -85.8
+        },
+        {
+          "episode": 400,
+          "eval": -118.8
+        },
+        {
+          "episode": 450,
+          "eval": -156.3
+        },
+        {
+          "episode": 500,
+          "eval": 3.6
+        },
+        {
+          "episode": 550,
+          "eval": 81.9
+        },
+        {
+          "episode": 600,
+          "eval": 137.8
+        },
+        {
+          "episode": 650,
+          "eval": 123.8
+        },
+        {
+          "episode": 700,
+          "eval": 143.5
+        },
+        {
+          "episode": 750,
+          "eval": 163.1
+        },
+        {
+          "episode": 800,
+          "eval": 188.7
+        },
+        {
+          "episode": 850,
+          "eval": 184.3
+        },
+        {
+          "episode": 900,
+          "eval": 219.9
+        },
+        {
+          "episode": 950,
+          "eval": 206.5
+        },
+        {
+          "episode": 1000,
+          "eval": 215.4
+        }
+      ],
+      "time_s": 1594.8,
+      "phase": "lunar_final",
+      "kind": "nef",
+      "env_name": "LunarLander-v3",
+      "config": {
+        "n_neurons": 6000,
+        "gamma": 0.98,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 500,
+        "solve_every": 10,
+        "target_mode": "nstep",
+        "n_step": 100,
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 1000,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "lunar_nef_final",
+      "seed": 4,
+      "best_50": 188.3,
+      "final_50": 188.3,
+      "best_eval": 213.6,
+      "final_eval": 159.1,
+      "robust_eval": 210.9,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": -345.0
+        },
+        {
+          "episode": 100,
+          "eval": -166.2
+        },
+        {
+          "episode": 150,
+          "eval": -202.9
+        },
+        {
+          "episode": 200,
+          "eval": -131.3
+        },
+        {
+          "episode": 250,
+          "eval": -272.6
+        },
+        {
+          "episode": 300,
+          "eval": -149.1
+        },
+        {
+          "episode": 350,
+          "eval": -100.9
+        },
+        {
+          "episode": 400,
+          "eval": 1.7
+        },
+        {
+          "episode": 450,
+          "eval": 122.8
+        },
+        {
+          "episode": 500,
+          "eval": 156.0
+        },
+        {
+          "episode": 550,
+          "eval": 142.1
+        },
+        {
+          "episode": 600,
+          "eval": 147.2
+        },
+        {
+          "episode": 650,
+          "eval": 149.6
+        },
+        {
+          "episode": 700,
+          "eval": 176.7
+        },
+        {
+          "episode": 750,
+          "eval": 153.4
+        },
+        {
+          "episode": 800,
+          "eval": 190.4
+        },
+        {
+          "episode": 850,
+          "eval": 171.9
+        },
+        {
+          "episode": 900,
+          "eval": 209.1
+        },
+        {
+          "episode": 950,
+          "eval": 210.0
+        },
+        {
+          "episode": 1000,
+          "eval": 213.6
+        }
+      ],
+      "time_s": 1653.0,
+      "phase": "lunar_final",
+      "kind": "nef",
+      "env_name": "LunarLander-v3",
+      "config": {
+        "n_neurons": 6000,
+        "gamma": 0.98,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 500,
+        "solve_every": 10,
+        "target_mode": "nstep",
+        "n_step": 100,
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 1000,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "lunar_nef_final",
+      "seed": 7,
+      "best_50": 180.6,
+      "final_50": 151.2,
+      "best_eval": 169.5,
+      "final_eval": 192.9,
+      "robust_eval": 151.8,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": -174.3
+        },
+        {
+          "episode": 100,
+          "eval": -53.2
+        },
+        {
+          "episode": 150,
+          "eval": -136.1
+        },
+        {
+          "episode": 200,
+          "eval": -56.4
+        },
+        {
+          "episode": 250,
+          "eval": -85.1
+        },
+        {
+          "episode": 300,
+          "eval": -102.7
+        },
+        {
+          "episode": 350,
+          "eval": -99.4
+        },
+        {
+          "episode": 400,
+          "eval": -61.0
+        },
+        {
+          "episode": 450,
+          "eval": 17.5
+        },
+        {
+          "episode": 500,
+          "eval": -4.3
+        },
+        {
+          "episode": 550,
+          "eval": 93.5
+        },
+        {
+          "episode": 600,
+          "eval": 169.5
+        },
+        {
+          "episode": 650,
+          "eval": 142.9
+        },
+        {
+          "episode": 700,
+          "eval": 142.3
+        },
+        {
+          "episode": 750,
+          "eval": 130.0
+        },
+        {
+          "episode": 800,
+          "eval": 146.0
+        },
+        {
+          "episode": 850,
+          "eval": 165.2
+        },
+        {
+          "episode": 900,
+          "eval": 149.5
+        },
+        {
+          "episode": 950,
+          "eval": 144.1
+        },
+        {
+          "episode": 1000,
+          "eval": 161.8
+        }
+      ],
+      "time_s": 1634.4,
+      "phase": "lunar_final",
+      "kind": "nef",
+      "env_name": "LunarLander-v3",
+      "config": {
+        "n_neurons": 6000,
+        "gamma": 0.98,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 500,
+        "solve_every": 10,
+        "target_mode": "nstep",
+        "n_step": 100,
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 1000,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "lunar_nef_final",
+      "seed": 5,
+      "best_50": 228.5,
+      "final_50": 211.6,
+      "best_eval": 242.0,
+      "final_eval": 239.1,
+      "robust_eval": 224.1,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": -218.5
+        },
+        {
+          "episode": 100,
+          "eval": -141.9
+        },
+        {
+          "episode": 150,
+          "eval": -196.7
+        },
+        {
+          "episode": 200,
+          "eval": -255.9
+        },
+        {
+          "episode": 250,
+          "eval": -452.0
+        },
+        {
+          "episode": 300,
+          "eval": -71.4
+        },
+        {
+          "episode": 350,
+          "eval": -123.2
+        },
+        {
+          "episode": 400,
+          "eval": -63.6
+        },
+        {
+          "episode": 450,
+          "eval": 50.9
+        },
+        {
+          "episode": 500,
+          "eval": 83.2
+        },
+        {
+          "episode": 550,
+          "eval": 103.1
+        },
+        {
+          "episode": 600,
+          "eval": 122.1
+        },
+        {
+          "episode": 650,
+          "eval": 152.9
+        },
+        {
+          "episode": 700,
+          "eval": 172.5
+        },
+        {
+          "episode": 750,
+          "eval": 173.6
+        },
+        {
+          "episode": 800,
+          "eval": 187.9
+        },
+        {
+          "episode": 850,
+          "eval": 234.2
+        },
+        {
+          "episode": 900,
+          "eval": 236.6
+        },
+        {
+          "episode": 950,
+          "eval": 242.0
+        },
+        {
+          "episode": 1000,
+          "eval": 193.7
+        }
+      ],
+      "time_s": 1712.8,
+      "phase": "lunar_final",
+      "kind": "nef",
+      "env_name": "LunarLander-v3",
+      "config": {
+        "n_neurons": 6000,
+        "gamma": 0.98,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 500,
+        "solve_every": 10,
+        "target_mode": "nstep",
+        "n_step": 100,
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 1000,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "lunar_nef_final",
+      "seed": 9,
+      "best_50": 205.7,
+      "final_50": 178.0,
+      "best_eval": 205.2,
+      "final_eval": 193.6,
+      "robust_eval": 197.9,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": -145.5
+        },
+        {
+          "episode": 100,
+          "eval": -123.1
+        },
+        {
+          "episode": 150,
+          "eval": -59.9
+        },
+        {
+          "episode": 200,
+          "eval": -47.4
+        },
+        {
+          "episode": 250,
+          "eval": -34.7
+        },
+        {
+          "episode": 300,
+          "eval": -99.7
+        },
+        {
+          "episode": 350,
+          "eval": -60.6
+        },
+        {
+          "episode": 400,
+          "eval": -70.0
+        },
+        {
+          "episode": 450,
+          "eval": -9.9
+        },
+        {
+          "episode": 500,
+          "eval": 43.2
+        },
+        {
+          "episode": 550,
+          "eval": 38.7
+        },
+        {
+          "episode": 600,
+          "eval": 80.4
+        },
+        {
+          "episode": 650,
+          "eval": 88.2
+        },
+        {
+          "episode": 700,
+          "eval": 101.2
+        },
+        {
+          "episode": 750,
+          "eval": 154.4
+        },
+        {
+          "episode": 800,
+          "eval": 150.5
+        },
+        {
+          "episode": 850,
+          "eval": 200.7
+        },
+        {
+          "episode": 900,
+          "eval": 196.7
+        },
+        {
+          "episode": 950,
+          "eval": 205.2
+        },
+        {
+          "episode": 1000,
+          "eval": 191.9
+        }
+      ],
+      "time_s": 888.8,
+      "phase": "lunar_final",
+      "kind": "nef",
+      "env_name": "LunarLander-v3",
+      "config": {
+        "n_neurons": 6000,
+        "gamma": 0.98,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 500,
+        "solve_every": 10,
+        "target_mode": "nstep",
+        "n_step": 100,
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 1000,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    },
+    {
+      "label": "lunar_nef_final",
+      "seed": 8,
+      "best_50": 194.7,
+      "final_50": 189.9,
+      "best_eval": 161.3,
+      "final_eval": 224.0,
+      "robust_eval": 141.5,
+      "eval_history": [
+        {
+          "episode": 50,
+          "eval": -108.3
+        },
+        {
+          "episode": 100,
+          "eval": -293.7
+        },
+        {
+          "episode": 150,
+          "eval": -515.8
+        },
+        {
+          "episode": 200,
+          "eval": -119.5
+        },
+        {
+          "episode": 250,
+          "eval": -32.5
+        },
+        {
+          "episode": 300,
+          "eval": -134.2
+        },
+        {
+          "episode": 350,
+          "eval": -47.6
+        },
+        {
+          "episode": 400,
+          "eval": -45.0
+        },
+        {
+          "episode": 450,
+          "eval": -16.4
+        },
+        {
+          "episode": 500,
+          "eval": 8.9
+        },
+        {
+          "episode": 550,
+          "eval": 72.1
+        },
+        {
+          "episode": 600,
+          "eval": 112.7
+        },
+        {
+          "episode": 650,
+          "eval": 94.4
+        },
+        {
+          "episode": 700,
+          "eval": 51.8
+        },
+        {
+          "episode": 750,
+          "eval": 110.4
+        },
+        {
+          "episode": 800,
+          "eval": 133.6
+        },
+        {
+          "episode": 850,
+          "eval": 85.7
+        },
+        {
+          "episode": 900,
+          "eval": 147.1
+        },
+        {
+          "episode": 950,
+          "eval": 116.2
+        },
+        {
+          "episode": 1000,
+          "eval": 161.3
+        }
+      ],
+      "time_s": 954.4,
+      "phase": "lunar_final",
+      "kind": "nef",
+      "env_name": "LunarLander-v3",
+      "config": {
+        "n_neurons": 6000,
+        "gamma": 0.98,
+        "alpha": 0.1,
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay": 500,
+        "solve_every": 10,
+        "target_mode": "nstep",
+        "n_step": 100,
+        "forget_factor": 0.999,
+        "fqi_iters": 1,
+        "tau": 0.3,
+        "broadness": 0.0,
+        "recenter_interval": null
+      },
+      "run_context": {
+        "episodes": 1000,
+        "eval_every": 50,
+        "eval_episodes": 20,
+        "warmup_episodes": 20
+      },
+      "seed_policy": {
+        "main_seed": "per-run user-visible seed",
+        "warmup_env_seed": "100000 + seed + episode",
+        "training_env_seed": "seed + episode",
+        "evaluation_env_seed": "10000 + episode",
+        "action_space_seed": "matches env.reset seed when provided"
+      },
+      "code_version": "12385951c0a1898ff01c9f8e9730f91db0246d01",
+      "runner_version": "rl-paper-dense-v1",
+      "result_namespace": "rl_paper_dense"
+    }
+  ]
+}

@@ -1,0 +1,113 @@
+[proxychains] DLL init: proxychains-ng 4.17
+Phase cartpole_sanity: 10 pending of 10 planned rows; output=/home/amnesia/Persistent/src/leenef/results/rl_paper/dense/cartpole_sanity.json
+  [cartpole_nef_mc/seed=3] ep=  50 train_avg=    29.6 eval=   123.0 eps=0.719
+  [cartpole_nef_mc/seed=0] ep=  50 train_avg=    31.9 eval=   189.6 eps=0.719
+  [cartpole_nef_mc/seed=1] ep=  50 train_avg=    33.9 eval=   198.5 eps=0.719
+  [cartpole_nef_mc/seed=2] ep=  50 train_avg=    29.9 eval=   147.9 eps=0.719
+  [cartpole_nef_mc/seed=3] ep= 100 train_avg=    76.8 eval=   395.9 eps=0.518
+  [cartpole_nef_mc/seed=0] ep= 100 train_avg=    87.8 eval=   274.8 eps=0.518
+  [cartpole_nef_mc/seed=2] ep= 100 train_avg=    71.7 eval=   500.0 eps=0.518
+  [cartpole_nef_mc/seed=1] ep= 100 train_avg=    78.7 eval=   464.1 eps=0.518
+  [cartpole_nef_mc/seed=1] ep= 150 train_avg=   147.4 eval=   263.1 eps=0.374
+  [cartpole_nef_mc/seed=0] ep= 150 train_avg=   204.1 eval=   500.0 eps=0.374
+  [cartpole_nef_mc/seed=2] ep= 150 train_avg=   235.8 eval=   500.0 eps=0.374
+  [cartpole_nef_mc/seed=3] ep= 150 train_avg=   248.8 eval=   500.0 eps=0.374
+  [cartpole_nef_mc/seed=1] ep= 200 train_avg=   244.3 eval=   500.0 eps=0.271
+  [cartpole_nef_mc/seed=2] ep= 200 train_avg=   290.0 eval=   442.7 eps=0.271
+  [cartpole_nef_mc/seed=3] ep= 200 train_avg=   367.8 eval=   500.0 eps=0.271
+  [cartpole_nef_mc/seed=0] ep= 200 train_avg=   430.5 eval=   500.0 eps=0.271
+  [cartpole_nef_mc/seed=1] ep= 250 train_avg=   357.2 eval=   500.0 eps=0.197
+  [cartpole_nef_mc/seed=2] ep= 250 train_avg=   347.7 eval=   394.2 eps=0.197
+  [cartpole_nef_mc/seed=3] ep= 250 train_avg=   394.1 eval=   460.1 eps=0.197
+  [cartpole_nef_mc/seed=0] ep= 250 train_avg=   487.3 eval=   500.0 eps=0.197
+  [cartpole_nef_mc/seed=1] ep= 300 train_avg=   409.8 eval=   487.9 eps=0.144
+  [cartpole_nef_mc/seed=2] ep= 300 train_avg=   355.8 eval=   387.2 eps=0.144
+  [cartpole_nef_mc/seed=3] ep= 300 train_avg=   429.1 eval=   334.8 eps=0.144
+  [cartpole_nef_mc/seed=0] ep= 300 train_avg=   489.6 eval=   500.0 eps=0.144
+  [cartpole_nef_mc/seed=1] ep= 350 train_avg=   383.8 eval=   391.6 eps=0.106
+  [cartpole_nef_mc/seed=2] ep= 350 train_avg=   398.9 eval=   380.9 eps=0.106
+  [cartpole_nef_mc/seed=3] ep= 350 train_avg=   367.9 eval=   347.7 eps=0.106
+  [cartpole_nef_mc/seed=2] ep= 400 train_avg=   399.4 eval=   391.9 eps=0.079
+  [cartpole_nef_mc/seed=1] ep= 400 train_avg=   391.8 eval=   432.2 eps=0.079
+  [cartpole_nef_mc/seed=0] ep= 350 train_avg=   499.1 eval=   500.0 eps=0.106
+  [cartpole_nef_mc/seed=3] ep= 400 train_avg=   384.3 eval=   373.9 eps=0.079
+  [cartpole_nef_mc/seed=2] ep= 450 train_avg=   404.0 eval=   396.9 eps=0.059
+  [cartpole_nef_mc/seed=1] ep= 450 train_avg=   410.4 eval=   446.3 eps=0.059
+  [cartpole_nef_mc/seed=0] ep= 400 train_avg=   500.0 eval=   500.0 eps=0.079
+  [cartpole_nef_mc/seed=3] ep= 450 train_avg=   401.9 eval=   430.0 eps=0.059
+  [cartpole_nef_mc/seed=2] ep= 500 train_avg=   405.7 eval=   404.0 eps=0.045
+  saved cartpole_nef_mc seed=2
+  [cartpole_nef_mc/seed=1] ep= 500 train_avg=   425.8 eval=   419.6 eps=0.045
+  saved cartpole_nef_mc seed=1
+  [cartpole_nef_mc/seed=4] ep=  50 train_avg=    30.1 eval=   116.3 eps=0.719
+  [cartpole_nef_mc/seed=5] ep=  50 train_avg=    27.8 eval=   201.5 eps=0.719
+  [cartpole_nef_mc/seed=3] ep= 500 train_avg=   419.7 eval=   445.6 eps=0.045
+  [cartpole_nef_mc/seed=0] ep= 450 train_avg=   499.0 eval=   500.0 eps=0.059
+  saved cartpole_nef_mc seed=3
+  [cartpole_nef_mc/seed=4] ep= 100 train_avg=    81.7 eval=   474.4 eps=0.518
+  [cartpole_nef_mc/seed=6] ep=  50 train_avg=    29.9 eval=   127.2 eps=0.719
+  [cartpole_nef_mc/seed=5] ep= 100 train_avg=    95.6 eval=   500.0 eps=0.518
+  [cartpole_nef_mc/seed=6] ep= 100 train_avg=    59.9 eval=   275.4 eps=0.518
+  [cartpole_nef_mc/seed=4] ep= 150 train_avg=   155.0 eval=   207.3 eps=0.374
+  [cartpole_nef_mc/seed=5] ep= 150 train_avg=   230.2 eval=   416.4 eps=0.374
+  [cartpole_nef_mc/seed=4] ep= 200 train_avg=   198.8 eval=   238.1 eps=0.271
+  [cartpole_nef_mc/seed=6] ep= 150 train_avg=   191.4 eval=   488.5 eps=0.374
+  [cartpole_nef_mc/seed=0] ep= 500 train_avg=   497.5 eval=   500.0 eps=0.045
+  saved cartpole_nef_mc seed=0
+  [cartpole_nef_mc/seed=7] ep=  50 train_avg=    38.1 eval=   213.1 eps=0.719
+  [cartpole_nef_mc/seed=5] ep= 200 train_avg=   254.3 eval=   264.6 eps=0.271
+  [cartpole_nef_mc/seed=4] ep= 250 train_avg=   243.7 eval=   249.4 eps=0.197
+  [cartpole_nef_mc/seed=7] ep= 100 train_avg=    86.5 eval=   500.0 eps=0.518
+  [cartpole_nef_mc/seed=6] ep= 200 train_avg=   337.5 eval=   493.6 eps=0.271
+  [cartpole_nef_mc/seed=5] ep= 250 train_avg=   259.6 eval=   262.8 eps=0.197
+  [cartpole_nef_mc/seed=4] ep= 300 train_avg=   267.1 eval=   270.1 eps=0.144
+  [cartpole_nef_mc/seed=7] ep= 150 train_avg=   170.0 eval=   375.6 eps=0.374
+  [cartpole_nef_mc/seed=6] ep= 250 train_avg=   347.7 eval=   422.9 eps=0.197
+  [cartpole_nef_mc/seed=5] ep= 300 train_avg=   264.1 eval=   263.1 eps=0.144
+  [cartpole_nef_mc/seed=7] ep= 200 train_avg=   203.9 eval=   303.4 eps=0.271
+  [cartpole_nef_mc/seed=4] ep= 350 train_avg=   322.2 eval=   300.4 eps=0.106
+  [cartpole_nef_mc/seed=5] ep= 350 train_avg=   259.0 eval=   271.1 eps=0.106
+  [cartpole_nef_mc/seed=7] ep= 250 train_avg=   241.3 eval=   265.4 eps=0.197
+  [cartpole_nef_mc/seed=6] ep= 300 train_avg=   379.9 eval=   400.7 eps=0.144
+  [cartpole_nef_mc/seed=4] ep= 400 train_avg=   361.2 eval=   357.7 eps=0.079
+  [cartpole_nef_mc/seed=7] ep= 300 train_avg=   254.3 eval=   267.2 eps=0.144
+  [cartpole_nef_mc/seed=5] ep= 400 train_avg=   281.7 eval=   296.2 eps=0.079
+  [cartpole_nef_mc/seed=6] ep= 350 train_avg=   383.0 eval=   383.5 eps=0.106
+  [cartpole_nef_mc/seed=7] ep= 350 train_avg=   295.1 eval=   288.6 eps=0.106
+  [cartpole_nef_mc/seed=4] ep= 450 train_avg=   405.9 eval=   500.0 eps=0.059
+  [cartpole_nef_mc/seed=5] ep= 450 train_avg=   283.4 eval=   300.1 eps=0.059
+  [cartpole_nef_mc/seed=6] ep= 400 train_avg=   378.5 eval=   382.4 eps=0.079
+  [cartpole_nef_mc/seed=5] ep= 500 train_avg=   293.3 eval=   316.6 eps=0.045
+  [cartpole_nef_mc/seed=7] ep= 400 train_avg=   321.7 eval=   312.4 eps=0.079
+  saved cartpole_nef_mc seed=5
+  [cartpole_nef_mc/seed=8] ep=  50 train_avg=    31.4 eval=   147.8 eps=0.719
+  [cartpole_nef_mc/seed=4] ep= 500 train_avg=   499.6 eval=   500.0 eps=0.045
+  saved cartpole_nef_mc seed=4
+  [cartpole_nef_mc/seed=8] ep= 100 train_avg=    81.4 eval=   495.3 eps=0.518
+  [cartpole_nef_mc/seed=6] ep= 450 train_avg=   392.3 eval=   390.3 eps=0.059
+  [cartpole_nef_mc/seed=9] ep=  50 train_avg=    31.0 eval=   194.3 eps=0.719
+  [cartpole_nef_mc/seed=7] ep= 450 train_avg=   333.2 eval=   329.9 eps=0.059
+  [cartpole_nef_mc/seed=9] ep= 100 train_avg=    67.4 eval=   488.9 eps=0.518
+  [cartpole_nef_mc/seed=8] ep= 150 train_avg=   225.8 eval=   500.0 eps=0.374
+  [cartpole_nef_mc/seed=9] ep= 150 train_avg=   211.5 eval=   500.0 eps=0.374
+  [cartpole_nef_mc/seed=6] ep= 500 train_avg=   411.6 eval=   402.1 eps=0.045
+  saved cartpole_nef_mc seed=6
+  [cartpole_nef_mc/seed=7] ep= 500 train_avg=   378.8 eval=   429.6 eps=0.045
+  saved cartpole_nef_mc seed=7
+  [cartpole_nef_mc/seed=8] ep= 200 train_avg=   400.1 eval=   500.0 eps=0.271
+  [cartpole_nef_mc/seed=9] ep= 200 train_avg=   417.1 eval=   500.0 eps=0.271
+  [cartpole_nef_mc/seed=8] ep= 250 train_avg=   464.8 eval=   464.6 eps=0.197
+  [cartpole_nef_mc/seed=9] ep= 250 train_avg=   477.2 eval=   500.0 eps=0.197
+  [cartpole_nef_mc/seed=8] ep= 300 train_avg=   406.1 eval=   357.3 eps=0.144
+  [cartpole_nef_mc/seed=9] ep= 300 train_avg=   487.0 eval=   500.0 eps=0.144
+  [cartpole_nef_mc/seed=8] ep= 350 train_avg=   353.8 eval=   334.9 eps=0.106
+  [cartpole_nef_mc/seed=9] ep= 350 train_avg=   500.0 eval=   500.0 eps=0.106
+  [cartpole_nef_mc/seed=8] ep= 400 train_avg=   343.5 eval=   333.4 eps=0.079
+  [cartpole_nef_mc/seed=8] ep= 450 train_avg=   356.5 eval=   339.9 eps=0.059
+  [cartpole_nef_mc/seed=9] ep= 400 train_avg=   495.0 eval=   500.0 eps=0.079
+  [cartpole_nef_mc/seed=8] ep= 500 train_avg=   361.8 eval=   346.4 eps=0.045
+  saved cartpole_nef_mc seed=8
+  [cartpole_nef_mc/seed=9] ep= 450 train_avg=   493.5 eval=   499.9 eps=0.059
+  [cartpole_nef_mc/seed=9] ep= 500 train_avg=   465.1 eval=   492.2 eps=0.045
+  saved cartpole_nef_mc seed=9
+  cartpole_nef_mc                n=10 robust=   409.0 ±  20.4 final=   428.4 ±  19.0
