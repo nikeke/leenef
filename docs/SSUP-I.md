@@ -50,16 +50,17 @@ to compose decoded signals; we depart in three places.
 
 - We use **rate neurons with `abs` activation**, not spiking LIF.
   `abs` is a minimal departure from linearity that escapes the
-  linear-collapse argument of §2; it is also what gives our
-  activations the frame-coefficient-magnitude interpretation used
-  throughout the paper.
+  linear-collapse argument of Paper I §2; it is also what gives our
+  activations the frame-coefficient-magnitude interpretation that the
+  paper series uses throughout.
 - We use **data-driven biases**.  The bias of neuron *i* is
   $b_i = -g_i (e_i \cdot d_i)$ for a sample $d_i$ drawn from the
   training set, placing the *i*-th `abs` fold on the data
   manifold rather than on a generic random intercept.
 - We do not use NEF's **dynamics principle** anywhere in this
-  paper.  Streaming and recurrent variants reuse encoders and
-  decoders with pooling, not a recurrent dynamics solve.
+  paper series.  Streaming, continual, and control variants reuse
+  encoders and decoders with pooling, accumulation, or target
+  construction, not a recurrent dynamics solve.
 
 When this paper says "NEF" it means this *analytic-rate-`abs`
 specialization*; when distinction matters we call our local
@@ -68,7 +69,7 @@ style spiking populations should read NEF here as "the
 encode–decode pattern of Eliasmith & Anderson, with rate-`abs`
 neurons and data-driven biases."
 
-The SSUP paper series' shared opener is six operational claims, distilled
+The SSUP paper series shares six operational claims, distilled
 from the program's running code.  These are *our* distillation: P1–P2
 inherit directly from NEF's encoder/decoder split and analytic decoder
 fit; P3–P4 are the sufficient-statistics reading of that fixed-feature
@@ -79,32 +80,32 @@ solve; P5–P6 are leenef-specific.
 - **P2 — Decoders fall out of one analytic step:**
   $D = (A^\top A + \alpha I)^{-1} A^\top Y$.  No learning rate, no schedule, no
   gradient flow between layers.
-- **P3 — $A^\top A$ and $A^\top Y$ are the complete sufficient
-  state of the learner.**  Continual learning, streaming over
-  time, ensembles, online updates, per-action FQI (Ernst et al.,
-  2005) — all of them are different ways of *additively
-  combining* sufficient statistics.
+- **P3 — $A^\top A$ and $A^\top Y$ are the complete sufficient state
+  of the learner.**  Continual learning, streaming over time, ensembles,
+  online updates, per-action FQI (Ernst et al., 2005), and successor
+  features are different ways of *additively combining* sufficient
+  statistics or replacing the target block they accumulate.
 - **P4 — Targets $Y$ are the only place where task structure
   enters.**  The encoder does not care what the task is; the
   decoder column does.
-- **P5 — Time is collapsed by pooling, not by recurrence.**  The
-  streaming classifier mean-pools delay-line activities into a
-  fixed-size representation; no BPTT (Werbos, 1990), no recurrent
-  solve.
-- **P6 — Per-class additivity is what makes class-incremental
-  continual learning work.**  With fixed features, stable output
-  semantics, and one-hot class targets, each class owns its own
-  decoder column, so accumulating new task statistics never overwrites
-  old columns.
-  (Forward-look — owned by Paper II; we exhibit the additivity
-  property here without claiming it solves CL.)
+- **P5 — Time is summarized before the analytic solve.**  The paper
+  series uses pooled delay-line activities, accumulated task statistics,
+  returns, and successor targets rather than BPTT (Werbos, 1990) or a
+  recurrent dynamics solve.
+- **P6 — Additivity helps when output semantics are stable.**  With
+  fixed features and stable target columns, new observations add
+  statistics rather than overwriting old meanings.  Class-incremental
+  continual learning is the cleanest case; reinforcement learning shows
+  why unstable or mismatched targets must be constructed with care.
 
 The rest of Paper I is one of these primitives applied somewhere
 new: §3 (method) is **P1–P4**, §6 (streaming classifier) is **P5**,
 and the multi-layer experiments (Appendix B) are the load-bearing
 negative result that says **P2** does not extend cleanly through
 stacked nonlinearities — which is why we stay single-layer for the
-rest of the paper series.
+rest of the paper series.  **P6** is a forward look owned by Paper II:
+we exhibit additivity here without claiming in this paper that it solves
+continual learning.
 
 ---
 

@@ -45,51 +45,66 @@ $Y$ is stable, informative, and matched to the task.
 
 ## §1 — The six principles of leenef
 
-We build on the *Neural Engineering Framework* of Eliasmith and Anderson
-(2003): a population of neurons with fixed encoders represents a vector
-quantity, and any function of that vector is computed by a linear decoder
-fitted to the population's activity.  Their book frames this around
-representation, transformation, and dynamics, with spiking neurons as the
-canonical implementation.  This paper series keeps the encoder-decoder
-split, the analytic decoder fit, and the idea that decoded quantities can
-be composed.  It departs in three places.
+We build on the *Neural Engineering Framework* of Eliasmith and
+Anderson (2003): a population of neurons with fixed encoders
+represents a vector quantity, and any function of that vector is
+computed by a linear decoder fitted to the population's activity.
+Their book frames this around three principles — representation,
+transformation, and dynamics — and the canonical implementation
+uses spiking leaky-integrate-and-fire neurons whose firing rate
+encodes the represented quantity.  We keep the encoder–decoder
+split, the analytic least-squares fit, and the conceptual freedom
+to compose decoded signals; we depart in three places.
 
-- We use **rate neurons with `abs` activation**, not spiking LIF neurons.
-  `abs` is the minimal nonlinearity used throughout the series to avoid
-  the linear-collapse argument of Paper I.
-- We use **data-driven biases**.  The bias of neuron $i$ is
-  $b_i = -g_i(e_i \cdot d_i)$ for a sample $d_i$ drawn from the training
-  distribution, placing the neuron's fold on the observed manifold.
-- We do not use NEF's **dynamics principle** here.  Temporal structure is
-  handled by target construction, pooling, or environment rollouts, not
-  by solving recurrent dynamics inside a spiking population.
+- We use **rate neurons with `abs` activation**, not spiking LIF.
+  `abs` is a minimal departure from linearity that escapes the
+  linear-collapse argument of Paper I §2; it is also what gives our
+  activations the frame-coefficient-magnitude interpretation that the
+  paper series uses throughout.
+- We use **data-driven biases**.  The bias of neuron *i* is
+  $b_i = -g_i (e_i \cdot d_i)$ for a sample $d_i$ drawn from the
+  training set, placing the *i*-th `abs` fold on the data
+  manifold rather than on a generic random intercept.
+- We do not use NEF's **dynamics principle** anywhere in this
+  paper series.  Streaming, continual, and control variants reuse
+  encoders and decoders with pooling, accumulation, or target
+  construction, not a recurrent dynamics solve.
 
-When this paper says "NEF" it means this analytic, rate-`abs`
-specialization unless the distinction is explicitly important.  The local
-implementation is called **leenef**.
+When this paper says "NEF" it means this *analytic-rate-`abs`
+specialization*; when distinction matters we call our local
+specialization **leenef**.  Readers who arrive expecting Nengo-
+style spiking populations should read NEF here as "the
+encode–decode pattern of Eliasmith & Anderson, with rate-`abs`
+neurons and data-driven biases."
 
-The SSUP paper series shares six operational principles, distilled from
-the running code and the experiments in Papers I and II.
+The SSUP paper series shares six operational claims, distilled
+from the program's running code.  These are *our* distillation: P1–P2
+inherit directly from NEF's encoder/decoder split and analytic decoder
+fit; P3–P4 are the sufficient-statistics reading of that fixed-feature
+solve; P5–P6 are leenef-specific.
 
-- **P1 — Encoders are fixed** (random or data-adapted).  Decoders are the
-  only fitted weights.
+- **P1 — Encoders are fixed** (random or data-adapted).  Decoders
+  are the only thing we ever fit.
 - **P2 — Decoders fall out of one analytic step:**
-  $D = (A^\top A + \alpha I)^{-1} A^\top Y$.  There is no decoder learning
-  rate, no gradient schedule, and no gradient flow between layers.
-- **P3 — $A^\top A$ and $A^\top Y$ are the complete sufficient state of
-  the learner.**  Static batches, task streams, online updates, per-action
-  value-function fits, and successor-feature fits all become ways of
-  accumulating or replacing sufficient statistics.
-- **P4 — Targets $Y$ are the only place where task structure enters.**
-  The encoder creates activities; the decoder column says what those
-  activities should mean.
-- **P5 — Time is collapsed or summarized before the analytic solve.**  In
-  Paper I this was mean-pooled delay-line activity.  In this paper it is
-  a return, an $n$-step return, or a successor target.
-- **P6 — Additivity only helps when output semantics are stable.**  Paper
-  II used fixed class columns to remove forgetting.  In RL, action-value
-  columns and successor readouts are stable only if their targets are
-  constructed consistently across policy changes.
+  $D = (A^\top A + \alpha I)^{-1} A^\top Y$.  No learning rate, no schedule, no
+  gradient flow between layers.
+- **P3 — $A^\top A$ and $A^\top Y$ are the complete sufficient state
+  of the learner.**  Continual learning, streaming over time, ensembles,
+  online updates, per-action FQI (Ernst et al., 2005), and successor
+  features are different ways of *additively combining* sufficient
+  statistics or replacing the target block they accumulate.
+- **P4 — Targets $Y$ are the only place where task structure
+  enters.**  The encoder does not care what the task is; the
+  decoder column does.
+- **P5 — Time is summarized before the analytic solve.**  The paper
+  series uses pooled delay-line activities, accumulated task statistics,
+  returns, and successor targets rather than BPTT (Werbos, 1990) or a
+  recurrent dynamics solve.
+- **P6 — Additivity helps when output semantics are stable.**  With
+  fixed features and stable target columns, new observations add
+  statistics rather than overwriting old meanings.  Class-incremental
+  continual learning is the cleanest case; reinforcement learning shows
+  why unstable or mismatched targets must be constructed with care.
 
 Paper III is mostly about **P4**.  Papers I and II could treat $Y$ as a
 given: labels in Paper I, stable task labels in Paper II.  Reinforcement
@@ -564,8 +579,9 @@ natural: per-action normal equations, exponential statistic retention,
 and the Paper II result that compatible fixed-feature statistics add
 cleanly across task partitions.  Natural experiments are task sequences
 with changing reward maps, per-goal normal-equation blocks that can be
-combined at decision time, and conflict-aware decoder merging when new
-events or goals appear.
+combined at decision time, conflict-aware decoder merging when new
+events or goals appear, and separate reward-map statistics that can
+forget faster than the slower successor backbone.
 
 The fourth follow-up is **hybridization with existing RL machinery**.
 Nothing in the sufficient-statistics interface requires the encoder to be
@@ -575,6 +591,26 @@ relabeling could all feed the same $A^\top A$ and $A^\top Y$ objects.
 The useful question is not whether those additions are "pure" enough; it
 is whether they make the target matrix more stable or more informative
 without losing the auditability of the analytic head.
+
+Two more sparse-control extensions are natural but more environment-
+dependent.  One is **explicit goal-handle construction** for image or
+partially observed environments.  MiniGrid failed in the present evidence
+because the agent had no clean goal observation to project onto; a direct
+follow-up is to programmatically capture the observation at the goal cell
+and use that vector as the evaluation goal.  The other is **training-goal
+augmentation**: mix the known evaluation-goal direction into the hindsight
+goal buffer during training, rather than using it only at evaluation.  On
+Acrobot this may reduce seed variance; on MountainCar it tests whether
+the full-successor/random-direction requirement can be weakened.
+
+Finally, the sparse work argues for better **failure diagnostics** before
+large sweeps.  Future result rows should record first success episode,
+success rate, action margins, Q-spread, reward-map calibration,
+successor prediction error on held-out suffixes, novelty at frontier and
+goal states, and per-seed evaluation-history summaries.  These diagnostics
+separate "the agent never discovers reward" from "successor prediction is
+good but the readout ranks actions badly," which lead to different next
+experiments.
 
 ---
 
