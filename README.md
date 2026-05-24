@@ -4,11 +4,11 @@ Machine learning with a rate-based specialization of the Neural
 Engineering Framework (NEF) in PyTorch.
 
 > **Repository status — SSUP paper series rebuild.** The stable core lives in
-> `src/leenef/` and `tests/`.  Active supervised-learning and
-> continual-learning experiments and preserved artifacts live under
-> `benchmarks/{sl_clean,cl_clean}/`, `results/{sl_clean,cl_clean}/`,
-> and `docs/SSUP-{I,II}.md`; older pre-restart infrastructure remains
-> in `attic/` for reference.
+> `src/leenef/` and `tests/`.  Active supervised-learning,
+> continual-learning, and reinforcement-learning experiments and preserved
+> artifacts live under `benchmarks/`, `results/`, and
+> `docs/SSUP-{I,II,III}.md`; older pre-restart infrastructure remains in
+> `attic/` for reference.
 
 ## Overview
 
@@ -33,10 +33,11 @@ statistics `AᵀA` and `AᵀY`.  The same primitive supports:
 - multi-layer and recurrent variants for controlled comparisons
 - reinforcement-learning agents built on the same analytic solve
 
-The current supervised-learning and continual-learning papers are
-[`docs/SSUP-I.md`](docs/SSUP-I.md) and
-[`docs/SSUP-II.md`](docs/SSUP-II.md).  They are the authoritative source
-for the repository's present claims, numbers, and caveats.
+The current supervised-learning, continual-learning, and
+reinforcement-learning papers are [`docs/SSUP-I.md`](docs/SSUP-I.md),
+[`docs/SSUP-II.md`](docs/SSUP-II.md), and
+[`docs/SSUP-III.md`](docs/SSUP-III.md).  They are the authoritative
+source for the repository's present claims, numbers, and caveats.
 
 Paper I abstract:
 
@@ -80,6 +81,34 @@ Paper II abstract:
 > streaming-continual panel carries the same exact/joint/Woodbury
 > agreement through 10-task permuted sMNIST while revealing a lower
 > mean-pooled-delay-line ceiling of **58.3 $\pm$ 0.2 %** at 16000 neurons.
+
+Paper III abstract:
+
+> NEF's regularized least-squares solve over fixed-encoder neural
+> activities,
+> $D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$, is a compact
+> sufficient-statistics primitive for reinforcement learning only when the
+> target matrix $Y$ is constructed with care.  In supervised learning, $Y$
+> is a label matrix; in continual learning, $Y$ remains stable while rows
+> arrive over time.  In reinforcement learning, the targets are induced by
+> returns, bootstraps, goals, successor features, and the behavior policy.
+> This paper treats that target construction as the central problem.  On
+> dense-control LunarLander-v3, bootstrapped TD targets fail under the
+> analytic solve (`robust_eval` $=-123.8 \pm 13.1$), while a
+> non-bootstrapped $100$-step NEF-FQI configuration reaches
+> $201.3 \pm 9.8$ over 10 seeds; an in-repository DQN context row reaches
+> $129.3 \pm 21.7$ under the same evaluation protocol.  On sparse-control
+> tasks, reward absence becomes target absence: MountainCar-v0 remains flat
+> for a memory-reduced known-goal directional readout
+> ($-197.0 \pm 1.7$), but a full-successor random-direction mechanism
+> reaches $-158.8 \pm 1.4$ at 2000 neurons; Acrobot-v1 shows the
+> complementary case, where a 6000-neuron directional known-goal readout
+> gives a stable sparse signal ($-194.9 \pm 10.4$) once successor
+> statistics are retained slowly enough.  The result is not a claim that
+> analytic fixed-feature RL is a universal control algorithm.  It is a
+> sharper claim: the same sufficient-statistics object can support control
+> when the target matrix is stable, informative, and matched to the task,
+> and it fails diagnostically when those conditions are false.
 
 ## Quick start
 
@@ -166,15 +195,20 @@ PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
 # Regenerate the Paper-I figures
 python3 docs/generate_paper_i_figures.py
 
-# Build Paper I / Paper II PDFs
+# Regenerate the Paper-III figures
+python3 docs/generate_paper_iii_figures.py
+
+# Build Paper I / Paper II / Paper III PDFs
 bash docs/build_ssup_pdf.sh docs/SSUP-I.md docs/SSUP-I.pdf
 bash docs/build_ssup_pdf.sh docs/SSUP-II.md docs/SSUP-II.pdf
+bash docs/build_ssup_pdf.sh docs/SSUP-III.md docs/SSUP-III.pdf
 ```
 
 All paper-grade result rows carry a code identity, dataset hashes, full
 config dictionaries, per-seed metrics, and aggregate summaries.  The
-preserved JSON/log artifacts used by Papers I and II live in
-`results/sl_clean/` and `results/cl_clean/`.
+preserved JSON/log artifacts used by Papers I, II, and III live under
+`results/sl_clean/`, `results/cl_clean/`, `results/rl_paper/`, and
+`results/rl_sparse/`.
 
 ## Components
 
