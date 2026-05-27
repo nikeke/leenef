@@ -916,7 +916,7 @@ gradient-trained MLP cell in the tuned grid:
 
 ![The MLP comparison is encoder-dependent. Generic hypersphere leenef trails on MNIST, Fashion-MNIST, and raw CIFAR-10, while the receptive-field prior reverses the CIFAR-10 gap.](figures/f8_mlp_comparator.png)
 
-![Figure-7-style wall-clock time versus accuracy for the static MLP comparator.  The generic hypersphere NEF points trade lower accuracy for much shorter fits on MNIST and Fashion-MNIST; the CIFAR-10 receptive-field point improves both accuracy and wall-clock time relative to the tuned MLP.](figures/f8b_static_wall_accuracy.png)
+![Figure 9: Figure-7-style wall-clock time versus accuracy for the static MLP comparator.  All three datasets are shown on one axis: dataset is encoded by color, method by marker.  The generic hypersphere NEF points trade lower accuracy for much shorter fits on MNIST and Fashion-MNIST; the CIFAR-10 receptive-field point improves both accuracy and wall-clock time relative to the tuned MLP.](figures/f9_static_wall_accuracy.png)
 
 | dataset | leenef cell | best MLP cell | Δ | end-to-end wall-clock time (s/seed) | wall-clock ratio |
 |---------|------------------|---------------|---:|---------------|-----------------:|

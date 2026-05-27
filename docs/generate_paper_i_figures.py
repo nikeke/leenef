@@ -26,6 +26,7 @@ from pathlib import Path
 from statistics import mean, stdev
 
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "results" / "sl_clean"
@@ -424,16 +425,19 @@ def _b4_best_static(ds: str) -> tuple[str, float, float, float]:
 def figure_f_static_wall() -> Path:
     """Figure 7-style wall-clock/accuracy view for the static MLP comparator."""
 
-    panels = [
-        ("MNIST", "mnist", (96.5, 98.5)),
-        ("Fashion-MNIST", "fashion", (87.0, 90.0)),
-        ("CIFAR-10", "cifar10", (48.5, 56.0)),
-    ]
+    dataset_colors = {
+        "MNIST": "C0",
+        "Fashion-MNIST": "C1",
+        "CIFAR-10": "C2",
+    }
+    marker_by_method = {
+        "NEF hypersphere": "o",
+        "NEF receptive field": "D",
+        "MLP tuned": "^",
+    }
 
-    fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.3))
-    for ax, (title, ds, ylim) in zip(axes, panels):
-        points: list[tuple[str, float, float, float, str, str]] = []
-
+    points: list[tuple[str, str, str, float, float, float]] = []
+    for title, ds in [("MNIST", "mnist"), ("Fashion-MNIST", "fashion"), ("CIFAR-10", "cifar10")]:
         rows = _load_rows(RESULTS / f"biases_{ds}_panel.json")
         acc, se, wall = _static_cell_stats(
             rows,
@@ -442,34 +446,76 @@ def figure_f_static_wall() -> Path:
                 and _factors(r).get("encoder_strategy") == "hypersphere"
             ),
         )
-        points.append(("NEF hypersphere", wall, acc, se, "o", "C0"))
+        label = "Fashion NEF" if title == "Fashion-MNIST" else f"{title} NEF"
+        points.append((title, "NEF hypersphere", label, wall, acc, se))
 
         if ds == "cifar10":
             rf_rows = _load_rows(RESULTS / "b3_strategies_cifar10_panel.json")
             acc, se, wall = _static_cell_stats(
                 rf_rows, lambda r: _factors(r).get("encoder_strategy") == "receptive_field"
             )
-            points.append(("NEF receptive field", wall, acc, se, "D", "C2"))
+            points.append((title, "NEF receptive field", "CIFAR-10 RF", wall, acc, se))
 
         best_cell, acc, se, wall = _b4_best_static(ds)
-        points.append((f"MLP {best_cell}", wall, acc, se, "^", "C3"))
+        label = "Fashion MLP" if title == "Fashion-MNIST" else f"{title} MLP"
+        points.append((title, "MLP tuned", label, wall, acc, se))
 
-        wall_times = [p[1] for p in points]
-        for label, wall, acc, se, marker, color in points:
-            ax.errorbar(wall, acc, yerr=se, marker=marker, color=color, capsize=3)
-            ax.text(wall * 1.06, acc, label, fontsize=8, va="center")
+    fig, ax = plt.subplots(figsize=(9.0, 5.2))
+    for dataset, method, label, wall, acc, se in points:
+        ax.errorbar(
+            wall,
+            acc,
+            yerr=se,
+            marker=marker_by_method[method],
+            color=dataset_colors[dataset],
+            capsize=3,
+            linestyle="none",
+            markersize=7,
+        )
+        if label == "MNIST MLP":
+            xytext = (6, -3)
+        elif label == "CIFAR-10 MLP":
+            xytext = (6, 3)
+        elif label == "CIFAR-10 RF":
+            xytext = (6, 8)
+        else:
+            xytext = (6, 0)
+        ax.annotate(label, xy=(wall, acc), xytext=xytext, textcoords="offset points", fontsize=8)
 
-        ax.set_xscale("log")
-        ax.set_xlim(min(wall_times) / 1.2, max(wall_times) * 1.8)
-        ax.set_title(title)
-        ax.set_xlabel("wall-clock time per seed (s, CPU)")
-        ax.set_ylim(*ylim)
-        ax.grid(True, which="both", alpha=0.3)
-    axes[0].set_ylabel("test accuracy (%)")
-    fig.suptitle("Figure 8b — Static classifier speed/accuracy trade-off")
-    out = FIG_DIR / "f8b_static_wall_accuracy.png"
+    dataset_handles = [
+        Line2D([0], [0], color=color, marker="o", linestyle="none", label=label)
+        for label, color in dataset_colors.items()
+    ]
+    method_handles = [
+        Line2D([0], [0], color="0.25", marker=marker, linestyle="none", label=method)
+        for method, marker in marker_by_method.items()
+    ]
+    legend1 = ax.legend(
+        handles=dataset_handles,
+        loc="upper left",
+        bbox_to_anchor=(1.01, 1.0),
+        title="dataset",
+        fontsize=8,
+    )
+    ax.add_artist(legend1)
+    ax.legend(
+        handles=method_handles,
+        loc="upper left",
+        bbox_to_anchor=(1.01, 0.62),
+        title="method",
+        fontsize=8,
+    )
+
+    ax.set_xscale("log")
+    ax.set_xlim(3.5, 760)
+    ax.set_ylim(47.0, 100.0)
+    ax.set_xlabel("wall-clock time per seed (s, CPU)")
+    ax.set_ylabel("test accuracy (%)")
+    ax.set_title("Figure 9 — Static classifier speed/accuracy trade-off")
+    ax.grid(True, which="both", alpha=0.3)
+    out = FIG_DIR / "f9_static_wall_accuracy.png"
     fig.tight_layout()
-    fig.savefig(out, dpi=150)
+    fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
     return out
 
@@ -677,7 +723,7 @@ FIGURES = {
     "F6": figure_f8,
     "F7": figure_f_wall,
     "F8": figure_f9,
-    "F8B": figure_f_static_wall,
+    "F9": figure_f_static_wall,
 }
 
 
