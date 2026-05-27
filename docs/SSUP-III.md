@@ -22,10 +22,12 @@ a compact sufficient-statistics primitive for reinforcement learning when
 the target matrix $Y$ is constructed to match the control problem.  In
 dense control, a non-bootstrapped $100$-step NEF-FQI configuration reaches
 $201.3 \pm 9.8$ robust return on LunarLander-v3 over 10 seeds, crossing
-the common 200-return solved threshold under our evaluation protocol; the
+the common 200-return solved threshold under the evaluation protocol used
+here; the
 same analytic control path reaches near-perfect CartPole-v1 best
-evaluation (`best_eval` $=499.4 \pm 0.6$).  An in-repository DQN context row reaches
-$129.3 \pm 21.7$ on LunarLander-v3 under the same protocol.  In sparse
+evaluation (`best_eval` $=499.4 \pm 0.6$).  A baseline DQN implementation
+evaluated under the exact same protocol reaches $129.3 \pm 21.7$ on
+LunarLander-v3.  In sparse
 control, target construction is the result: a full-successor
 random-direction mechanism improves MountainCar-v0 to
 $-158.8 \pm 1.4$ at 2000 neurons, and a 6000-neuron directional
@@ -236,9 +238,11 @@ The dense result section includes four kinds of rows.
 2. **Target-construction ablation.**  LunarLander rows compare one-step
    TD-style bootstrapping with Monte-Carlo and $n$-step non-bootstrap
    targets.
-3. **In-repository DQN context.**  A matched-seed DQN row provides local
-   context for the scale of the LunarLander result.  It is not a claim
-   about all DQN implementations or all hyperparameter budgets.
+3. **Constrained DQN context.**  A matched-seed DQN row provides local
+   context for the scale of the LunarLander result under this repository's
+   runner and compute budget.  It is a small two-hidden-layer replay DQN,
+   not a tuned external implementation and not a claim about all DQN
+   implementations or hyperparameter budgets.
 4. **Ensemble closure.**  Three-member Thompson and voting variants test
    whether the ensemble story from Paper I carries over to dense control.
    It mostly does not.
@@ -298,13 +302,35 @@ These mechanisms are not presented as universal improvements.  They are
 ways of constructing an informative $Y$ when sparse reward otherwise
 leaves the sufficient statistics empty.
 
+### §3.5 — Evaluation protocol
+
+All control rows are online-training rows with periodic frozen-policy
+evaluation.  During training, agents act with their configured exploration
+policy and update after each transition.  During evaluation, the policy is
+greedy with respect to the current action values: no $\epsilon$ exploration
+is used, and the evaluation episodes use deterministic seed offsets
+separate from training and warmup seeds.  Dense LunarLander-v3 rows train
+for 1000 episodes, evaluate every 50 episodes, and average 20 evaluation
+episodes per evaluation point.  Sparse MountainCar-v0 and Acrobot-v1 rows
+train for 300 episodes, evaluate every 25 episodes, and average 5
+evaluation episodes per point.  The reported `robust_eval` metric is the
+per-seed mean of the final three evaluation points, then mean $\pm$
+standard error across seeds.
+
+This protocol is useful for comparing the rows in this paper because every
+method sees the same episode budget, evaluation seeds, and final-window
+metric.  It is not a leaderboard protocol.  In particular, the DQN row is
+a deliberately local comparator implemented in the same runner, not a
+claim about what fully tuned DQN implementations can achieve on
+LunarLander-v3.
+
 ---
 
 ## §4 — Dense-control results
 
 ### §4.1 — LunarLander is a target-stability result
 
-![Figure 1 -- Dense-control target construction on LunarLander-v3.  Bars show robust evaluation return, defined per seed as the mean of the final three evaluation points; error bars show standard error across seeds.  The in-repository DQN row is contextual, not a literature-wide baseline claim.](figures/rl_f1_dense_targets.png)
+![Figure 1 -- Dense-control target construction on LunarLander-v3.  Bars show robust evaluation return, defined per seed as the mean of the final three evaluation points; error bars show standard error across seeds.  The DQN row is a constrained local comparator, not a literature-wide baseline claim.](figures/rl_f1_dense_targets.png)
 
 Figure 1 is the central dense-control figure.  The one-step
 bootstrapped target is strongly negative on LunarLander-v3:
@@ -321,11 +347,11 @@ dense-control headline: an analytic fixed-feature agent can solve this
 continuous-state dense-control task when the target matrix is constructed
 as a stable return regression problem.
 
-The in-repository DQN context row reaches $129.3 \pm 21.7$ robust return,
+The constrained DQN context row reaches $129.3 \pm 21.7$ robust return,
 $149.6 \pm 14.0$ final return, and $196.3 \pm 14.1$ best return.  We do
 not treat this as a broad statement about DQN.  It says that within the
-same codebase, seed policy, and evaluation protocol, the final analytic
-configuration is the stronger local row.
+same runner, seed policy, episode budget, and evaluation protocol, the
+final analytic configuration is the stronger local row.
 
 ### §4.2 — Learning curves
 
@@ -335,7 +361,7 @@ The learning curves in Figure 2 show that the final NEF-FQI row is not a
 single lucky peak.  Its mean evaluation return climbs into the solved
 regime and remains near or above it through the last evaluations.  The
 DQN context row improves substantially but remains lower and more
-variable late in training.
+variable late in training under this constrained local protocol.
 
 This matters because `best_eval` alone would be a poor metric for the
 paper.  An RL run can briefly find a good policy and then lose it.  The
@@ -531,8 +557,8 @@ they identify target instability, target absence, insufficient goal
 handles, or an overly restrictive successor readout.
 
 The paper does not claim that fixed-feature analytic RL generally beats
-deep RL.  The DQN row is an in-repository context row, not a survey of DQN
-practice.  It does not claim that successor features solve sparse reward
+deep RL.  The DQN row is a constrained local comparator, not a survey of DQN
+practice or a tuned external baseline.  It does not claim that successor features solve sparse reward
 in general.  MiniGrid remains negative without a goal handle, and
 MountainCar needed the more expensive full-successor/random-direction
 variant.  It does not claim that widening fixed features automatically
