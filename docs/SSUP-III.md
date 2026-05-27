@@ -29,10 +29,10 @@ evaluation (`best_eval` $=499.4 \pm 0.6$).  A baseline DQN implementation
 evaluated under the exact same protocol reaches $129.3 \pm 21.7$ on
 LunarLander-v3.  In sparse
 control, target construction is the result: a full-successor
-random-direction mechanism improves MountainCar-v0 to
-$-158.8 \pm 1.4$ at 2000 neurons, and a 6000-neuron directional
-known-goal readout gives a stable Acrobot-v1 signal
-($-194.9 \pm 10.4$ robust, $-132.1 \pm 6.1$ best) when successor
+random-direction mechanism breaks the flat MountainCar-v0 floor but does
+not solve the environment, reaching $-158.8 \pm 1.4$ at 2000 neurons, and
+a 6000-neuron directional known-goal readout gives a stable Acrobot-v1
+signal ($-194.9 \pm 10.4$ robust, $-132.1 \pm 6.1$ best) when successor
 statistics are retained slowly enough.  The boundary rows explain the
 conditions rather than replacing the headline: one-step bootstrapped TD
 collapses on LunarLander-v3 ($-123.8 \pm 13.1$), the cheaper directional

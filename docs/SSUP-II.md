@@ -1297,9 +1297,10 @@ value-function estimation.  Where this paper showed that the
 data-stream axis has length zero for fixed-feature static CL, Paper
 III asks when the target-stream axis also has length zero in the same
 primitive.  The answer is conditional: a stable non-bootstrapped target
-supports LunarLander-v3, full-successor target construction supports
-MountainCar-v0, and directional successor readout supports Acrobot-v1,
-while one-step bootstrap targets and mismatched sparse readouts fail.
+supports LunarLander-v3, full-successor target construction breaks
+MountainCar-v0's flat floor without solving the environment, and
+directional successor readout supports Acrobot-v1, while one-step
+bootstrap targets and mismatched sparse readouts fail.
 
 ---
 

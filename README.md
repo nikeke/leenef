@@ -91,12 +91,14 @@ Paper III abstract:
 > the target matrix $Y$ is constructed to match the control problem.  In
 > dense control, a non-bootstrapped $100$-step NEF-FQI configuration reaches
 > $201.3 \pm 9.8$ robust return on LunarLander-v3 over 10 seeds, crossing
-> the common 200-return solved threshold under our evaluation protocol; the
-> same analytic control path reaches near-perfect CartPole-v1 best
-> evaluation (`best_eval` $=499.4 \pm 0.6$).  An in-repository DQN context row reaches
-> $129.3 \pm 21.7$ on LunarLander-v3 under the same protocol.  In sparse
+> the common 200-return solved threshold under the evaluation protocol used
+> here; the same analytic control path reaches near-perfect CartPole-v1 best
+> evaluation (`best_eval` $=499.4 \pm 0.6$).  A baseline DQN implementation
+> evaluated under the exact same protocol reaches $129.3 \pm 21.7$ on
+> LunarLander-v3.  In sparse
 > control, target construction is the result: a full-successor
-> random-direction mechanism improves MountainCar-v0 to
+> random-direction mechanism breaks the flat MountainCar-v0 floor but does
+> not solve the environment, reaching
 > $-158.8 \pm 1.4$ at 2000 neurons, and a 6000-neuron directional
 > known-goal readout gives a stable Acrobot-v1 signal
 > ($-194.9 \pm 10.4$ robust, $-132.1 \pm 6.1$ best) when successor
