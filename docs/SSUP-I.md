@@ -318,7 +318,7 @@ statistics.  The relevant cases for Paper I:
   property is latent.  It is what lets the same NEF feature
   bank predict, for example, both a digit class and a
   foreground-to-background ratio in one fit, and is exploited
-  heavily by the per-action FQI of Paper III.
+  heavily by the per-action action-value regression of Paper III.
 
 The central negative result is the one composition the primitive
 does *not* support cleanly:
@@ -1073,19 +1073,21 @@ supervised label, and the per-action decomposition (FQI; Ernst
 et al., 2005; successor features; Barreto et al., 2017) is again
 just additive sufficient statistics.  Paper III turns this from
 speculation into a bounded result.  With a stable non-bootstrapped
-target, the analytic control head reaches $201.3 \pm 9.8$ robust
-return on LunarLander-v3 over 10 seeds; with sparse rewards, a
-full-successor random-direction readout breaks MountainCar-v0's
-flat floor without solving the environment ($-158.8 \pm 1.4$),
-while a known-goal directional readout gives a stable Acrobot-v1
-signal of $-194.9 \pm 10.4$ robust return and $-132.1 \pm 6.1$
-best return.  The negative rows matter just as much: one-step TD
-bootstrap collapses on LunarLander, the cheaper directional
-MountainCar readout stays flat, and cosine-normalized MountainCar
-successor readouts stay at $-200.0 \pm 0.0$.  Paper III therefore
-supports the paper-series spine without claiming a universal control
-algorithm: the same sufficient-statistics object can support RL when
-target construction is stable, informative, and task-matched.
+target, the NEF-AVR control head reaches $201.3 \pm 9.8$ robust
+return on LunarLander-v3 over 10 seeds, crossing the informal
+200-return reference line under Paper III's evaluation protocol;
+with sparse rewards, a full-successor random-direction readout
+breaks MountainCar-v0's flat floor without solving the environment
+($-158.8 \pm 1.4$), while a known-goal directional readout gives a
+stable Acrobot-v1 signal of $-194.9 \pm 10.4$ robust return and
+$-132.1 \pm 6.1$ best return.  The negative rows matter just as
+much: one-step TD bootstrap collapses on LunarLander, the cheaper
+directional MountainCar readout stays flat, and cosine-normalized
+MountainCar successor readouts stay at $-200.0 \pm 0.0$.  Paper
+III therefore supports the paper-series spine without claiming a
+universal control algorithm: the same sufficient-statistics object
+can support RL when target construction is stable, informative, and
+task-matched.
 
 ### A bridge to gradient-trained networks
 

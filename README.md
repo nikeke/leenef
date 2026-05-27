@@ -89,10 +89,11 @@ Paper III abstract:
 > $D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$, can be used as
 > a compact sufficient-statistics primitive for reinforcement learning when
 > the target matrix $Y$ is constructed to match the control problem.  In
-> dense control, a non-bootstrapped $100$-step NEF-FQI configuration reaches
-> $201.3 \pm 9.8$ robust return on LunarLander-v3 over 10 seeds, crossing
-> the common 200-return solved threshold under the evaluation protocol used
-> here; the same analytic control path reaches near-perfect CartPole-v1 best
+> dense control, a non-bootstrapped $100$-step NEF action-value regression
+> (NEF-AVR) configuration reaches $201.3 \pm 9.8$ robust return on
+> LunarLander-v3 over 10 seeds, crossing the informal 200-return reference
+> line under the evaluation protocol used here; the same analytic control
+> path reaches near-perfect CartPole-v1 best
 > evaluation (`best_eval` $=499.4 \pm 0.6$).  A baseline DQN implementation
 > evaluated under the exact same protocol reaches $129.3 \pm 21.7$ on
 > LunarLander-v3.  In sparse

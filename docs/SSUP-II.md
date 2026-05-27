@@ -1296,9 +1296,10 @@ independent column groups of $A^\top Y$.  This makes the same
 value-function estimation.  Where this paper showed that the
 data-stream axis has length zero for fixed-feature static CL, Paper
 III asks when the target-stream axis also has length zero in the same
-primitive.  The answer is conditional: a stable non-bootstrapped target
-supports LunarLander-v3, full-successor target construction breaks
-MountainCar-v0's flat floor without solving the environment, and
+primitive.  The answer is conditional: a stable non-bootstrapped NEF-AVR
+target crosses the informal 200-return reference line on LunarLander-v3
+under Paper III's evaluation protocol, full-successor target construction
+breaks MountainCar-v0's flat floor without solving the environment, and
 directional successor readout supports Acrobot-v1, while one-step
 bootstrap targets and mismatched sparse readouts fail.
 
