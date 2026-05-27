@@ -356,7 +356,8 @@ The constrained DQN context row reaches $129.3 \pm 21.7$ robust return,
 $149.6 \pm 14.0$ final return, and $196.3 \pm 14.1$ best return.  We do
 not treat this as a broad statement about DQN.  It says that within the
 same runner, seed policy, episode budget, and evaluation protocol, the
-final analytic configuration is the stronger local row.
+final analytic configuration is the higher-return row in this local
+comparison.
 
 ### §4.2 — Learning curves
 
@@ -365,7 +366,7 @@ final analytic configuration is the stronger local row.
 The learning curves in Figure 2 show that the final NEF-FQI row is not a
 single lucky peak.  Its mean evaluation return climbs into the solved
 regime and remains near or above it through the last evaluations.  The
-DQN context row improves substantially but remains lower and more
+constrained DQN row improves substantially but remains lower and more
 variable late in training under this constrained local protocol.
 
 This matters because `best_eval` alone would be a poor metric for the
@@ -555,18 +556,20 @@ without changing the mathematical object being audited.
 The paper makes three positive claims.  First, fixed-feature analytic
 control can solve dense-control tasks when the return target is stable
 enough for a global least-squares solve: LunarLander-v3 crosses the common
-200-return solved threshold under our evaluation protocol, and CartPole-v1
-reaches near-perfect best evaluation as a sanity check.  Second,
-sparse-control progress is possible inside the same sufficient-statistics interface when
-successor or goal-conditioned targets make $A^\top Y$ informative before
-the sparse reward has propagated.  Third, the failures are diagnostic:
-they identify target instability, target absence, insufficient goal
-handles, or an overly restrictive successor readout.
+200-return solved threshold under the evaluation protocol used here, and
+CartPole-v1 reaches near-perfect best evaluation as a sanity check.
+Second, sparse-control progress is possible inside the same
+sufficient-statistics interface when successor or goal-conditioned targets
+make $A^\top Y$ informative before the sparse reward has propagated.
+Third, the failures are diagnostic: they identify target instability,
+target absence, insufficient goal handles, or an overly restrictive
+successor readout.
 
 The paper does not claim that fixed-feature analytic RL generally beats
-deep RL.  The DQN row is a constrained local comparator, not a survey of DQN
-practice or a tuned external baseline.  It does not claim that successor features solve sparse reward
-in general.  MiniGrid remains negative without a goal handle, and
+deep RL.  The DQN row is a constrained local comparator, not a survey of
+DQN practice or a tuned external baseline.  It does not claim that
+successor features solve sparse reward in general.  MiniGrid remains
+negative without a goal handle, and
 MountainCar needed the more expensive full-successor/random-direction
 variant.  It does not claim that widening fixed features automatically
 helps sparse control.  On MountainCar, 6000 full-successor neurons cost
@@ -650,13 +653,13 @@ experiments.
 The reinforcement-learning part of the SSUP series shows that the
 analytic fixed-feature primitive can be used successfully for control.
 With stable non-bootstrapped return targets, NEF-FQI crosses the common
-200-return solved threshold on LunarLander-v3 under our evaluation
-protocol, reaching $201.3 \pm 9.8$ robust return over 10 seeds, and
-reaches near-perfect best evaluation on CartPole-v1.  With successor and goal-conditioned targets, the same
-sufficient-statistics interface produces useful sparse-control signal:
-MountainCar-v0 improves under the full-successor random-direction
-mechanism, and Acrobot-v1 improves under a memory-reduced directional
-readout with slow statistic retention.
+200-return solved threshold on LunarLander-v3 under the evaluation
+protocol used here, reaching $201.3 \pm 9.8$ robust return over 10 seeds,
+and reaches near-perfect best evaluation on CartPole-v1.  With successor and
+goal-conditioned targets, the same sufficient-statistics interface
+produces useful sparse-control signal: MountainCar-v0 breaks the flat
+$-200$ floor but is not solved, and Acrobot-v1 improves under a
+memory-reduced directional readout with slow statistic retention.
 
 The conditions are as important as the positives.  Dense control works
 when $Y$ is stable enough for a global least-squares solve; one-step
@@ -666,15 +669,19 @@ hindsight-style targets make $A^\top Y$ informative before reward is
 common; it does not work by merely adding width, and it does not work
 without a usable goal handle or a readout matched to the task.
 
-This completes the series spine.  Paper I showed that fixed encoders plus
-an analytic decoder can be a useful supervised-learning primitive.  Paper
-II showed that, when target semantics are stable, task streams add into
-the same sufficient statistics without forgetting relative to the joint
-fixed-feature model.  Paper III shows that reinforcement learning is the
-case where the target matrix itself becomes the main design object.
-Supervised learning supplies labels; continual learning preserves label
-semantics across a stream; reinforcement learning must construct the
-target it wants the analytic solver to fit.
+Across the three papers, the same object keeps reappearing:
+$A^\top A$ records the geometry induced by fixed activities, and
+$A^\top Y$ records the task semantics those activities are asked to
+decode.  Paper I showed that this is already a useful supervised-learning
+primitive; Paper II showed that compatible task streams can add into the
+same statistics without forgetting relative to the joint fixed-feature
+model; Paper III shows that reinforcement learning is the case where the
+target block itself becomes the main design object.  Supervised learning
+supplies labels, continual learning preserves label semantics across a
+stream, and reinforcement learning must construct the target it wants the
+analytic solver to fit.  That is the series' bounded claim: sufficient
+statistics are not a universal answer, but they are a compact and auditable
+interface for asking exactly where the learning problem lives.
 
 ---
 
