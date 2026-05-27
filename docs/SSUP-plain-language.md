@@ -35,6 +35,22 @@ formula.  The extra neurons would be redundant.  The absolute value folds space
 at many data-centered locations, so a final linear readout can combine many
 folded distance measurements into a piecewise-linear decision rule.
 
+This is essentially different from gradient descent.  In a gradient-trained
+network, learning changes the measuring device itself: every batch can slightly
+move the internal directions, thresholds, and downstream weights so that future
+measurements are different from past ones.  That flexibility is powerful, and
+is why deep networks can learn excellent internal features, but it also means
+the training history is stored diffusely in many parameters.  In the analytic
+fixed-feature view, the measuring device is chosen first and then held still.
+Learning does not move the neurons; it only records how the fixed measurements
+co-varied with the desired targets and solves the best linear readout.  The
+advantage is clarity: adding more data means adding to $A^\top A$ and
+$A^\top Y$, and the final solve has no learning-rate schedule, no sequence of
+small steps, and no hidden parameter drift.  The cost is that the fixed
+measurements must already be good enough.  Gradient methods can improve the
+representation while learning; this method audits what can be done when the
+representation is fixed and only the task readout changes.
+
 **Paper I: supervised learning.**  The first paper asks what this primitive
 can do in the ordinary setting where each input comes with a known target, such
 as an image label.  The method is a rate-based specialization of the Neural
