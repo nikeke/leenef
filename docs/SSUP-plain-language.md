@@ -21,6 +21,20 @@ merged, updated online, or split by action.  The series calls this the
 "sufficient statistics as a universal primitive" view.  The word "universal"
 is deliberately tested rather than assumed.
 
+A useful picture is that each fixed neuron asks one simple geometric question.
+Choose a training example $d_i$ and a direction $e_i$, like drawing an arrow
+through that example.  For a new input $x$, the neuron measures how far $x$ has
+moved away from $d_i$ along that arrow, and then forgets the sign:
+$a_i = |g_i e_i \cdot (x - d_i)|$.  The gain $g_i$ just changes the ruler's
+scale.  One such measurement is weak.  Thousands of them form an
+over-representation: many more simple measurements than the input dimension
+strictly requires.  This only helps because of the nonlinearity, here the
+absolute value.  If the neuron kept the signed linear measurement, then any
+linear readout of many neurons would collapse back into one ordinary linear
+formula.  The extra neurons would be redundant.  The absolute value folds space
+at many data-centered locations, so a final linear readout can combine many
+folded distance measurements into a piecewise-linear decision rule.
+
 **Paper I: supervised learning.**  The first paper asks what this primitive
 can do in the ordinary setting where each input comes with a known target, such
 as an image label.  The method is a rate-based specialization of the Neural
