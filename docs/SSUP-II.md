@@ -1287,18 +1287,19 @@ keeping the sufficient-statistics interface intact.
 ### Bridge to Paper III
 
 Paper III takes the same primitive into reinforcement learning.
-The algebra continues to apply: the targets matrix $Y$ becomes
-a bootstrap target matrix $Y_t = R_t + \gamma \, V_\theta(S_{t+1})$
-(or the per-action analog), and the per-action decomposition is
-once again a partition into independent column groups of
-$A^\top Y$.  This makes the same `partial_fit` /
-`solve_accumulated` machinery available for value-function
-estimation.  Where this paper showed that the data-stream axis
-has length zero for fixed-feature static CL, Paper III asks when the
-target-stream axis also has length zero in the same primitive.  A
-separate research line has the primitive working on classic dense-
-reward control benchmarks already; the sparse-reward variants are still
-uncertain.
+The algebra continues to apply: the targets matrix $Y$ becomes a
+return, an $n$-step target, a bootstrap target
+$Y_t = R_t + \gamma \, V_\theta(S_{t+1})$, or a successor target,
+and the per-action decomposition is once again a partition into
+independent column groups of $A^\top Y$.  This makes the same
+`partial_fit` / `solve_accumulated` machinery available for
+value-function estimation.  Where this paper showed that the
+data-stream axis has length zero for fixed-feature static CL, Paper
+III asks when the target-stream axis also has length zero in the same
+primitive.  The answer is conditional: a stable non-bootstrapped target
+supports LunarLander-v3, full-successor target construction supports
+MountainCar-v0, and directional successor readout supports Acrobot-v1,
+while one-step bootstrap targets and mismatched sparse readouts fail.
 
 ---
 

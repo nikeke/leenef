@@ -399,6 +399,81 @@ def figure_f9() -> Path:
     return out
 
 
+def _static_cell_stats(rows: list[dict], keep_fn) -> tuple[float, float, float]:
+    vals = [(100 * _metric(r), float(r.get("wall_time_s", 0.0))) for r in rows if keep_fn(r)]
+    accs = [v[0] for v in vals]
+    walls = [v[1] for v in vals]
+    return mean(accs), _se(accs), mean(walls)
+
+
+def _b4_best_static(ds: str) -> tuple[str, float, float, float]:
+    rows = _load_rows(RESULTS / f"b4_mlp_{ds}_panel.json")
+    per_cell: dict[str, list[dict]] = defaultdict(list)
+    for r in rows:
+        per_cell[r.get("config", {}).get("cell", "?")].append(r)
+    means = {
+        cell: mean(100 * _metric(r) for r in cell_rows) for cell, cell_rows in per_cell.items()
+    }
+    best_cell = max(means, key=means.get)
+    acc, se, wall = _static_cell_stats(
+        rows, lambda r: r.get("config", {}).get("cell") == best_cell
+    )
+    return best_cell, acc, se, wall
+
+
+def figure_f_static_wall() -> Path:
+    """Figure 7-style wall-clock/accuracy view for the static MLP comparator."""
+
+    panels = [
+        ("MNIST", "mnist", (96.5, 98.5)),
+        ("Fashion-MNIST", "fashion", (87.0, 90.0)),
+        ("CIFAR-10", "cifar10", (48.5, 56.0)),
+    ]
+
+    fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.3))
+    for ax, (title, ds, ylim) in zip(axes, panels):
+        points: list[tuple[str, float, float, float, str, str]] = []
+
+        rows = _load_rows(RESULTS / f"biases_{ds}_panel.json")
+        acc, se, wall = _static_cell_stats(
+            rows,
+            lambda r: (
+                _factors(r).get("bias_mode") == "data_driven"
+                and _factors(r).get("encoder_strategy") == "hypersphere"
+            ),
+        )
+        points.append(("NEF hypersphere", wall, acc, se, "o", "C0"))
+
+        if ds == "cifar10":
+            rf_rows = _load_rows(RESULTS / "b3_strategies_cifar10_panel.json")
+            acc, se, wall = _static_cell_stats(
+                rf_rows, lambda r: _factors(r).get("encoder_strategy") == "receptive_field"
+            )
+            points.append(("NEF receptive field", wall, acc, se, "D", "C2"))
+
+        best_cell, acc, se, wall = _b4_best_static(ds)
+        points.append((f"MLP {best_cell}", wall, acc, se, "^", "C3"))
+
+        wall_times = [p[1] for p in points]
+        for label, wall, acc, se, marker, color in points:
+            ax.errorbar(wall, acc, yerr=se, marker=marker, color=color, capsize=3)
+            ax.text(wall * 1.06, acc, label, fontsize=8, va="center")
+
+        ax.set_xscale("log")
+        ax.set_xlim(min(wall_times) / 1.2, max(wall_times) * 1.8)
+        ax.set_title(title)
+        ax.set_xlabel("wall-clock time per seed (s, CPU)")
+        ax.set_ylim(*ylim)
+        ax.grid(True, which="both", alpha=0.3)
+    axes[0].set_ylabel("test accuracy (%)")
+    fig.suptitle("Figure 8b — Static classifier speed/accuracy trade-off")
+    out = FIG_DIR / "f8b_static_wall_accuracy.png"
+    fig.tight_layout()
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    return out
+
+
 # ------------------------------------------------------------------ F8
 def figure_f8() -> Path:
     """Streaming-NEF + ESN + LSTM on row vs permuted sMNIST."""
@@ -602,6 +677,7 @@ FIGURES = {
     "F6": figure_f8,
     "F7": figure_f_wall,
     "F8": figure_f9,
+    "F8B": figure_f_static_wall,
 }
 
 

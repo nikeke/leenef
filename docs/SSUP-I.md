@@ -916,6 +916,8 @@ gradient-trained MLP cell in the tuned grid:
 
 ![The MLP comparison is encoder-dependent. Generic hypersphere leenef trails on MNIST, Fashion-MNIST, and raw CIFAR-10, while the receptive-field prior reverses the CIFAR-10 gap.](figures/f8_mlp_comparator.png)
 
+![Figure-7-style wall-clock time versus accuracy for the static MLP comparator.  The generic hypersphere NEF points trade lower accuracy for much shorter fits on MNIST and Fashion-MNIST; the CIFAR-10 receptive-field point improves both accuracy and wall-clock time relative to the tuned MLP.](figures/f8b_static_wall_accuracy.png)
+
 | dataset | leenef cell | best MLP cell | Δ | end-to-end wall-clock time (s/seed) | wall-clock ratio |
 |---------|------------------|---------------|---:|---------------|-----------------:|
 | MNIST | hypersphere · 97.08 ± 0.04 % | d=1, w=512, lr $3 \cdot 10^{-3}$ · **98.10 ± 0.08 %** | +1.0 pp MLP | NEF $\approx 5$ / MLP $\approx 58$ | NEF uses **~12× less** |
@@ -1066,18 +1068,23 @@ owns the algorithmic claim.
 ### Reinforcement learning: a forward look
 
 The same accumulator handles harder targets.  $Y$ becomes a
-bootstrap target rather than a label, and the per-action
-decomposition (NEF Successor Features; Barreto et al., 2017,
-and FQI; Ernst et al., 2005) is again just
-additive sufficient statistics.  A separate sparse-reward
-research line shows the primitive carrying real signal on
-classic dense-reward control benchmarks, with mixed results
-on sparse Acrobot (a successor-feature variant clears the
-random-policy floor on a third of seeds) and a still-open
-problem on sparse MountainCar (the current mechanisms do not
-discover the goal event).  Paper III develops these and we
-mention them here only to make the paper series' shared spine
-visible.
+return, an $n$-step target, or a successor target rather than a
+supervised label, and the per-action decomposition (FQI; Ernst
+et al., 2005; successor features; Barreto et al., 2017) is again
+just additive sufficient statistics.  Paper III turns this from
+speculation into a bounded result.  With a stable non-bootstrapped
+target, the analytic control head reaches $201.3 \pm 9.8$ robust
+return on LunarLander-v3 over 10 seeds; with sparse rewards, a
+full-successor random-direction readout improves MountainCar-v0
+to $-158.8 \pm 1.4$, while a known-goal directional readout gives
+a stable Acrobot-v1 signal of $-194.9 \pm 10.4$ robust return and
+$-132.1 \pm 6.1$ best return.  The negative rows matter just as
+much: one-step TD bootstrap collapses on LunarLander, the cheaper
+directional MountainCar readout stays flat, and cosine-normalized
+MountainCar successor readouts stay at $-200.0 \pm 0.0$.  Paper
+III therefore supports the paper-series spine without claiming a
+universal control algorithm: the same sufficient-statistics object
+can support RL when target construction is stable and task-matched.
 
 ### A bridge to gradient-trained networks
 
