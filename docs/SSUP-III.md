@@ -135,8 +135,9 @@ $A_a^\top A_a$ and $A_a^\top Y_a$.  The per-action partition is just a
 block structure over decoder columns.
 
 This connects directly to older fixed-basis and least-squares RL methods:
-FQI, LSTD (Bradtke and Barto, 1996), LSPI (Lagoudakis and Parr, 2003),
-recursive least-squares control, and random-feature value approximation
+FQI, LSTD (Bradtke and Barto, 1996), LSPE (Nedić and Bertsekas, 2003),
+LSPI (Lagoudakis and Parr, 2003), recursive least-squares control, and
+random-feature value approximation (for example Geramifard et al., 2013)
 all exploit versions of the same normal-equation structure.  The claim
 here is not that least-squares value fitting is new.  The claim is that
 within the SSUP series, RL exposes the missing half of the primitive:
@@ -161,7 +162,11 @@ is about to be replaced, the update can chase its own moving fixed point.
 This is why the dense-control method in §3 uses completed-trajectory
 targets rather than one-step TD targets.  Monte-Carlo and long
 $n$-step returns are not magic; they are simply less self-referential
-targets for a solver that likes stable regression problems.
+targets for a solver that likes stable regression problems.  Iterative
+least-squares policy evaluation methods such as LSPE attack the related
+fixed-point problem from the other direction: they keep the bootstrap
+target structure but project the update iteratively rather than replacing
+the value function with a single abrupt global solve.
 
 ### §2.3 — Sparse reward can make $Y$ absent
 
@@ -171,10 +176,10 @@ that case $A^\top Y$ accurately records the data and still contains
 almost no useful control signal.  A bigger encoder does not solve a
 missing target.
 
-Successor features (Dayan, 1993; Barreto et al., 2017) are attractive in
-this setting because they move part of the problem from immediate reward
-to predicted future occupancy.  For feature vector $\phi(s)$, a
-successor target has the form
+Successor features (Dayan, 1993; Barreto et al., 2017; Borsa et al.,
+2018) are attractive in this setting because they move part of the
+problem from immediate reward to predicted future occupancy.  For feature
+vector $\phi(s)$, a successor target has the form
 
 $$
 \psi_t = \sum_{k=0}^{H-1} \gamma^k \phi(s_{t+k}),
@@ -238,11 +243,11 @@ The dense result section includes four kinds of rows.
 2. **Target-construction ablation.**  LunarLander rows compare one-step
    TD-style bootstrapping with Monte-Carlo and $n$-step non-bootstrap
    targets.
-3. **Constrained DQN context.**  A matched-seed DQN row provides local
-   context for the scale of the LunarLander result under this repository's
-   runner and compute budget.  It is a small two-hidden-layer replay DQN,
-   not a tuned external implementation and not a claim about all DQN
-   implementations or hyperparameter budgets.
+3. **Constrained DQN context.**  A matched-seed DQN row (Mnih et al.,
+   2015) provides local context for the scale of the LunarLander result
+   under this repository's runner and compute budget.  It is a small
+   two-hidden-layer replay DQN, not a tuned external implementation and
+   not a claim about all DQN implementations or hyperparameter budgets.
 4. **Ensemble closure.**  Three-member Thompson and voting variants test
    whether the ensemble story from Paper I carries over to dense control.
    It mostly does not.
@@ -467,10 +472,12 @@ family the agent can represent.
 The sparse line also produced useful negative results.
 
 First, hindsight/evaluation-goal machinery is not a dense-control default.
-On dense LunarLander at 2000 neurons it hurts rather than helps.  That is
-what the target-construction view predicts: if the task already provides
-a shaped dense return, replacing it with sparse-goal machinery is not
-obviously helpful.
+Hindsight relabeling is designed for sparse goal-conditioned learning
+(Andrychowicz et al., 2017), not as a substitute for an already shaped
+dense return.  On dense LunarLander at 2000 neurons it hurts rather than
+helps.  That is what the target-construction view predicts: if the task
+already provides a shaped dense return, replacing it with sparse-goal
+machinery is not obviously helpful.
 
 Second, MiniGrid DoorKey-5x5 remained flat without a programmatic
 goal-observation handle.  This is not surprising.  If the environment
@@ -818,3 +825,62 @@ headline claims.  This appendix collects them in one place.
   seeds, while the original dot-product readout reproduced the
   $-158.8 \pm 1.4$ positive.  The working MountainCar readout uses
   successor magnitude as part of the signal.
+
+---
+
+## Literature
+
+Andrychowicz, M., Wolski, F., Ray, A., Schneider, J., Fong, R.,
+Welinder, P., McGrew, B., Tobin, J., Abbeel, P., & Zaremba, W. (2017).
+Hindsight experience replay. *NeurIPS*.
+
+Barreto, A., Dabney, W., Munos, R., Hunt, J. J., Schaul, T., van
+Hasselt, H., & Silver, D. (2017). Successor features for transfer in
+reinforcement learning. *NeurIPS*.
+
+Bellemare, M. G., Srinivasan, S., Ostrovski, G., Schaul, T., Saxton, D.,
+& Munos, R. (2016). Unifying count-based exploration and intrinsic
+motivation. *NeurIPS*.
+
+Borsa, D., Barreto, A., Quan, J., Mankowitz, D. J., van Hasselt, H.,
+Munos, R., Silver, D., & Schaul, T. (2018). Universal successor features
+approximators. *arXiv:1812.07626*.
+
+Bradtke, S. J., & Barto, A. G. (1996). Linear least-squares algorithms
+for temporal difference learning. *Machine Learning*, 22(1-3), 33-57.
+
+Burda, Y., Edwards, H., Storkey, A., & Klimov, O. (2019). Exploration by
+random network distillation. *ICLR*.
+
+Dayan, P. (1993). Improving generalization for temporal difference
+learning: The successor representation. *Neural Computation*, 5(4),
+613-624.
+
+Eliasmith, C., & Anderson, C. H. (2003). *Neural Engineering:
+Computation, Representation, and Dynamics in Neurobiological Systems*.
+MIT Press.
+
+Ernst, D., Geurts, P., & Wehenkel, L. (2005). Tree-based batch mode
+reinforcement learning. *Journal of Machine Learning Research*, 6,
+503-556.
+
+Geramifard, A., Walsh, T. J., Tellex, S., Chowdhary, G., Roy, N., & How,
+J. P. (2013). Representation expansion for reinforcement learning.
+*AAAI*.
+
+Lagoudakis, M. G., & Parr, R. (2003). Least-squares policy iteration.
+*Journal of Machine Learning Research*, 4, 1107-1149.
+
+Mnih, V., Kavukcuoglu, K., Silver, D., Rusu, A. A., Veness, J.,
+Bellemare, M. G., Graves, A., Riedmiller, M., Fidjeland, A. K.,
+Ostrovski, G., Petersen, S., Beattie, C., Sadik, A., Antonoglou, I.,
+King, H., Kumaran, D., Wierstra, D., Legg, S., & Hassabis, D. (2015).
+Human-level control through deep reinforcement learning. *Nature*,
+518, 529-533.
+
+Nedić, A., & Bertsekas, D. P. (2003). Least squares policy evaluation
+algorithms with linear function approximation. *Discrete Event Dynamic
+Systems*, 13, 79-110.
+
+Werbos, P. J. (1990). Backpropagation through time: what it does and how
+to do it. *Proceedings of the IEEE*, 78(10), 1550-1560.
