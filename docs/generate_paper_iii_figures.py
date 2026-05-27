@@ -74,7 +74,7 @@ def figure_f1_dense_targets() -> Path:
         ("MC\nno bootstrap", bootstrap["lunar_mc_no_bootstrap"], "C1"),
         ("n-step\nno bootstrap", bootstrap["lunar_nstep_no_bootstrap"], "C0"),
         ("DQN\ncontext", dqn["lunar_dqn_256x2"], "C7"),
-        ("NEF-FQI\nfinal", final["lunar_nef_final"], "C2"),
+        ("NEF-AVR\nfinal", final["lunar_nef_final"], "C2"),
         ("Thompson\nensemble", ensemble["lunar_ensemble_thompson3"], "C4"),
         ("Voting\nensemble", ensemble["lunar_ensemble_voting3"], "C5"),
     ]
@@ -101,12 +101,12 @@ def figure_f1_dense_targets() -> Path:
 
 
 def figure_f2_dense_learning_curves() -> Path:
-    """Learning curves for final NEF-FQI and DQN context."""
+    """Learning curves for final NEF-AVR and DQN context."""
 
     final = _groups(_load(DENSE / "lunar_final.json"))["lunar_nef_final"]
     dqn = _groups(_load(DENSE / "lunar_dqn.json"))["lunar_dqn_256x2"]
     fig, ax = plt.subplots(figsize=(8.4, 4.8))
-    _plot_history(ax, final, label="NEF-FQI final", color="C2")
+    _plot_history(ax, final, label="NEF-AVR final", color="C2")
     _plot_history(ax, dqn, label="DQN context", color="C7")
     ax.axhline(0, color="black", linewidth=0.7, alpha=0.45)
     ax.axhline(200, color="black", linewidth=0.7, linestyle="--", alpha=0.45)
@@ -220,7 +220,7 @@ def figure_f4_sparse_curves_and_cost() -> Path:
     for x, value, se in zip(xs, vals, ses):
         ax.text(x, value + se + 2, f"{value:.1f}s", ha="center", va="bottom", fontsize=8)
 
-    fig.suptitle("MountainCar needs full-successor behavior structure, not width")
+    fig.suptitle("MountainCar needs full-successor target structure, not width")
     out = FIG_DIR / "rl_f4_sparse_curves_cost.png"
     fig.tight_layout()
     fig.savefig(out, dpi=150)

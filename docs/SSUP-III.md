@@ -20,11 +20,11 @@ activities,
 $D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$, can be used as
 a compact sufficient-statistics primitive for reinforcement learning when
 the target matrix $Y$ is constructed to match the control problem.  In
-dense control, a non-bootstrapped $100$-step NEF-FQI configuration reaches
-$201.3 \pm 9.8$ robust return on LunarLander-v3 over 10 seeds, crossing
-the common 200-return solved threshold under the evaluation protocol used
-here; the
-same analytic control path reaches near-perfect CartPole-v1 best
+dense control, a non-bootstrapped $100$-step NEF action-value regression
+(NEF-AVR) configuration reaches $201.3 \pm 9.8$ robust return on
+LunarLander-v3 over 10 seeds, crossing the informal 200-return reference
+line under the evaluation protocol used here; the same analytic control
+path reaches near-perfect CartPole-v1 best
 evaluation (`best_eval` $=499.4 \pm 0.6$).  A baseline DQN implementation
 evaluated under the exact same protocol reaches $129.3 \pm 21.7$ on
 LunarLander-v3.  In sparse
@@ -200,10 +200,11 @@ changes is what gets accumulated into $A^\top Y$.
 
 ## §3 — Methods
 
-### §3.1 — Fixed-feature NEF-FQI
+### §3.1 — Fixed-feature NEF action-value regression
 
 The dense-control agent uses a single fixed NEF activity map over states.
-For each action $a$, it maintains sufficient statistics
+We call the headline dense variant **NEF action-value regression
+(NEF-AVR)**: for each action $a$, it maintains sufficient statistics
 
 $$
 G_a = A_a^\top A_a,\qquad h_a = A_a^\top y_a.
@@ -229,17 +230,20 @@ $$
 Y_t^{(n)} = \sum_{k=0}^{n-1} \gamma^k r_{t+k},
 $$
 
-truncated at episode termination.  In this implementation we do not add a
-bootstrap term at the $n$-step boundary for the headline dense row.  The
-point is to make $Y$ a completed-return object rather than a moving
-function of the current decoder.
+truncated at episode termination.  NEF-AVR shares the per-action fitted
+value structure of FQI, but the headline target is a Monte-Carlo /
+long-return variant rather than a standard one-step Bellman-backup target.
+In this implementation we do not add a bootstrap term at the $n$-step
+boundary for the headline dense row.  The point is to make $Y$ a
+completed-return object rather than a moving function of the current
+decoder.
 
 ### §3.2 — Dense-control comparators and closure checks
 
 The dense result section includes four kinds of rows.
 
 1. **CartPole sanity.**  A cheap dense-reward task verifies that the
-   analytic control path can solve a classic control problem.
+   analytic control path passes an easier classic-control sanity check.
 2. **Target-construction ablation.**  LunarLander rows compare one-step
    TD-style bootstrapping with Monte-Carlo and $n$-step non-bootstrap
    targets.
@@ -335,7 +339,7 @@ LunarLander-v3.
 
 ### §4.1 — LunarLander is a target-stability result
 
-![Figure 1 -- Dense-control target construction on LunarLander-v3.  Bars show robust evaluation return, defined per seed as the mean of the final three evaluation points; error bars show standard error across seeds.  The DQN row is a constrained local comparator, not a literature-wide baseline claim.](figures/rl_f1_dense_targets.png)
+![Figure 1 -- Dense-control target construction on LunarLander-v3.  Bars show robust evaluation return, defined per seed as the mean of the final three evaluation points; error bars show standard error across seeds.  The target-ablation rows use 5 seeds; the final NEF-AVR, constrained DQN, and ensemble rows use 10, 10, and 3 seeds respectively.  The DQN row is a constrained local comparator, not a literature-wide baseline claim.](figures/rl_f1_dense_targets.png)
 
 Figure 1 is the central dense-control figure.  The one-step
 bootstrapped target is strongly negative on LunarLander-v3:
@@ -344,13 +348,13 @@ non-bootstrapped $n$-step targets are still not the final agent in this
 small ablation, but they move the problem out of the collapsed regime
 ($-67.7 \pm 32.3$ and $-38.4 \pm 18.0$ respectively).
 
-The final NEF-FQI row, after matching target horizon and representation
+The final NEF-AVR row, after matching target horizon and representation
 capacity, reaches $201.3 \pm 9.8$ over 10 seeds, with final evaluation
 $210.0 \pm 8.4$ and best evaluation $216.2 \pm 9.9$.  The result clears
 the informal 200-return reference line on the robust metric.  This is the
-dense-control headline: an analytic fixed-feature agent can solve this
-continuous-state dense-control task when the target matrix is constructed
-as a stable return regression problem.
+dense-control headline: an analytic fixed-feature agent reaches this
+reference region on a continuous-state dense-control task when the target
+matrix is constructed as a stable return regression problem.
 
 The constrained DQN context row reaches $129.3 \pm 21.7$ robust return,
 $149.6 \pm 14.0$ final return, and $196.3 \pm 14.1$ best return.  We do
@@ -363,16 +367,17 @@ comparison.
 
 ![Figure 2 -- Dense-control learning curves on LunarLander-v3.  Lines show mean evaluation return over 10 seeds; bands show standard error.](figures/rl_f2_dense_learning_curves.png)
 
-The learning curves in Figure 2 show that the final NEF-FQI row is not a
-single lucky peak.  Its mean evaluation return climbs into the solved
-regime and remains near or above it through the last evaluations.  The
-constrained DQN row improves substantially but remains lower and more
-variable late in training under this constrained local protocol.
+The learning curves in Figure 2 show that the final NEF-AVR row is not a
+single lucky peak.  Its mean evaluation return climbs to the 200-return
+reference region and remains near or above it through the last
+evaluations.  The constrained DQN row improves substantially but remains
+lower and more variable late in training under this constrained local
+protocol.
 
 This matters because `best_eval` alone would be a poor metric for the
 paper.  An RL run can briefly find a good policy and then lose it.  The
 robust metric asks whether the agent is still good at the end of the run.
-For the final NEF-FQI row, the answer is yes.  For the small target
+For the final NEF-AVR row, the answer is yes.  For the small target
 ablation rows, the answer is not yet; for the bootstrapped TD row, the
 answer is clearly no.
 
@@ -381,9 +386,7 @@ answer is clearly no.
 CartPole-v1 is not a headline task, but it is a useful sanity check.  The
 NEF Monte-Carlo agent reaches robust evaluation $409.0 \pm 20.4$ over 10
 seeds, final evaluation $428.4 \pm 19.0$, and best evaluation
-$499.4 \pm 0.6$.  The control path is therefore not merely exploiting a
-quirk of LunarLander; it can solve an easier dense-control benchmark as
-expected.
+$499.4 \pm 0.6$.  This passes an easier dense-control sanity check.
 
 The ensemble rows are more useful as a boundary.  A three-member Thompson
 ensemble reaches $200.0 \pm 12.8$ robust return over 3 seeds, essentially
@@ -395,25 +398,29 @@ make exploration and policy selection better.
 
 ### §4.4 — Dense-control read
 
-The dense-control lesson is simple but important: analytic value fitting
-is not hostile to RL, but it is hostile to unstable targets.  A closed
-form solve is a very strong optimizer of the regression problem it is
-given.  If the target matrix is a moving bootstrap target, it can optimize
-the wrong moving object.  If the target matrix is built from completed
-long-horizon returns, the same machinery becomes a competent FQI agent.
+The dense-control lesson is simple but important: in this global-solve
+configuration, immediately self-referential bootstrap targets are harmful.
+A closed form solve is a very strong optimizer of the regression problem
+it is given.  If the target matrix is a moving bootstrap target, it can
+optimize the wrong moving object.  If the target matrix is built from
+completed long-horizon returns, the same machinery becomes competent on
+the tested dense-control tasks.
 
 ---
 
 ## §5 — Sparse-control results
 
-### §5.1 — Sparse reward is target absence
+### §5.1 — Sparse reward as target absence
 
-The sparse-reward results start from a negative observation.  Plain
-fixed-feature FQI can be perfectly faithful to the observed data and
-still learn almost nothing when the reward rarely fires.  The sufficient
-statistic $A^\top Y$ is then small, flat, or absent.  In that regime,
-"more neurons" is not the first answer.  The first answer is to make
-useful target structure available.
+The sparse-reward results start from a negative observation.  In the
+tested fixed-feature accumulator, plain fixed-feature action-value
+regression can be perfectly faithful to the observed data and still learn
+almost nothing when the reward rarely fires.  The sufficient statistic
+$A^\top Y$ is then small, flat, or absent.  This does not exhaust sparse
+RL difficulty: exploration and credit assignment still matter.  It says
+where the SSUP primitive sees the problem.  In that regime, "more neurons"
+is not the first answer.  The first answer is to make useful target
+structure available.
 
 The sparse experiments therefore evaluate successor features, hindsight
 goals, evaluation-goal readouts, and novelty as target-construction
@@ -422,13 +429,13 @@ They produce two positives and one important boundary.
 
 ### §5.2 — MountainCar and Acrobot need different readouts
 
-![Figure 3 -- Sparse-control target construction on MountainCar-v0 and Acrobot-v1.  MountainCar improves under the full-successor random-direction mechanism but not under the cheaper known-goal directional readout.  Acrobot shows the complementary directional-readout positive, with a clear retention boundary between forget factors.](figures/rl_f3_sparse_results.png)
+![Figure 3 -- Sparse-control target construction on MountainCar-v0 and Acrobot-v1.  MountainCar breaks the flat floor under the full-successor random-direction mechanism but not under the cheaper known-goal directional readout.  Acrobot shows the complementary directional-readout positive, with a clear retention boundary between forget factors.  The MountainCar rows use 10 seeds; the Acrobot retention scan uses 5 seeds for $0.999$ and $0.9995$, and 10 seeds for $0.9999$.](figures/rl_f3_sparse_results.png)
 
-MountainCar-v0 is the clearest example of sparse reward as target
-absence.  The known-goal directional shortcut at 6000 neurons remains
-almost flat: robust evaluation is $-197.0 \pm 1.7$ over 10 seeds.  The
-full-successor random-direction mechanism restores the positive result:
-at 2000 neurons it reaches $-158.8 \pm 1.4$, with final evaluation
+MountainCar-v0 is the clearest example of sparse reward as target absence
+in this accumulator.  The known-goal directional shortcut at 6000 neurons
+remains almost flat: robust evaluation is $-197.0 \pm 1.7$ over 10 seeds.
+The full-successor random-direction mechanism produces a non-flat control
+signal: at 2000 neurons it reaches $-158.8 \pm 1.4$, with final evaluation
 $-151.3 \pm 2.1$ and best evaluation $-149.4 \pm 3.3$.  Widening the
 same full-successor mechanism to 6000 neurons gives essentially the same
 robust return, $-158.4 \pm 4.8$, with higher variance.
@@ -443,23 +450,24 @@ choice matters: at $0.999$ the robust return is $-296.6 \pm 28.5$ over 5
 seeds, while $0.9995$ and $0.9999$ are near the stable regime
 ($-190.6 \pm 7.0$ and $-184.2 \pm 5.8$ in the five-seed scan).
 
-The result is more interesting than a single leaderboard row.  Acrobot
-can use a known-goal directional readout; MountainCar needs the richer
-full-successor random-direction behavior.  Both statements are target
-construction statements.
+The result is more interesting than a single leaderboard row.  These
+sparse rows are diagnostic target-construction results, not competitive
+sparse-RL benchmark claims.  Acrobot can use a known-goal directional
+readout; MountainCar needs the richer full-successor random-direction
+behavior.  Both statements are target construction statements.
 
 ### §5.3 — Widening is not the sparse answer
 
-![Figure 4 -- MountainCar-v0 sparse learning curves and GPU row times.  The full-successor 2000-neuron mechanism is stable and cheap; widening to 6000 neurons costs much more without improving robust return.](figures/rl_f4_sparse_curves_cost.png)
+![Figure 4 -- MountainCar-v0 sparse learning curves and GPU row times.  The full-successor 2000-neuron mechanism gives a stable non-flat signal over 10 seeds; widening to 6000 neurons costs much more without improving robust return.](figures/rl_f4_sparse_curves_cost.png)
 
 Figure 4 separates two questions that are easy to confuse.  The first is
-whether the full-successor mechanism works on MountainCar.  It does: both
-the 2000-neuron and 6000-neuron variants move far above the flat
-directional row.  The second is whether increasing width is the right way
-to improve the sparse result.  In this panel, it is not.  The 6000-neuron
-full-successor row takes $119.0$ seconds per seed on the GPU, compared
-with $20.8$ seconds for the 2000-neuron row, and does not improve the
-robust metric.
+whether the full-successor mechanism gives a non-flat MountainCar signal.
+It does: both the 2000-neuron and 6000-neuron variants move far above the
+flat directional row.  The second is whether increasing width is the right
+way to improve the sparse result.  In this panel, it is not.  The
+6000-neuron full-successor row takes $119.0$ seconds per seed on the GPU,
+compared with $20.8$ seconds for the 2000-neuron row, and does not improve
+the robust metric.
 
 This is the operational boundary of full successor features.  The full
 matrix readout preserves post-hoc goal flexibility, but it carries an
@@ -481,9 +489,9 @@ already provides a shaped dense return, replacing it with sparse-goal
 machinery is not obviously helpful.
 
 Second, MiniGrid DoorKey-5x5 remained flat without a programmatic
-goal-observation handle.  This is not surprising.  If the environment
-does not expose a goal representation that the successor readout can use,
-then the target-construction mechanism has no clear direction to project.
+goal-observation handle.  Under the observation wrapper and goal-vector
+construction used here, the agent had no clean goal vector to project
+onto, so the target-construction mechanism had no clear direction to use.
 
 Third, toy sparse-chain diagnostics showed that evaluation-goal projection
 can fail when action horizons differ enough for successor-vector magnitude
@@ -491,7 +499,7 @@ to dominate direction.  We tested the obvious alternative on MountainCar:
 normalize either the full successor vector or the future increment
 $\psi(s,a)-\phi(s)$ before the goal projection.  Both normalized readouts
 were completely flat over 10 seeds ($-200.0 \pm 0.0$ robust return),
-while the original dot-product readout reproduced the positive
+while the original dot-product readout reproduced the non-flat
 $-158.8 \pm 1.4$ result.  Magnitude is therefore not merely a nuisance in
 the working MountainCar mechanism; it carries task-relevant temporal
 structure.
@@ -499,14 +507,16 @@ structure.
 ### §5.5 — Sparse-control read
 
 The sparse-control story is not "successor features solve sparse RL."  It
-is more conditional and more useful.  Sparse reward fails by leaving the
-target matrix uninformative.  Successor features, hindsight goals, novelty
-signals, and evaluation-goal readouts can make the target informative
-before extrinsic reward has propagated.  But the readout has to match the
-task.  MountainCar needed full-successor random-direction behavior.
-Acrobot worked with known-goal directional readout and long statistic
-retention.  MiniGrid still needs a goal handle.  These are not exceptions
-to the SSUP story; they are exactly where the story places the burden.
+is more conditional and more useful.  In the SSUP view, sparse reward
+fails by leaving the target matrix uninformative unless exploration and
+target construction expose usable signal.  Successor features, hindsight
+goals, novelty signals, and evaluation-goal readouts can make the target
+informative before extrinsic reward has propagated.  But the readout has
+to match the task.  MountainCar needed full-successor random-direction
+behavior.  Acrobot worked with known-goal directional readout and long
+statistic retention.  MiniGrid still needs a constructed goal handle.
+These are not exceptions to the SSUP story; they are exactly where the
+story places the burden.
 
 ---
 
@@ -536,13 +546,19 @@ the primitive fails cleanly and tells us where to work.
 
 ### §6.2 — Relationship to prior RL methods
 
-The dense-control agent is close in spirit to FQI and least-squares value
-iteration with fixed nonlinear bases.  The sparse-control agent is close
-to successor features, hindsight relabeling, and intrinsic exploration.
-This paper does not claim priority over those families.  The contribution
-is the unification inside a single sufficient-statistics interface and
-the empirical accounting of where that interface works or fails in our
-NEF implementation.
+The dense-control agent is close in spirit to FQI, neural fitted
+Q-iteration (NFQ; Riedmiller, 2005), least-squares value iteration with
+fixed nonlinear bases, and random-feature value approximation.  Standard
+deep-RL stabilizers such as target networks and replay (Mnih et al.,
+2015), Double DQN (van Hasselt et al., 2016), prioritized replay (Schaul
+et al., 2016), and dueling networks (Wang et al., 2016) address the same
+moving-target pressure from a different direction.  The sparse-control
+agent is close to successor features, goal-conditioned value functions
+and UVFA (Schaul et al., 2015), hindsight relabeling, and intrinsic
+exploration such as ICM (Pathak et al., 2017).  This paper does not claim
+priority over those families.  The contribution is the unification inside
+a single sufficient-statistics interface and the empirical accounting of
+where that interface works or fails in our NEF implementation.
 
 That unification is practically useful.  The same normal matrix that
 fits action values also supports leverage-style novelty.  The same
@@ -554,10 +570,10 @@ without changing the mathematical object being audited.
 ### §6.3 — Scope of the claims
 
 The paper makes three positive claims.  First, fixed-feature analytic
-control can solve dense-control tasks when the return target is stable
-enough for a global least-squares solve: LunarLander-v3 crosses the common
-200-return solved threshold under the evaluation protocol used here, and
-CartPole-v1 reaches near-perfect best evaluation as a sanity check.
+control can reach dense-control reference regions when the return target
+is stable enough for a global least-squares solve: LunarLander-v3 crosses
+the informal 200-return reference line under the evaluation protocol used
+here, and CartPole-v1 reaches near-perfect best evaluation as a sanity check.
 Second, sparse-control progress is possible inside the same
 sufficient-statistics interface when successor or goal-conditioned targets
 make $A^\top Y$ informative before the sparse reward has propagated.
@@ -574,6 +590,10 @@ MountainCar needed the more expensive full-successor/random-direction
 variant.  It does not claim that widening fixed features automatically
 helps sparse control.  On MountainCar, 6000 full-successor neurons cost
 about $5.7\times$ the 2000-neuron row and did not improve robust return.
+These are mechanism and target-construction results, not benchmark
+leaderboard claims; tuned standard RL implementations are the appropriate
+competitiveness reference for these classic-control environments and are
+expected to solve or strongly improve them under ordinary protocols.
 
 The positive claim and the boundary claim are the same claim viewed from
 opposite sides: analytic fixed-feature control is a target-construction
@@ -582,7 +602,7 @@ when the target is moving, absent, or mismatched to the task, it does not.
 
 ### §6.4 — Engineering boundary
 
-The dense NEF-FQI rows run comfortably on CPU.  The sparse successor rows
+The dense NEF-AVR rows run comfortably on CPU.  The sparse successor rows
 are different.  Full successor matrices scale quadratically in neuron
 count and linearly in the number of actions.  A 6000-neuron
 full-successor MountainCar row is feasible on a modern GPU, but the
@@ -630,8 +650,8 @@ Two more sparse-control extensions are natural but more environment-
 dependent.  One is **explicit goal-handle construction** for image or
 partially observed environments.  MiniGrid failed in the present evidence
 because the agent had no clean goal observation to project onto; a direct
-follow-up is to programmatically capture the observation at the goal cell
-and use that vector as the evaluation goal.  The other is **training-goal
+follow-up is to programmatically capture or construct a goal vector under
+that wrapper and use it as the evaluation goal.  The other is **training-goal
 augmentation**: mix the known evaluation-goal direction into the hindsight
 goal buffer during training, rather than using it only at evaluation.  On
 Acrobot this may reduce seed variance; on MountainCar it tests whether
@@ -652,10 +672,10 @@ experiments.
 
 The reinforcement-learning part of the SSUP series shows that the
 analytic fixed-feature primitive can be used successfully for control.
-With stable non-bootstrapped return targets, NEF-FQI crosses the common
-200-return solved threshold on LunarLander-v3 under the evaluation
-protocol used here, reaching $201.3 \pm 9.8$ robust return over 10 seeds,
-and reaches near-perfect best evaluation on CartPole-v1.  With successor and
+With stable non-bootstrapped return targets, NEF-AVR crosses the informal
+200-return reference line on LunarLander-v3 under the evaluation protocol
+used here, reaching $201.3 \pm 9.8$ robust return over 10 seeds, and
+reaches near-perfect best evaluation on CartPole-v1.  With successor and
 goal-conditioned targets, the same sufficient-statistics interface
 produces useful sparse-control signal: MountainCar-v0 breaks the flat
 $-200$ floor but is not solved, and Acrobot-v1 improves under a
@@ -697,7 +717,7 @@ Artifact paths in this appendix are relative to that repository.
 Dense-control JSONs and logs are under `results/rl_paper/dense/`.  The
 used files are [CartPole sanity](../results/rl_paper/dense/cartpole_sanity.json),
 [LunarLander target ablation](../results/rl_paper/dense/bootstrap_lunar.json),
-[final NEF-FQI](../results/rl_paper/dense/lunar_final.json),
+[final NEF-AVR](../results/rl_paper/dense/lunar_final.json),
 [DQN context](../results/rl_paper/dense/lunar_dqn.json), and
 [ensemble closure](../results/rl_paper/dense/ensemble_lunar.json).
 
@@ -730,6 +750,12 @@ context where available.  The dense rows also preserve logs under
 `results/rl_paper/dense/logs/`.  Some Colab executions were preserved as JSON
 without full cell-output logs; the statistical claims in this draft use
 the JSON rows, not console-only output.
+
+The artifacts record environment names and runner configuration, but they
+do not preserve a full package lockfile.  The runners instantiate
+Gymnasium environments by name with default environment parameters (for
+example `gymnasium.make("LunarLander-v3")`, which uses the Box2D task
+defaults for that installed Gymnasium version).
 
 The seed policy follows the runner convention:
 
@@ -781,6 +807,14 @@ artifacts rather than manuscript claims.  The important reproducibility
 contract is that numeric claims are tied to code identity, seed policy,
 configuration, and per-seed JSON rows.
 
+The constrained DQN comparator configuration is preserved in
+`benchmarks/run_rl_paper_dense.py` and in
+`results/rl_paper/dense/lunar_dqn.json`.  The row uses a two-hidden-layer
+replay DQN with hidden width 256, Adam at learning rate $10^{-3}$, replay
+buffer size 50000, batch size 64, target-network update interval 10,
+$\gamma = 0.98$, and the same 1000-episode / 20-evaluation-episode
+LunarLander protocol as the final NEF-AVR row.
+
 ---
 
 ## Appendix B — Negative and boundary results
@@ -821,7 +855,8 @@ headline claims.  This appendix collects them in one place.
   setting we tested.  Sparse target construction is not a dense-control
   default.
 - **MiniGrid DoorKey-5x5.**  Without a programmatic goal-observation
-  handle, the random-direction sparse mechanism remains flat.  The method
+  handle under the observation wrapper and goal-vector construction used
+  here, the random-direction sparse mechanism remains flat.  The method
   needs a target direction it can actually express.
 - **SparseChain diagnostic.**  Successor-feature novelty helps the harder
   chain, but evaluation-goal projection can fail when successor-vector
@@ -829,7 +864,7 @@ headline claims.  This appendix collects them in one place.
 - **MountainCar-v0 normalized successor readouts.**  The direct follow-up
   to the SparseChain diagnostic did not improve MountainCar.  Cosine and
   future-cosine readouts both stayed flat at $-200.0 \pm 0.0$ over 10
-  seeds, while the original dot-product readout reproduced the
+  seeds, while the original dot-product readout reproduced the non-flat
   $-158.8 \pm 1.4$ positive.  The working MountainCar readout uses
   successor magnitude as part of the signal.
 
@@ -875,9 +910,6 @@ Geramifard, A., Walsh, T. J., Tellex, S., Chowdhary, G., Roy, N., & How,
 J. P. (2013). Representation expansion for reinforcement learning.
 *AAAI*.
 
-Lagoudakis, M. G., & Parr, R. (2003). Least-squares policy iteration.
-*Journal of Machine Learning Research*, 4, 1107-1149.
-
 Mnih, V., Kavukcuoglu, K., Silver, D., Rusu, A. A., Veness, J.,
 Bellemare, M. G., Graves, A., Riedmiller, M., Fidjeland, A. K.,
 Ostrovski, G., Petersen, S., Beattie, C., Sadik, A., Antonoglou, I.,
@@ -885,9 +917,33 @@ King, H., Kumaran, D., Wierstra, D., Legg, S., & Hassabis, D. (2015).
 Human-level control through deep reinforcement learning. *Nature*,
 518, 529-533.
 
+Lagoudakis, M. G., & Parr, R. (2003). Least-squares policy iteration.
+*Journal of Machine Learning Research*, 4, 1107-1149.
+
 Nedić, A., & Bertsekas, D. P. (2003). Least squares policy evaluation
 algorithms with linear function approximation. *Discrete Event Dynamic
 Systems*, 13, 79-110.
+
+Pathak, D., Agrawal, P., Efros, A. A., & Darrell, T. (2017).
+Curiosity-driven exploration by self-supervised prediction. *ICML
+Workshops*.
+
+Riedmiller, M. (2005). Neural fitted Q iteration -- first experiences
+with a data efficient neural reinforcement learning method. *European
+Conference on Machine Learning*.
+
+Schaul, T., Horgan, D., Gregor, K., & Silver, D. (2015). Universal value
+function approximators. *ICML*.
+
+Schaul, T., Quan, J., Antonoglou, I., & Silver, D. (2016). Prioritized
+experience replay. *ICLR*.
+
+van Hasselt, H., Guez, A., & Silver, D. (2016). Deep reinforcement
+learning with double Q-learning. *AAAI*.
+
+Wang, Z., Schaul, T., Hessel, M., van Hasselt, H., Lanctot, M., & de
+Freitas, N. (2016). Dueling network architectures for deep reinforcement
+learning. *ICML*.
 
 Werbos, P. J. (1990). Backpropagation through time: what it does and how
 to do it. *Proceedings of the IEEE*, 78(10), 1550-1560.
