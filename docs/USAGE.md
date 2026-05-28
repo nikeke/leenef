@@ -22,28 +22,36 @@ The core package depends on PyTorch, torchvision, and scikit-learn.  Benchmark
 and paper-generation dependencies are optional and are not needed for ordinary
 library use.
 
-## Choosing a method
+## Choosing and configuring a method
 
-Use the `leenef-recommend` helper for a conservative starting point:
+The first decision is whether your task is static, sequential, continual, or
+control-oriented.  The second is whether the fixed feature map is likely to
+contain the structure you need.  If not, prefer better encoders or a front end
+before simply increasing neuron count.
 
-```bash
-leenef-recommend supervised --input-kind image
-leenef-recommend temporal --input-kind sequence --gpu
-leenef-recommend continual --input-kind image
-leenef-recommend rl --gpu
-```
-
-The main choices are:
-
-| Situation | Start with | Why |
+| Situation | Start with | Conservative configuration |
 |---|---|---|
-| Static classification or regression | `NEFLayer` | fixed encoders plus one analytic decoder solve |
-| Image data with local structure | `NEFLayer(..., encoder_strategy="receptive_field")` or `ConvNEFPipeline` | gives the fixed features spatial locality |
-| Ensembles | `NEFEnsemble` | averages independent feature banks |
-| Sequence classification | `StreamingNEFClassifier` | delay-line windows plus pooled analytic readout |
-| Continual class streams | `NEFLayer.partial_fit` + `solve_accumulated` | additive sufficient statistics match the joint fixed-feature solution |
-| Dense discrete-action RL | `NEFFQIAgent` | per-action analytic value regression |
-| Sparse RL research | `NEFSFAgent` | successor-feature targets expose sparse reward structure |
+| Static vector/tabular classification or regression | `NEFLayer` | `n_neurons=1000-5000`, `activation="abs"`, `encoder_strategy="hypersphere"`, `gain=(0.5, 2.0)`, `centers=x_train`, `alpha=(1e-3, "trace")` to match the SSUP static panels or `alpha=(1e-2, "trace")` as the API default |
+| Static image vectors | `NEFLayer` with receptive-field encoders | `n_neurons=5000`, `encoder_strategy="receptive_field"`, `encoder_kwargs={"image_shape": (H, W)}`, data-driven centers, trace-scaled alpha in the `1e-3` to `1e-2` range |
+| Harder visual tasks | `ConvNEFPipeline` | parallel PCA/conv stages, feature standardization, and a NEF head; use this before treating generic random encoders as a serious visual baseline |
+| Ensembles | `NEFEnsemble` | 5-20 members when wall-clock permits; use independent seeds and probability averaging unless you specifically need voting |
+| Sequence classification | `StreamingNEFClassifier` | `window_size=10`, `n_neurons=4000-8000`, data-driven centers, `alpha=(1e-4, "trace")`, and `accumulate(..., chunk_stats=True)` followed by `solve()` for large runs |
+| Continual class/task streams | `NEFLayer.partial_fit` + `solve_accumulated` | keep output columns stable, use `n_neurons=5000`, `centers_mode="first_task"` or representative centers, `alpha=(1e-3, "trace")`, and solve once after accumulating all task statistics |
+| Streaming continual sequences | `StreamingNEFClassifier.accumulate` | `window_size=10`, `n_neurons=4000+`, `alpha=(1e-4, "trace")`, chunked statistics, and GPU if available |
+| Dense discrete-action RL | `NEFFQIAgent` | research default: `target_mode="nstep"`, `n_step=100`, `n_neurons=6000`, `gamma=0.98`, `alpha=0.1`, `forget_factor=0.999`, `solve_every=10`; avoid one-step TD as the first target |
+| Sparse-reward RL research | `NEFSFAgent` | start with `n_neurons=2000`, task-matched successor or directional readout, explicit goal/hindsight structure, and `device="cuda"` for full-successor matrices when available |
+
+Alpha policy matters.  Normal-equation solves should use explicit
+`(value, "trace")` policies so the diagonal regularizer scales with the average
+activity energy.  Woodbury/update-inverse paths use fixed alpha because the
+cached inverse is parameterized by that exact diagonal value; do not change
+`fixed_alpha` mid-stream without `refresh_inverse()` or `reset_continuous()`.
+
+The root [`SKILL.md`](../SKILL.md) is a standard agent skill with YAML
+frontmatter and the same decision logic.  Install it by copying it as
+`SKILL.md` into your agent's skill directory.  Use it when you want an agent to
+inspect your data shape, task stream, hardware, and accuracy/speed constraints
+before proposing a configuration.
 
 ## Supervised learning
 
@@ -64,7 +72,7 @@ layer = NEFLayer(
     encoder_strategy="hypersphere",
     centers=x_train,
 )
-layer.fit(x_train, y_train, alpha=(1e-2, "trace"))
+layer.fit(x_train, y_train, alpha=(1e-3, "trace"))
 pred = layer(torch.randn(8, 20))
 ```
 

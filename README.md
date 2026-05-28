@@ -173,13 +173,8 @@ pip install -e '.[dev]'
 ```
 
 See [`docs/USAGE.md`](docs/USAGE.md) for the usage manual and
-[`SKILL.md`](SKILL.md) for method-selection guidance.  The installed
-`leenef-recommend` command prints conservative starting configurations:
-
-```bash
-leenef-recommend supervised --input-kind image
-leenef-recommend temporal --input-kind sequence --gpu
-```
+[`SKILL.md`](SKILL.md) for method-selection guidance that coding agents can
+install as a standard skill.
 
 ## Tests
 
