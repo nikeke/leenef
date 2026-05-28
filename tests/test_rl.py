@@ -202,3 +202,29 @@ def test_ensemble_warmup_broadcasts_one_environment_stream_to_all_members():
     assert env.action_space.seed_values == [10, 11, 12]
     assert all(member._episode == 3 for member in ensemble.members)
     assert all(int(member._n_accumulated.sum()) == 6 for member in ensemble.members)
+
+
+def test_nef_fqi_agent_respects_configured_device():
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    agent = NEFFQIAgent(
+        d_obs=2,
+        n_actions=2,
+        n_neurons=16,
+        target_mode="nstep",
+        forget_factor=0.9,
+        device=device,
+        seed=0,
+    )
+
+    assert agent.W.device.type == device
+    assert agent.W_target.device.type == device
+    assert agent.features.encoders.device.type == device
+
+    obs = np.array([0.0, 1.0], dtype=np.float32)
+    next_obs = np.array([1.0, 0.0], dtype=np.float32)
+    agent.update(obs, 1, 1.0, next_obs, done=True)
+    agent.solve()
+    q = agent.q_values(obs)
+
+    assert q.device.type == device
+    assert q.shape == (2,)

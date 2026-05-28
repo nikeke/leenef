@@ -444,6 +444,7 @@ class NEFFQIAgent:
         broadness: float = 1.0,
         activity_decay: float | None = None,
         features_kwargs: dict | None = None,
+        device: str | torch.device | None = None,
         seed: int = 0,
     ):
         valid_modes = ("mc", "td", "nstep", "eligibility", "differential")
@@ -474,6 +475,7 @@ class NEFFQIAgent:
         self.recenter_percentile = recenter_percentile
         self.recenter_min_relative = recenter_min_relative
         self.broadness = broadness
+        self.device = torch.device("cpu" if device is None else device)
         self.rng = np.random.default_rng(seed)
         self._torch_rng = torch.Generator().manual_seed(seed + 1)
 
@@ -482,7 +484,7 @@ class NEFFQIAgent:
             feat_kw["track_activations"] = True
             if activity_decay is not None:
                 feat_kw["activity_decay"] = activity_decay
-        self.features = NEFFeatures(d_obs, n_neurons, seed=seed, **feat_kw)
+        self.features = NEFFeatures(d_obs, n_neurons, seed=seed, device=self.device, **feat_kw)
 
         # Replay buffer (used only in non-RLS mode)
         self.buffer: list[tuple[np.ndarray, int, float, np.ndarray, bool]] = []
@@ -493,14 +495,25 @@ class NEFFQIAgent:
         self._episode_transitions: list[tuple[np.ndarray, int, float]] = []
 
         # Current Q-weights and target Q-weights (TD mode only)
-        self.W = torch.zeros(n_neurons, n_actions)
-        self.W_target = torch.zeros(n_neurons, n_actions)
+        self.W = torch.zeros(n_neurons, n_actions, device=self.device)
+        self.W_target = torch.zeros(n_neurons, n_actions, device=self.device)
 
         # RLS sufficient statistics (per-action, float64)
         if forget_factor is not None:
-            self._ata = torch.zeros(n_actions, n_neurons, n_neurons, dtype=torch.float64)
-            self._aty = torch.zeros(n_actions, n_neurons, dtype=torch.float64)
-            self._n_accumulated = torch.zeros(n_actions, dtype=torch.long)
+            self._ata = torch.zeros(
+                n_actions,
+                n_neurons,
+                n_neurons,
+                dtype=torch.float64,
+                device=self.device,
+            )
+            self._aty = torch.zeros(
+                n_actions,
+                n_neurons,
+                dtype=torch.float64,
+                device=self.device,
+            )
+            self._n_accumulated = torch.zeros(n_actions, dtype=torch.long, device=self.device)
             self._pending_stats: list[tuple[Tensor, Tensor, Tensor]] = []
 
         # Recent observations for recentering
@@ -509,8 +522,18 @@ class NEFFQIAgent:
 
         # Eligibility traces for streaming modes
         if target_mode in ("eligibility", "differential"):
-            self._eligibility = torch.zeros(n_actions, n_neurons, dtype=torch.float64)
-            self._aty_ep = torch.zeros(n_actions, n_neurons, dtype=torch.float64)
+            self._eligibility = torch.zeros(
+                n_actions,
+                n_neurons,
+                dtype=torch.float64,
+                device=self.device,
+            )
+            self._aty_ep = torch.zeros(
+                n_actions,
+                n_neurons,
+                dtype=torch.float64,
+                device=self.device,
+            )
             self._ep_features: list[tuple[Tensor, int]] = []
         if target_mode == "differential":
             self._reward_ema = 0.0
@@ -538,7 +561,7 @@ class NEFFQIAgent:
             return int(self.rng.integers(self.n_actions))
 
         with torch.no_grad():
-            s = torch.from_numpy(obs).float()
+            s = torch.from_numpy(obs).float().to(self.device)
             phi = self.features.encode(s)
             q = phi @ self.W
             return int(q.argmax().item())
@@ -546,7 +569,7 @@ class NEFFQIAgent:
     def q_values(self, obs: np.ndarray) -> Tensor:
         """Compute Q-values for all actions (no gradient)."""
         with torch.no_grad():
-            s = torch.from_numpy(obs).float()
+            s = torch.from_numpy(obs).float().to(self.device)
             phi = self.features.encode(s)
             return phi @ self.W
 
@@ -676,7 +699,7 @@ class NEFFQIAgent:
         AᵀA is deferred to episode end (batch matmul) for performance.
         Per-step eligibility and AᵀY updates are O(n_neurons × n_actions).
         """
-        phi = self.features.encode(torch.from_numpy(obs).float()).detach()
+        phi = self.features.encode(torch.from_numpy(obs).float().to(self.device)).detach()
         phi_f64 = phi.double()
 
         # Buffer features for batch AᵀA at episode end
@@ -749,11 +772,12 @@ class NEFFQIAgent:
         next_states = torch.tensor(
             np.array([t[3] for t in transitions]),
             dtype=torch.float32,
+            device=self.device,
         )
         with torch.no_grad():
             phi_next = self.features.encode(next_states)
             q_next = phi_next @ self.W
-            max_q = q_next.max(dim=1).values.numpy()
+            max_q = q_next.max(dim=1).values.cpu().numpy()
 
         G = 0.0
         episode_data: list[tuple[np.ndarray, int, float]] = []
@@ -771,9 +795,17 @@ class NEFFQIAgent:
 
     def _accumulate_episode(self, episode_data: list[tuple[np.ndarray, int, float]]) -> None:
         """Encode and queue an episode for deferred sufficient-stat accumulation."""
-        states = torch.tensor(np.array([t[0] for t in episode_data]), dtype=torch.float32)
-        actions = torch.tensor([t[1] for t in episode_data], dtype=torch.long)
-        targets = torch.tensor(np.array([t[2] for t in episode_data]), dtype=torch.float32)
+        states = torch.tensor(
+            np.array([t[0] for t in episode_data]),
+            dtype=torch.float32,
+            device=self.device,
+        )
+        actions = torch.tensor([t[1] for t in episode_data], dtype=torch.long, device=self.device)
+        targets = torch.tensor(
+            np.array([t[2] for t in episode_data]),
+            dtype=torch.float32,
+            device=self.device,
+        )
 
         with torch.no_grad():
             phi = self.features.encode(states)
@@ -820,7 +852,7 @@ class NEFFQIAgent:
             self._aty[a].addmv_(phi_a.T, y_a)
             self._n_accumulated[a] += n_action
 
-    def _solve_per_action(self, phi: Tensor, actions: np.ndarray, targets: Tensor) -> Tensor:
+    def _solve_per_action(self, phi: Tensor, actions: Tensor, targets: Tensor) -> Tensor:
         """Per-action analytical solve: w_a = (Φ_aᵀ Φ_a + αI)⁻¹ Φ_aᵀ y."""
         W_new = torch.zeros_like(self.W)
         phi_f64 = phi.double()
@@ -900,8 +932,10 @@ class NEFFQIAgent:
             batch = list(self.buffer)
 
         states = torch.tensor(np.array([t[0] for t in batch]), dtype=torch.float32)
-        actions = np.array([t[1] for t in batch])
-        values = torch.tensor(np.array([t[2] for t in batch]), dtype=torch.float32)
+        actions = torch.tensor([t[1] for t in batch], dtype=torch.long, device=self.device)
+        values = torch.tensor(
+            np.array([t[2] for t in batch]), dtype=torch.float32, device=self.device
+        )
 
         with torch.no_grad():
             phi = self.features.encode(states)
@@ -909,8 +943,14 @@ class NEFFQIAgent:
         if self.target_mode == "mc":
             self.W = self._solve_per_action(phi, actions, values)
         else:
-            next_states = torch.tensor(np.array([t[3] for t in batch]), dtype=torch.float32)
-            dones = torch.tensor(np.array([t[4] for t in batch]), dtype=torch.float32)
+            next_states = torch.tensor(
+                np.array([t[3] for t in batch]),
+                dtype=torch.float32,
+                device=self.device,
+            )
+            dones = torch.tensor(
+                np.array([t[4] for t in batch]), dtype=torch.float32, device=self.device
+            )
             with torch.no_grad():
                 phi_next = self.features.encode(next_states)
 
