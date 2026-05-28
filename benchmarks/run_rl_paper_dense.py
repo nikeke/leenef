@@ -32,7 +32,7 @@ from benchmarks.rl_repro import (
     training_seed,
     warmup_seed,
 )
-from leenef.rl import NEFFQIAgent, NEFFQIEnsemble
+from leenef.rl import NEFAVRAgent, NEFAVREnsemble
 
 RESULT_NAMESPACE = "rl_paper_dense"
 RUNNER_VERSION = "rl-paper-dense-v1"
@@ -52,7 +52,7 @@ FINAL_LUNAR_CONFIG = {
     "target_mode": "nstep",
     "n_step": 100,
     "forget_factor": 0.999,
-    "fqi_iters": 1,
+    "value_iters": 1,
     "tau": 0.3,
     "broadness": 0.0,
     "recenter_interval": None,
@@ -290,7 +290,7 @@ def train_agent(
 
 def _build_nef(env_name: str, config: dict[str, Any], seed: int):
     d_obs, n_actions = _env_shape(env_name)
-    return NEFFQIAgent(d_obs=d_obs, n_actions=n_actions, seed=seed, **config)
+    return NEFAVRAgent(d_obs=d_obs, n_actions=n_actions, seed=seed, **config)
 
 
 def _build_dqn(env_name: str, config: dict[str, Any], seed: int):
@@ -303,7 +303,7 @@ def _build_ensemble(env_name: str, config: dict[str, Any], seed: int):
     kwargs = dict(config)
     n_members = int(kwargs.pop("n_members"))
     explore_strategy = str(kwargs.pop("explore_strategy"))
-    return NEFFQIEnsemble(
+    return NEFAVREnsemble(
         d_obs=d_obs,
         n_actions=n_actions,
         n_members=n_members,
@@ -384,7 +384,7 @@ def phase_specs(phase: str, *, episodes: int | None = None) -> list[dict[str, An
                     "forget_factor": None,
                     "buffer_size": 50_000,
                     "solve_batch": 20_000,
-                    "fqi_iters": 1,
+                    "value_iters": 1,
                 },
             },
         ],
@@ -407,7 +407,7 @@ def phase_specs(phase: str, *, episodes: int | None = None) -> list[dict[str, An
                     "solve_every": 5,
                     "target_mode": "mc",
                     "forget_factor": 0.999,
-                    "fqi_iters": 1,
+                    "value_iters": 1,
                     "tau": 0.3,
                     "broadness": 0.0,
                     "recenter_interval": None,

@@ -21,9 +21,9 @@ seed):
 
 Variants:
 
-- ``nef_fqi`` — :class:`leenef.rl.NEFFQIAgent`, MC targets.  Plain
-  reward FQI; sees the +1 only when episodes terminate at the goal.
-  Sanity baseline.
+- ``nef_avr`` — :class:`leenef.rl.NEFAVRAgent`, MC targets.  Plain
+  reward action-value regression; sees the +1 only when episodes terminate
+  at the goal.  Sanity baseline.
 - ``nef_sf`` — :class:`leenef.rl_sf.NEFSFAgent`.  Successor decoder
   ``Ψ_a`` plus reward decoder ``w_a`` solved analytically; ``Q = Ψ·w``.
 - ``nef_sf_novelty`` — same as above with leverage novelty bonus
@@ -72,12 +72,12 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from leenef.rl import NEFFQIAgent
+from leenef.rl import NEFAVRAgent
 from leenef.rl_diag import SparseChainEnv
 from leenef.rl_sf import NEFSFAgent
 
 VARIANTS = (
-    "nef_fqi",
+    "nef_avr",
     "nef_sf",
     "nef_sf_novelty",
 )
@@ -95,8 +95,8 @@ def _make_agent(variant: str, *, n_neurons: int, gamma: float, seed: int):
         epsilon_decay=200,
         seed=seed,
     )
-    if variant == "nef_fqi":
-        return NEFFQIAgent(
+    if variant == "nef_avr":
+        return NEFAVRAgent(
             target_mode="mc",
             solve_every=10,
             **common,
@@ -171,7 +171,7 @@ def _eval_goal_greedy_correct(
     """Greedy policy under the eval_goal projection ``ψ(s,a)·u(φ(g*))``.
 
     Returns ``None`` for agents without a successor decoder (e.g. plain
-    NEFFQIAgent), and ``True`` iff RIGHT is greedy at every non-terminal
+    NEFAVRAgent), and ``True`` iff RIGHT is greedy at every non-terminal
     state for SF agents.  ``g*`` is the terminal-state observation.
     """
     if not hasattr(agent, "successor"):

@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import torch
 
-from leenef.rl import NEFFeatures, NEFFQIAgent, NEFFQIEnsemble
+from leenef.rl import NEFAVRAgent, NEFAVREnsemble, NEFFeatures
 
 
 def test_nef_features_are_seed_deterministic_and_preserve_global_rng():
@@ -45,7 +45,7 @@ def test_apply_broadness_uses_alive_mean_for_ema_stats():
 
 
 def test_nstep_returns_use_truncated_discounted_horizon():
-    agent = NEFFQIAgent(d_obs=2, n_actions=2, n_neurons=8, gamma=0.5, n_step=2)
+    agent = NEFAVRAgent(d_obs=2, n_actions=2, n_neurons=8, gamma=0.5, n_step=2)
     transitions = [
         (np.array([0.0, 0.0]), 0, 1.0),
         (np.array([1.0, 0.0]), 1, 2.0),
@@ -58,7 +58,7 @@ def test_nstep_returns_use_truncated_discounted_horizon():
 
 
 def test_lambda_returns_blend_bootstrap_and_mc_continuation():
-    agent = NEFFQIAgent(
+    agent = NEFAVRAgent(
         d_obs=2,
         n_actions=2,
         n_neurons=8,
@@ -79,7 +79,7 @@ def test_lambda_returns_blend_bootstrap_and_mc_continuation():
 
 
 def test_deferred_rls_accumulation_matches_per_episode_recurrence():
-    agent = NEFFQIAgent(
+    agent = NEFAVRAgent(
         d_obs=2,
         n_actions=3,
         n_neurons=8,
@@ -182,7 +182,7 @@ class _TinyEnv:
 
 def test_ensemble_warmup_broadcasts_one_environment_stream_to_all_members():
     env = _TinyEnv()
-    ensemble = NEFFQIEnsemble(
+    ensemble = NEFAVREnsemble(
         n_members=2,
         d_obs=2,
         n_actions=2,
@@ -204,9 +204,9 @@ def test_ensemble_warmup_broadcasts_one_environment_stream_to_all_members():
     assert all(int(member._n_accumulated.sum()) == 6 for member in ensemble.members)
 
 
-def test_nef_fqi_agent_respects_configured_device():
+def test_nef_avr_agent_respects_configured_device():
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    agent = NEFFQIAgent(
+    agent = NEFAVRAgent(
         d_obs=2,
         n_actions=2,
         n_neurons=16,

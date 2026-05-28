@@ -1,8 +1,8 @@
 """NEF-based reinforcement learning components.
 
 Provides :class:`NEFFeatures` (fixed random feature encoder with online
-state normalization), :class:`NEFFQIAgent` (Fitted Q-Iteration with
-analytical least-squares solve), and :class:`NEFFQIEnsemble` (ensemble
+state normalization), :class:`NEFAVRAgent` (action-value regression with
+analytical least-squares solve), and :class:`NEFAVREnsemble` (ensemble
 of agents for exploration via disagreement / Thompson sampling).
 
 The core idea: replace DQN's gradient-based Q-network updates with NEF's
@@ -343,8 +343,8 @@ class NEFFeatures:
         self.bias[indices] = -self._gain[indices] * dot
 
 
-class NEFFQIAgent:
-    """Fitted Q-Iteration with fixed random NEF features.
+class NEFAVRAgent:
+    """Action-value regression with fixed random NEF features.
 
     Supports five target modes:
 
@@ -386,7 +386,7 @@ class NEFFQIAgent:
         solve_every: solve frequency in episodes.
         solve_batch: subsample buffer to this size for solve (None = all).
         tau: Polyak averaging coefficient for target weights (TD mode).
-        fqi_iters: number of FQI iterations per solve (TD mode).
+        value_iters: number of value-iteration refits per solve (TD mode).
         target_mode: ``"mc"``, ``"td"``, ``"nstep"``, ``"eligibility"``,
             or ``"differential"``.
         td_lambda: λ for λ-returns in MC mode.  ``None`` or ``1.0``
@@ -432,7 +432,7 @@ class NEFFQIAgent:
         solve_every: int = 50,
         solve_batch: int | None = None,
         tau: float = 0.3,
-        fqi_iters: int = 1,
+        value_iters: int = 1,
         target_mode: str = "mc",
         td_lambda: float | None = None,
         forget_factor: float | None = None,
@@ -465,7 +465,7 @@ class NEFFQIAgent:
         self.solve_every = solve_every
         self.solve_batch = solve_batch
         self.tau = tau
-        self.fqi_iters = fqi_iters
+        self.value_iters = value_iters
         self.target_mode = target_mode
         self.td_lambda = td_lambda
         self.forget_factor = forget_factor
@@ -884,7 +884,7 @@ class NEFFQIAgent:
         """Solve for Q-weights from replay buffer or RLS statistics.
 
         In MC mode, targets are discounted returns — direct regression
-        with no bootstrapping.  In TD mode, runs FQI iterations with
+        with no bootstrapping.  In TD mode, runs value-iteration refits with
         target-weight bootstrap.
 
         When ``forget_factor`` is set, solves from accumulated
@@ -954,7 +954,7 @@ class NEFFQIAgent:
             with torch.no_grad():
                 phi_next = self.features.encode(next_states)
 
-            for _ in range(self.fqi_iters):
+            for _ in range(self.value_iters):
                 with torch.no_grad():
                     q_next = phi_next @ self.W_target
                     max_q_next = q_next.max(dim=1).values
@@ -1056,8 +1056,8 @@ class NEFFQIAgent:
         self.W_target.copy_(self.W)
 
 
-class NEFFQIEnsemble:
-    """Ensemble of NEFFQIAgents for exploration via disagreement.
+class NEFAVREnsemble:
+    """Ensemble of NEFAVRAgents for exploration via disagreement.
 
     Each member uses different random features (seeds) but trains on the
     same experience.  Diverse projections produce diverse Q estimates;
@@ -1082,7 +1082,7 @@ class NEFFQIEnsemble:
         ucb_coeff: coefficient for UCB exploration bonus (only used
             when ``explore_strategy="ucb"``).
         base_seed: starting seed; member *i* uses ``base_seed + i``.
-        **agent_kwargs: forwarded to each :class:`NEFFQIAgent`.
+        **agent_kwargs: forwarded to each :class:`NEFAVRAgent`.
     """
 
     def __init__(
@@ -1103,11 +1103,11 @@ class NEFFQIEnsemble:
         self.ucb_coeff = ucb_coeff
         self.rng = np.random.default_rng(base_seed)
 
-        self.members: list[NEFFQIAgent] = []
+        self.members: list[NEFAVRAgent] = []
         for i in range(n_members):
             kw = dict(agent_kwargs)
             kw["seed"] = base_seed + i
-            self.members.append(NEFFQIAgent(**kw))
+            self.members.append(NEFAVRAgent(**kw))
 
     def select_action(self, obs: np.ndarray) -> int:
         """Select action using ensemble exploration strategy.

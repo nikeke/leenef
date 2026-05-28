@@ -1,6 +1,6 @@
 """Sparse-reward toy-chain diagnostics harness.
 
-Runs both the plain :class:`NEFFQIAgent` and the new
+Runs both the plain :class:`NEFAVRAgent` and the new
 :class:`NEFSFAgent` on the deterministic :class:`SparseChainEnv` while
 logging the diagnostic surface from :mod:`leenef.rl_diag`.  Cheap (a
 few seconds) — intended as a smoke test for the diagnostic + SF stack
@@ -23,7 +23,7 @@ from typing import Any
 
 import torch
 
-from leenef.rl import NEFFQIAgent
+from leenef.rl import NEFAVRAgent
 from leenef.rl_diag import (
     SparseChainEnv,
     SparseRewardDiagnostics,
@@ -119,8 +119,8 @@ def main(argv=None):
 
     env = SparseChainEnv(n_states=args.n_states, max_steps=args.n_states * 4)
 
-    # FQI baseline
-    fqi = NEFFQIAgent(
+    # NEF-AVR baseline
+    avr = NEFAVRAgent(
         d_obs=1,
         n_actions=env.action_space.n,
         n_neurons=args.n_neurons,
@@ -134,13 +134,13 @@ def main(argv=None):
         solve_every=10,
         seed=args.seed,
     )
-    fqi_diag, fqi_eval = _run_agent("nef_fqi", fqi, env, args.episodes, seed=args.seed)
-    fqi_eval_history = [{"episode": i, "eval": v} for i, v in enumerate(fqi_eval)]
-    summary["nef_fqi"] = {
-        "diagnostics": fqi_diag.summary(),
-        "metrics": sparse_metric_summary(fqi_eval_history, threshold=0.5),
-        "eval_returns": fqi_eval,
-        "agent_stats": _agent_stats(fqi),
+    avr_diag, avr_eval = _run_agent("nef_avr", avr, env, args.episodes, seed=args.seed)
+    avr_eval_history = [{"episode": i, "eval": v} for i, v in enumerate(avr_eval)]
+    summary["nef_avr"] = {
+        "diagnostics": avr_diag.summary(),
+        "metrics": sparse_metric_summary(avr_eval_history, threshold=0.5),
+        "eval_returns": avr_eval,
+        "agent_stats": _agent_stats(avr),
     }
 
     # SF (+ optional novelty)

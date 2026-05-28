@@ -13,7 +13,7 @@ from .ensemble import NEFEnsemble
 from .layers import NEFLayer
 from .networks import NEFNetwork
 from .recurrent import RecurrentNEFLayer
-from .rl import NEFFeatures, NEFFQIAgent, NEFFQIEnsemble
+from .rl import NEFAVRAgent, NEFAVREnsemble, NEFFeatures
 from .rl_diag import (
     SparseChainEnv,
     SparseRewardDiagnostics,
@@ -36,8 +36,8 @@ __all__ = [
     "ConvNEFPipeline",
     "ConvNEFEnsemble",
     "NEFFeatures",
-    "NEFFQIAgent",
-    "NEFFQIEnsemble",
+    "NEFAVRAgent",
+    "NEFAVREnsemble",
     "NEFHindsightSFAgent",
     "NEFSFAgent",
     "NEFSuccessor",

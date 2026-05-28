@@ -7,7 +7,7 @@ Two analytical decoders share the existing :class:`NEFFeatures` encoder:
   ``ψ(s, a) ≈ Σ_k γ^k E[φ(s_{t+k}) | s_t = s, a_t = a]`` under the
   data-collection policy (truncated MC on features over a horizon of
   ``n_step``).  This is the "n-step return on φ" — same move that
-  resolved the FQI bootstrap dilemma in ``rl_notes.md`` §6, applied
+  resolved the NEF-AVR bootstrap dilemma in ``rl_notes.md`` §6, applied
   to features instead of rewards.
 
 - a **reward decoder** ``w_a`` per action mapping
@@ -16,7 +16,7 @@ Two analytical decoders share the existing :class:`NEFFeatures` encoder:
 Combined: ``Q(s, a) = ψ(s, a) · w_a = (φ(s) @ Ψ_a) · w_a``.
 
 Both decoders are obtained from the *same* sufficient-statistic
-machinery as :class:`NEFFQIAgent`: per-action ``AᵀA`` accumulators with
+machinery as :class:`NEFAVRAgent`: per-action ``AᵀA`` accumulators with
 optional RLS forgetting.  The new pieces are a per-action ``AᵀΦ``
 accumulator (right-hand side for ``Ψ_a``) and a per-action ``Aᵀr``
 accumulator (right-hand side for ``w_a``).  No bootstrapping; targets
@@ -24,7 +24,7 @@ are completed-trajectory truncated-MC sums.
 
 This module exposes :class:`NEFSuccessor`, the encoder + solver core,
 and :class:`NEFSFAgent`, a thin training-loop wrapper around it that
-mirrors :class:`NEFFQIAgent`'s public surface (``select_action`` /
+mirrors :class:`NEFAVRAgent`'s public surface (``select_action`` /
 ``update`` / ``q_values``).  The agent also implements the D2 leverage
 novelty bonus: an intrinsic reward
 ``r_int(s) = β · sqrt(φ(s)ᵀ (AᵀA + αI)⁻¹ φ(s))`` derived from the
@@ -61,7 +61,7 @@ class NEFSuccessor:
         n_neurons: number of encoding neurons.
         gamma: discount factor.
         alpha: Tikhonov regularization (trace-scaled, mirroring
-            :class:`NEFFQIAgent`).
+            :class:`NEFAVRAgent`).
         n_step: truncated successor horizon.  ``None`` means full MC
             over the episode.
         forget_factor: optional RLS β for exponentially-weighted
@@ -437,11 +437,11 @@ class NEFSuccessor:
 class NEFSFAgent:
     """Thin training-loop wrapper around :class:`NEFSuccessor`.
 
-    Mirrors :class:`NEFFQIAgent`'s public surface (``select_action`` /
+    Mirrors :class:`NEFAVRAgent`'s public surface (``select_action`` /
     ``update`` / ``q_values``) so it slots into the existing
     :mod:`benchmarks.run_rl` / :mod:`benchmarks.rl_repro` harnesses,
     but the value backbone is the per-action successor solve described
-    in :class:`NEFSuccessor` rather than per-action FQI.
+    in :class:`NEFSuccessor` rather than per-action action-value regression.
 
     Optional D2 leverage novelty bonus: when ``novelty_beta > 0``, an
     intrinsic reward
@@ -465,7 +465,7 @@ class NEFSFAgent:
         n_step: truncated successor horizon.
         forget_factor: optional RLS β.
         epsilon_start / epsilon_end / epsilon_decay: ε-greedy schedule
-            (same form as :class:`NEFFQIAgent`).
+            (same form as :class:`NEFAVRAgent`).
         solve_every: episodes between successor solves.  ``solve()``
             also refreshes the leverage-novelty inverse.
         novelty_beta: D2 intrinsic-reward coefficient (``0`` disables).
@@ -646,7 +646,7 @@ class NEFSFAgent:
     def warmup(self, *, env, n_episodes: int = 20, seed: int | None = None) -> None:
         """Random-policy warmup to seed Welford stats and prime sufficient stats.
 
-        Mirrors :meth:`NEFFQIAgent.warmup`.  After collecting random
+        Mirrors :meth:`NEFAVRAgent.warmup`.  After collecting random
         transitions, performs a single solve so the policy is
         immediately evaluable (no zero-Q random-tie window).
         """

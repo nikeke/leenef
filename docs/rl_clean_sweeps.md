@@ -1,6 +1,6 @@
 # Clean RL sweep namespace
 
-This document tracks the **post-audit clean restart** for NEF-FQI RL sweeps.
+This document tracks the **post-audit clean restart** for NEF-AVR RL sweeps.
 New reproducibility-sensitive sweep outputs must go to the clean namespace:
 
 - `results/rl_clean/`
@@ -274,7 +274,7 @@ confirms the post-clean-restart default as `gamma=0.98`, `n_step=100`,
 
 ## Future work
 
-The clean restart produced a reliable NEF-FQI configuration, but not yet a
+The clean restart produced a reliable NEF-AVR configuration, but not yet a
 standalone RL breakthrough claim. The most valuable next steps are those that
 test whether the analytic-decoder principle transfers or exposes a sharper
 advantage than a single LunarLander score.

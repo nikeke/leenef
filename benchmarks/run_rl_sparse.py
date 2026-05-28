@@ -1,8 +1,8 @@
-"""Sparse-reward benchmark driver for NEF-FQI vs NEF-SF (+ optional D2 novelty).
+"""Sparse-reward benchmark driver for NEF-AVR vs NEF-SF (+ optional D2 novelty).
 
 Wraps the existing :mod:`benchmarks.run_rl` training loop around the new
 :class:`leenef.rl_sf.NEFSFAgent`, so a single multi-seed call produces
-comparable JSON rows for ``nef_fqi``, ``nef_sf``, and ``nef_sf_novelty``
+comparable JSON rows for ``nef_avr``, ``nef_sf``, and ``nef_sf_novelty``
 on a target environment.  Reuses :mod:`benchmarks.rl_repro`'s seed
 policy (warmup_seed / training_seed / EVAL_SEED_BASE) verbatim.
 
@@ -10,7 +10,7 @@ Usage::
 
     python -u benchmarks/run_rl_sparse.py \\
         --env MountainCar-v0 --episodes 300 --seeds 0 1 2 \\
-        --variants nef_fqi nef_sf nef_sf_novelty \\
+        --variants nef_avr nef_sf nef_sf_novelty \\
         --output results/rl_sparse/mountaincar.json
 
 The base configuration is loaded from ``results/rl_clean/base_config.json``
@@ -41,7 +41,7 @@ from benchmarks.rl_repro import (
     training_seed,
     warmup_seed,
 )
-from leenef.rl import NEFFQIAgent
+from leenef.rl import NEFAVRAgent
 from leenef.rl_diag import (
     SparseRewardDiagnostics,
     leverage_stats,
@@ -51,7 +51,7 @@ from leenef.rl_diag import (
 from leenef.rl_sf import NEFHindsightSFAgent, NEFSFAgent
 
 VARIANTS = (
-    "nef_fqi",
+    "nef_avr",
     "nef_sf",
     "nef_sf_novelty",
     "nef_sf_hindsight",
@@ -115,18 +115,18 @@ def _build_agent(
 ):
     """Construct an agent of the given variant from the rl_clean base config.
 
-    NEF-SF reuses the FQI hyperparameters that map to its own surface
+    NEF-SF reuses the NEF-AVR hyperparameters that map to its own surface
     (n_neurons, gamma, alpha, n_step, forget_factor, solve_every,
     epsilon schedule).  Mode-specific knobs (target_mode, broadness,
-    fqi_iters, recenter_interval, tau) are dropped silently for SF.
+    value_iters, recenter_interval, tau) are dropped silently for SF.
     """
-    if variant == "nef_fqi":
+    if variant == "nef_avr":
         if device != "cpu":
             raise ValueError(
                 "CUDA sparse runner currently supports successor-feature variants only"
             )
         cfg = dict(base_config)
-        return NEFFQIAgent(d_obs=d_obs, n_actions=n_actions, seed=seed, **cfg)
+        return NEFAVRAgent(d_obs=d_obs, n_actions=n_actions, seed=seed, **cfg)
     if variant in ("nef_sf", "nef_sf_novelty", "nef_sf_hindsight", "nef_sf_hindsight_directional"):
         bonus = float(novelty_beta) if variant == "nef_sf_novelty" else 0.0
         common = dict(

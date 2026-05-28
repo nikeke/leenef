@@ -14,7 +14,7 @@ The dense RL work was done in session
 `2b999ca8-cdfb-4414-8129-7a8d50921b96`. Checkpoints `012` through `042`
 are load-bearing:
 
-- `012`-`020`: prototype NEF-FQI, TD/FQI instability, MC and n-step
+- `012`-`020`: prototype NEF-AVR, TD/FQI instability, MC and n-step
   target design, CartPole success, LunarLander partial success, and the
   first RLS/recentering ideas.
 - `021`-`030`: pre-clean exploratory sweeps, single-seed spikes,
@@ -138,15 +138,15 @@ written under `results/rl_paper/dense/`.
 | LunarLander MC, no bootstrap | 5 | `-67.7 +/- 32.3` | `5.6 +/- 38.2` | `43.6 +/- 39.0` | MC-only targets are weaker and high variance. |
 | LunarLander TD bootstrap | 5 | `-123.8 +/- 13.1` | `-72.4 +/- 3.8` | `-71.5 +/- 4.2` | Mechanistic negative: bootstrapped moving targets collapse for this analytic solve. |
 | LunarLander in-repo DQN context | 10 | `129.3 +/- 21.7` | `149.6 +/- 14.0` | `196.3 +/- 14.1` | Useful matched-seed context, not a broad claim against DQN. |
-| LunarLander final NEF-FQI | 10 | `201.3 +/- 9.8` | `210.0 +/- 8.4` | `216.2 +/- 9.9` | Central dense-control result: paper-grade 10-seed confirmation. |
-| LunarLander Thompson ensemble, 3 members | 3 | `200.0 +/- 12.8` | `173.1 +/- 29.6` | `210.3 +/- 12.9` | Does not improve over the single final NEF-FQI row. |
+| LunarLander final NEF-AVR | 10 | `201.3 +/- 9.8` | `210.0 +/- 8.4` | `216.2 +/- 9.9` | Central dense-control result: paper-grade 10-seed confirmation. |
+| LunarLander Thompson ensemble, 3 members | 3 | `200.0 +/- 12.8` | `173.1 +/- 29.6` | `210.3 +/- 12.9` | Does not improve over the single final NEF-AVR row. |
 | LunarLander voting ensemble, 3 members | 3 | `64.5 +/- 81.4` | `62.6 +/- 79.3` | `113.3 +/- 93.3` | Non-adoption: voting exploration is brittle, including one catastrophic seed. |
 
 Dense interpretation:
 
-- The dense-control headline should be the 10-seed final NEF-FQI
+- The dense-control headline should be the 10-seed final NEF-AVR
   LunarLander panel, supported by the bootstrap negative mini-panel.
-- The DQN panel can be used as in-repository context: the final NEF-FQI
+- The DQN panel can be used as in-repository context: the final NEF-AVR
   row is clearly stronger here, but the paper should avoid implying a
   general DQN benchmark claim.
 - Ensembles should be a closure/negative result, not a promoted
@@ -364,7 +364,7 @@ paper-grade.
 | ID | Experiment | Interesting likelihood | Cost | Decision role |
 |---|---|---|---|---|
 | RL-D0 | Audit restored dense rows and current metadata/code identity. | Very high | Small | Completed: all dense-chain rows use identity `12385951c0a1898ff01c9f8e9730f91db0246d01`. |
-| RL-D1 | Extend/confirm final LunarLander base. | High | Medium | Completed: 10-seed final NEF-FQI robust eval `201.3 +/- 9.8`. |
+| RL-D1 | Extend/confirm final LunarLander base. | High | Medium | Completed: 10-seed final NEF-AVR robust eval `201.3 +/- 9.8`. |
 | RL-D2 | Clean matched-seed DQN/context baseline. | Medium-high | Medium | Completed as context: DQN robust eval `129.3 +/- 21.7`. |
 | RL-D3 | Small TD/bootstrap negative mini-panel. | High | Small-medium | Completed: bootstrapped TD robust eval `-123.8 +/- 13.1`. |
 | RL-D4 | CartPole dense sanity replication. | Medium | Small | Completed: robust eval `409.0 +/- 20.4`, best eval `499.4 +/- 0.6`. |
@@ -397,9 +397,9 @@ Current next package:
 2. **Background.** FQI, LSTD/RLS, random features, successor features,
    HER, and intrinsic novelty. Be explicit that these families already
    exist; SSUP reframes and connects them.
-3. **Dense-control method.** NEF-FQI, per-action sufficient statistics,
+3. **Dense-control method.** NEF-AVR, per-action sufficient statistics,
    trace-scaled ridge, n-step returns, RLS decay, seed policy.
-4. **Dense-control results.** LunarLander final NEF-FQI, TD/bootstrap
+4. **Dense-control results.** LunarLander final NEF-AVR, TD/bootstrap
    negative, matched in-repo DQN context, CartPole sanity, non-adopted
    ensemble result.
 5. **Sparse-control method.** Successor features, leverage novelty,

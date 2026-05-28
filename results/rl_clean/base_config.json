@@ -9,7 +9,7 @@
   "target_mode": "nstep",
   "n_step": 100,
   "forget_factor": 0.999,
-  "fqi_iters": 1,
+  "value_iters": 1,
   "tau": 0.3,
   "broadness": 0.0,
   "recenter_interval": null

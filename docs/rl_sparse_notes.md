@@ -23,11 +23,11 @@ consolidated and moved to `attic/docs/rl_clean_*.md` and
 `attic/results/rl_clean/` as part of the clean restart that
 restructured `benchmarks/`, `docs/`, `results/`, and `notebooks/`
 into the `sl_clean / cl_clean / rl_clean` layout. The RL **agent**
-(`src/leenef/rl.py`, `NEFFQIAgent`) was not changed semantically; only
+(`src/leenef/rl.py`, `NEFAVRAgent`) was not changed semantically; only
 its alpha-regularization plumbing was centralized through the new
 `solvers.regularized_normal_matrix` + `solvers.solve_spd` helpers,
 selecting the trace-scaled policy `alpha=(α, "trace")` that
-NEF-FQI was already using inline. The `rl_clean` numbers from
+NEF-AVR was already using inline. The `rl_clean` numbers from
 `attic/docs/rl_clean_sweeps.md` therefore still describe the same
 agent; they are *historical context*, not parallel work to be
 matched.
@@ -40,9 +40,9 @@ exploration (small-n network, co-running CPU) are flagged in line.
 
 ## 1. Framing
 
-### 1.1 What "sparse reward" breaks for NEF-FQI
+### 1.1 What "sparse reward" breaks for NEF-AVR
 
-Plain NEF-FQI (`src/leenef/rl.py`, `NEFFQIAgent`) is faithful to the
+Plain NEF-AVR (`src/leenef/rl.py`, `NEFAVRAgent`) is faithful to the
 core leenef program: fixed encoders, per-action analytical decoder
 solve `D_a = (Φ_aᵀΦ_a + αI)⁻¹ Φ_aᵀY_a`, RLS-decayed sufficient
 statistics, n-step returns to keep `Y` model-independent. On dense
@@ -104,7 +104,7 @@ disciplined application of P1–P4.
   attractive deferred direction.
 - **P6 — Per-class additivity.** The RL analog is *per-action*
   additivity: each action owns its own $A_a^\top A_a$, $A_a^\top
-  Y_a$. NEF-FQI already obeys this, and it is exactly what makes
+  Y_a$. NEF-AVR already obeys this, and it is exactly what makes
   the D1 successor decoder a drop-in second statistic on the same
   encoder.
 
@@ -303,7 +303,7 @@ See §6.
 ## 4. The toy sparse-chain benchmark
 
 `benchmarks/run_sparse_chain.py` runs the three variants
-(`nef_fqi`, `nef_sf`, `nef_sf_novelty`) on a deterministic K-state
+(`nef_avr`, `nef_sf`, `nef_sf_novelty`) on a deterministic K-state
 chain MDP (`leenef.rl_diag.SparseChainEnv`) where the closed-form
 optimal Q is known via value iteration (`SparseChainEnv.optimal_q`).
 The pre-existing
@@ -338,7 +338,7 @@ Two observations:
    correct policy in 3/3. The mean first_success rises (18.7 vs
    6.5) because the metric averages only over successful seeds; the
    *fraction* that ever finds the goal is the headline.
-2. **Plain NEF-FQI fails K=20 policy** despite reaching the goal
+2. **Plain NEF-AVR fails K=20 policy** despite reaching the goal
    in 2/3 seeds. With γ=0.9 and 19 hops, γ^19 ≈ 0.135; the
    backed-up reward signal is too weak relative to the ε-greedy
    data distribution for the closed-form solve to recover the
@@ -732,7 +732,7 @@ If P10/P11 land, the shape of the paper is roughly:
   P1–P4 are load-bearing; P6 has an RL analog (per-action
   additivity in $A_a^\top A_a$); P5 is the speculative
   direction (§8.D).
-- §2: NEF-FQI as the dense-reward base, faithful to the
+- §2: NEF-AVR as the dense-reward base, faithful to the
   attic'd `rl_clean` line; one analytic solve per action.
 - §3: Where sparse reward breaks the dense recipe (the
   Y-signal failure of §1.1), and three mechanisms (D1 / D2 / D4)
@@ -757,10 +757,10 @@ via hindsight + eval-time projection" — that completes the family.
 
 | Artifact | Role |
 |---|---|
-| `src/leenef/rl.py` | `NEFFQIAgent` (D0 baseline) — unchanged in semantics on main; alpha plumbing centralized through `solvers.regularized_normal_matrix` + `solvers.solve_spd` after `8cd844c` |
+| `src/leenef/rl.py` | `NEFAVRAgent` (D0 baseline) — unchanged in semantics on main; alpha plumbing centralized through `solvers.regularized_normal_matrix` + `solvers.solve_spd` after `8cd844c` |
 | `src/leenef/rl_sf.py` | `NEFSuccessor`, `NEFSFAgent`, `NEFHindsightSFAgent` (D1+D2+D4). Still uses an inline regularize+chol pattern; cleanup to use the new helpers is mechanical and not behavior-changing |
 | `src/leenef/rl_diag.py` | `SparseChainEnv`, `optimal_q()`, leverage diagnostics |
-| `benchmarks/run_rl_sparse.py` | Multi-env driver; `nef_fqi` / `nef_sf` / `nef_sf_hindsight` variants; `--eval-goal`; MiniGrid wrapper |
+| `benchmarks/run_rl_sparse.py` | Multi-env driver; `nef_avr` / `nef_sf` / `nef_sf_hindsight` variants; `--eval-goal`; MiniGrid wrapper |
 | `benchmarks/run_sparse_chain.py` | Toy chain regression driver — Q* + policy + `eval_goal` grading |
 | `tests/test_rl_sf.py` | `test_successor_solve_recovers_chain_optimal_q` and the `eval_goal` / extrinsic invariants |
 | `results/rl_sparse/*.json` | Multi-seed run dumps (one per condition) |

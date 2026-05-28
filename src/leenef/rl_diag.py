@@ -24,7 +24,7 @@ Two responsibilities:
 2. **Sparse-reward unit environment.**  :class:`SparseChainEnv` is a
    k-state deterministic chain with a single +1 terminal reward and
    zero per-step reward.  It exposes a closed-form optimal Q via
-   value iteration so any new mechanism (FQI, NEF-SF, novelty bonus,
+   value iteration so any new mechanism (NEF-AVR, NEF-SF, novelty bonus,
    …) can be unit-tested before being run on MountainCar/Acrobot.
 
 Both pieces are intentionally lightweight: no PyTorch state, no
@@ -69,7 +69,7 @@ class SparseChainEnv:
     The environment exposes a closed-form optimal Q-table via
     :meth:`optimal_q` (value iteration to convergence; cheap because
     ``n_states`` is small and dynamics are deterministic).  This makes
-    it a precise unit env for the analytical solve: fitted Q from any
+    it a precise unit env for the analytical solve: fitted action-values from any
     of our methods should match :meth:`optimal_q` within regularization
     tolerance once enough successful trajectories are collected.
 
@@ -339,7 +339,7 @@ def leverage_stats(
     Args:
         ata: ``(n_neurons, n_neurons)`` Gram matrix.
         alpha: Tikhonov regularization (will be added trace-scaled
-            following the same rule used in :class:`NEFFQIAgent`).
+            following the same rule used in :class:`NEFAVRAgent`).
         phi_samples: ``(N, n_neurons)`` features to score.
 
     Returns:
@@ -369,7 +369,7 @@ def solve_conditioning(ata: Tensor, alpha: float) -> dict[str, float]:
 
     Reports the trace, the minimum eigenvalue (post-regularization),
     and the resulting condition number.  Mirrors the trace-scaled
-    regularization rule used in :class:`NEFFQIAgent`.
+    regularization rule used in :class:`NEFAVRAgent`.
     """
     M = ata.clone().double()
     tr = torch.trace(M).item()
