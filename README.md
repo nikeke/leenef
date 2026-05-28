@@ -158,10 +158,27 @@ stream.fit(x_train_seq, y_train)
 
 Requires Python 3.12+.
 
+From PyPI or a built wheel:
+
+```bash
+pip install leenef
+```
+
+For development from a checkout:
+
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -e '.[dev]'
+```
+
+See [`docs/USAGE.md`](docs/USAGE.md) for the usage manual and
+[`SKILL.md`](SKILL.md) for method-selection guidance.  The installed
+`leenef-recommend` command prints conservative starting configurations:
+
+```bash
+leenef-recommend supervised --input-kind image
+leenef-recommend temporal --input-kind sequence --gpu
 ```
 
 ## Tests

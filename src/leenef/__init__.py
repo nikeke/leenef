@@ -1,6 +1,7 @@
 """leenef — machine learning with the Neural Engineering Framework."""
 
 from .activations import ACTIVATIONS, make_activation
+from .advice import recommend_method
 from .conv import (
     ConvNEFEnsemble,
     ConvNEFPipeline,
@@ -56,4 +57,5 @@ __all__ = [
     "solve_decoders",
     "solve_from_normal_equations",
     "SOLVERS",
+    "recommend_method",
 ]
