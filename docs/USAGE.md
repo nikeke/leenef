@@ -38,7 +38,7 @@ before simply increasing neuron count.
 | Sequence classification | `StreamingNEFClassifier` | `window_size=10`, `n_neurons=4000-8000`, data-driven centers, `alpha=(1e-4, "trace")`, and `accumulate(..., chunk_stats=True)` followed by `solve()` for large runs |
 | Continual class/task streams | `NEFLayer.partial_fit` + `solve_accumulated` | keep output columns stable, use `n_neurons=5000`, `centers_mode="first_task"` or representative centers, `alpha=(1e-3, "trace")`, and solve once after accumulating all task statistics |
 | Streaming continual sequences | `StreamingNEFClassifier.accumulate` | `window_size=10`, `n_neurons=4000+`, `alpha=(1e-4, "trace")`, chunked statistics, and GPU if available |
-| Dense discrete-action RL | `NEFFQIAgent` | research default: `target_mode="nstep"`, `n_step=100`, `n_neurons=6000`, `gamma=0.98`, `alpha=0.1`, `forget_factor=0.999`, `solve_every=10`; avoid one-step TD as the first target |
+| Dense discrete-action RL | `NEFAVRAgent` | research default: `target_mode="nstep"`, `n_step=100`, `n_neurons=6000`, `gamma=0.98`, `alpha=0.1`, `forget_factor=0.999`, `solve_every=10`; avoid one-step TD as the first target |
 | Sparse-reward RL research | `NEFSFAgent` | start with `n_neurons=2000`, task-matched successor or directional readout, explicit goal/hindsight structure, and `device="cuda"` for full-successor matrices when available |
 
 Alpha policy matters.  Normal-equation solves should use explicit
@@ -47,11 +47,34 @@ activity energy.  Woodbury/update-inverse paths use fixed alpha because the
 cached inverse is parameterized by that exact diagonal value; do not change
 `fixed_alpha` mid-stream without `refresh_inverse()` or `reset_continuous()`.
 
-The root [`SKILL.md`](../SKILL.md) is a standard agent skill with YAML
-frontmatter and the same decision logic.  Install it by copying it as
-`SKILL.md` into your agent's skill directory.  Use it when you want an agent to
-inspect your data shape, task stream, hardware, and accuracy/speed constraints
-before proposing a configuration.
+The root [`SKILL.md`](../SKILL.md) is a standard Agent Skill with YAML
+frontmatter and the same decision logic.  It references reference material
+(this manual and the SSUP papers) via relative `docs/` paths so the agent can
+read them on demand.  Use it when you want an agent to inspect your data
+shape, task stream, hardware, and accuracy/speed constraints before proposing
+a configuration.
+
+### Installing the skill
+
+The skill plus its reference docs ship inside the installed package, so a
+plain `pip install leenef` is enough to obtain them.  Materialize a portable,
+self-contained skill directory with the bundled installer:
+
+```bash
+# Copy the skill (SKILL.md + docs/) into a destination skill directory.
+leenef-install-skill --dest ~/.config/agent/skills
+# or symlink instead of copy (development checkouts only):
+leenef-install-skill --dest ~/.config/agent/skills --link
+```
+
+This writes `<dest>/leenef-method-selection/SKILL.md` next to mirrored
+`docs/`, `src/`, `benchmarks/`, `tests/`, `colab/`, and `results/` folders
+that contain this manual, the three SSUP papers, the project notes, the
+package source, benchmark drivers, test suite, Colab notebooks, and the
+`base_config*.json` defaults — so the skill's relative reference links and
+the agent's spot-checks of actual APIs or configs all resolve wherever it is
+installed.  From a repository checkout you can equivalently use `--link` (or
+copy the root `SKILL.md` together with those folders by hand).
 
 ## Supervised learning
 
@@ -136,9 +159,9 @@ For `StreamingNEFClassifier`, use `accumulate(..., chunk_stats=True)` followed
 by `solve()` on GPU-scale runs.  RL components accept a `device=` argument:
 
 ```python
-from leenef import NEFFQIAgent, NEFSFAgent
+from leenef import NEFAVRAgent, NEFSFAgent
 
-agent = NEFFQIAgent(d_obs=8, n_actions=4, n_neurons=2000, device=device)
+agent = NEFAVRAgent(d_obs=8, n_actions=4, n_neurons=2000, device=device)
 sf_agent = NEFSFAgent(d_obs=8, n_actions=4, n_neurons=2000, device=device)
 ```
 

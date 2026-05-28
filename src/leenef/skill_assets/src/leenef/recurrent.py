@@ -1,0 +1,900 @@
+"""RecurrentNEFLayer — temporal NEF with decode-then-re-encode feedback."""
+
+import torch
+import torch.nn as nn
+from torch import Tensor
+
+from ._rng import fork_generator
+from .activations import make_activation
+from .encoders import make_encoders
+from .layers import _make_gain
+from .networks import _project_activity_target
+from .solvers import (
+    DEFAULT_ALPHA,
+    AlphaPolicy,
+    alpha_policy,
+    solve_decoders,
+    solve_from_normal_equations,
+)
+
+_SUPPORTED_TP_SOLVERS = {"tikhonov", "cholesky"}
+_SUPPORTED_STATE_TARGETS = {"reconstruction", "predictive"}
+
+
+def _solver_alpha(solver_kw: dict) -> AlphaPolicy:
+    return alpha_policy(solver_kw.get("alpha", DEFAULT_ALPHA))
+
+
+def _temporal_projection_matrix(state_decoders: Tensor, encoders: Tensor, d_in: int) -> Tensor:
+    """Approximate temporal backward map through the state-feedback channels only."""
+    return state_decoders @ encoders[:, d_in:].T
+
+
+def _temporal_output_weights(
+    n_steps: int,
+    auxiliary_weight: float,
+    *,
+    device: torch.device,
+    dtype: torch.dtype,
+) -> Tensor:
+    """Weights for final-step plus optional auxiliary timestep supervision."""
+    if auxiliary_weight < 0:
+        raise ValueError(f"auxiliary_weight must be >= 0, got {auxiliary_weight}")
+    weights = torch.zeros(n_steps, device=device, dtype=dtype)
+    weights[-1] = 1.0
+    if n_steps > 1 and auxiliary_weight > 0:
+        weights[:-1] = auxiliary_weight / (n_steps - 1)
+    return weights
+
+
+def _accumulate_weighted_output_stats(
+    ata: Tensor,
+    aty: Tensor,
+    activity: Tensor,
+    targets: Tensor,
+    weight: float,
+) -> None:
+    """Accumulate weighted normal equations for temporal output supervision."""
+    if weight <= 0:
+        return
+    ata.addmm_(activity.T, activity, beta=1.0, alpha=weight)
+    aty.addmm_(activity.T, targets, beta=1.0, alpha=weight)
+
+
+def _local_output_target(
+    activity: Tensor,
+    targets: Tensor,
+    decoders: Tensor,
+    eta: float,
+    *,
+    normalize_step: bool,
+    step_scale: float,
+    activation: str,
+    project_targets: bool,
+) -> Tensor:
+    """Output-driven activity target for one timestep."""
+    error = activity @ decoders - targets
+    grad = error @ decoders.T
+    if normalize_step:
+        grad_norm = grad.norm()
+        if grad_norm > 0:
+            grad = grad / grad_norm * activity.norm()
+    target = activity - (eta * step_scale) * grad
+    if project_targets:
+        target = _project_activity_target(target, activation)
+    return target
+
+
+def _require_weighted_output_solver(solver: str, context: str) -> None:
+    """Reject solver modes that cannot be supported with accumulated stats."""
+    if solver not in _SUPPORTED_TP_SOLVERS:
+        raise ValueError(
+            f"{context} requires one of {sorted(_SUPPORTED_TP_SOLVERS)} because it uses "
+            f"accumulated normal equations, got {solver!r}"
+        )
+
+
+class RecurrentNEFLayer(nn.Module):
+    """Recurrent NEF layer implementing the canonical decode-then-re-encode loop.
+
+    At each timestep *t*, the layer:
+
+    1. Concatenates the external input ``u(t)`` with a decoded state
+       feedback ``s(t-1)``.
+    2. Encodes the augmented input into neuron activities.
+    3. Decodes two quantities from the activities:
+
+       - **State** ``s(t) = a(t) @ D_state`` — the representational
+         decoder (what the population "thinks" the input was).
+       - **Output** ``y(t) = a(t) @ D_out`` — the transformational
+         decoder (the task prediction).
+
+    The state decoder closes the recurrent loop: its output is fed back
+    to the encoders at the next timestep.  This is the NEF principle of
+    Eliasmith and Anderson applied to temporal sequences.
+
+    Args:
+        d_in:       Dimension of external input per timestep.
+        n_neurons:  Number of neurons in the population.
+        d_out:      Dimension of the task output.
+        d_state:    Dimension of the recurrent state feedback.
+                    Defaults to *d_in* (state carries as much info
+                    as one input frame).
+        activation: Name of the activation function (default ``"relu"``).
+                    Uses ``relu`` rather than ``abs`` because ``abs``
+                    has gradient ±1 everywhere, causing gradient
+                    explosion through BPTT over many timesteps.
+        encoder_strategy: Encoder generation strategy.
+        gain:       Neuron gain — scalar, ``(low, high)`` tuple, or
+                    ``Tensor(n_neurons,)``.
+        centers:    Optional ``(N, T, d_in)`` training sequences for
+                    data-driven biases.  The first timestep is used with
+                    zero state to compute biases.
+        rng:        Optional ``torch.Generator`` for reproducibility.
+    """
+
+    def __init__(
+        self,
+        d_in: int,
+        n_neurons: int,
+        d_out: int,
+        d_state: int | None = None,
+        activation: str = "relu",
+        encoder_strategy: str = "hypersphere",
+        gain: float | tuple[float, float] | Tensor = (0.5, 2.0),
+        centers: Tensor | None = None,
+        rng: torch.Generator | None = None,
+        **act_kwargs,
+    ):
+        super().__init__()
+        if d_state is not None and d_state <= 0:
+            raise ValueError(f"d_state must be positive, got {d_state}")
+        self.d_in = d_in
+        self.n_neurons = n_neurons
+        self.d_out = d_out
+        self.d_state = d_state if d_state is not None else d_in
+        self._rng = rng
+        self._activation_name = activation
+
+        # Per-neuron gain
+        self.register_buffer("_gain", _make_gain(gain, n_neurons, rng))
+
+        # Encoders see [u(t), s(t-1)]
+        enc = make_encoders(n_neurons, d_in + self.d_state, strategy=encoder_strategy, rng=rng)
+        self.encoders = nn.Parameter(enc)
+
+        # Biases — data-driven (from first timestep + zero state) or random
+        if centers is not None:
+            if centers.dim() == 3:
+                first_frames = centers[:, 0, :]
+            else:
+                first_frames = centers
+            aug = torch.cat(
+                [first_frames, first_frames.new_zeros(first_frames.shape[0], self.d_state)], dim=-1
+            )
+            idx = torch.randint(len(aug), (n_neurons,), generator=rng)
+            bias = -self._gain * (aug[idx].float() * enc).sum(dim=1)
+        else:
+            bias = torch.randn(n_neurons, generator=rng)
+        self.bias = nn.Parameter(bias)
+
+        self.activation = make_activation(activation, **act_kwargs)
+
+        # State (representational) decoder — learnable in hybrid/E2E
+        self.state_decoders = nn.Parameter(
+            torch.zeros(n_neurons, self.d_state), requires_grad=False
+        )
+        # Output (transformational) decoder
+        self.decoders = nn.Parameter(torch.zeros(n_neurons, d_out), requires_grad=False)
+
+    @property
+    def gain(self) -> Tensor:
+        """Per-neuron gain vector (n_neurons,)."""
+        return self._gain
+
+    def _validate_sequence(self, seq: Tensor) -> tuple[int, int, int]:
+        """Validate a sequence tensor and return its shape."""
+        if seq.dim() != 3 or seq.shape[2] != self.d_in:
+            raise ValueError(f"Expected seq shape (B, T, {self.d_in}), got {tuple(seq.shape)}")
+        B, T, d_in = seq.shape
+        if T < 1:
+            raise ValueError("Expected seq to contain at least one timestep")
+        return B, T, d_in
+
+    def _validate_targets(self, targets: Tensor, batch_size: int) -> None:
+        """Validate training targets against the configured output shape."""
+        if targets.dim() != 2 or targets.shape != (batch_size, self.d_out):
+            raise ValueError(
+                f"Expected targets shape ({batch_size}, {self.d_out}), got {tuple(targets.shape)}"
+            )
+
+    def _validate_training_data(self, seq: Tensor, targets: Tensor) -> tuple[int, int, int]:
+        """Validate sequence/target batches used by fit_* methods."""
+        B, T, d_in = self._validate_sequence(seq)
+        self._validate_targets(targets, B)
+        return B, T, d_in
+
+    def _pack_state_target(self, frame: Tensor) -> Tensor:
+        """Truncate or pad a frame into the configured recurrent state shape."""
+        if self.d_state <= self.d_in:
+            return frame[:, : self.d_state]
+        target = frame.new_zeros(frame.shape[0], self.d_state)
+        target[:, : self.d_in] = frame
+        return target
+
+    def _state_target(self, seq: Tensor, timestep: int, mode: str = "reconstruction") -> Tensor:
+        """Build the decoded-state target for analytic recurrent solvers."""
+        if mode == "reconstruction":
+            frame = seq[:, timestep]
+        elif mode == "predictive":
+            frame = (
+                seq[:, timestep + 1]
+                if timestep + 1 < seq.shape[1]
+                else seq[:, timestep].new_zeros(seq.shape[0], self.d_in)
+            )
+        else:
+            raise ValueError(
+                f"Unsupported state_target {mode!r}; expected one of {sorted(_SUPPORTED_STATE_TARGETS)}"
+            )
+        return self._pack_state_target(frame)
+
+    def encode_step(self, u: Tensor, s_prev: Tensor) -> Tensor:
+        """Single-step encode: activities from input + state feedback.
+
+        Args:
+            u:      (B, d_in) — external input at this timestep.
+            s_prev: (B, d_state) — decoded state from previous step.
+        Returns:
+            activities: (B, n_neurons)
+        """
+        if u.dim() != 2 or u.shape[1] != self.d_in:
+            raise ValueError(f"Expected u shape (B, {self.d_in}), got {tuple(u.shape)}")
+        if s_prev.dim() != 2 or s_prev.shape != (u.shape[0], self.d_state):
+            raise ValueError(
+                f"Expected s_prev shape ({u.shape[0]}, {self.d_state}), got {tuple(s_prev.shape)}"
+            )
+        x_aug = torch.cat([u, s_prev], dim=-1)
+        return self.activation(self._gain * (x_aug @ self.encoders.T) + self.bias)
+
+    def forward(self, seq: Tensor) -> Tensor:
+        """Full forward pass over a sequence.
+
+        Args:
+            seq: (B, T, d_in) — input sequence.
+        Returns:
+            y: (B, d_out) — output decoded from final-step activities.
+        """
+        B, T, _ = self._validate_sequence(seq)
+        s = seq.new_zeros(B, self.d_state)
+        for t in range(T):
+            a = self.encode_step(seq[:, t], s)
+            s = a @ self.state_decoders
+        return a @ self.decoders
+
+    def _unroll_activities(self, seq: Tensor, *, detach_feedback: bool = False) -> list[Tensor]:
+        """Collect timestep activities, optionally detaching recurrent feedback."""
+        B, T, _ = self._validate_sequence(seq)
+        s = seq.new_zeros(B, self.d_state)
+        state_decoders = self.state_decoders.detach() if detach_feedback else self.state_decoders
+        activities = []
+        for t in range(T):
+            a = self.encode_step(seq[:, t], s.detach() if detach_feedback else s)
+            activities.append(a)
+            s = a @ state_decoders
+        return activities
+
+    def _temporal_output_loss(
+        self,
+        activities: list[Tensor],
+        targets: Tensor,
+        loss_fn: nn.Module,
+        auxiliary_weight: float,
+    ) -> Tensor:
+        """Weighted loss over timestep outputs with optional auxiliary supervision."""
+        weights = _temporal_output_weights(
+            len(activities),
+            auxiliary_weight,
+            device=activities[0].device,
+            dtype=activities[0].dtype,
+        )
+        loss = activities[0].new_zeros(())
+        for t, a in enumerate(activities):
+            weight = float(weights[t])
+            if weight <= 0:
+                continue
+            loss = loss + weight * loss_fn(a @ self.decoders, targets)
+        return loss
+
+    # ------------------------------------------------------------------
+    # Greedy: fully analytic, iterative
+    # ------------------------------------------------------------------
+
+    @torch.no_grad()
+    def fit_greedy(
+        self,
+        seq: Tensor,
+        targets: Tensor,
+        n_iters: int = 5,
+        solver: str = "tikhonov",
+        state_target: str = "reconstruction",
+        auxiliary_weight: float = 0.0,
+        **solver_kw,
+    ) -> None:
+        """Iteratively solve state and output decoders analytically.
+
+        Each iteration:
+          1. Unroll with current D_state, collecting activities.
+          2. Solve D_out from final-step activities → targets.
+          3. Solve D_state from all-step activities → inputs
+             (representational decoding), using incremental normal
+             equations to avoid materializing the full T×B matrix.
+          4. Repeat.
+
+        Args:
+            seq:      (B, T, d_in) input sequences.
+            targets:  (B, d_out) classification/regression targets.
+            n_iters:  number of greedy iterations (default 5).
+            solver:   solver for D_out (default ``"tikhonov"``).
+            state_target:
+                      decoded state supervision. ``"reconstruction"`` decodes
+                      the current frame; ``"predictive"`` decodes the next
+                      frame (zero at the terminal step).
+            auxiliary_weight:
+                      total weight assigned to auxiliary label supervision on
+                      pre-final timesteps. ``0`` preserves the final-step-only
+                      behavior.
+        """
+        B, T, _ = self._validate_training_data(seq, targets)
+        if state_target not in _SUPPORTED_STATE_TARGETS:
+            raise ValueError(
+                f"Unsupported state_target {state_target!r}; expected one of "
+                f"{sorted(_SUPPORTED_STATE_TARGETS)}"
+            )
+        alpha = _solver_alpha(solver_kw)
+        output_weights = _temporal_output_weights(
+            T, auxiliary_weight, device=seq.device, dtype=seq.dtype
+        )
+        use_auxiliary_output = T > 1 and auxiliary_weight > 0
+        if use_auxiliary_output:
+            _require_weighted_output_solver(solver, "Temporal auxiliary output supervision")
+
+        for _ in range(n_iters):
+            # Unroll and accumulate normal equations for D_state
+            AtA = seq.new_zeros(self.n_neurons, self.n_neurons)
+            AtY = seq.new_zeros(self.n_neurons, self.d_state)
+            AtA_out = seq.new_zeros(self.n_neurons, self.n_neurons)
+            AtY_out = seq.new_zeros(self.n_neurons, self.d_out)
+            s = seq.new_zeros(B, self.d_state)
+            final_a = None
+
+            for t in range(T):
+                a = self.encode_step(seq[:, t], s)
+                AtA.addmm_(a.T, a)
+                AtY.addmm_(a.T, self._state_target(seq, t, state_target))
+                _accumulate_weighted_output_stats(
+                    AtA_out, AtY_out, a, targets, float(output_weights[t])
+                )
+                s = a @ self.state_decoders
+                final_a = a
+
+            # Solve D_out from final-step activities
+            if use_auxiliary_output:
+                D_out = solve_from_normal_equations(AtA_out, AtY_out, alpha=alpha)
+            else:
+                D_out = solve_decoders(final_a, targets, method=solver, **solver_kw)
+            self.decoders.data.copy_(D_out)
+
+            # Solve D_state from accumulated normal equations
+            D_state = solve_from_normal_equations(AtA, AtY, alpha=alpha)
+            self.state_decoders.data.copy_(D_state)
+
+    # ------------------------------------------------------------------
+    # Hybrid: analytic D_out + gradient on encoders/bias/D_state
+    # ------------------------------------------------------------------
+
+    def fit_hybrid(
+        self,
+        seq: Tensor,
+        targets: Tensor,
+        n_iters: int = 10,
+        lr: float = 1e-3,
+        solver: str = "tikhonov",
+        loss: str = "mse",
+        schedule: bool = False,
+        batch_size: int | None = None,
+        grad_steps: int = 1,
+        grad_clip: float | None = 1.0,
+        auxiliary_weight: float = 0.0,
+        **solver_kw,
+    ) -> None:
+        """Alternate analytic D_out solves with gradient encoder updates.
+
+        The gradient signal flows through the full unrolled sequence
+        (BPTT) to update encoders, biases, and D_state.  D_out is
+        solved analytically each iteration from the final-step
+        activities.
+
+        Args:
+            loss: ``"mse"`` or ``"ce"`` (cross-entropy on final output).
+            grad_clip: max gradient norm for recurrent BPTT updates.  ``None``
+                       disables clipping.
+            auxiliary_weight: total weight assigned to auxiliary label
+                       supervision on pre-final timesteps.
+        """
+        from .networks import _ce_targets
+
+        self._validate_training_data(seq, targets)
+
+        if loss == "ce":
+            loss_fn = nn.CrossEntropyLoss()
+            grad_targets = _ce_targets(targets)
+        else:
+            loss_fn = nn.MSELoss()
+            grad_targets = targets
+        _, T, _ = seq.shape
+        output_weights = _temporal_output_weights(
+            T, auxiliary_weight, device=seq.device, dtype=seq.dtype
+        )
+        use_auxiliary_output = T > 1 and auxiliary_weight > 0
+        if use_auxiliary_output:
+            _require_weighted_output_solver(solver, "Temporal auxiliary output supervision")
+
+        # D_state participates in gradient updates during hybrid
+        self.state_decoders.requires_grad_(True)
+        try:
+            params = [p for p in self.parameters() if p.requires_grad]
+            optimizer = torch.optim.Adam(params, lr=lr)
+            scheduler = (
+                torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=n_iters)
+                if schedule
+                else None
+            )
+
+            if batch_size is not None:
+                dataset = torch.utils.data.TensorDataset(seq, grad_targets)
+                g = fork_generator(self._rng)
+                loader = torch.utils.data.DataLoader(
+                    dataset, batch_size=batch_size, shuffle=True, generator=g
+                )
+
+            for _ in range(n_iters):
+                # Analytic D_out solve (full-batch, no grad)
+                with torch.no_grad():
+                    B, T, _ = seq.shape
+                    s = seq.new_zeros(B, self.d_state)
+                    AtA_out = seq.new_zeros(self.n_neurons, self.n_neurons)
+                    AtY_out = seq.new_zeros(self.n_neurons, self.d_out)
+                    for t in range(T):
+                        a = self.encode_step(seq[:, t], s)
+                        _accumulate_weighted_output_stats(
+                            AtA_out, AtY_out, a, targets, float(output_weights[t])
+                        )
+                        s = a @ self.state_decoders
+                    if use_auxiliary_output:
+                        D_out = solve_from_normal_equations(
+                            AtA_out,
+                            AtY_out,
+                            alpha=_solver_alpha(solver_kw),
+                        )
+                    else:
+                        D_out = solve_decoders(a, targets, method=solver, **solver_kw)
+                    self.decoders.data.copy_(D_out)
+
+                # Gradient step(s) on encoders, bias, D_state
+                if batch_size is not None:
+                    steps = 0
+                    for sb, yb in loader:
+                        if use_auxiliary_output:
+                            activities = self._unroll_activities(sb)
+                            batch_loss = self._temporal_output_loss(
+                                activities, yb, loss_fn, auxiliary_weight
+                            )
+                        else:
+                            pred = self.forward(sb)
+                            batch_loss = loss_fn(pred, yb)
+                        optimizer.zero_grad()
+                        batch_loss.backward()
+                        if grad_clip is not None:
+                            torch.nn.utils.clip_grad_norm_(params, grad_clip)
+                        optimizer.step()
+                        steps += 1
+                        if steps >= grad_steps:
+                            break
+                else:
+                    if use_auxiliary_output:
+                        activities = self._unroll_activities(seq)
+                        batch_loss = self._temporal_output_loss(
+                            activities, grad_targets, loss_fn, auxiliary_weight
+                        )
+                    else:
+                        pred = self.forward(seq)
+                        batch_loss = loss_fn(pred, grad_targets)
+                    optimizer.zero_grad()
+                    batch_loss.backward()
+                    if grad_clip is not None:
+                        torch.nn.utils.clip_grad_norm_(params, grad_clip)
+                    optimizer.step()
+
+                if scheduler is not None:
+                    scheduler.step()
+
+            # Final D_out solve
+            with torch.no_grad():
+                B, T, _ = seq.shape
+                s = seq.new_zeros(B, self.d_state)
+                AtA_out = seq.new_zeros(self.n_neurons, self.n_neurons)
+                AtY_out = seq.new_zeros(self.n_neurons, self.d_out)
+                for t in range(T):
+                    a = self.encode_step(seq[:, t], s)
+                    _accumulate_weighted_output_stats(
+                        AtA_out, AtY_out, a, targets, float(output_weights[t])
+                    )
+                    s = a @ self.state_decoders
+                if use_auxiliary_output:
+                    D_out = solve_from_normal_equations(
+                        AtA_out,
+                        AtY_out,
+                        alpha=_solver_alpha(solver_kw),
+                    )
+                else:
+                    D_out = solve_decoders(a, targets, method=solver, **solver_kw)
+                self.decoders.data.copy_(D_out)
+        finally:
+            self.state_decoders.requires_grad_(False)
+
+    # ------------------------------------------------------------------
+    # End-to-end: full SGD from greedy init
+    # ------------------------------------------------------------------
+
+    def _sgd_train(
+        self,
+        seq: Tensor,
+        targets: Tensor,
+        n_epochs: int,
+        lr: float,
+        batch_size: int,
+        loss: str,
+        grad_clip: float | None,
+        auxiliary_weight: float,
+    ) -> None:
+        """Shared recurrent BPTT loop used by E2E-style strategies."""
+        from .networks import _ce_targets
+
+        if loss == "ce":
+            loss_fn = nn.CrossEntropyLoss()
+            train_targets = _ce_targets(targets)
+        else:
+            loss_fn = nn.MSELoss()
+            train_targets = targets
+        _, T, _ = seq.shape
+        _temporal_output_weights(T, auxiliary_weight, device=seq.device, dtype=seq.dtype)
+        use_auxiliary_output = T > 1 and auxiliary_weight > 0
+
+        params = [p for p in self.parameters() if p.requires_grad]
+        optimizer = torch.optim.Adam(params, lr=lr)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=n_epochs)
+
+        dataset = torch.utils.data.TensorDataset(seq, train_targets)
+        g = fork_generator(self._rng)
+        loader = torch.utils.data.DataLoader(
+            dataset, batch_size=batch_size, shuffle=True, generator=g
+        )
+
+        for _ in range(n_epochs):
+            for sb, yb in loader:
+                if use_auxiliary_output:
+                    activities = self._unroll_activities(sb)
+                    batch_loss = self._temporal_output_loss(
+                        activities, yb, loss_fn, auxiliary_weight
+                    )
+                else:
+                    pred = self.forward(sb)
+                    batch_loss = loss_fn(pred, yb)
+                optimizer.zero_grad()
+                batch_loss.backward()
+                if grad_clip is not None:
+                    torch.nn.utils.clip_grad_norm_(params, grad_clip)
+                optimizer.step()
+            scheduler.step()
+
+    def fit_end_to_end(
+        self,
+        seq: Tensor,
+        targets: Tensor,
+        n_epochs: int = 50,
+        lr: float = 1e-3,
+        batch_size: int = 256,
+        loss: str = "mse",
+        greedy_iters: int = 5,
+        grad_clip: float | None = 1.0,
+        auxiliary_weight: float = 0.0,
+        **greedy_kw,
+    ) -> None:
+        """Full SGD (BPTT) on all parameters, initialized via greedy solve.
+
+        Args:
+            greedy_iters: iterations for the initial greedy solve.
+            grad_clip: max gradient norm for recurrent BPTT updates.  ``None``
+                       disables clipping.
+            auxiliary_weight: total weight assigned to auxiliary label
+                       supervision on pre-final timesteps.
+        """
+        self._validate_training_data(seq, targets)
+        self.fit_greedy(
+            seq, targets, n_iters=greedy_iters, auxiliary_weight=auxiliary_weight, **greedy_kw
+        )
+
+        self.decoders.requires_grad_(True)
+        self.state_decoders.requires_grad_(True)
+        try:
+            self._sgd_train(
+                seq, targets, n_epochs, lr, batch_size, loss, grad_clip, auxiliary_weight
+            )
+        finally:
+            self.decoders.requires_grad_(False)
+            self.state_decoders.requires_grad_(False)
+
+    def fit_hybrid_e2e(
+        self,
+        seq: Tensor,
+        targets: Tensor,
+        n_iters: int = 10,
+        hybrid_lr: float = 1e-3,
+        solver: str = "tikhonov",
+        n_epochs: int = 20,
+        e2e_lr: float = 1e-3,
+        batch_size: int = 256,
+        loss: str = "ce",
+        grad_clip: float | None = 1.0,
+        auxiliary_weight: float = 0.0,
+        **hybrid_kw,
+    ) -> None:
+        """Run recurrent hybrid training, then refine with end-to-end SGD."""
+        self._validate_training_data(seq, targets)
+        self.fit_hybrid(
+            seq,
+            targets,
+            n_iters=n_iters,
+            lr=hybrid_lr,
+            solver=solver,
+            loss=loss,
+            grad_clip=grad_clip,
+            auxiliary_weight=auxiliary_weight,
+            **hybrid_kw,
+        )
+
+        self.decoders.requires_grad_(True)
+        self.state_decoders.requires_grad_(True)
+        try:
+            self._sgd_train(
+                seq,
+                targets,
+                n_epochs,
+                e2e_lr,
+                batch_size,
+                loss,
+                grad_clip,
+                auxiliary_weight,
+            )
+        finally:
+            self.decoders.requires_grad_(False)
+            self.state_decoders.requires_grad_(False)
+
+    # ------------------------------------------------------------------
+    # Target propagation through time (TPTT)
+    # ------------------------------------------------------------------
+
+    def fit_target_prop(
+        self,
+        seq: Tensor,
+        targets: Tensor,
+        n_iters: int = 50,
+        lr: float = 1e-3,
+        eta: float = 0.1,
+        solver: str = "tikhonov",
+        schedule: bool = False,
+        normalize_step: bool = True,
+        batch_size: int | None = None,
+        state_target: str = "reconstruction",
+        auxiliary_weight: float = 0.0,
+        project_targets: bool = False,
+        **solver_kw,
+    ) -> None:
+        """Target propagation through time using NEF state decoders as inverse models.
+
+        Instead of BPTT, targets are propagated backward through timesteps:
+        the output-layer target is computed from a normalized gradient step,
+        then difference target propagation uses the state decoder to map
+        each timestep's target back to the previous timestep's activity
+        space.  Encoder/bias updates use single-timestep gradients only.
+
+        Each iteration has two phases:
+
+        **Phase 1** (no grad, chunked normal equations):
+          1. Unroll forward, accumulating ``A^T A`` and ``A^T Y`` for both
+             the output and representational decoder solves.
+          2. Solve ``D_out`` and ``D_state_repr`` analytically.
+          3. Compute final-timestep targets with full-batch normalization.
+
+        **Phase 2** (with grad, chunked encoder updates):
+          4. Re-unroll forward with gradient tracking in memory-safe chunks.
+          5. Propagate targets backward through time via DTP within each
+             chunk (targets are per-sample, so chunking is exact).
+          6. Accumulate local encoder/bias gradients across all chunks,
+             then step the optimizer once.
+
+        Re-solve ``D_out`` after all iterations.
+
+        Args:
+            n_iters:        number of TP iterations (default 50).
+            lr:             learning rate for local encoder updates.
+            eta:            step size for output target computation.
+            solver:         decoder solver for the output solve.  Recurrent TP
+                            currently supports ``"tikhonov"`` and
+                            ``"cholesky"`` because it relies on accumulated
+                            normal equations.
+            schedule:       use cosine-annealing LR schedule.
+            normalize_step: normalize the output gradient so *eta* controls
+                            the step as a fraction of activity norm.
+            batch_size:     chunk size for the gradient phase.  When
+                            ``None`` (default), auto-sized to keep peak
+                            memory under ~4 GB.
+            state_target:   decoded-state supervision used by the analytic
+                            recurrent inverse. ``"reconstruction"`` decodes
+                            the current frame; ``"predictive"`` decodes the
+                            next frame (zero at the terminal step).
+            auxiliary_weight:
+                            total weight assigned to auxiliary label
+                            supervision on pre-final timesteps.
+            project_targets:
+                            clamp TP activity targets into the activation's
+                            feasible set at every timestep.
+        """
+        if solver not in _SUPPORTED_TP_SOLVERS:
+            raise ValueError(
+                f"fit_target_prop supports only {sorted(_SUPPORTED_TP_SOLVERS)} "
+                f"because it uses accumulated normal equations, got {solver!r}"
+            )
+        if state_target not in _SUPPORTED_STATE_TARGETS:
+            raise ValueError(
+                f"Unsupported state_target {state_target!r}; expected one of "
+                f"{sorted(_SUPPORTED_STATE_TARGETS)}"
+            )
+
+        B, T, d_in = self._validate_training_data(seq, targets)
+        alpha = _solver_alpha(solver_kw)
+        output_weights = _temporal_output_weights(
+            T, auxiliary_weight, device=seq.device, dtype=seq.dtype
+        )
+
+        if batch_size is None:
+            # ~4 floats per neuron per timestep (activities + targets + autograd)
+            bytes_per_sample = T * self.n_neurons * 4 * 4
+            batch_size = max(256, min(B, (4 * 1024**3) // max(1, bytes_per_sample)))
+
+        params = [p for p in self.parameters() if p.requires_grad]
+        optimizer = torch.optim.Adam(params, lr=lr)
+        scheduler_obj = (
+            torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=n_iters)
+            if schedule
+            else None
+        )
+
+        for _ in range(n_iters):
+            # ── Phase 1: Forward (no grad), accumulate normal equations,
+            #    collect final-step activities for target computation ──
+            AtA_out = seq.new_zeros(self.n_neurons, self.n_neurons)
+            AtY_out = seq.new_zeros(self.n_neurons, self.d_out)
+            AtA_state = seq.new_zeros(self.n_neurons, self.n_neurons)
+            AtY_state = seq.new_zeros(self.n_neurons, self.d_state)
+            a_final_chunks = []
+
+            with torch.no_grad():
+                for i in range(0, B, batch_size):
+                    sb = seq[i : i + batch_size]
+                    tb = targets[i : i + batch_size]
+                    s = sb.new_zeros(sb.shape[0], self.d_state)
+                    for t in range(T):
+                        x_aug = torch.cat([sb[:, t], s], dim=-1)
+                        a = self.activation(self._gain * (x_aug @ self.encoders.T) + self.bias)
+                        AtA_state.addmm_(a.T, a)
+                        AtY_state.addmm_(a.T, self._state_target(sb, t, state_target))
+                        _accumulate_weighted_output_stats(
+                            AtA_out, AtY_out, a, tb, float(output_weights[t])
+                        )
+                        s = a @ self.state_decoders
+                    a_final_chunks.append(a)
+
+            # Solve decoders
+            D_out = solve_from_normal_equations(AtA_out, AtY_out, alpha=alpha)
+            self.decoders.data.copy_(D_out)
+            D_state = solve_from_normal_equations(AtA_state, AtY_state, alpha=alpha)
+            self.state_decoders.data.copy_(D_state)
+
+            # Compute final-timestep targets (full-batch normalization)
+            a_final_all = torch.cat(a_final_chunks, dim=0)
+            target_final_all = _local_output_target(
+                a_final_all,
+                targets,
+                D_out,
+                eta,
+                normalize_step=normalize_step,
+                step_scale=float(output_weights[-1]),
+                activation=self._activation_name,
+                project_targets=project_targets,
+            )
+            del a_final_chunks, a_final_all
+
+            # Precompute DTP projection matrix (n_neurons × n_neurons)
+            DRE = _temporal_projection_matrix(
+                self.state_decoders.detach(), self.encoders.detach(), d_in
+            )
+
+            # ── Phase 2: Re-forward (with grad) in chunks, DTP targets,
+            #    accumulate encoder/bias gradients ──
+            optimizer.zero_grad()
+            for i in range(0, B, batch_size):
+                sb = seq[i : i + batch_size]
+                Bb = sb.shape[0]
+
+                # Forward with grad
+                activities = []
+                s = sb.new_zeros(Bb, self.d_state)
+                for t in range(T):
+                    x_aug = torch.cat([sb[:, t], s.detach()], dim=-1)
+                    a = self.activation(self._gain * (x_aug @ self.encoders.T) + self.bias)
+                    activities.append(a)
+                    s = a @ self.state_decoders.detach()
+
+                # DTP backward through time
+                timestep_targets = [None] * T
+                timestep_targets[-1] = target_final_all[i : i + Bb]
+                for t in range(T - 2, -1, -1):
+                    a_t_det = activities[t].detach()
+                    a_next_det = activities[t + 1].detach()
+                    future_target = a_t_det + (timestep_targets[t + 1] - a_next_det) @ DRE
+                    local_target = _local_output_target(
+                        a_t_det,
+                        targets[i : i + Bb],
+                        D_out,
+                        eta,
+                        normalize_step=normalize_step,
+                        step_scale=float(output_weights[t]),
+                        activation=self._activation_name,
+                        project_targets=project_targets,
+                    )
+                    timestep_target = future_target + (local_target - a_t_det)
+                    if project_targets:
+                        timestep_target = _project_activity_target(
+                            timestep_target, self._activation_name
+                        )
+                    timestep_targets[t] = timestep_target
+
+                # Local loss (scaled for correct gradient accumulation)
+                chunk_loss = sum(
+                    (activities[t] - timestep_targets[t].detach()).pow(2).mean() for t in range(T)
+                ) * (Bb / B)
+                chunk_loss.backward()
+
+                del activities, timestep_targets, chunk_loss
+
+            optimizer.step()
+            del target_final_all
+
+            if scheduler_obj is not None:
+                scheduler_obj.step()
+
+        # ── Final D_out solve after last encoder update ──
+        with torch.no_grad():
+            AtA = seq.new_zeros(self.n_neurons, self.n_neurons)
+            AtY = seq.new_zeros(self.n_neurons, self.d_out)
+            for i in range(0, B, batch_size):
+                sb = seq[i : i + batch_size]
+                tb = targets[i : i + batch_size]
+                s = sb.new_zeros(sb.shape[0], self.d_state)
+                for t in range(T):
+                    a = self.encode_step(sb[:, t], s)
+                    _accumulate_weighted_output_stats(AtA, AtY, a, tb, float(output_weights[t]))
+                    s = a @ self.state_decoders
+            D_out = solve_from_normal_equations(AtA, AtY, alpha=alpha)
+            self.decoders.data.copy_(D_out)

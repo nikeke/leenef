@@ -1,0 +1,10 @@
+{
+  "cell": "hypersphere",
+  "n_neurons": 5000,
+  "activation": "abs",
+  "gain_low": 0.5,
+  "gain_high": 2.0,
+  "alpha": 1e-3,
+  "chunk_size": 5000,
+  "patch_size": 5
+}

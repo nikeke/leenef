@@ -235,7 +235,7 @@ preserved JSON/log artifacts used by Papers I, II, and III live under
 | `src/leenef/recurrent.py` | `RecurrentNEFLayer`: recurrent decode-then-re-encode sequence model |
 | `src/leenef/streaming.py` | `StreamingNEFClassifier`: delay-line temporal classifier with batch, Woodbury, and accumulate+solve training |
 | `src/leenef/conv.py` | `ConvNEFStage`, `ConvNEFPipeline`, `ConvNEFEnsemble`: gradient-free convolutional front ends and ensembles |
-| `src/leenef/rl.py` | `NEFFeatures`, `NEFFQIAgent`, `NEFFQIEnsemble`: RL agents and ensembles built on analytic value solves |
+| `src/leenef/rl.py` | `NEFFeatures`, `NEFAVRAgent`, `NEFAVREnsemble`: RL agents and ensembles built on analytic value solves |
 | `src/leenef/encoders.py` | Encoder strategies: `hypersphere`, `gaussian`, `sparse`, `receptive_field`, `whitened`, `class_contrast`, `local_pca` |
 | `src/leenef/activations.py` | Activations: `abs`, `relu`, `softplus`, `lif_rate` |
 | `src/leenef/solvers.py` | Decoder solvers and normal-equation utilities |

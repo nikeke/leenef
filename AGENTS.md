@@ -421,7 +421,7 @@ and resume long pipelines without losing already finished runs.
 
 ## RL multi-seed sweep notes (ATTIC EPOCH — pending rewrite)
 
-Long-running, multi-seed isolation sweeps for NEF-FQI are tracked in
+Long-running, multi-seed isolation sweeps for NEF-AVR are tracked in
 `docs/rl_multiseed_sweeps.md`. After each phase of `rl_hp_driver.sh`
 finishes (or when designing a new sweep), update that document:
 

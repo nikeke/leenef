@@ -28,6 +28,9 @@ dependencies = [
 Repository = "https://github.com/nikeke/leenef"
 Documentation = "https://github.com/nikeke/leenef/tree/main/docs"
 
+[project.scripts]
+leenef-install-skill = "leenef.install_skill:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
@@ -53,11 +56,15 @@ packages = {find = {where = ["src"]}}
 "" = "src"
 
 [tool.setuptools.package-data]
-leenef = ["py.typed"]
+leenef = [
+    "py.typed",
+    "skill_assets/**/*",
+]
 
 [tool.ruff]
 line-length = 99
 target-version = "py312"
+extend-exclude = ["src/leenef/skill_assets"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]

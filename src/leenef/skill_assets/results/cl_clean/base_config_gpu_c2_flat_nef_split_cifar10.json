@@ -1,0 +1,21 @@
+{
+  "activation": "abs",
+  "alpha": 0.001,
+  "batch_size": 128,
+  "buffer_size": 500,
+  "cell": "nef_accumulate",
+  "centers_mode": "first_task",
+  "device": "cuda",
+  "encoder_strategy": "hypersphere",
+  "epochs_per_task": 5,
+  "ewc_lambda": 1000.0,
+  "fisher_samples": 200,
+  "gain_high": 2.0,
+  "gain_low": 0.5,
+  "hidden": 256,
+  "lr": 0.001,
+  "n_hidden_layers": 2,
+  "n_neurons": 5000,
+  "replay_batch": 64,
+  "weight_decay": 0.0
+}

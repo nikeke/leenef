@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# Watch B7 panel runs.  Foreground; intended to be invoked by the agent's
+# bash tool with a long initial_wait so the agent gets a completion
+# notification when this exits.
+#
+# Exits 0 when results/sl_clean/b7_panels_done exists.
+# Exits 1 if all watched logs go silent for STALL_SECS.
+set -euo pipefail
+cd "$(dirname "$0")/../.."
+LOGDIR="results/sl_clean/logs"
+DONE="results/sl_clean/b7_panels_done"
+POLL_SECS="${POLL_SECS:-300}"
+STALL_SECS="${STALL_SECS:-2400}"
+
+ts() { date -u +'%Y-%m-%dT%H:%M:%SZ'; }
+
+last_progress=$(date +%s)
+
+while true; do
+    if [[ -f "$DONE" ]]; then
+        echo "[$(ts)] done sentinel found — all B7 panels finished"
+        exit 0
+    fi
+
+    newest_mtime=0
+    newest_log=""
+    for log in "$LOGDIR"/b7_cifar10_centered.log "$LOGDIR"/b7_mnist_decentered.log; do
+        [[ -f "$log" ]] || continue
+        m=$(stat -c %Y "$log")
+        if (( m > newest_mtime )); then
+            newest_mtime=$m
+            newest_log=$log
+        fi
+    done
+
+    now=$(date +%s)
+    if (( newest_mtime > 0 )); then
+        if (( newest_mtime > last_progress )); then
+            last_progress=$newest_mtime
+        fi
+        idle=$(( now - last_progress ))
+        last_line=$(tail -n 1 "$newest_log" 2>/dev/null || echo "")
+        echo "[$(ts)] watching ($idle s idle); last: $last_line"
+        if (( idle > STALL_SECS )); then
+            echo "[$(ts)] STALLED — no log progress for ${STALL_SECS}s; check ps + logs"
+            ps -ef | grep -E "sl_phase|sl_hp_driver|run_b7_panels" | grep -v grep || true
+            exit 1
+        fi
+    else
+        echo "[$(ts)] no logs yet"
+    fi
+
+    sleep "$POLL_SECS"
+done
