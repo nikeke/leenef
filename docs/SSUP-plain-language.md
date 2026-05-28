@@ -1,4 +1,4 @@
-# The SSUP three-paper series, in one page
+# Plain-language guide to the SSUP three-paper series
 
 The three papers study a simple question: how far can we get if a learning
 system keeps its internal representation fixed and learns only a final linear
