@@ -432,6 +432,18 @@ class TestActivations:
         # sign(cos): cos>0 -> +1, cos<0 -> -1
         assert torch.allclose(act(x), torch.tensor([1.0, -1.0, 1.0, -1.0]), atol=1e-6)
 
+    def test_square_floor(self):
+        act = make_activation("square_floor")
+        x = torch.tensor([-1.2, -0.1, 0.0, math.pi, 2.2])
+        expected = torch.sign(torch.cos(x)) + torch.floor(x)
+        assert torch.equal(act(x), expected)
+
+    def test_square_floor_not_even_not_odd(self):
+        act = make_activation("square_floor")
+        x = torch.tensor([0.3, 0.7, 1.4, 2.6])
+        assert not torch.allclose(act(-x), act(x), atol=1e-6)
+        assert not torch.allclose(act(-x), -act(x), atol=1e-6)
+
     def test_box(self):
         act = make_activation("box")
         x = torch.tensor([-2.0, -0.5, 0.0, 0.5, 2.0])
@@ -481,6 +493,7 @@ class TestActivations:
             "gauss",
             "cos_sin",
             "square_wave",
+            "square_floor",
             "box",
             "staircase",
             "gelu",

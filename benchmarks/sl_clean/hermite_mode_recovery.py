@@ -57,6 +57,7 @@ _ACTS = {
     "gauss": lambda z: torch.exp(-0.5 * z * z),
     "cos_sin": lambda z: torch.cos(z) + torch.sin(z),
     "square_wave": lambda z: torch.sign(torch.cos(z)),
+    "square_floor": lambda z: torch.sign(torch.cos(z)) + torch.floor(z),
     "box": lambda z: (z.abs() < 1.0).to(z.dtype),
     "staircase": lambda z: (torch.floor(z / 1.0) * 1.0).clamp(-3.0, 3.0),
     "gelu": lambda z: torch.nn.functional.gelu(z),

@@ -75,6 +75,9 @@ def _activation_fn(name: str) -> Callable[[torch.Tensor], None]:
     if name == "square_wave":
         # f(z) = sign(cos(z))
         return lambda t: t.copy_(torch.sign(torch.cos(t)))
+    if name == "square_floor":
+        # f(z) = sign(cos(z)) + floor(z)
+        return lambda t: t.copy_(torch.sign(torch.cos(t)) + torch.floor(t))
     if name == "box":
         # f(z) = 1[|z| < 1]
         return lambda t: t.copy_((t.abs() < 1.0).to(t.dtype))
@@ -88,7 +91,8 @@ def _activation_fn(name: str) -> Callable[[torch.Tensor], None]:
     raise ValueError(
         f"unknown activation {name!r}; phase-c supports "
         "abs/relu/leaky_relu/softplus/tanh/step/square/bent_line/"
-        "double_fold/sqrt_abs/cos/gauss/cos_sin/square_wave/box/staircase/gelu/silu"
+        "double_fold/sqrt_abs/cos/gauss/cos_sin/square_wave/square_floor/"
+        "box/staircase/gelu/silu"
     )
 
 

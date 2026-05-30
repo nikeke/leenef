@@ -169,6 +169,20 @@ class SquareWave(nn.Module):
         return torch.sign(torch.cos(x))
 
 
+class SquareFloor(nn.Module):
+    """Digital cosine plus monotone staircase ``f(x) = sign(cos(x)) + floor(x)``.
+
+    This is a deliberately tiny fusion of two digital effects: the oscillatory
+    `square_wave` contributes even Hermite modes, while ``floor`` contributes
+    the strong constant/linear modes of a monotone quantizer.  Unlike
+    `staircase`, it is unclamped; use it as a spectrum diagnostic rather than
+    as a bounded default activation.
+    """
+
+    def forward(self, x: Tensor) -> Tensor:
+        return torch.sign(torch.cos(x)) + torch.floor(x)
+
+
 class Box(nn.Module):
     """Digital bump ``f(x) = 1[|x| < c]`` (default ``c=1``).
 
@@ -239,15 +253,16 @@ class Staircase(nn.Module):
     gradient training but admissible here because the decoders are solved
     analytically and the activation is never differentiated.
 
-    Spectrally it is a cautionary case rather than a strong default: a
-    fine monotone quantizer of a unit-scale pre-activation tracks the
-    identity closely, so its Hermite energy concentrates in the constant
-    and linear ($k=0,1$) modes and its $k\\ge2$ coefficients are nearly
-    zero (measured $a_2^2\\approx a_3^2\\approx0$).  It therefore sits close
-    to the linear / collapse mode (cf. `identity`): being "digital" does
-    not by itself buy discriminative ($k\\ge2$) power — the oscillatory
-    `square_wave` and bump `box` are the digital activations that do carry
-    a rich even spectrum.
+    The clamp keeps the feature bounded and comparable to the other digital
+    cells during wide-gain sweeps.  Spectrally it is a cautionary case rather
+    than a strong default: a fine monotone quantizer of a unit-scale
+    pre-activation tracks the identity closely, so its Hermite energy
+    concentrates in the constant and linear ($k=0,1$) modes and its
+    $k\\ge2$ coefficients are nearly zero (measured
+    $a_2^2\\approx a_3^2\\approx0$).  It therefore sits close to the linear /
+    collapse mode (cf. `identity`): being "digital" does not by itself buy
+    discriminative ($k\\ge2$) power — the oscillatory `square_wave` and bump
+    `box` are the digital activations that do carry a rich even spectrum.
     """
 
     def __init__(self, step: float = 1.0, limit: float = 3.0):
@@ -274,6 +289,7 @@ ACTIVATIONS = {
     "gauss": GaussBump,
     "cos_sin": CosSin,
     "square_wave": SquareWave,
+    "square_floor": SquareFloor,
     "box": Box,
     "staircase": Staircase,
     "gelu": Gelu,

@@ -30,9 +30,10 @@ THREADS="${THREADS:-6}"
 NICE="${NICE:-10}"
 export PYTHONPATH="${REPO_ROOT}/src:${REPO_ROOT}${PYTHONPATH:+:${PYTHONPATH}}"
 
-# References (re-run under the current code_identity) + new activations at the
-# main gain, plus a small/wide gain sweep for the RBF-family pair cos/gauss.
-CELLS="${VALUES:-abs+g0.5_2.0,relu+g0.5_2.0,bent_line+g0.5_2.0,leaky_relu+g0.5_2.0,softplus+g0.5_2.0,square+g0.5_2.0,double_fold+g0.5_2.0,sqrt_abs+g0.5_2.0,cos+g0.5_2.0,gauss+g0.5_2.0,cos+g0.05_0.2,gauss+g0.05_0.2,cos+g0.1_5.0,gauss+g0.1_5.0}"
+# References (re-run under the current code_identity) + activation probes at
+# the main gain, with selected narrow/wide gain controls for bandwidth-sensitive
+# cells.
+CELLS="${VALUES:-abs+g0.5_2.0,relu+g0.5_2.0,bent_line+g0.5_2.0,leaky_relu+g0.5_2.0,softplus+g0.5_2.0,square+g0.5_2.0,double_fold+g0.5_2.0,sqrt_abs+g0.5_2.0,cos+g0.5_2.0,gauss+g0.5_2.0,cos+g0.05_0.2,gauss+g0.05_0.2,cos+g0.1_5.0,gauss+g0.1_5.0,square_floor+g0.5_2.0,square_floor+g0.1_5.0}"
 
 LOG_DIR="${REPO_ROOT}/results/sl_clean/logs"
 DONE="${REPO_ROOT}/results/sl_clean/c2_altact_panel_done"
