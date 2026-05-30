@@ -55,6 +55,11 @@ _ACTS = {
     "sqrt_abs": lambda z: z.abs().sqrt(),
     "cos": torch.cos,
     "gauss": lambda z: torch.exp(-0.5 * z * z),
+    "cos_sin": lambda z: torch.cos(z) + torch.sin(z),
+    "square_wave": lambda z: torch.sign(torch.cos(z)),
+    "box": lambda z: (z.abs() < 1.0).to(z.dtype),
+    "gelu": lambda z: torch.nn.functional.gelu(z),
+    "silu": lambda z: torch.nn.functional.silu(z),
     "tanh": torch.tanh,
     "softplus": lambda z: torch.nn.functional.softplus(z),
 }

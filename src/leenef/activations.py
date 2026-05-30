@@ -137,6 +137,82 @@ class GaussBump(nn.Module):
         return torch.exp(-0.5 * x.square())
 
 
+class CosSin(nn.Module):
+    """Parity-broken sinusoid ``f(x) = cos(x) + sin(x) = sqrt(2) cos(x - pi/4)``.
+
+    A fixed-phase random Fourier feature.  Plain `cos` is an *even* function
+    of its argument, so (at zero bias) its dual activation kernel keeps only
+    even Hermite modes and discards every odd mode.  Adding the ``sin`` term
+    breaks that symmetry: ``cos + sin`` has nonzero Hermite coefficients at
+    *every* order, so the population realizes the full Gaussian-RBF kernel
+    (even *and* odd modes) rather than its even-only projection.  This is the
+    minimal "fix" for the even-only limitation of `cos`/`gauss` — it is a
+    change of *phase* (symmetry), not of complexity.
+    """
+
+    def forward(self, x: Tensor) -> Tensor:
+        return torch.cos(x) + torch.sin(x)
+
+
+class SquareWave(nn.Module):
+    """Digital cosine ``f(x) = sign(cos(x))`` — a piecewise-constant square wave.
+
+    The Walsh/square-wave relative of `cos`.  Its Fourier series
+    ``(4/pi)(cos x - cos 3x / 3 + cos 5x / 5 - ...)`` packs many frequencies
+    into one neuron, giving a rich *even* dual kernel.  It is zero-gradient
+    almost everywhere — inadmissible for gradient training, but perfectly
+    usable here because decoders are solved analytically and the activation
+    is never differentiated.
+    """
+
+    def forward(self, x: Tensor) -> Tensor:
+        return torch.sign(torch.cos(x))
+
+
+class Box(nn.Module):
+    """Digital bump ``f(x) = 1[|x| < c]`` (default ``c=1``).
+
+    The piecewise-constant (indicator) relative of the `gauss` bump.  With
+    data-driven biases each neuron is a hard receptive field — it fires iff
+    the projected input lands within ``c`` of the neuron's center.  Like the
+    `gauss` bump it is an *even* function (even-only Hermite spectrum), and
+    like `square_wave` it has zero gradient a.e., which is admissible only
+    because the solve is analytic.
+    """
+
+    def __init__(self, c: float = 1.0):
+        super().__init__()
+        self.c = c
+
+    def forward(self, x: Tensor) -> Tensor:
+        return (x.abs() < self.c).to(dtype=x.dtype)
+
+
+class Gelu(nn.Module):
+    """Gaussian-error linear unit ``f(x) = x * Phi(x)``.
+
+    A smooth, monotone-ish gate that is neither even nor odd, so — unlike
+    `cos`/`gauss` — its dual activation kernel carries *both* even and odd
+    Hermite modes while staying gain-robust (no bandwidth to tune).  A
+    natural full-spectrum default candidate.
+    """
+
+    def forward(self, x: Tensor) -> Tensor:
+        return F.gelu(x)
+
+
+class Silu(nn.Module):
+    """Sigmoid linear unit / swish ``f(x) = x * sigmoid(x)``.
+
+    Like `gelu`, a smooth full-spectrum gate (both parities) that needs no
+    bandwidth tuning.  Included as a second gain-robust full-spectrum
+    default candidate.
+    """
+
+    def forward(self, x: Tensor) -> Tensor:
+        return F.silu(x)
+
+
 class Softplus(nn.Module):
     """Smooth ReLU ``f(x) = log(1 + exp(beta * x)) / beta``.
 
@@ -165,6 +241,11 @@ ACTIVATIONS = {
     "sqrt_abs": SqrtAbs,
     "cos": Cos,
     "gauss": GaussBump,
+    "cos_sin": CosSin,
+    "square_wave": SquareWave,
+    "box": Box,
+    "gelu": Gelu,
+    "silu": Silu,
     "linear": Identity,
     "identity": Identity,
     "step": Step,

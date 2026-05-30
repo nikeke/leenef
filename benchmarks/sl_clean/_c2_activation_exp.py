@@ -41,6 +41,11 @@ _C2_ACTIVATIONS = (
     "sqrt_abs",
     "cos",
     "gauss",
+    "cos_sin",
+    "square_wave",
+    "box",
+    "gelu",
+    "silu",
 )
 _C2_GAIN_RANGES: tuple[tuple[float, float], ...] = (
     (0.5, 2.0),  # project default

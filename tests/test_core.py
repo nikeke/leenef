@@ -1,5 +1,7 @@
 """Tests for leenef core modules."""
 
+import math
+
 import pytest
 import torch
 
@@ -411,6 +413,41 @@ class TestActivations:
         expected = torch.tensor([1.0, torch.exp(torch.tensor(-0.5)).item()])
         assert torch.allclose(act(x), expected, atol=1e-6)
 
+    def test_cos_sin_is_phase_shifted_cosine(self):
+        act = make_activation("cos_sin")
+        x = torch.linspace(-3, 3, 25)
+        # cos(x) + sin(x) == sqrt(2) cos(x - pi/4)
+        expected = math.sqrt(2.0) * torch.cos(x - math.pi / 4)
+        assert torch.allclose(act(x), expected, atol=1e-6)
+
+    def test_cos_sin_not_even(self):
+        act = make_activation("cos_sin")
+        x = torch.tensor([0.3, 0.7, 1.1])
+        # An even function would satisfy f(-x) == f(x); cos+sin must not.
+        assert not torch.allclose(act(-x), act(x), atol=1e-3)
+
+    def test_square_wave(self):
+        act = make_activation("square_wave")
+        x = torch.tensor([0.0, math.pi, math.pi / 3, 2 * math.pi / 3])
+        # sign(cos): cos>0 -> +1, cos<0 -> -1
+        assert torch.allclose(act(x), torch.tensor([1.0, -1.0, 1.0, -1.0]), atol=1e-6)
+
+    def test_box(self):
+        act = make_activation("box")
+        x = torch.tensor([-2.0, -0.5, 0.0, 0.5, 2.0])
+        assert torch.equal(act(x), torch.tensor([0.0, 1.0, 1.0, 1.0, 0.0]))
+
+    def test_gelu(self):
+        act = make_activation("gelu")
+        x = torch.tensor([-3.0, 0.0, 3.0])
+        assert torch.allclose(act(x), torch.nn.functional.gelu(x), atol=1e-6)
+        assert act(torch.tensor([0.0])).item() == pytest.approx(0.0, abs=1e-6)
+
+    def test_silu(self):
+        act = make_activation("silu")
+        x = torch.tensor([-3.0, 0.0, 3.0])
+        assert torch.allclose(act(x), torch.nn.functional.silu(x), atol=1e-6)
+
     def test_phase_c_activation_parity(self):
         # The benchmark harness uses fast in-place activation functions that
         # must match the library modules bit-for-bit.
@@ -429,6 +466,11 @@ class TestActivations:
             "sqrt_abs",
             "cos",
             "gauss",
+            "cos_sin",
+            "square_wave",
+            "box",
+            "gelu",
+            "silu",
         ]
         g = torch.Generator().manual_seed(0)
         x = torch.randn(64, generator=g) * 3.0
