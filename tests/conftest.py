@@ -10,9 +10,11 @@ import numpy as np
 import pytest
 import torch
 
-_SRC = Path(__file__).resolve().parents[1] / "src"
-if str(_SRC) not in sys.path:
-    sys.path.insert(0, str(_SRC))
+_ROOT = Path(__file__).resolve().parents[1]
+_SRC = _ROOT / "src"
+for _path in (_ROOT, _SRC):
+    if str(_path) not in sys.path:
+        sys.path.insert(0, str(_path))
 
 
 MNIST_RAW_FILES = (
@@ -25,7 +27,7 @@ MNIST_RAW_FILES = (
 
 def mnist_raw_present(root: Path | None = None) -> bool:
     """Return True only when all four raw MNIST IDX files are available."""
-    root = root or Path(__file__).resolve().parents[1]
+    root = root or _ROOT
     raw_dir = root / "data" / "MNIST" / "raw"
     return all((raw_dir / name).is_file() for name in MNIST_RAW_FILES)
 
