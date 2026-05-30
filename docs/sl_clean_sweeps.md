@@ -104,6 +104,7 @@ the ground truth for any future claim audit.
 | C6   | c6_convnef_mnist_panel | c6_convnef_mnist | `cell` (`default`) | Paper I ConvNEF headline — MNIST |
 | C6.1 | c6_convnef_cifar10_panel | c6_convnef_cifar10 | `cell` (`default`) | Paper I ConvNEF headline — CIFAR-10 |
 | C7   | c7_housing_panel | c7_housing | `cell` (`n_neurons`) | Paper I §5.6 — regression universality demo |
+| CA   | c2_altact_{mnist,fashion,cifar10}_panel + kink_angle_{mnist,fashion,cifar10}_panel | c2_activation_* | `cell` (15 activations) / `theta_over_pi` (29 angles) | activation-kernel theory — small-nonlinearity ablation, origin-angle sweep, Hermite-mode recovery |
 
 ---
 
@@ -1401,6 +1402,95 @@ bash benchmarks/sl_clean/sl_hp_driver.sh smoke
 The smoke phases are not load-bearing for any paper claim and will be
 deleted from the index once at least one headline phase has landed and
 demonstrated the same workflow.
+
+---
+
+## CA — activation-kernel theory (small-nonlinearity ablation)
+
+Companion study to `docs/activation_kernel_theory.md`: frames leenef as
+explicit random-feature ridge regression whose dual kernel is the
+Mehler/Hermite series $k_G(\rho)=\sum_k (a_k^2/k!)\rho^k$ of the scalar
+activation $G$, then tests the resulting predictions.  Three experiments,
+all under the §5.4 protocol ($n=5000$, hypersphere encoders, data-driven
+biases, trace-scaled $\alpha=10^{-3}$, MNIST/Fashion/CIFAR-10, 10 seeds)
+except the synthetic Hermite test.
+
+### CA.1 — origin-angle sweep (`kink_angle_*`)
+
+Parameterize the origin kink by interior angle $\theta$ (right arm fixed
+at 45°, left slope $\tan(\pi/4+\theta)$): abs$=\pi/2$, relu$=3\pi/4$,
+linear-collapse at $\theta=\pi$.  29 angles, dense near $\theta=\pi$.
+Every angle reuses the same $z,|z|$ features; the runner accumulates five
+Gram/target blocks once per seed and recombines per angle.
+
+Verdict (mean over 10 seeds; full table in theory §8.2):
+
+- Flat plateau at the dataset abs-level accuracy across the whole arm range
+  (MNIST $\approx0.970$, Fashion $\approx0.877$, CIFAR $\approx0.494$).
+- Sharp **symmetric** collapse dip at exactly $\theta=\pi$ down to the
+  linear-readout accuracy (MNIST $0.860$, Fashion $0.811$, CIFAR $0.388$),
+  recovering within a $\pm0.03\pi$ basin set by the $\alpha/n$ floor.
+- **Zero seed variance at $\theta=\pi$** (SE $=0.0000$): the linear readout
+  is encoder-independent, so every seed collapses to the identical number —
+  a crisp fingerprint of the §2 collapse.
+- Parity: $\theta=\pi/2$ reproduces the published `abs` MNIST seed-0 cell
+  exactly (0.9702); $\theta=3\pi/4$ matches `relu`.
+
+### CA.2 — Hermite-mode recovery (synthetic)
+
+`hermite_mode_recovery.py`: Gauss-Hermite quadrature for $a_0..a_6$ plus
+random-feature ridge $R^2$ for each pure mode $\mathrm{He}_k$.  Result:
+held-out $R^2_k>0$ **iff** $a_k\ne0$.  Linear learns only $k=1$ (collapse);
+abs/relu/bent_line/leaky/softplus share $k=2$; square is pure degree-2;
+`tanh` is odd-only and is the only tested activation that learns the cubic
+$k=3$ (relu cannot, since relu $=\tfrac12(z+|z|)$ has $a_3=0$); cos/gauss
+are even-only.
+
+### CA.3 — real-task activation panel (`c2_altact_*`)
+
+15 cells × 10 seeds × 3 datasets, written to **separate** `c2_altact_*`
+files (the published `c2_activation_*` panels are untouched).  Full table
+in theory §8.3.  Headlines:
+
+- Single-kink family (`abs`/`relu`/`leaky_relu`/`bent_line`) ties to within
+  $\sim0.2\%$ everywhere — one equivalence class.
+- `softplus` is the weakest relu relative (smoothing $\gtrsim$ gain
+  suppresses $k\ge2$ energy).
+- `tanh` trails the kink family ($-0.3$/$-0.7$/$-0.9\%$) but stays well
+  above the collapse floor (odd $k\ge3$ modes survive).
+- `double_fold` marginally best on MNIST/Fashion; `square` competitive and
+  best fold-family on CIFAR.
+- **`cos`/`gauss` are the best activations overall on CIFAR-10**
+  ($0.5062$/$0.5046$ vs `abs` $0.4945$) — a full RBF kernel — but are
+  gain-sensitive (signal-starved underfit at tiny gain; full recovery at
+  adequate/wide gain).  `abs` is gain-robust.
+
+### Code / data identity
+
+The `c2_altact_*` rows carry committed content-id `d3c90fba…`; the
+`kink_angle_*` and `hermite_mode_recovery` rows carry `3741a8d2…`.  Both
+predate committing the (non-computational) analyzer/launcher scaffolding,
+so their content-id differs from later HEADs; the computation code
+(activations, solver, harness) is committed (`4698d0d`, `52552f5`) and the
+experiments are deterministic, so these are stable diagnostics.  Aggregate
+with `analyze_altact_panel.py` (groups by content-id, ignoring the
+`-dirty-` suffix) and `analyze_kink_angle.py --all-identities`.
+
+### Reproduce
+
+```bash
+# origin-angle sweep (resumable)
+PYTHONPATH=src python -m benchmarks.sl_clean.kink_angle_sweep \
+    --datasets mnist,fashion,cifar10 --seeds 0-9
+# synthetic Hermite recovery
+PYTHONPATH=src python -m benchmarks.sl_clean.hermite_mode_recovery --seeds 0-4
+# real-task alt-activation panel (3 datasets in parallel)
+SEEDS=0-9 PYTHON=$PWD/venv/bin/python \
+    bash benchmarks/sl_clean/run_c2_altact_panel.sh
+# aggregate
+PYTHONPATH=src python -m benchmarks.sl_clean.analyze_altact_panel
+PYTHONPATH=src python -m benchmarks.sl_clean.analyze_kink_angle --all-identities
+```
 
 ---
 

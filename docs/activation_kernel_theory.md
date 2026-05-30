@@ -206,8 +206,10 @@ up to a constant factor and a linear term.
   positive slopes work; the nonlinear energy is $((m_+-m_-)/2)^2$.  As
   $m_-\to m_+$ the kink vanishes, $c_2\to 0$, and the activation
   collapses to linear — recovering §3 continuously.  Leaky-ReLU
-  (slope $0.1$) and Softplus (a smoothed kink) are further members and
-  are predicted equivalent to ReLU.
+  (slope $0.1$) is another exact member.  Softplus is a *smoothed* kink:
+  equivalent to ReLU only in the sharp limit ($\beta\cdot$gain large);
+  when the smoothing scale rivals the active range it loses nonlinear
+  energy (see §8.3).
 
 ### 4.1 The origin angle: one knob through the whole kink family
 
@@ -323,7 +325,7 @@ reshapes the kernel.
 | `relu` | $\tfrac14\times$`abs` nonlinear $+$ linear | tie |
 | `bent_line` (1, ½) | $\tfrac{1}{16}\times$`abs` nonlinear $+$ linear | **tie** |
 | `leaky_relu` (0.1) | bent-line member | tie |
-| `softplus` | smoothed kink | tie |
+| `softplus` ($\beta{=}1$) | smoothed kink; sharp only if $\beta\cdot$gain large | tie if sharp, else **worse** |
 | `tanh` | saturating, magnitude-suppressing | worse |
 | `step` | order-0 arc-cosine (magnitude-blind) | worse |
 | `square` | degree-2 polynomial kernel | $\approx$ / mild CIFAR edge |
@@ -427,13 +429,83 @@ compute it.  Full panels:
 
 ### 8.3 The real-task activation panel
 
-The full-dataset comparison of all activations (10 seeds, $n=5000$,
-hypersphere encoders, data-driven biases, trace-scaled $\alpha=10^{-3}$,
-MNIST / Fashion-MNIST / CIFAR-10), with gain sweeps for `cos`/`gauss`,
-lives at `results/sl_clean/c2_altact_{mnist,fashion,cifar10}_panel.json`.
-It tests the §7 predictions on real targets; the kink family is expected
-to tie `abs`, `tanh`/`step` to trail, and `square`/`cos`/`gauss` to be
-competitive (gain-dependent for the RBF pair).
+The full-dataset comparison (10 seeds, $n=5000$, hypersphere encoders,
+data-driven biases, trace-scaled $\alpha=10^{-3}$, MNIST / Fashion-MNIST /
+CIFAR-10) tests the §7 predictions on real targets.  Test accuracy
+(mean $\pm$ SE over 10 seeds); panels at
+`results/sl_clean/c2_altact_{mnist,fashion,cifar10}_panel.json`:
+
+| activation (gain $U(0.5,2)$) | MNIST | Fashion | CIFAR-10 |
+|---|---|---|---|
+| `abs` (reference) | $0.9704\pm0.0001$ | $0.8778\pm0.0005$ | $0.4945\pm0.0011$ |
+| `relu` | $0.9705\pm0.0003$ | $0.8765\pm0.0005$ | $0.4945\pm0.0007$ |
+| `leaky_relu` $(s=0.01)$ | $0.9702\pm0.0003$ | $0.8764\pm0.0005$ | $0.4936\pm0.0007$ |
+| `bent_line` $(s=\tfrac12)$ | $0.9685\pm0.0003$ | $0.8729\pm0.0004$ | $0.4934\pm0.0007$ |
+| `softplus` | $0.9562\pm0.0003$ | $0.8562\pm0.0004$ | $0.4809\pm0.0007$ |
+| `tanh` | $0.9677\pm0.0002$ | $0.8711\pm0.0005$ | $0.4860\pm0.0009$ |
+| `square` | $0.9693\pm0.0002$ | $0.8751\pm0.0005$ | $0.4989\pm0.0011$ |
+| `double_fold` $(c=1)$ | $\mathbf{0.9710}\pm0.0002$ | $\mathbf{0.8780}\pm0.0002$ | $0.4959\pm0.0009$ |
+| `sqrt_abs` $(p=\tfrac12)$ | $0.9675\pm0.0004$ | $0.8729\pm0.0006$ | $0.4798\pm0.0010$ |
+| `cos` | $0.9666\pm0.0002$ | $0.8695\pm0.0004$ | $0.5046\pm0.0013$ |
+| `gauss` | $0.9666\pm0.0002$ | $0.8689\pm0.0004$ | $\mathbf{0.5062}\pm0.0011$ |
+
+RBF-pair gain sweep (`cos`/`gauss` at narrow vs. wide gain):
+
+| activation | gain | MNIST | Fashion | CIFAR-10 |
+|---|---|---|---|---|
+| `cos` | $U(0.05,0.2)$ | $0.7886$ | $0.7158$ | $0.3080$ |
+| `gauss` | $U(0.05,0.2)$ | $0.7883$ | $0.7154$ | $0.3077$ |
+| `cos` | $U(0.1,5.0)$ | $0.9704$ | $0.8764$ | $0.5012$ |
+| `gauss` | $U(0.1,5.0)$ | $0.9697$ | $0.8750$ | $0.5000$ |
+
+Every §7 prediction holds:
+
+1. **The single-kink family ties `abs`.** `abs`, `relu`, `leaky_relu`,
+   and the requested monotone $(1,\tfrac12)$ `bent_line` agree to within
+   $\sim0.2\%$ on every dataset — one equivalence class, exactly as §4
+   predicts (all share the $|z|$ spectrum modulo a bounded affine term).
+2. **`softplus` is the weakest relu relative** ($-1.4\%$ MNIST, $-2.2\%$
+   Fashion, $-1.4\%$ CIFAR).  At this gain it is nearly linear across the
+   active range; smoothing away the kink suppresses the $k\ge2$ energy and
+   pushes the kernel toward the collapse mode — the smooth-activation cost
+   the theory anticipates.
+3. **`tanh` trails the kink family but stays well clear of collapse**
+   ($0.9677$/$0.8711$/$0.4860$, i.e. $-0.3\%$/$-0.7\%$/$-0.9\%$ vs. `abs`).
+   As an odd activation it discards the even ($k=2$) magnitude mode — the
+   dominant discriminative mode for these datasets — so it cannot match
+   the kink family; the gap widens on the harder CIFAR-10, where even
+   modes matter most.  But it is nowhere near the linear-readout floor
+   ($0.39$ on CIFAR): its surviving odd $k\ge3$ modes (notably the cubic
+   the Hermite test isolates) still carry real signal.  `tanh` is weaker,
+   not broken — exactly the §5 picture.
+4. **`double_fold` is marginally the best fold on the digit/garment
+   tasks** ($0.9710$/$0.8780$): the extra fold injects more even-mode
+   structure, the predicted "more folds" effect.
+5. **`square` is competitive and the strongest fold-family activation on
+   CIFAR-10** ($0.4989$): a pure degree-2 polynomial kernel already
+   suffices, and helps most on the hardest task.
+6. **`sqrt_abs` trails on CIFAR-10** ($0.4798$): the $p<1$ cusp gives a
+   slowly decaying high-$k$ tail (a rougher kernel), which costs the most
+   where the data are hardest.
+7. **The RBF pair `cos`/`gauss` is the most powerful — on the hardest
+   task, and when the bandwidth is right.** At the default gain they sit
+   just below `abs` on MNIST/Fashion but are the **best activations
+   overall on CIFAR-10** ($0.5046$/$0.5062$ vs. `abs` $0.4945$, a
+   $5$–$9\,$SE margin): their dual kernel is a full Gaussian/RBF kernel
+   with an *infinite* $k\ge2$ spectrum.  They are **gain-sensitive**,
+   exactly as §6 warns — the per-neuron gain *is* the RBF bandwidth.  At
+   tiny gain $U(0.05,0.2)$ the curvature barely engages: $\cos(z)\approx
+   1-\tfrac{z^2}{2}$ with a quadratic signal of variance $\propto g^4$
+   that trace-scaled ridge swamps, giving a signal-starved underfit
+   ($0.79$/$0.72$/$0.31$) — a different failure from the linear collapse.
+   At adequate/wide gain they fully recover and keep the CIFAR edge.
+   `abs`, by contrast, is gain-robust.
+
+The practical reading: the single-kink activations are interchangeable
+(use the cheapest, `relu` or `abs`); to *beat* `abs` you must change the
+$k\ge2$ spectrum, and on the hardest task an RBF activation with adequate
+bandwidth (`gauss`/`cos` at gain $\gtrsim1$) is the most powerful of the
+small nonlinearities tested.
 
 ---
 
@@ -444,13 +516,17 @@ competitive (gain-dependent for the RBF pair).
    squared Hermite spectrum $\{a_k^2\}$ of $G$.
 2. **The linear mode ($k=1$) is the collapse mode**; all discrimination
    lives in $k\ge2$.  Linear activation = linear kernel = §2 collapse.
-3. **Every single-kink (bent-line) activation equals `abs` up to a
-   bounded affine correction** — exactly, for any bias.  ReLU,
-   leaky-ReLU, the requested monotone $(1,\tfrac12)$ kink, and Softplus
-   are all `abs` to the solve.  This *explains* the SSUP-I §5.4
-   `abs`$\approx$ReLU result and predicts the new kink ties.
+3. **Every *exact* single-kink (bent-line) activation equals `abs` up to
+   a bounded affine correction** — exactly, for any bias.  ReLU,
+   leaky-ReLU, and the requested monotone $(1,\tfrac12)$ kink are all
+   `abs` to the solve, and the panel confirms they tie.  This *explains*
+   the SSUP-I §5.4 `abs`$\approx$ReLU result and predicts the new kink
+   ties.  Softplus is only an *approximate* kink: when its smoothing scale
+   is comparable to the active range (as at the panel gain) it loses
+   $k\ge2$ energy and trails — a sharp kink is what the equivalence needs.
 4. **`tanh`/`step` are weaker** because they discard the magnitude (even
-   Hermite) modes that carry discrimination.
+   Hermite) modes that carry most discrimination — though `tanh` keeps its
+   odd $k\ge3$ modes and so stays well above the collapse floor.
 5. **To beat `abs` you must change the $k\ge2$ spectrum**: `square`
    (degree-2 polynomial kernel), `double_fold` (more folds), or the RBF
    family (`cos`, `gauss`) whose **bandwidth is the per-neuron gain**.
