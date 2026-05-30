@@ -1,7 +1,7 @@
 [project]
 name = "leenef"
-version = "0.1.1rc1"
-description = "Machine learning with the Neural Engineering Framework (Eliasmith & Anderson)"
+version = "0.1.1"
+description = "Machine learning with a rate-based specialization of the Neural Engineering Framework (NEF) in PyTorch."
 readme = "README.md"
 requires-python = ">=3.12"
 license = {file = "LICENSE"}
