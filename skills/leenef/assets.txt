@@ -1,0 +1,24 @@
+# Repo-relative files to install with the leenef Agent Skill.
+#
+# Files under skills/leenef/ are installed at the skill root; all other paths
+# keep their repository-relative layout.  Keep this list focused on material an
+# agent needs for source-grounded leenef advice.
+
+skills/leenef/SKILL.md
+skills/leenef/assets.txt
+
+README.md
+AGENTS.md
+LICENSE
+pyproject.toml
+
+docs/*.md
+!docs/SSUP-plain-language.md
+
+src/leenef/**/*.py
+src/leenef/py.typed
+
+benchmarks/**/*.py
+benchmarks/**/*.sh
+
+results/**/base_config*.json

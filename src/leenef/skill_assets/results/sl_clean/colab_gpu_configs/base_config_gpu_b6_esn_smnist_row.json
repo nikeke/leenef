@@ -1,9 +1,0 @@
-{
-  "cell": "n500_sr0.7_leak0.3",
-  "chunk_size": 256,
-  "device": "cuda",
-  "input_scale": 1.0,
-  "ridge_alpha": 0.001,
-  "sparsity": 0.1,
-  "use_bias_state": true
-}

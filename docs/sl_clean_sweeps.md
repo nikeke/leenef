@@ -1,6 +1,6 @@
 # sl_clean sweeps — phase log
 
-This document mirrors `attic/docs/rl_clean_sweeps.md` for the
+This document mirrors `docs/rl_clean_sweeps.md` for the
 supervised-learning side of the SSUP paper series. Every phase
 that contributes to a numeric claim in **Paper I — Sufficient Statistics
 as the Universal Primitive** lands here, with:
@@ -504,7 +504,7 @@ origin (MNIST raw), the hinge rarely sees a sign flip, abs is
 effectively linear in the fluctuations, and bias placement is moot.
 "DC offset = constant pixel mean" is one specific instance of this
 geometry, but the mechanism is positional, not spectral.  See
-`attic/docs/paper_insights.md` §1.2 ("Where the abs hinge sits relative to
+`docs/paper_insights.md` §1.2 ("Where the abs hinge sits relative to
 data") for the full reading.
 
 **Implication for paper.**  The §1.2 / §6 narrative leads with the

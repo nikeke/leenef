@@ -9,11 +9,11 @@
 > is rebuilt with rl_clean-grade reproducibility.
 >
 > The paper outline lives in
-> [`attic/docs/paper_i_outline.md`](attic/docs/paper_i_outline.md); the synthesized
-> insights story in [`attic/docs/paper_insights.md`](attic/docs/paper_insights.md);
+> [`docs/paper_i_outline.md`](docs/paper_i_outline.md); the synthesized
+> insights story in [`docs/paper_insights.md`](docs/paper_insights.md);
 > the running sweep execution log in
 > [`docs/sl_clean_sweeps.md`](docs/sl_clean_sweeps.md); follow-up
-> experiment specs in [`attic/docs/b1_followups.md`](attic/docs/b1_followups.md).
+> experiment specs in [`docs/b1_followups.md`](docs/b1_followups.md).
 > Per-session work-in-progress notes live under
 > `~/.copilot/session-state/<session>/` (gitignored, may be wiped on
 > compaction); anything that should outlast a session must be migrated
@@ -76,9 +76,9 @@ rl_clean infrastructure.
 
 **Documents you should read before non-trivial work:**
 
-- [`attic/docs/paper_i_outline.md`](attic/docs/paper_i_outline.md) — paper structure
+- [`docs/paper_i_outline.md`](docs/paper_i_outline.md) — paper structure
   (the six principles, §-by-§ skeleton).
-- [`attic/docs/paper_insights.md`](attic/docs/paper_insights.md) — synthesized
+- [`docs/paper_insights.md`](docs/paper_insights.md) — synthesized
   story (frame coefficients, DC framing, α-as-function-of-n, manifold
   view, H8 linear collapse).  This is the **spine** of Paper I.
 - [`docs/sl_clean_sweeps.md`](docs/sl_clean_sweeps.md) — chronological
@@ -90,9 +90,9 @@ rl_clean infrastructure.
   [`docs/SSUP-II.md`](docs/SSUP-II.md) — current manuscripts; keep
   their abstracts synchronized with the corresponding README block
   quotes.
-- [`attic/docs/b1_followups.md`](attic/docs/b1_followups.md) — queued
+- [`docs/b1_followups.md`](docs/b1_followups.md) — queued
   H1-completion experiment specs (B1.4 / B1.5 DC-mechanism falsifiers).
-- [`attic/docs/technical_report.md`](attic/docs/technical_report.md) —
+- [`docs/technical_report.md`](docs/technical_report.md) —
   pre-restart single-seed TR.  Useful for understanding earlier
   results/defaults but **claims must be re-validated** under the
   rl_clean-style multi-seed protocol before reuse.
@@ -349,7 +349,7 @@ wait_for_b2_panels.sh}` and the B2 launch in
 
 Before designing new experiments, planning enhancements, adding features, or
 exploring research directions, **read
-[`attic/docs/technical_report.md`](attic/docs/technical_report.md)** to
+[`docs/technical_report.md`](docs/technical_report.md)** to
 understand:
 
 - existing results, defaults, and the claims they support

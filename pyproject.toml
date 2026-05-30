@@ -64,7 +64,6 @@ leenef = [
 [tool.ruff]
 line-length = 99
 target-version = "py312"
-extend-exclude = ["src/leenef/skill_assets"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]

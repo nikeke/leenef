@@ -6,7 +6,4 @@ __pycache__/
 leenef.egg-info/
 data/
 
-# Caches that tools may drop next to the bundled skill mirror
-src/leenef/skill_assets/.ruff_cache/
-src/leenef/skill_assets/**/__pycache__/
 build/

@@ -1,8 +1,0 @@
-{
-  "cell": "abs+g0.5_2.0",
-  "n_neurons": 5000,
-  "alpha": 1e-3,
-  "chunk_size": 5000,
-  "encoder_strategy": "hypersphere",
-  "patch_size": 5
-}

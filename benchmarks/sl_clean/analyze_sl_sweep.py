@@ -1,7 +1,7 @@
 """Aggregate one ``sl_clean`` sweep file and decide adoption.
 
-Mirrors ``attic/benchmarks/analyze_rl_sweep.py``.  The adoption rule is
-the same:
+Mirrors the archived pre-restart RL sweep analyzer.  The adoption rule is the
+same:
 
     adopt new value v* iff
         mean(metric | v=v*) - mean(metric | v=base) > sqrt(SE_v*² + SE_base²)

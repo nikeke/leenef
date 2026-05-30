@@ -1,9 +1,0 @@
-{
-  "cell": "data_driven+hypersphere",
-  "n_neurons": 5000,
-  "activation": "abs",
-  "gain_low": 0.5,
-  "gain_high": 2.0,
-  "alpha": 0.001,
-  "chunk_size": 5000
-}

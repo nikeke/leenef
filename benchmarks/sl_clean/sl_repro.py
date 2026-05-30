@@ -1,7 +1,7 @@
 """Shared reproducibility helpers for supervised-learning clean sweeps.
 
-This is the SL counterpart to ``benchmarks/rl_repro.py`` (archived under
-``attic/benchmarks/rl_repro.py``).  The key contract:
+This is the SL counterpart to the archived pre-restart RL reproducibility
+helper.  The key contract:
 
 * every result row stores enough metadata that the runner can decide
   whether it was produced by *the current code, current configuration,

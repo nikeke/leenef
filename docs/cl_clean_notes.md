@@ -1,6 +1,6 @@
 # cl_clean notes — Paper II (Continual Learning)
 
-The Paper II analog of `attic/docs/paper_insights.md`: an append-only
+The Paper II analog of `docs/paper_insights.md`: an append-only
 file where we record observations, wording experiments, and any
 quantitative pattern that might end up shaping the manuscript.  The
 phase log lives in `cl_clean_sweeps.md`; this file is the *story*

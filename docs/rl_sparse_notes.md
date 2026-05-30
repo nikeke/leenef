@@ -19,8 +19,8 @@ here.
 **Context note (rebase, May 2026).** When this work began, RL had a
 parallel `rl_clean` program with its own base configuration and
 sweep notes. During the SSUP-I/II finalization, that program was
-consolidated and moved to `attic/docs/rl_clean_*.md` and
-`attic/results/rl_clean/` as part of the clean restart that
+consolidated into `docs/rl_clean_sweeps.md` and
+`results/rl_clean/` as part of the clean restart that
 restructured `benchmarks/`, `docs/`, `results/`, and `notebooks/`
 into the `sl_clean / cl_clean / rl_clean` layout. The RL **agent**
 (`src/leenef/rl.py`, `NEFAVRAgent`) was not changed semantically; only
@@ -28,7 +28,7 @@ its alpha-regularization plumbing was centralized through the new
 `solvers.regularized_normal_matrix` + `solvers.solve_spd` helpers,
 selecting the trace-scaled policy `alpha=(α, "trace")` that
 NEF-AVR was already using inline. The `rl_clean` numbers from
-`attic/docs/rl_clean_sweeps.md` therefore still describe the same
+`docs/rl_clean_sweeps.md` therefore still describe the same
 agent; they are *historical context*, not parallel work to be
 matched.
 
@@ -60,7 +60,7 @@ terminal transition and γ<1 propagating it through long horizons:
   closed-form solve fits *exactly* to whatever bootstrap targets it
   receives, amplifying noise. This is the same instability that
   drove the rl_clean program toward Monte-Carlo n-step targets in
-  the first place (`attic/docs/rl_notes.md` §6, §8.8).
+  the first place (`docs/rl_notes.md` §6, §8.8).
 
 So the core question for this work was:
 
@@ -412,7 +412,7 @@ These were considered and consciously deferred:
 - **Reward shaping.** Intrinsic novelty (D2) is tagged separately
   and ablated; never folded into the reported reward.
 - **Knob sweeps over broadness, min_relative, recentering** as a
-  sparse-reward fix. Per `attic/docs/rl_review.md` §2.5, the bottleneck
+  sparse-reward fix. Per `docs/rl_review.md` §2.5, the bottleneck
   is mechanistic. Confirmed empirically: changing `n_neurons`
   6000→2000 did not move plain FQI/SF off the wall on MC, and the
   hindsight + eval_goal stack worked at n=2000.
@@ -584,7 +584,7 @@ sharpens a paper-worthy claim", not "moves seed-mean by 5%".
     Sparse-reward Y_a is heavily zero, so the trace of Φ_aᵀΦ_a
     dominates the effective α and may push us toward
     over-regularization.
-    *Likelihood: medium-low (`attic/docs/rl_review.md` §2.5 argued the bottleneck
+    *Likelihood: medium-low (`docs/rl_review.md` §2.5 argued the bottleneck
     is mechanistic, not regularization). But the trace-scaled α
     centralization on main is a good moment to recheck.
     Cost: small.*
@@ -607,7 +607,7 @@ plan, in order:
 - **P10 — Full-width replication.** `nef_sf_hindsight` +
   `eval_goal` on MC and Acrobot at `n_neurons=6000` (one
   configuration, fresh dense-reward base inherited from whatever
-  has replaced `attic/rl_clean`). 3 seeds first to spot
+  has replaced the old `rl_clean` line. 3 seeds first to spot
   regressions, then expand to 10.
 - **P11 — 10-seed headline.** Adopt 10 seeds for the MC and
   Acrobot rows in §3.1 / §3.2 once P10 has confirmed
@@ -767,7 +767,7 @@ via hindsight + eval-time projection" — that completes the family.
 | `results/rl_sparse/sparse_chain.json` | Toy regression sweep |
 | `docs/SSUP-I.md` | Single-layer + streaming supervised paper; P1–P6 vocabulary |
 | `docs/SSUP-II.md` | CL-by-accumulation paper; P3 + P6 as the load-bearing principles for additive sufficient-statistics learning |
-| `attic/docs/rl_*.md` | Historical RL notes from the pre-restart `rl_clean` line — context, not parallel work |
+| `docs/rl_notes.md`, `docs/rl_review.md`, `docs/rl_multiseed_sweeps.md` | Historical RL notes from the pre-restart `rl_clean` line — context, not parallel work |
 
 ## 12. One-paragraph summary
 

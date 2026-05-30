@@ -1,9 +1,0 @@
-{
-  "n_neurons": 200,
-  "encoder_strategy": "hypersphere",
-  "activation": "abs",
-  "gain_low": 0.5,
-  "gain_high": 2.0,
-  "alpha": 0.001,
-  "cell": "smoke"
-}

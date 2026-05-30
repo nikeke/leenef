@@ -75,9 +75,9 @@ Unique sparse artifacts imported from `sparse-reward-g`:
 - `results/rl_sparse/configs/p2_mountaincar_explore.json`
 - `results/rl_sparse/p2_supervisor.sh`
 
-Older pre-clean RL artifacts remain in `attic/docs/rl_notes.md`,
-`attic/docs/rl_review.md`, `attic/docs/rl_multiseed_sweeps.md`, and
-`attic/results/rl/`. Use them for mechanism history and failure
+Older pre-clean RL artifacts remain in `docs/rl_notes.md`,
+`docs/rl_review.md`, `docs/rl_multiseed_sweeps.md`, and
+`results/rl_legacy/`. Use them for mechanism history and failure
 analysis only.
 
 ## 2. Dense reward evidence inventory

@@ -172,8 +172,8 @@ source venv/bin/activate
 pip install -e '.[dev]'
 ```
 
-See [`docs/USAGE.md`](docs/USAGE.md) for the usage manual and
-[`SKILL.md`](SKILL.md) for method-selection guidance that coding agents can
+See [`docs/usage.md`](docs/usage.md) for the usage manual and
+[`skills/leenef/SKILL.md`](skills/leenef/SKILL.md) for leenef guidance that coding agents can
 install as a standard skill.
 
 ## Tests

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Driver template for sl_clean phases.
 #
-# This is the SL counterpart to attic/benchmarks/rl_hp_driver.sh.
+# This is the SL counterpart to the archived pre-restart RL HP driver.
 # Each phase is a single-knob sweep that:
 #   1. runs the phase to completion (resumable),
 #   2. analyzes the result against the live base_config,
