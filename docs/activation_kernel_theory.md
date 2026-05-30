@@ -401,37 +401,36 @@ A second axis is *regularity*.  Because leenef **never differentiates the
 activation** — decoders come from a least-squares solve, not
 backpropagation — piecewise-constant activations with zero gradient almost
 everywhere are perfectly usable.  This is a capability gradient-trained
-networks structurally lack.  Two "digital" relatives of the RBF pair:
+networks structurally lack.  Several "digital" relatives of the RBF pair:
 
-- **`square_wave` $=\operatorname{sign}(\cos z)$** — the Walsh / square-wave
+- **`square_wave` $=\mathrm{sign}(\cos z)$** — the Walsh / square-wave
   version of `cos`.  Its Fourier series
   $\tfrac{4}{\pi}\big(\cos z-\tfrac13\cos 3z+\tfrac15\cos5z-\dots\big)$
   packs many harmonics into one neuron, giving a **rich even kernel**
   (probe: $a_2^2=0.27$, $a_2$ mode $R^2=0.77$).
+- **`floor_wave` $=\mathrm{sign}(\cos(\pi z))+\lfloor z\rfloor$** — a
+  minimal fused digital cell: the $\pi z$ wave is aligned with the integer
+  lattice of `floor`, while the floor term contributes the constant/linear
+  modes of a monotone quantizer.  By linearity of the Hermite expansion this
+  is not a mysterious new spectrum; it is a one-channel fusion of two simple
+  spectra.
 - **`box` $=\mathbf 1[\,|z|<c\,]$** — the indicator / piecewise-constant
   version of the `gauss` bump: with data-driven biases each neuron is a
   **hard receptive field** that fires iff the projection lands within $c$
   of its center.  Even kernel, with relatively more high-even energy than
   `gauss` ($a_4^2=0.041$ vs. $0.012$).
-- **`staircase` $=\operatorname{clamp}(\lfloor z\rfloor,-3,3)$** — a
-  *monotone* asymmetric quantizer (using $\lfloor\cdot\rfloor$ rather than
-  rounding breaks parity).  It is a deliberate cautionary case: a fine
-  monotone quantizer of a unit-scale pre-activation tracks the identity
-  closely, so its Hermite energy sits almost entirely in the constant and
-  **linear** modes ($a_1^2\approx1.0$, $a_2^2\approx a_3^2\approx0$ at every
-  step/saturation probed) and it lands near the §3 collapse mode.  It shows
-  that being "digital" does not by itself buy discriminative ($k\ge2$)
-  power — the oscillatory `square_wave` and the bump `box` are the digital
-  activations that carry a rich spectrum; a monotone staircase does not.
 
 `square_wave` and `box` are even, so §6.1 applies: they shed odd modes at
-zero bias and regain them through the data-driven bias.  Other digital
-members are immediate — `step`/`sign` (order-0 arc-cosine), a **ternary**
-sign with dead-zone — all zero-gradient and all admissible here.  The point
-is not that a square wave beats a smooth kernel (it should not, by §8.3); it
-is that the *space of usable activations is strictly larger under an
-analytic solve*, and the choice is governed purely by the resulting Hermite
-spectrum, never by differentiability.
+zero bias and regain them through the data-driven bias.  `floor_wave` adds a
+monotone lattice term to the oscillatory wave and is therefore a direct test
+of whether a linear-dominated floor component and a rich digital cosine
+component cooperate in one scalar feature.  Other digital members are
+immediate — `step`/`sign` (order-0 arc-cosine), a **ternary** sign with
+dead-zone — all zero-gradient and all admissible here.  The point is not
+that a square wave beats a smooth kernel (it should not, by §8.3); it is that
+the *space of usable activations is strictly larger under an analytic solve*,
+and the choice is governed purely by the resulting Hermite spectrum, never
+by differentiability.
 
 ---
 
@@ -454,8 +453,8 @@ spectrum, never by differentiability.
 | `gauss` | RBF receptive field | **gain-dependent**; can match or beat |
 | `cos_sin` | parity-broken RFF, **all** modes | $\approx$ `cos`; full RBF, gain-dependent |
 | `square_wave` | digital cosine, rich even | $\approx$; gain-dependent |
+| `floor_wave` | integer-aligned digital cosine $+$ floor | fused diagnostic; gain-dependent |
 | `box` | digital bump (hard RF), even | $\approx$; gain-dependent |
-| `staircase` | digital monotone quantizer, **$a_1$-dominated** | near-linear; **collapse-leaning** |
 | `gelu` | linear$+$even (relu class), odd $k\!\ge\!3$ absent | tie; gain-robust |
 | `silu` | linear$+$even (relu class), odd $k\!\ge\!3$ absent | tie; gain-robust |
 
@@ -492,13 +491,15 @@ $k=1,2,3$, and report held-out $R^2$ (mean over 5 seeds).  The runner is
 | `gauss` | 0 | 0.06 | 0 | $\le0$ | **0.76** | $\le0$ |
 | `cos_sin` | 0.37 | 0.18 | 0.06 | **0.95** | **0.81** | **0.08** |
 | `square_wave` | 0 | 0.27 | 0 | $\le0$ | **0.77** | $\le0$ |
+| `floor_wave` | 1.04 | 0.02 | 0 | **0.98** | $\le0$ | $\le0$ |
 | `box` | 0 | 0.12 | 0 | $\le0$ | **0.62** | $\le0$ |
-| `staircase` | 1.03 | 0.00 | 0.00 | **1.00** | $\le0$ | $\le0$ |
 | `gelu` | 0.25 | 0.09 | 0 | **1.00** | **0.85** | $\le0$ |
 | `silu` | 0.25 | 0.06 | 0 | **1.00** | **0.87** | $\le0$ |
 
 The pattern is exactly the theory: **$R^2_k>0$ iff $a_k^2>0$.**  In
 particular —
+
+![Figure -- Hermite coefficients and held-out mode recovery for representative activations. Positive held-out recovery appears exactly in the modes whose scalar Hermite coefficient is nonzero; negative $R^2$ values are clipped to zero in the lower panel.](figures/activation_hermite_spectrum.png)
 
 - **`linear` learns only $k=1$ and nothing nonlinear** — the linear
   collapse of §3, shown directly.
@@ -520,13 +521,14 @@ particular —
   recover $k=1$ and $k=2$ but *not* $k=3$ — exactly the relu pattern, since
   each is $\tfrac12 z+$(even), so they are gain-robust smooth `relu`s rather
   than richer-spectrum activations.
-- **`staircase` collapses to the linear mode.**  The monotone asymmetric
-  quantizer recovers only $k=1$ ($a_1^2\approx1.0$, $R^2_{k=1}=1.00$) with
-  $a_2^2\approx a_3^2\approx0$: a fine monotone quantizer of a unit-scale
-  signal differs from the identity only by a high-frequency sawtooth whose
-  low-order Hermite projection is negligible, so it behaves like `linear`
-  (§3) despite being a nonlinear digital function.  Being "digital" buys
-  nothing on its own — the spectrum is what decides.
+- **`floor_wave` behaves additively, as expected.**  The floor term supplies
+  the strong $k=1$ mode ($a_1^2\approx1.04$) and the integer-aligned wave
+  supplies even modes.  The $\pi z$ alignment does align the oscillation with
+  the quantization lattice, but it also moves much of the wave energy above
+  $k=2$ ($a_4^2\approx0.07$, $a_6^2\approx0.15$); at this finite width the
+  mode-recovery probe reliably fits the linear floor component and not the
+  small $k=2$ component.  The real-task panel is therefore the right test of
+  whether the one-channel fusion helps at practical width.
 
 ($R^2\le0$ denotes "cannot represent": the regularized fit does no better
 than the mean.  The quartic $k=4$ mode is not reliably learned by anyone
@@ -565,6 +567,8 @@ throughout except as noted):
 | MNIST | 0.9704 | 0.9705 | 0.9685 | 0.9642 | 0.9512 | 0.9315 | **0.8603** | 0.9316 | 0.9513 | 0.9641 | 0.9683 | 0.9701 |
 | Fashion | 0.8778 | 0.8765 | 0.8727 | 0.8658 | 0.8520 | 0.8363 | **0.8112** | 0.8363 | 0.8516 | 0.8660 | 0.8728 | 0.8770 |
 | CIFAR-10 | 0.4945 | 0.4945 | 0.4935 | 0.4874 | 0.4638 | 0.4409 | **0.3880** | 0.4403 | 0.4641 | 0.4870 | 0.4919 | 0.4938 |
+
+![Figure -- Origin-angle sweep for the single-kink family. Accuracy is flat across the kink family and dips only at the linear angle $\theta=\pi$.](figures/activation_kink_angle.png)
 
 Three signatures, all predicted:
 
@@ -686,7 +690,7 @@ accuracy (mean $\pm$ SE over 10 seeds), gain $U(0.5,2)$:
 | `silu` | $0.9682\pm0.0002$ | $0.8724\pm0.0003$ | $0.4945\pm0.0009$ |
 | `square_wave` (digital cosine) | $0.8735\pm0.0017$ | $0.8063\pm0.0010$ | $0.3613\pm0.0022$ |
 | `box` (digital bump) | $0.9446\pm0.0006$ | $0.8472\pm0.0006$ | $0.4331\pm0.0011$ |
-| `staircase` (digital quantizer) | $0.9487\pm0.0006$ | $0.8572\pm0.0006$ | $0.4351\pm0.0009$ |
+| `floor_wave` (integer-aligned digital wave + floor) | $0.9605\pm0.0004$ | $0.8637\pm0.0006$ | $0.4561\pm0.0014$ |
 
 Wide-gain $U(0.1,5)$ for the parity-broken and digital set:
 
@@ -695,7 +699,9 @@ Wide-gain $U(0.1,5)$ for the parity-broken and digital set:
 | `cos_sin` | $0.9699\pm0.0004$ | $0.8756\pm0.0003$ | $0.4996\pm0.0011$ |
 | `square_wave` | $0.9542\pm0.0004$ | $0.8557\pm0.0004$ | $0.4475\pm0.0008$ |
 | `box` | $0.9581\pm0.0004$ | $0.8606\pm0.0008$ | $0.4560\pm0.0008$ |
-| `staircase` | $0.9383\pm0.0004$ | $0.8518\pm0.0005$ | $0.4228\pm0.0011$ |
+| `floor_wave` | $0.9510\pm0.0005$ | $0.8587\pm0.0005$ | $0.4407\pm0.0011$ |
+
+![Figure -- Real-task activation panel for the RBF, gain-robust, and digital cells. Bars show mean test accuracy over 10 seeds with standard-error caps.](figures/activation_altact_panel.png)
 
 The readings:
 
@@ -720,21 +726,22 @@ The readings:
 4. **`box` is a usable but sub-`abs` hard receptive field** ($0.94$/$0.85$/
    $0.43$, improving modestly at wide gain) — admissible and respectable,
    not competitive with `abs`.
-5. **`staircase` confirms the near-linear prediction (§8.1).** It lands at
-   the weak digital end ($\approx$`box`; $-2.2\%$ MNIST, $-2.1\%$ Fashion,
-   $-5.9\%$ CIFAR vs. `abs`), and it is the **only** activation that gets
-   *worse* at wide gain ($0.9487\to0.9383$ MNIST, $0.4351\to0.4228$ CIFAR).
-   A linear-dominated spectrum has no useful bandwidth to exploit, so extra
-   gain only injects variance — the behavioral signature of an activation
-   sitting near the collapse mode.  Being digital and asymmetric does not
-   rescue a near-linear spectrum; the spectrum decides.
+5. **`floor_wave` is the best digital diagnostic but still sub-`abs`.** The
+   integer-aligned wave+floor fusion improves sharply over `square_wave` and
+   beats `box` on MNIST/Fashion while tying it on CIFAR at the default gain
+   ($0.4561$ vs. $0.4560$).  But it remains below `abs` and the RBF cells, and
+   it gets worse at wide gain ($0.9605\to0.9510$ MNIST,
+   $0.4561\to0.4407$ CIFAR).  The floor term provides a robust linear
+   component, while the useful oscillatory energy is too high-order and
+   bandwidth-sensitive to make it a stronger default.
 
 The overall picture is unchanged by the new activations: **`abs` remains an
 excellent gain-robust default** (with `gelu`/`silu` as smooth equivalents);
 **the only way to the CIFAR-10 edge is the RBF family** (`cos`/`gauss`/
 `cos_sin`) at adequate gain; and the **digital activations are admissible
-but none dominate** — `box` and wide-gain `square_wave` are usable, while
-`staircase` is the instructive near-linear cautionary case.
+but none dominate** — `floor_wave` is the strongest digital diagnostic at
+the default gain, `box` and wide-gain `square_wave` are usable, and all stay
+below the gain-robust `abs`/smooth-gate family.
 
 ---
 
@@ -774,7 +781,7 @@ but none dominate** — `box` and wide-gain `square_wave` are usable, while
    activations remain the RBF family, at the price of bandwidth tuning.
 7. **The activation space is larger here than for gradient nets.** Because
    the solve is analytic, zero-gradient "digital" activations
-   ($\operatorname{sign}\circ\cos$, indicators, quantizers) are admissible;
+   ($\mathrm{sign}\circ\cos$, indicators, quantizers) are admissible;
    they are chosen by their Hermite spectrum, never by differentiability.
 
 ## 10. Relation to prior work

@@ -1467,14 +1467,15 @@ in theory §8.3.  Headlines:
 
 ### CA.4 — full-spectrum / gain-robust / digital extension (`c2_altact_*`)
 
-Second pass on the same `c2_altact_*` files: 13 cells × 10 seeds × 3
-datasets at code-identity `51ab2ba8…` (HEAD `911d9e3`), throttled
-(sequential datasets, 6 BLAS threads, `nice -10`) after a thermal
-shutdown on the all-cores run.  Sentinel `c2_altact_panel_done`,
-2026-05-30.  Cells: `abs`/`cos`/`gauss` anchors, `cos_sin`, `gelu`,
-`silu`, `square_wave`, `box`, `staircase` at gain $U(0.5,2)$, plus
-wide-gain $U(0.1,5)$ variants of `cos_sin`/`square_wave`/`box`/
-`staircase`.  Full table in theory §8.4.  Headlines:
+Mixed-identity extension on the same `c2_altact_*` files: established
+anchor cells from code-identity `51ab2ba8…` plus the integer-aligned
+`floor_wave` cells from code-identity `13cfccbe…` (HEAD `4d192d8`),
+10 seeds × 3 datasets.  Runs were throttled (sequential datasets, 4–6
+BLAS threads, low priority) after a thermal shutdown on the all-cores
+run.  Full table in theory §8.4.  Cells: `abs`/`cos`/`gauss` anchors,
+`cos_sin`, `gelu`, `silu`, `square_wave`, `box`, `floor_wave` at gain
+$U(0.5,2)$, plus wide-gain $U(0.1,5)$ variants of
+`cos_sin`/`square_wave`/`box`/`floor_wave`.  Headlines:
 
 - `cos_sin` (parity-broken RFF) $\approx$ `cos` to within $\sim0.1\%$ on
   every dataset — restoring odd Hermite modes is a clean spectral fix but
@@ -1484,11 +1485,10 @@ wide-gain $U(0.1,5)$ variants of `cos_sin`/`square_wave`/`box`/
 - `square_wave` is the most gain-sensitive cell: collapses at default gain
   ($0.36$ CIFAR), recovers to box-level at wide gain.
 - `box` is a usable sub-`abs` hard receptive field ($0.94$/$0.85$/$0.43$).
-- **`staircase` confirms its near-linear Hermite spectrum**: $\approx$`box`
-  level and the **only** cell that gets *worse* at wide gain
-  ($0.9487\to0.9383$ MNIST, $0.4351\to0.4228$ CIFAR) — no useful bandwidth,
-  extra gain only adds variance.  Digital + asymmetric does not rescue a
-  near-linear spectrum.
+- `floor_wave = sign(cos(pi*z)) + floor(z)` is the strongest digital
+  diagnostic at the default gain ($0.9605$/$0.8637$/$0.4561$), tying `box`
+  on CIFAR and beating it on MNIST/Fashion, but it worsens at wide gain
+  ($0.9510$/$0.8587$/$0.4407$) and stays below `abs`/RBF cells.
 
 Conclusion unchanged: `abs` (or `gelu`/`silu`) is the gain-robust default;
 `cos`/`gauss`/`cos_sin` own the CIFAR edge at adequate gain; digital
