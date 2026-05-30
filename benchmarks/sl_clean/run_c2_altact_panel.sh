@@ -10,6 +10,12 @@
 # the published c2_activation_*_panel.json panels are left untouched.  All new
 # rows carry the current code_identity.
 #
+# Thermal throttling: by default the three datasets run SEQUENTIALLY with a
+# capped BLAS thread count and a low scheduling priority so the machine never
+# saturates all cores (a previous parallel run overheated the host).  Override
+# with PARALLEL=1 (run all datasets at once) and THREADS=<n> (BLAS threads per
+# process) if running on a well-cooled box.
+#
 # Uses the leenef venv for deps while forcing imports from this worktree.
 
 set -euo pipefail
@@ -19,6 +25,9 @@ cd "${REPO_ROOT}"
 
 PYTHON="${PYTHON:-${REPO_ROOT}/venv/bin/python}"
 SEEDS_ARG="${SEEDS:-0-9}"
+PARALLEL="${PARALLEL:-0}"
+THREADS="${THREADS:-6}"
+NICE="${NICE:-10}"
 export PYTHONPATH="${REPO_ROOT}/src:${REPO_ROOT}${PYTHONPATH:+:${PYTHONPATH}}"
 
 # References (re-run under the current code_identity) + new activations at the
@@ -31,41 +40,58 @@ mkdir -p "${LOG_DIR}"
 rm -f "${DONE}"
 
 declare -a EXPS=(c2_activation_mnist c2_activation_fashion c2_activation_cifar10)
-declare -a PIDS=()
 
-for exp in "${EXPS[@]}"; do
-  dataset="${exp#c2_activation_}"
-  phase="c2_altact_${dataset}"
-  base="${REPO_ROOT}/results/sl_clean/base_config_${exp}.json"
-  out="${REPO_ROOT}/results/sl_clean/c2_altact_${dataset}_panel.json"
-  log="${LOG_DIR}/c2_altact_${dataset}.log"
-  echo "[run_c2_altact] launching ${phase} (seeds=${SEEDS_ARG}) -> ${out}"
-  (
-    OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 \
-      ${PYTHON} -u -m benchmarks.sl_clean.sl_phase_runner \
-        --experiment "${exp}" \
-        --phase      "${phase}" \
-        --knob       cell \
-        --values     "${CELLS}" \
-        --seeds      "${SEEDS_ARG}" \
-        --base-config "${base}" \
-        --out         "${out}" \
-        --log         "${log}"
-  ) > "${LOG_DIR}/c2_altact_${dataset}.driver.log" 2>&1 &
-  PIDS+=($!)
-done
-
-echo "[run_c2_altact] launched PIDs: ${PIDS[*]}"
+run_one() {
+  local exp="$1"
+  local dataset="${exp#c2_activation_}"
+  local phase="c2_altact_${dataset}"
+  local base="${REPO_ROOT}/results/sl_clean/base_config_${exp}.json"
+  local out="${REPO_ROOT}/results/sl_clean/c2_altact_${dataset}_panel.json"
+  local log="${LOG_DIR}/c2_altact_${dataset}.log"
+  echo "[run_c2_altact] launching ${phase} (seeds=${SEEDS_ARG}, threads=${THREADS}) -> ${out}"
+  OMP_NUM_THREADS="${THREADS}" MKL_NUM_THREADS="${THREADS}" \
+    OPENBLAS_NUM_THREADS="${THREADS}" NUMEXPR_NUM_THREADS="${THREADS}" \
+    nice -n "${NICE}" \
+    "${PYTHON}" -u -m benchmarks.sl_clean.sl_phase_runner \
+      --experiment "${exp}" \
+      --phase      "${phase}" \
+      --knob       cell \
+      --values     "${CELLS}" \
+      --seeds      "${SEEDS_ARG}" \
+      --base-config "${base}" \
+      --out         "${out}" \
+      --log         "${log}" \
+    > "${LOG_DIR}/c2_altact_${dataset}.driver.log" 2>&1
+}
 
 ALL_OK=1
-for pid in "${PIDS[@]}"; do
-  if wait "${pid}"; then
-    echo "[run_c2_altact] PID ${pid} OK"
-  else
-    echo "[run_c2_altact] PID ${pid} FAILED"
-    ALL_OK=0
-  fi
-done
+
+if [ "${PARALLEL}" -eq 1 ]; then
+  declare -a PIDS=()
+  for exp in "${EXPS[@]}"; do
+    run_one "${exp}" &
+    PIDS+=($!)
+  done
+  echo "[run_c2_altact] launched PIDs: ${PIDS[*]}"
+  for pid in "${PIDS[@]}"; do
+    if wait "${pid}"; then
+      echo "[run_c2_altact] PID ${pid} OK"
+    else
+      echo "[run_c2_altact] PID ${pid} FAILED"
+      ALL_OK=0
+    fi
+  done
+else
+  # Sequential (default): one dataset at a time keeps CPU load low.
+  for exp in "${EXPS[@]}"; do
+    if run_one "${exp}"; then
+      echo "[run_c2_altact] ${exp} OK"
+    else
+      echo "[run_c2_altact] ${exp} FAILED"
+      ALL_OK=0
+    fi
+  done
+fi
 
 if [ "${ALL_OK}" -eq 1 ]; then
   date -Is > "${DONE}"
