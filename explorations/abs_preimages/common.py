@@ -32,11 +32,25 @@ FIG_DIR = _HERE / "figures"
 FIG_DIR.mkdir(exist_ok=True)
 
 
+def _data_root() -> Path | None:
+    """Resolve data roots for ordinary checkouts and linked worktrees."""
+    env_root = os.environ.get("LEENEF_DATA_ROOT")
+    if env_root:
+        return Path(env_root)
+    local_data = _REPO / "data"
+    if (local_data / "MNIST" / "raw").exists():
+        return local_data
+    sibling_data = _REPO.parent / "leenef" / "data"
+    if (sibling_data / "MNIST" / "raw").exists():
+        return sibling_data
+    return None
+
+
 def load_mnist_subset(
     n_train: int = 10000, seed: int = 0
 ) -> tuple[Tensor, Tensor, Tensor, Tensor]:
     """Load MNIST and subsample the training split for speed."""
-    bundle = load_mnist()
+    bundle = load_mnist(root=_data_root())
     xtr, ytr = bundle.x_train, bundle.y_train
     gen = torch.Generator().manual_seed(seed)
     idx = torch.randperm(len(xtr), generator=gen)[:n_train]

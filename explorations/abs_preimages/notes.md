@@ -254,15 +254,51 @@ merely *exact-in-cell*.
 
 ---
 
-## 6. Reproducibility
+## 6. Prototype-center initialization pilot (`prototype_initialization_experiment.py`)
+
+The class-prototype loop can be closed by using generated one-hot
+preimages as `centers=` for a second NEF layer. A single controlled run
+tested that idea with `n_neurons=1000`, 10000 MNIST training samples,
+shared encoders/gains across conditions, and only the center locations
+changed:
+
+| center source | test accuracy | test margin | mean true probability |
+|---|---:|---:|---:|
+| sampled training images | 0.9366 | 0.5628 | 0.1928 |
+| repeated class means | 0.9407 | 0.5805 | 0.1955 |
+| repeated one-hot preimages | 0.9409 | 0.5804 | 0.1954 |
+
+The generated one-hot preimages have a small positive effect over sampled
+training-image centers in this run (+0.43 percentage points), but almost
+all of that gain is already captured by the simpler class-mean centers.
+The one-hot preimage centers edge class means by only +0.02 percentage
+points, well below what should be interpreted from a single seed. The
+current read is therefore: class-level center placement helps in this
+small controlled run; one-hot inversion has not yet shown a meaningful
+advantage beyond class means.
+
+The run was pinned to two PyTorch/BLAS threads (below 25% of the 12-core
+workstation). Results are written to
+`prototype_initialization_result.json`.
+
+![Prototype-center initialization result](figures/prototype_initialization_result.png)
+
+---
+
+## 7. Reproducibility
 
 ```bash
-source venv/bin/activate
-cd explorations/abs_preimages
-python sign_freedom_experiment.py     # console table (section 2)
-python visualize_preimages.py         # perfect_twins, overdet_preimages, nullspace_continuum
-python canonical_prototypes.py        # canonical_prototypes, margin_realism_tradeoff
-python nullspace_radius_sweep.py      # nullspace_radius_sweep
+cd ../leenef-abs-preimages
+source ../leenef/venv/bin/activate
+export LEENEF_DATA_ROOT=../leenef/data
+
+python explorations/abs_preimages/sign_freedom_experiment.py
+python explorations/abs_preimages/visualize_preimages.py
+python explorations/abs_preimages/canonical_prototypes.py
+python explorations/abs_preimages/nullspace_radius_sweep.py
+
+OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 \
+  python explorations/abs_preimages/prototype_initialization_experiment.py
 ```
 
 - All randomness uses explicit `torch.Generator` seeds; encoders/gains/
@@ -270,14 +306,15 @@ python nullspace_radius_sweep.py      # nullspace_radius_sweep
   `common.build_layer`).
 - `common.py` adds `benchmarks/sl_clean` and `src` to `sys.path`, loads
   MNIST via the harness loader (raw-byte hashed), and exposes the affine
-  pieces $W, b$ directly.
+  pieces $W, b$ directly. In a linked worktree, set `LEENEF_DATA_ROOT` to
+  `../leenef/data` or rely on the helper's sibling-checkout fallback.
 - These are exploratory single-seed scripts, not part of a Paper-I/II
   multi-seed sweep; treat the numbers as illustrative of the *mechanism*,
   not as benchmarked claims.
 
 ---
 
-## 7. Further directions
+## 8. Further directions
 
 **Geometry / theory**
 
@@ -329,6 +366,7 @@ python nullspace_radius_sweep.py      # nullspace_radius_sweep
    perturbations of real digits (which provably keep the exact label) as
    a label-preserving augmentation, and test whether retraining decoders
    on them improves generalization or calibration.
-10. *Class-prototype initialization.* Use the anchored one-hot preimages
-    (§3.1) as data-driven `centers=` for a second NEF layer, closing the
-    loop between "prototype generation" and "encoder placement".
+10. *Prototype-center sweeps.* Extend the prototype-initialization pilot
+    with multiple seeds, widths, and center-allocation rules. The first
+    run suggests that class-level center placement matters, but not yet
+    that one-hot inversion improves meaningfully over class means.
