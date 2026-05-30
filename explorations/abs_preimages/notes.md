@@ -1,7 +1,7 @@
 # Abs-activation preimages and class prototypes
 
 Exploratory study of what the absolute-value activation does to the
-input → activity → class map in a single default-config `leenef`
+input -> activity -> class map in a single default-config `leenef`
 `NEFLayer`, and what that implies for generating *class prototypes* and
 *preimages*.
 
@@ -35,7 +35,7 @@ $$
 
 where
 
-- $W = \operatorname{diag}(g)\,E \in \mathbb{R}^{n \times d_{\mathrm{in}}}$
+- $W = \mathrm{diag}(g)\,E \in \mathbb{R}^{n \times d_{\mathrm{in}}}$
   stacks the per-neuron gain $g_i$ times the fixed encoder direction
   $e_i$ (rows of $E$);
 - $b \in \mathbb{R}^{n}$ is the (data-driven) bias,
@@ -49,18 +49,18 @@ is **continuous piecewise-linear**: the input space is partitioned into
 *sign cells*
 
 $$
-\mathcal{C}_s = \{\, x : \operatorname{sign}(Wx+b) = s \,\},
+\mathcal{C}_s = \{\, x : \mathrm{sign}(Wx+b) = s \,\},
 \qquad s \in \{\pm 1\}^{n},
 $$
 
-and inside one cell abs acts as the fixed diagonal sign $\operatorname{diag}(s)$,
+and inside one cell abs acts as the fixed diagonal sign $\mathrm{diag}(s)$,
 so
 
 $$
-a(x) = \operatorname{diag}(s)\,(Wx+b),
+a(x) = \mathrm{diag}(s)\,(Wx+b),
 \qquad
-\hat y(x) = \underbrace{D^\top \operatorname{diag}(s) W}_{=: \,M_s}\;x
-            + D^\top \operatorname{diag}(s)\,b .
+\hat y(x) = \underbrace{D^\top \mathrm{diag}(s) W}_{=: \,M_s}\;x
+            + D^\top \mathrm{diag}(s)\,b .
 $$
 
 Both the encode $x \mapsto a$ and the full decode $x \mapsto \hat y$ are
@@ -94,7 +94,7 @@ Both the encode $x \mapsto a$ and the full decode $x \mapsto \hat y$ are
 Pick a target activity $a^\* \ge 0$. Each sign vector $s$ gives a
 candidate pre-activation $z = s \odot a^\*$ and hence a candidate input
 by least-squares solving $W x = s \odot a^\* - b$. The recovered $x$
-*re-encodes to exactly* $a^\*$ iff $s \odot a^\* - b \in \operatorname{col}(W)$, a
+*re-encodes to exactly* $a^\*$ iff $s \odot a^\* - b \in \mathrm{col}(W)$, a
 $d_{\mathrm{in}}$-dimensional subspace of $\mathbb{R}^{n}$.
 
 | regime | natural-sign recon err (real sample) | random-flip recon err | random flips decoding to class |
@@ -122,6 +122,8 @@ $\sim 4\times10^{-6}$ and they all produce the **identical** decode. This
 is a clean illustration of how much information abs discards: one sign
 bit per neuron, here $400$ bits, all invisible to the layer.
 
+![Perfect twins](figures/perfect_twins.png)
+
 ---
 
 ## 3. Going back from the one-hot result (`visualize_preimages.py`)
@@ -142,7 +144,7 @@ The full inverse stacks two maps: $y^\* \to a \to x$.
    i.e.
 
    $$
-   \underbrace{D^\top \operatorname{diag}(s) W}_{M_s \in
+   \underbrace{D^\top \mathrm{diag}(s) W}_{M_s \in
    \mathbb{R}^{n_{\mathrm{classes}} \times d_{\mathrm{in}}}}\; x
    = y^\* - D^\top(s \odot b).
    $$
@@ -166,6 +168,8 @@ solution instead escapes its assumed sign cell and decodes to garbage —
 the cell linearization is only valid locally, so the inversion must be
 anchored near real data.
 
+![Per-class one-hot preimages](figures/overdet_preimages.png)
+
 ### 3.2 The null-space continuum — `figures/nullspace_continuum.png`
 
 Walking the $774$-dimensional null space of $M_s$ from an anchor produces
@@ -174,9 +178,11 @@ decode deviation $\le 0.09$. The realizable preimage set of a one-hot is
 a high-dimensional affine family, not a point — a direct visualization of
 the decoder null space restricted to the input image.
 
+![Null-space continuum](figures/nullspace_continuum.png)
+
 ---
 
-## 4. Canonical prototypes and the margin↔realism tradeoff (`canonical_prototypes.py`)
+## 4. Canonical prototypes and the margin-versus-realism tradeoff (`canonical_prototypes.py`)
 
 The exact-one-hot preimage only asks $D^\top a = e_c$ and so decodes at
 the unremarkable confidence $p \approx 0.23$. A **canonical prototype**
@@ -219,6 +225,10 @@ adversarial-prone linear model in activity space.
 - `figures/margin_realism_tradeoff.png` — the monotone Pareto frontier of
   mean margin vs distance-from-mean.
 
+![Canonical prototypes](figures/canonical_prototypes.png)
+
+![Margin versus realism tradeoff](figures/margin_realism_tradeoff.png)
+
 ---
 
 ## 5. How far does the continuum extend? (`nullspace_radius_sweep.py`)
@@ -245,6 +255,8 @@ barely changes the logit). The decision therefore survives far longer
 even though the layer is technically leaving its original linear cell at
 the same rate. In other words, the realizable continuum is *robust*, not
 merely *exact-in-cell*.
+
+![Null-space radius sweep](figures/nullspace_radius_sweep.png)
 
 ---
 
@@ -280,8 +292,8 @@ python nullspace_radius_sweep.py      # nullspace_radius_sweep
    measure typical cell diameters around real samples. The "twins"
    combinatorics is bounded by occupied cells, not $2^{n}$.
 2. *Exact realizable-flip set.* Characterize which single-bit sign flips
-   keep $s \odot a^\* - b \in \operatorname{col}(W)$. These are the flips on neurons
-   whose $e_i$ is (near) orthogonal to the complement of $\operatorname{col}(W)$;
+   keep $s \odot a^\* - b \in \mathrm{col}(W)$. These are the flips on neurons
+   whose $e_i$ is (near) orthogonal to the complement of $\mathrm{col}(W)$;
    enumerate them to get the *true* local preimage multiplicity in the
    expansion regime.
 3. *Half-quadratic / square activation contrast.* Repeat the whole study
