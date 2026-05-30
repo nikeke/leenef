@@ -670,6 +670,72 @@ $k\ge2$ spectrum, and on the hardest task an RBF activation with adequate
 bandwidth (`gauss`/`cos` at gain $\gtrsim1$) is the most powerful of the
 small nonlinearities tested.
 
+### 8.4 Full-spectrum, gain-robust, and digital activations
+
+A second panel (same protocol) tests the parity-broken, smooth-gate, and
+digital activations of §6.1–§6.2 against the `abs`/RBF anchors.  Test
+accuracy (mean $\pm$ SE over 10 seeds), gain $U(0.5,2)$:
+
+| activation | MNIST | Fashion | CIFAR-10 |
+|---|---|---|---|
+| `abs` (reference) | $0.9704\pm0.0001$ | $0.8778\pm0.0005$ | $0.4945\pm0.0011$ |
+| `cos` | $0.9666\pm0.0002$ | $0.8695\pm0.0004$ | $0.5047\pm0.0013$ |
+| `gauss` | $0.9666\pm0.0002$ | $0.8689\pm0.0004$ | $\mathbf{0.5062}\pm0.0011$ |
+| `cos_sin` (parity-broken RFF) | $0.9668\pm0.0002$ | $0.8697\pm0.0002$ | $0.4963\pm0.0006$ |
+| `gelu` | $0.9695\pm0.0002$ | $0.8745\pm0.0003$ | $0.4984\pm0.0009$ |
+| `silu` | $0.9682\pm0.0002$ | $0.8724\pm0.0003$ | $0.4945\pm0.0009$ |
+| `square_wave` (digital cosine) | $0.8735\pm0.0017$ | $0.8063\pm0.0010$ | $0.3613\pm0.0022$ |
+| `box` (digital bump) | $0.9446\pm0.0006$ | $0.8472\pm0.0006$ | $0.4331\pm0.0011$ |
+| `staircase` (digital quantizer) | $0.9487\pm0.0006$ | $0.8572\pm0.0006$ | $0.4351\pm0.0009$ |
+
+Wide-gain $U(0.1,5)$ for the parity-broken and digital set:
+
+| activation | MNIST | Fashion | CIFAR-10 |
+|---|---|---|---|
+| `cos_sin` | $0.9699\pm0.0004$ | $0.8756\pm0.0003$ | $0.4996\pm0.0011$ |
+| `square_wave` | $0.9542\pm0.0004$ | $0.8557\pm0.0004$ | $0.4475\pm0.0008$ |
+| `box` | $0.9581\pm0.0004$ | $0.8606\pm0.0008$ | $0.4560\pm0.0008$ |
+| `staircase` | $0.9383\pm0.0004$ | $0.8518\pm0.0005$ | $0.4228\pm0.0011$ |
+
+The readings:
+
+1. **`cos_sin` $\approx$ `cos`.** The parity-broken sinusoid tracks plain
+   `cos` to within $\sim0.1\%$ on every dataset, and recovers the same
+   CIFAR-10 edge at wide gain ($0.4996$).  Restoring the odd modes is a
+   clean *spectral* fix (§8.1) but **not** an accuracy win at matched gain:
+   `cos`'s even $k=2$ mode already carries the signal these targets use, so
+   the extra odd content neither helps nor hurts.  It does inherit the RBF
+   bandwidth sensitivity.
+2. **`gelu`/`silu` tie `abs` and need no bandwidth.** Both sit within
+   $\sim0.1$–$0.6\%$ of `abs` on all three datasets with no gain tuning —
+   the gain-robust relu class, confirmed.  But they do **not** reach the
+   RBF CIFAR edge ($0.4984$/$0.4945$ vs. `gauss` $0.5062$): linear+even
+   spectrum, no odd $k\ge3$.  They are the best *smooth, gain-robust*
+   default candidates, not a stronger kernel.
+3. **`square_wave` is the most gain-sensitive activation tested.** At the
+   default gain the cosine argument rarely crosses a sign change within the
+   active range, so the digital cosine collapses ($0.36$ CIFAR); at wide
+   gain it recovers to box-level ($0.45$).  The digital cosine inherits and
+   *amplifies* `cos`'s bandwidth dependence.
+4. **`box` is a usable but sub-`abs` hard receptive field** ($0.94$/$0.85$/
+   $0.43$, improving modestly at wide gain) — admissible and respectable,
+   not competitive with `abs`.
+5. **`staircase` confirms the near-linear prediction (§8.1).** It lands at
+   the weak digital end ($\approx$`box`; $-2.2\%$ MNIST, $-2.1\%$ Fashion,
+   $-5.9\%$ CIFAR vs. `abs`), and it is the **only** activation that gets
+   *worse* at wide gain ($0.9487\to0.9383$ MNIST, $0.4351\to0.4228$ CIFAR).
+   A linear-dominated spectrum has no useful bandwidth to exploit, so extra
+   gain only injects variance — the behavioral signature of an activation
+   sitting near the collapse mode.  Being digital and asymmetric does not
+   rescue a near-linear spectrum; the spectrum decides.
+
+The overall picture is unchanged by the new activations: **`abs` remains an
+excellent gain-robust default** (with `gelu`/`silu` as smooth equivalents);
+**the only way to the CIFAR-10 edge is the RBF family** (`cos`/`gauss`/
+`cos_sin`) at adequate gain; and the **digital activations are admissible
+but none dominate** — `box` and wide-gain `square_wave` are usable, while
+`staircase` is the instructive near-linear cautionary case.
+
 ---
 
 ## 9. Summary

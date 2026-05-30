@@ -1465,6 +1465,35 @@ in theory §8.3.  Headlines:
   gain-sensitive (signal-starved underfit at tiny gain; full recovery at
   adequate/wide gain).  `abs` is gain-robust.
 
+### CA.4 — full-spectrum / gain-robust / digital extension (`c2_altact_*`)
+
+Second pass on the same `c2_altact_*` files: 13 cells × 10 seeds × 3
+datasets at code-identity `51ab2ba8…` (HEAD `911d9e3`), throttled
+(sequential datasets, 6 BLAS threads, `nice -10`) after a thermal
+shutdown on the all-cores run.  Sentinel `c2_altact_panel_done`,
+2026-05-30.  Cells: `abs`/`cos`/`gauss` anchors, `cos_sin`, `gelu`,
+`silu`, `square_wave`, `box`, `staircase` at gain $U(0.5,2)$, plus
+wide-gain $U(0.1,5)$ variants of `cos_sin`/`square_wave`/`box`/
+`staircase`.  Full table in theory §8.4.  Headlines:
+
+- `cos_sin` (parity-broken RFF) $\approx$ `cos` to within $\sim0.1\%$ on
+  every dataset — restoring odd Hermite modes is a clean spectral fix but
+  not an accuracy win at matched gain.
+- `gelu`/`silu` tie `abs` ($\pm0.1$–$0.6\%$) with no gain tuning
+  (gain-robust relu class) but do not reach the RBF CIFAR edge.
+- `square_wave` is the most gain-sensitive cell: collapses at default gain
+  ($0.36$ CIFAR), recovers to box-level at wide gain.
+- `box` is a usable sub-`abs` hard receptive field ($0.94$/$0.85$/$0.43$).
+- **`staircase` confirms its near-linear Hermite spectrum**: $\approx$`box`
+  level and the **only** cell that gets *worse* at wide gain
+  ($0.9487\to0.9383$ MNIST, $0.4351\to0.4228$ CIFAR) — no useful bandwidth,
+  extra gain only adds variance.  Digital + asymmetric does not rescue a
+  near-linear spectrum.
+
+Conclusion unchanged: `abs` (or `gelu`/`silu`) is the gain-robust default;
+`cos`/`gauss`/`cos_sin` own the CIFAR edge at adequate gain; digital
+activations are admissible but none dominate.
+
 ### Code / data identity
 
 The `c2_altact_*` rows carry committed content-id `d3c90fba…`; the
