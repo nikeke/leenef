@@ -11,17 +11,16 @@ subset, unless noted.
 
 ---
 
-## 0. The original question
+## 0. Overview
 
-> Because of our abs activation we might get $2^{n}$ "perfect"
-> prototypes by taking one or the other sign?
-
-The short answer: **yes, but only when `n_neurons` $\le d_{\mathrm{in}}$.**
-In the realistic expansion regime (`n_neurons` $> d_{\mathrm{in}}$) the
-sign freedom is mostly *unrealizable*, yet a different mechanism — the
-decoder null space — still yields a high-dimensional continuum of exact
-preimages. The rest of this note makes both statements precise and
-visualizes them.
+The abs activation admits up to $2^{n}$ algebraic sign-preimages of a
+target activity, but exact realizability depends on the neuron-count
+regime. When `n_neurons` $\le d_{\mathrm{in}}$, every sign choice is
+realizable and yields a family of exact "perfect twins." In the realistic
+expansion regime (`n_neurons` $> d_{\mathrm{in}}$), the sign freedom is
+mostly *unrealizable*, yet the decoder null space still yields a
+high-dimensional continuum of exact preimages. The rest of this note
+makes both statements precise and visualizes them.
 
 ---
 
@@ -73,8 +72,7 @@ Both the encode $x \mapsto a$ and the full decode $x \mapsto \hat y$ are
   ReLU instead *clamps* negatives to $0$ (it is not invertible on the
   negative half-line), and a generic smooth net mixes coordinates
   nonlinearly. Abs uniquely preserves magnitude while discarding sign,
-  which is what makes the "flip a sign, get another preimage" idea even
-  conceivable.
+  which creates a combinatorial sign-multiplicity in the preimage set.
 - **Exact, enumerable preimages.** Because the map is piecewise-*linear*
   (not just piecewise-smooth), preimages of a target activity or a target
   logit are solutions of *linear* systems — recoverable in closed form
@@ -105,8 +103,8 @@ $d_{\mathrm{in}}$-dimensional subspace of $\mathbb{R}^{n}$.
 - **Underdetermined `n` $\le d_{\mathrm{in}}$:** $W$ has full row rank, so
   $Wx = t$ is solvable for *every* $t$. All $2^{n}$ sign flips are
   exactly realizable; every one re-encodes to $a^\*$ to machine precision
-  and decodes identically. The original guess holds literally — there are
-  $2^{n}$ **perfect twins**.
+  and decodes identically. There are therefore $2^{n}$ exact
+  **perfect twins**.
 - **Overdetermined `n` $> d_{\mathrm{in}}$ (realistic):** activities live
   on a thin $d_{\mathrm{in}}$-dimensional folded manifold inside
   $\mathbb{R}^{n}$. A *real* sample's natural signs are exactly realizable
@@ -126,11 +124,7 @@ bit per neuron, here $400$ bits, all invisible to the layer.
 
 ---
 
-## 3. Going back from the one-hot result (`visualize_preimages.py`)
-
-The user's sharper question: in a realistic overdetermined network, if we
-invert the *one-hot class target* back to input space, do we get exactly
-one realizable preimage, or none?
+## 3. Preimages of one-hot class targets (`visualize_preimages.py`)
 
 The full inverse stacks two maps: $y^\* \to a \to x$.
 
@@ -153,9 +147,9 @@ The full inverse stacks two maps: $y^\* \to a \to x$.
    unknowns — an **affine family of preimages of dimension
    $d_{\mathrm{in}} - n_{\mathrm{classes}} = 774$ per cell.**
 
-So the answer to "just one, or none?" is **neither: generically a
-774-dimensional infinity of realizable preimages**, supplied by the
-decoder's null space.
+Thus a one-hot target generically has a **774-dimensional infinity of
+realizable preimages** per sign cell, supplied by the decoder's null
+space.
 
 ### 3.1 Per-class preimages — `figures/overdet_preimages.png`
 
@@ -283,7 +277,7 @@ python nullspace_radius_sweep.py      # nullspace_radius_sweep
 
 ---
 
-## 7. Ideas to keep exploring
+## 7. Further directions
 
 **Geometry / theory**
 
