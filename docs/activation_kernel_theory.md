@@ -1,8 +1,8 @@
 # The role of the nonlinearity in leenef
 
-*Companion note to SSUP-I §2 and §5.4.*  This note answers a general
-question: **what does the pointwise activation actually do in the leenef
-analytic solve, and which activations are equivalent, weaker, or
+*Companion note to SSUP-I §2 and §5.4.*  This note characterizes a
+general question: **what does the pointwise activation actually do in the
+leenef analytic solve, and which activations are equivalent, weaker, or
 stronger than `abs`?**  The headline is that leenef is explicit
 random-feature ridge regression, so *the activation is a choice of
 kernel*.  Everything else — the linear-collapse argument, the
@@ -196,7 +196,7 @@ up to a constant factor and a linear term.
   $\tfrac14$ of `abs`'s plus a linear $\tfrac14\rho$.  Same hypothesis
   space.  (One `abs` neuron is informationally a *mirrored pair* of ReLU
   neurons, as SSUP-I §5.4 notes.)
-- **The requested monotone kink.**  Slopes $(1,\tfrac12)$ —
+- **A monotone kink.**  Slopes $(1,\tfrac12)$ —
   $G(t)=t$ for $t\ge0$, $\tfrac12 t$ otherwise, equivalently
   $G(t)=\tfrac34 t + \tfrac14|t|$ — is a *monotone* relative of `abs`
   that merely changes the angle at the origin.  It carries
@@ -314,6 +314,125 @@ rescales $a_k\!\to\! g^? a_k$ uniformly and trace-scaled $\alpha$ undoes
 it; for an RBF feature, gain *moves energy between Hermite modes* and so
 reshapes the kernel.
 
+### 6.1 The parity axis: a full-spectrum kernel needs broken symmetry
+
+`cos`, `gauss`, `square`, `double_fold`, `box` are all **even** functions
+of their argument, $G(-z)=G(z)$.  An even $G$ has $a_k=0$ for every *odd*
+$k$, so at zero bias its dual kernel keeps only even Mehler terms
+$k=0,2,4,\dots$.  Is that a problem?  Split the missing odd modes:
+
+- $k=1$ is the **linear / collapse mode** (§3).  It is not nonlinear
+  expressive power, so dropping it is not harmful *provided* a separate
+  affine path or the data-driven bias supplies whatever linear structure the
+  target needs — which, as point 1 below shows, the bias does.  It is not
+  universally "free," but for these encoders it costs nothing.
+- $k=3,5,\dots$ are genuine odd discriminative modes.  An even activation
+  forfeits them.  The Hermite probe (§8.1) shows this directly: at zero
+  bias `cos`/`gauss`/`square_wave`/`box` recover even mode $k=2$
+  ($R^2\approx0.8/0.76/0.77/0.62$) but *fail* odd $k=1,3$ ($R^2<0$).
+
+So the "even-only limitation" is real in principle.  The instructive
+result is **how cheaply it is removed.**  Three observations:
+
+1. **Any nonzero bias breaks the exact even/odd selection rule.**  With a
+   per-neuron bias the population coefficient is no longer the zero-bias
+   $a_k$ but the **bias-averaged shifted** coefficient
+   $\bar a_k^2=\mathbb{E}_b\!\big[a_k(b)^2\big]$ with
+   $a_k(b)=\mathbb{E}_z[G(z+b)\,\mathrm{he}_k(z)]$.  For an even *non-poly­nomial*
+   $G$ a shift injects odd coefficients: by Stein's lemma
+   $a_1(b)=\mathbb{E}[G'(z+b)]$, and $G'$ is odd for even $G$, so $a_1(b)\neq0$
+   once $b\neq0$ — concretely $a_1(b)=-e^{-1/2}\sin b$ for $\cos$ and
+   $a_1(b)=-\tfrac{b}{2\sqrt2}e^{-b^2/4}$ for the `gauss` bump.  Two caveats
+   apply: a shift restores **at least the low odd modes (notably
+   $k=1$)** but the higher odd modes may stay weak at finite width; and for a
+   *polynomial* $G$ (e.g. `square`) a shift cannot create any mode above the
+   polynomial degree (it gains $k=1$ but never $k=3$).  leenef's data-driven
+   bias $b_i=-g_i\,e_i^\top c_i$ is exactly such a nonzero, neuron-varying
+   offset — a data-centered receptive-field shift, not the textbook uniform
+   RFF phase, so its induced kernel depends on the center distribution.  The
+   Hermite probe confirms the mechanism directly (§8.1): with
+   $\mathrm{bias\ std}=2$, `cos` recovers $k=1$ ($R^2\;{-1.49}\to0.95$) and
+   `abs` recovers $k=1$ ($-1.04\to1.00$); the cubic $k=3$ stays near zero,
+   consistent with "low odd modes restored, high odd modes weak."  The
+   practical reading: **in the real pipeline cos/gauss are not strictly
+   even-restricted** — the bias supplies the dominant ($k=1$) odd content —
+   which helps explain why they already score at the top on CIFAR-10 (§8.3).
+2. **The minimal symmetry-breaking activation is a phase, not a more
+   complex function.**  Replace $\cos z$ by
+   $$\cos z+\sin z=\sqrt2\,\cos\!\big(z-\tfrac{\pi}{4}\big)\quad(\texttt{cos\_sin}).$$
+   This is a fixed $\pi/4$ phase shift — no qualitatively more complex
+   activation, just a reflection-symmetry-breaking offset — and it is now
+   neither even nor odd, so it carries **every** Hermite mode.  The probe
+   shows `cos_sin` recovers $k=1,2,3$ ($R^2=0.95/0.81/0.08$) at zero bias
+   where `cos` recovers only $k=2$.  The general version is the textbook
+   random-Fourier feature: a **random** phase $b\sim U(0,2\pi)$ makes
+   $\mathbb{E}_b[\cos(z+b)\cos(z'+b)]=\tfrac12\cos(z-z')$, a stationary
+   cosine feature; with **Gaussian** frequency weights this integrates to the
+   exact Gaussian-RBF kernel $\exp(-\sigma^2\|x-y\|^2/2)$, while the
+   hypersphere encoders used here give a closely related stationary radial
+   kernel (Rahimi & Recht, 2007).  Fixing `cos`/`gauss` therefore does
+   **not** require a more complex activation — only **broken parity**,
+   which a single phase term (or the bias the pipeline already uses)
+   supplies.
+3. **`gelu`/`silu` are smooth, gain-robust members of the relu class — not
+   a richer spectrum.**  Writing $\mathrm{gelu}(z)=z\,\Phi(z)=\tfrac12 z+
+   \tfrac12 z\,\mathrm{erf}(z/\sqrt2)$ and $\mathrm{silu}(z)=z\,\sigma(z)=
+   \tfrac12 z+z(\sigma(z)-\tfrac12)$ splits each into a **pure linear part
+   plus an even function** (the second term is odd$\times$odd $=$ even).
+   So, exactly like $\mathrm{relu}=\tfrac12(z+|z|)$, they carry $k=1$ and the
+   even modes but have **zero odd coefficient for every $k\ge3$** — not
+   "approximately zero," identically zero by symmetry (probe: $a_1^2=0.25$
+   as for relu, $a_3=0$).  Their advantage over `cos`/`gauss` is *practical,
+   not spectral*: being non-periodic and unbounded-below-free they have **no
+   bandwidth to tune** and do not collapse at small gain.  They are
+   therefore best billed as "a smooth, gain-robust `relu`," a fine default but
+   **not** a way to reach the odd $k\ge3$ modes.  The only tested route to a
+   genuinely full ($k=1,2,3,\dots$) spectrum is the parity-broken sinusoid
+   `cos_sin` (or a random-phase `cos`), at the cost of RBF bandwidth
+   sensitivity.  There is accordingly no single strictly-richer default:
+   `abs`/`relu`/`gelu`/`silu` are one gain-robust
+   equivalence class (even or linear+even, odd $k\ge3$ absent), and the
+   data-driven bias already lends them $k=1$; to gain the high odd modes you
+   move to the RBF family and accept bandwidth tuning.
+
+### 6.2 "Digital" activations are admissible because the solve is analytic
+
+A second axis is *regularity*.  Because leenef **never differentiates the
+activation** — decoders come from a least-squares solve, not
+backpropagation — piecewise-constant activations with zero gradient almost
+everywhere are perfectly usable.  This is a capability gradient-trained
+networks structurally lack.  Two "digital" relatives of the RBF pair:
+
+- **`square_wave` $=\operatorname{sign}(\cos z)$** — the Walsh / square-wave
+  version of `cos`.  Its Fourier series
+  $\tfrac{4}{\pi}\big(\cos z-\tfrac13\cos 3z+\tfrac15\cos5z-\dots\big)$
+  packs many harmonics into one neuron, giving a **rich even kernel**
+  (probe: $a_2^2=0.27$, $a_2$ mode $R^2=0.77$).
+- **`box` $=\mathbf 1[\,|z|<c\,]$** — the indicator / piecewise-constant
+  version of the `gauss` bump: with data-driven biases each neuron is a
+  **hard receptive field** that fires iff the projection lands within $c$
+  of its center.  Even kernel, with relatively more high-even energy than
+  `gauss` ($a_4^2=0.041$ vs. $0.012$).
+- **`staircase` $=\operatorname{clamp}(\lfloor z\rfloor,-3,3)$** — a
+  *monotone* asymmetric quantizer (using $\lfloor\cdot\rfloor$ rather than
+  rounding breaks parity).  It is a deliberate cautionary case: a fine
+  monotone quantizer of a unit-scale pre-activation tracks the identity
+  closely, so its Hermite energy sits almost entirely in the constant and
+  **linear** modes ($a_1^2\approx1.0$, $a_2^2\approx a_3^2\approx0$ at every
+  step/saturation probed) and it lands near the §3 collapse mode.  It shows
+  that being "digital" does not by itself buy discriminative ($k\ge2$)
+  power — the oscillatory `square_wave` and the bump `box` are the digital
+  activations that carry a rich spectrum; a monotone staircase does not.
+
+`square_wave` and `box` are even, so §6.1 applies: they shed odd modes at
+zero bias and regain them through the data-driven bias.  Other digital
+members are immediate — `step`/`sign` (order-0 arc-cosine), a **ternary**
+sign with dead-zone — all zero-gradient and all admissible here.  The point
+is not that a square wave beats a smooth kernel (it should not, by §8.3); it
+is that the *space of usable activations is strictly larger under an
+analytic solve*, and the choice is governed purely by the resulting Hermite
+spectrum, never by differentiability.
+
 ---
 
 ## 7. Predictions (tested in the `c2_altact` panel)
@@ -333,6 +452,12 @@ reshapes the kernel.
 | `double_fold` | richer even spectrum, 2 folds/neuron | $\approx$ to slightly better |
 | `cos` | RBF / random Fourier | **gain-dependent**; can match or beat |
 | `gauss` | RBF receptive field | **gain-dependent**; can match or beat |
+| `cos_sin` | parity-broken RFF, **all** modes | $\approx$ `cos`; full RBF, gain-dependent |
+| `square_wave` | digital cosine, rich even | $\approx$; gain-dependent |
+| `box` | digital bump (hard RF), even | $\approx$; gain-dependent |
+| `staircase` | digital monotone quantizer, **$a_1$-dominated** | near-linear; **collapse-leaning** |
+| `gelu` | linear$+$even (relu class), odd $k\!\ge\!3$ absent | tie; gain-robust |
+| `silu` | linear$+$even (relu class), odd $k\!\ge\!3$ absent | tie; gain-robust |
 
 The empirical panel that tests these predictions lives at
 `results/sl_clean/c2_altact_{mnist,fashion,cifar10}_panel.json`
@@ -365,6 +490,12 @@ $k=1,2,3$, and report held-out $R^2$ (mean over 5 seeds).  The runner is
 | `tanh` | 0.37 | 0 | 0.02 | **0.98** | $\le0$ | **0.20** |
 | `cos` | 0 | 0.18 | 0 | $\le0$ | **0.82** | $\le0$ |
 | `gauss` | 0 | 0.06 | 0 | $\le0$ | **0.76** | $\le0$ |
+| `cos_sin` | 0.37 | 0.18 | 0.06 | **0.95** | **0.81** | **0.08** |
+| `square_wave` | 0 | 0.27 | 0 | $\le0$ | **0.77** | $\le0$ |
+| `box` | 0 | 0.12 | 0 | $\le0$ | **0.62** | $\le0$ |
+| `staircase` | 1.03 | 0.00 | 0.00 | **1.00** | $\le0$ | $\le0$ |
+| `gelu` | 0.25 | 0.09 | 0 | **1.00** | **0.85** | $\le0$ |
+| `silu` | 0.25 | 0.06 | 0 | **1.00** | **0.87** | $\le0$ |
 
 The pattern is exactly the theory: **$R^2_k>0$ iff $a_k^2>0$.**  In
 particular —
@@ -382,12 +513,44 @@ particular —
 - **`square` is pure degree-2**: it recovers $k=2$ (most strongly, its
   $a_2^2$ is largest) and nothing else.
 - **`cos`/`gauss` are even-only** here (zero bias makes them even
-  functions): they recover $k=2$ but not the odd modes.
+  functions): they recover $k=2$ but not the odd modes.  Their digital
+  relatives **`square_wave`/`box` behave identically** (even, $k=2$ only),
+  while **`cos_sin`** — the same function up to a $\pi/4$ phase — recovers
+  **all** of $k=1,2,3$, the parity fix of §6.1 shown directly.  **`gelu`/`silu`**
+  recover $k=1$ and $k=2$ but *not* $k=3$ — exactly the relu pattern, since
+  each is $\tfrac12 z+$(even), so they are gain-robust smooth `relu`s rather
+  than richer-spectrum activations.
+- **`staircase` collapses to the linear mode.**  The monotone asymmetric
+  quantizer recovers only $k=1$ ($a_1^2\approx1.0$, $R^2_{k=1}=1.00$) with
+  $a_2^2\approx a_3^2\approx0$: a fine monotone quantizer of a unit-scale
+  signal differs from the identity only by a high-frequency sawtooth whose
+  low-order Hermite projection is negligible, so it behaves like `linear`
+  (§3) despite being a nonlinear digital function.  Being "digital" buys
+  nothing on its own — the spectrum is what decides.
 
 ($R^2\le0$ denotes "cannot represent": the regularized fit does no better
 than the mean.  The quartic $k=4$ mode is not reliably learned by anyone
 at this $(n, N_{\text{train}})$ because its $a_4^2$ is small — a
 finite-sample effect consistent with learnability $\propto a_k^2$.)
+
+**Parity is broken by any nonzero bias — but read the spectrum carefully.**
+The $a_k^2$ columns above are the **zero-bias** coefficients of the scalar
+$G$.  With a nonzero bias the feature span is governed instead by the
+**bias-averaged** coefficient $\bar a_k^2=\mathbb{E}_b[a_k(b)^2]$,
+$a_k(b)=\mathbb{E}_z[G(z+b)\mathrm{he}_k(z)]$, so the printed $a_k^2$ and the
+measured $R^2$ are *expected* to diverge once bias is on; the $R^2$ then
+reports the richer shifted-feature kernel, not a contradiction of the
+zero-bias table.  Repeating the probe at $\mathrm{bias\ std}=2$
+(`results/sl_clean/hermite_mode_recovery_bias2.json`) shows every even or
+linear+even activation picking up the **low** odd mode $k=1$ — `cos`
+$R^2\;{-1.49}\to0.95$, `abs` $-1.04\to1.00$, `box` $-1.02\to0.96$,
+`square_wave` $-1.10\to0.94$ — while the cubic $k=3$ stays near zero
+(`cos` $0.00$, `gauss` $-0.01$), exactly the "$k=1$ restored, high odd modes
+weak; polynomials capped at their degree" picture of §6.1.  Because leenef's
+data-driven bias $b_i=-g_i e_i^\top c_i$ is such a nonzero offset, the
+even-only selection rule **does not bind in the real pipeline** for the
+dominant $k=1$ mode; a center-matched probe would be the cleanest further
+confirmation.
 
 ### 8.2 The origin-angle sweep
 
@@ -461,7 +624,7 @@ RBF-pair gain sweep (`cos`/`gauss` at narrow vs. wide gain):
 Every §7 prediction holds:
 
 1. **The single-kink family ties `abs`.** `abs`, `relu`, `leaky_relu`,
-   and the requested monotone $(1,\tfrac12)$ `bent_line` agree to within
+   and the monotone $(1,\tfrac12)$ `bent_line` agree to within
    $\sim0.2\%$ on every dataset — one equivalence class, exactly as §4
    predicts (all share the $|z|$ spectrum modulo a bounded affine term).
 2. **`softplus` is the weakest relu relative** ($-1.4\%$ MNIST, $-2.2\%$
@@ -518,7 +681,7 @@ small nonlinearities tested.
    lives in $k\ge2$.  Linear activation = linear kernel = §2 collapse.
 3. **Every *exact* single-kink (bent-line) activation equals `abs` up to
    a bounded affine correction** — exactly, for any bias.  ReLU,
-   leaky-ReLU, and the requested monotone $(1,\tfrac12)$ kink are all
+   leaky-ReLU, and the monotone $(1,\tfrac12)$ kink are all
    `abs` to the solve, and the panel confirms they tie.  This *explains*
    the SSUP-I §5.4 `abs`$\approx$ReLU result and predicts the new kink
    ties.  Softplus is only an *approximate* kink: when its smoothing scale
@@ -530,15 +693,92 @@ small nonlinearities tested.
 5. **To beat `abs` you must change the $k\ge2$ spectrum**: `square`
    (degree-2 polynomial kernel), `double_fold` (more folds), or the RBF
    family (`cos`, `gauss`) whose **bandwidth is the per-neuron gain**.
-   These are the principled "simpler, more natural, or more powerful"
-   alternatives.
+   These are the principled stronger alternatives.
+6. **Even-only is a parity artifact, not a complexity wall.** `cos`/`gauss`
+   (and the digital `square_wave`/`box`) are even, so at zero bias they drop
+   all odd Hermite modes.  The fix is *broken symmetry*, not added
+   complexity: a phase shift ($\texttt{cos\_sin}=\cos+\sin$, or a random RFF
+   phase → a stationary radial kernel, the Gaussian RBF for Gaussian
+   frequencies) restores the full spectrum, and the nonzero **data-driven
+   bias the pipeline already uses** restores at least the dominant $k=1$ odd
+   mode (high odd modes stay weak; a polynomial activation never exceeds its
+   degree).  `gelu`/`silu` are *not* a richer alternative — they are
+   $\tfrac12 z+$(even), i.e. smooth gain-robust members of the `relu` class
+   that miss odd $k\ge3$ exactly as `relu` does.  The genuinely richer
+   activations remain the RBF family, at the price of bandwidth tuning.
+7. **The activation space is larger here than for gradient nets.** Because
+   the solve is analytic, zero-gradient "digital" activations
+   ($\operatorname{sign}\circ\cos$, indicators, quantizers) are admissible;
+   they are chosen by their Hermite spectrum, never by differentiability.
+
+## 10. Relation to prior work
+
+The *mathematics* is classical and not claimed as new:
+
+- **Random features $\leftrightarrow$ kernels.**  That a population of fixed
+  random nonlinear features approximates a kernel is Rahimi & Recht (2007);
+  the infinite-width Gaussian-process limit is Neal (1996) and Williams
+  (1997).  `cos`-as-RFF and the Gaussian-RBF correspondence are theirs.
+- **Activation-specific kernels.**  Arc-cosine kernels for
+  `relu`/`abs`/`step` are Cho & Saul (2009).  The **dual activation
+  kernel** and its Hermite/Mehler expansion — the spine of this note — are
+  Daniely, Frostig & Singer (2016), resting on Mehler's (1866) formula.
+- **Random features + analytic linear solve as a method.**  This is exactly
+  the **Extreme Learning Machine** (Huang, Zhu & Siew, 2006) and, in the
+  temporal case, **reservoir computing / echo-state networks** (Jaeger,
+  2001; Maass et al., 2002).  leenef's single-layer fit is structurally an
+  ELM with NEF-style encoders and data-driven biases.  The universal
+  approximation property of such single-hidden-layer non-polynomial
+  features is older still (Cybenko, 1989; Hornik, 1991; Leshno et al.,
+  1993), and the "digital" random features here are kin to random-binning /
+  random-kitchen-sink features (Rahimi & Recht, 2008).
+
+So at the level of theorems this note **consolidates common knowledge**
+rather than discovering it.  Its contribution is applied and diagnostic:
+
+1. **A bridge.**  Framing the NEF / leenef pipeline explicitly as
+   random-feature kernel ridge regression, so that the activation is read as
+   a *kernel choice* and the NEF $\leftrightarrow$ ELM $\leftrightarrow$
+   kernel-machine identification is made precise (encoders = random
+   projection, gain = RBF bandwidth, data-driven bias = parity-breaking
+   phase, decoder solve = kernel ridge).
+2. **Sharp, falsifiable diagnostics with clean fingerprints.**  The
+   Hermite-mode recovery probe ($R^2_k>0$ iff $a_k\neq0$, including the
+   counterintuitive `relu`-cannot-learn-$k{=}3$ / `tanh`-can result), and
+   the origin-angle sweep with its **zero-variance symmetric collapse at
+   $\theta=\pi$** (the linear-readout signature, encoder-independent).
+   These turn "abs works" into a mechanism with a measurable signature.
+3. **A practical degree of freedom specific to the analytic solve.**  The
+   observation that *digital* (zero-gradient) activations are free here, and
+   that the even-only limitation of RBF activations is dissolved by the
+   bias the method already uses — both are consequences of the gradient-free
+   construction that the gradient-trained literature has no reason to state.
+
+In short: the engine is textbook kernel/random-feature theory;
+the contribution is the lens, the diagnostics, and the gradient-free
+practicalities.
 
 ### References
 
-- Rahimi & Recht (2007), *Random Features for Large-Scale Kernel
-  Machines*.
-- Cho & Saul (2009), *Kernel Methods for Deep Learning* (arc-cosine
-  kernels).
+- Mehler (1866) — the Mehler kernel / generating function for Hermite
+  polynomials.
+- Schoenberg (1942) — positive-definite dot-product kernels on the sphere
+  and their Gegenbauer expansion (the spherical analogue of the Hermite
+  expansion used here).
+- Cybenko (1989); Hornik (1991); Leshno et al. (1993) — universal
+  approximation for single-hidden-layer non-polynomial activations.
 - Neal (1996); Williams (1997) — infinite networks as Gaussian-process
   kernels.
+- Jaeger (2001); Maass, Natschläger & Markram (2002) — echo-state networks
+  / liquid-state machines (random recurrent features + linear readout).
 - Eliasmith & Anderson (2003) — the Neural Engineering Framework.
+- Huang, Zhu & Siew (2006) — Extreme Learning Machines (random hidden
+  layer + analytic least-squares readout).
+- Rahimi & Recht (2007), *Random Features for Large-Scale Kernel Machines*;
+  Rahimi & Recht (2008), *Weighted Sums of Random Kitchen Sinks* — including
+  random-binning ("digital") features.
+- Cho & Saul (2009), *Kernel Methods for Deep Learning* (arc-cosine
+  kernels).
+- Bach (2017) — random features and kernel approximation rates.
+- Daniely, Frostig & Singer (2016) — dual activation kernels and their
+  Hermite spectra.
