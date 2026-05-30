@@ -229,6 +229,37 @@ class Softplus(nn.Module):
         return F.softplus(x, beta=self.beta)
 
 
+class Staircase(nn.Module):
+    """Asymmetric quantizer / staircase ``f(x) = clamp(floor(x/s)*s, -L, L)``.
+
+    A monotone, piecewise-constant *digital* activation (default step
+    ``s=1``, saturation ``L=3``).  Using ``floor`` rather than ``round``
+    makes it asymmetric (neither even nor odd).  It is zero-gradient almost
+    everywhere (and undefined at the step edges), so it is inadmissible for
+    gradient training but admissible here because the decoders are solved
+    analytically and the activation is never differentiated.
+
+    Spectrally it is a cautionary case rather than a strong default: a
+    fine monotone quantizer of a unit-scale pre-activation tracks the
+    identity closely, so its Hermite energy concentrates in the constant
+    and linear ($k=0,1$) modes and its $k\\ge2$ coefficients are nearly
+    zero (measured $a_2^2\\approx a_3^2\\approx0$).  It therefore sits close
+    to the linear / collapse mode (cf. `identity`): being "digital" does
+    not by itself buy discriminative ($k\\ge2$) power — the oscillatory
+    `square_wave` and bump `box` are the digital activations that do carry
+    a rich even spectrum.
+    """
+
+    def __init__(self, step: float = 1.0, limit: float = 3.0):
+        super().__init__()
+        self.step = step
+        self.limit = limit
+
+    def forward(self, x: Tensor) -> Tensor:
+        q = torch.floor(x / self.step) * self.step
+        return q.clamp_(min=-self.limit, max=self.limit)
+
+
 ACTIVATIONS = {
     "relu": nn.ReLU,
     "leaky_relu": lambda: nn.LeakyReLU(negative_slope=0.1),
@@ -244,6 +275,7 @@ ACTIVATIONS = {
     "cos_sin": CosSin,
     "square_wave": SquareWave,
     "box": Box,
+    "staircase": Staircase,
     "gelu": Gelu,
     "silu": Silu,
     "linear": Identity,

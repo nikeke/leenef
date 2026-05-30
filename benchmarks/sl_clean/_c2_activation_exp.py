@@ -44,6 +44,7 @@ _C2_ACTIVATIONS = (
     "cos_sin",
     "square_wave",
     "box",
+    "staircase",
     "gelu",
     "silu",
 )
