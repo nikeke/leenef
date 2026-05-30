@@ -28,7 +28,20 @@ from ._phase_c_shared import (
     set_sl_seed,
 )
 
-_C2_ACTIVATIONS = ("abs", "relu", "tanh", "step", "square")
+_C2_ACTIVATIONS = (
+    "abs",
+    "relu",
+    "tanh",
+    "step",
+    "square",
+    "leaky_relu",
+    "softplus",
+    "bent_line",
+    "double_fold",
+    "sqrt_abs",
+    "cos",
+    "gauss",
+)
 _C2_GAIN_RANGES: tuple[tuple[float, float], ...] = (
     (0.5, 2.0),  # project default
     (1.0, 1.0),  # fixed-gain control

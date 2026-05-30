@@ -2,6 +2,7 @@
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch import Tensor
 
 
@@ -59,11 +60,111 @@ class Square(nn.Module):
         return x.square()
 
 
+class BentLine(nn.Module):
+    """Monotone single-kink activation — a "leaky" relative of abs/ReLU.
+
+    ``f(x) = x`` for ``x >= 0`` and ``f(x) = slope * x`` for ``x < 0`` with
+    ``0 < slope < 1``.  Both arms have positive slope, so unlike `abs` the
+    map is monotone increasing; it merely *changes the angle at the origin*.
+    Algebraically it is a fixed affine mix of identity and `abs`:
+
+        f(x) = ((1 + slope) / 2) * x + ((1 - slope) / 2) * |x|.
+
+    The default ``slope=0.5`` is chosen only because it is simple to write
+    down; Paper I §2 predicts the exact slope is irrelevant (any genuine
+    kink shares the same `abs` nonlinear component).
+    """
+
+    def __init__(self, slope: float = 0.5):
+        super().__init__()
+        self.slope = slope
+
+    def forward(self, x: Tensor) -> Tensor:
+        return torch.where(x >= 0, x, self.slope * x)
+
+
+class DoubleFold(nn.Module):
+    """Two-kink folded activation ``f(x) = ||x| - c|``.
+
+    A single neuron now contributes *two* fold lines instead of one, which
+    enriches the even part of the dual activation kernel relative to `abs`.
+    """
+
+    def __init__(self, c: float = 1.0):
+        super().__init__()
+        self.c = c
+
+    def forward(self, x: Tensor) -> Tensor:
+        return (x.abs() - self.c).abs()
+
+
+class SqrtAbs(nn.Module):
+    """Concave magnitude activation ``f(x) = |x|^p`` (default ``p=0.5``).
+
+    Same sign-folding as `abs` but a different even Hermite spectrum, so it
+    selects a different (heavier low-frequency) dual kernel.
+    """
+
+    def __init__(self, p: float = 0.5):
+        super().__init__()
+        self.p = p
+
+    def forward(self, x: Tensor) -> Tensor:
+        return x.abs().pow(self.p)
+
+
+class Cos(nn.Module):
+    """Cosine activation ``f(x) = cos(x)`` — a random Fourier feature.
+
+    With random encoders and per-neuron gain setting the bandwidth, a
+    population of ``cos`` features approximates a stationary (RBF-like)
+    kernel (Rahimi & Recht, 2007).  Strongly bandwidth- (gain-) sensitive.
+    """
+
+    def forward(self, x: Tensor) -> Tensor:
+        return torch.cos(x)
+
+
+class GaussBump(nn.Module):
+    """Radial bump activation ``f(x) = exp(-x^2 / 2)``.
+
+    With data-driven biases each neuron becomes a soft RBF receptive field
+    centered on a training sample along its encoder direction.  Bandwidth is
+    set by the per-neuron gain.
+    """
+
+    def forward(self, x: Tensor) -> Tensor:
+        return torch.exp(-0.5 * x.square())
+
+
+class Softplus(nn.Module):
+    """Smooth ReLU ``f(x) = log(1 + exp(beta * x)) / beta``.
+
+    A smoothed relative of ReLU included as a kernel-equivalence control:
+    smoothing the kink leaves the ``k >= 2`` Hermite spectrum essentially
+    that of `abs`/ReLU.
+    """
+
+    def __init__(self, beta: float = 1.0):
+        super().__init__()
+        self.beta = beta
+
+    def forward(self, x: Tensor) -> Tensor:
+        return F.softplus(x, beta=self.beta)
+
+
 ACTIVATIONS = {
     "relu": nn.ReLU,
-    "softplus": nn.Softplus,
+    "leaky_relu": lambda: nn.LeakyReLU(negative_slope=0.1),
+    "softplus": Softplus,
+    "tanh": nn.Tanh,
     "lif_rate": LIFRate,
     "abs": Abs,
+    "bent_line": BentLine,
+    "double_fold": DoubleFold,
+    "sqrt_abs": SqrtAbs,
+    "cos": Cos,
+    "gauss": GaussBump,
     "linear": Identity,
     "identity": Identity,
     "step": Step,

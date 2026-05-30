@@ -364,6 +364,80 @@ class TestActivations:
         # Higher input → higher rate
         assert (rates[1] > rates[0]) and (rates[2] > rates[1])
 
+    def test_bent_line_two_positive_slopes(self):
+        act = make_activation("bent_line")  # default slope 0.5
+        x = torch.tensor([-2.0, -1.0, 0.0, 1.0, 2.0])
+        out = act(x)
+        assert torch.equal(out, torch.tensor([-1.0, -0.5, 0.0, 1.0, 2.0]))
+        # Monotone increasing (unlike abs).
+        assert (out[1:] - out[:-1] > 0).all()
+
+    def test_bent_line_equals_affine_mix_of_identity_and_abs(self):
+        slope = 0.5
+        act = make_activation("bent_line", slope=slope)
+        x = torch.linspace(-3, 3, 25)
+        mix = ((1 + slope) / 2) * x + ((1 - slope) / 2) * x.abs()
+        assert torch.allclose(act(x), mix, atol=1e-6)
+
+    def test_relu_is_bent_line_zero_slope(self):
+        # ReLU = (z + |z|)/2 is the slope-0 member of the bent-line family.
+        bent0 = make_activation("bent_line", slope=0.0)
+        x = torch.linspace(-3, 3, 25)
+        assert torch.allclose(bent0(x), torch.relu(x), atol=1e-6)
+
+    def test_leaky_relu(self):
+        act = make_activation("leaky_relu")  # slope 0.1
+        x = torch.tensor([-1.0, 0.0, 2.0])
+        assert torch.allclose(act(x), torch.tensor([-0.1, 0.0, 2.0]), atol=1e-6)
+
+    def test_double_fold_two_kinks(self):
+        act = make_activation("double_fold")  # ||x| - 1|
+        x = torch.tensor([-2.0, -1.0, 0.0, 1.0, 2.0])
+        assert torch.equal(act(x), torch.tensor([1.0, 0.0, 1.0, 0.0, 1.0]))
+
+    def test_sqrt_abs(self):
+        act = make_activation("sqrt_abs")
+        x = torch.tensor([-4.0, 0.0, 9.0])
+        assert torch.allclose(act(x), torch.tensor([2.0, 0.0, 3.0]), atol=1e-6)
+
+    def test_cos(self):
+        act = make_activation("cos")
+        x = torch.tensor([0.0, torch.pi])
+        assert torch.allclose(act(x), torch.tensor([1.0, -1.0]), atol=1e-6)
+
+    def test_gauss_bump(self):
+        act = make_activation("gauss")
+        x = torch.tensor([0.0, 1.0])
+        expected = torch.tensor([1.0, torch.exp(torch.tensor(-0.5)).item()])
+        assert torch.allclose(act(x), expected, atol=1e-6)
+
+    def test_phase_c_activation_parity(self):
+        # The benchmark harness uses fast in-place activation functions that
+        # must match the library modules bit-for-bit.
+        from benchmarks.sl_clean._phase_c_shared import _activation_fn
+
+        names = [
+            "abs",
+            "relu",
+            "leaky_relu",
+            "softplus",
+            "tanh",
+            "step",
+            "square",
+            "bent_line",
+            "double_fold",
+            "sqrt_abs",
+            "cos",
+            "gauss",
+        ]
+        g = torch.Generator().manual_seed(0)
+        x = torch.randn(64, generator=g) * 3.0
+        for name in names:
+            ref = make_activation(name)(x.clone())
+            t = x.clone()
+            _activation_fn(name)(t)
+            assert torch.allclose(t, ref, atol=1e-6), f"parity mismatch for {name!r}"
+
 
 # ── Solvers ───────────────────────────────────────────────────────────
 

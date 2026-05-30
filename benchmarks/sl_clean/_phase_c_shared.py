@@ -46,13 +46,34 @@ def _activation_fn(name: str) -> Callable[[torch.Tensor], None]:
         return torch.Tensor.abs_
     if name == "relu":
         return lambda t: t.clamp_(min=0.0)
+    if name == "leaky_relu":
+        return lambda t: torch.nn.functional.leaky_relu_(t, 0.1)
+    if name == "softplus":
+        return lambda t: t.copy_(torch.nn.functional.softplus(t))
     if name == "tanh":
         return torch.Tensor.tanh_
     if name == "step":
         return lambda t: t.copy_(t > 0.0)
     if name == "square":
         return torch.Tensor.square_
-    raise ValueError(f"unknown activation {name!r}; phase-c supports abs/relu/tanh/step/square")
+    if name == "bent_line":
+        # f(z) = z for z>=0 else 0.5 z  ==  0.75 z + 0.25 |z|
+        return lambda t: t.copy_(torch.where(t >= 0, t, 0.5 * t))
+    if name == "double_fold":
+        # f(z) = ||z| - 1|
+        return lambda t: t.abs_().sub_(1.0).abs_()
+    if name == "sqrt_abs":
+        return lambda t: t.abs_().sqrt_()
+    if name == "cos":
+        return torch.Tensor.cos_
+    if name == "gauss":
+        # f(z) = exp(-z^2 / 2)
+        return lambda t: t.square_().mul_(-0.5).exp_()
+    raise ValueError(
+        f"unknown activation {name!r}; phase-c supports "
+        "abs/relu/leaky_relu/softplus/tanh/step/square/bent_line/"
+        "double_fold/sqrt_abs/cos/gauss"
+    )
 
 
 def build_encoders_and_biases(
