@@ -1,6 +1,6 @@
 [project]
 name = "leenef"
-version = "0.1.0"
+version = "0.1.1rc1"
 description = "Machine learning with the Neural Engineering Framework (Eliasmith & Anderson)"
 readme = "README.md"
 requires-python = ">=3.12"

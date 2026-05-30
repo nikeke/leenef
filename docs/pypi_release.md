@@ -45,6 +45,13 @@ upload.
 
 1. Bump `version` in `pyproject.toml` to a version that has never been uploaded
    to TestPyPI or PyPI.  PyPI indexes reject replacing an existing file.
+   Prefer a disposable prerelease for TestPyPI, for example:
+
+   - TestPyPI: `0.1.1rc1`, `0.1.1rc2`, ...
+   - Final PyPI release: `0.1.1`
+
+   That keeps the real release version clean while still exercising the full
+   publish workflow.
 2. Commit the version bump.
 3. Run the **Publish to TestPyPI** workflow manually from the GitHub Actions UI.
 4. Smoke-test the TestPyPI package in a fresh environment:
@@ -54,20 +61,22 @@ python3 -m venv /tmp/leenef-testpypi
 /tmp/leenef-testpypi/bin/pip install \
   --index-url https://test.pypi.org/simple/ \
   --extra-index-url https://pypi.org/simple/ \
-  leenef==<version>
+  leenef==0.1.1rc1
 /tmp/leenef-testpypi/bin/leenef-install-skill --dest /tmp/leenef-skills
 ```
 
 ## PyPI release
 
-1. Ensure `pyproject.toml` has the final release version.
-2. Create a GitHub release with a matching tag, for example `v0.1.0`.
+1. After the TestPyPI dry run, bump `pyproject.toml` from the disposable
+   prerelease (`0.1.1rc1`) to the final release (`0.1.1`) and commit that
+   change.
+2. Create a GitHub release with a matching tag, for example `v0.1.1`.
 3. Publishing the release triggers `.github/workflows/publish-pypi.yml`.
 4. After the workflow finishes, verify:
 
 ```bash
 python3 -m venv /tmp/leenef-pypi
-/tmp/leenef-pypi/bin/pip install leenef==<version>
+/tmp/leenef-pypi/bin/pip install leenef==0.1.1
 /tmp/leenef-pypi/bin/leenef-install-skill --dest /tmp/leenef-skills
 ```
 
