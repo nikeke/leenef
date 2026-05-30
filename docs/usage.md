@@ -47,36 +47,44 @@ activity energy.  Woodbury/update-inverse paths use fixed alpha because the
 cached inverse is parameterized by that exact diagonal value; do not change
 `fixed_alpha` mid-stream without `refresh_inverse()` or `reset_continuous()`.
 
-The repository's `skills/leenef/SKILL.md` file is a standard Agent Skill with
-YAML frontmatter and the same decision logic; installed copies place that file
-at the skill root as `SKILL.md`.  Use it when you want an agent to inspect your
-data shape, task stream, hardware, and accuracy/speed constraints before
-proposing a configuration.
+The repository's `skills/leenef/` directory is a standard Agent Skill: it
+contains `SKILL.md`, its installer, and the asset manifest.  Keep it as a
+directory rather than moving `SKILL.md` back to the repository root; a root file
+is easier to copy incorrectly without the docs, sources, results, and default
+configs the skill needs.  Use it when you want an agent to inspect your data
+shape, task stream, hardware, and accuracy/speed constraints before proposing a
+configuration.
 
 ### Installing the skill
 
 The skill manifest lives at `skills/leenef/assets.txt` in the repository and at
-`assets.txt` in an installed skill.  It selects the
-papers, notes, package source, benchmark drivers, and adopted `base_config*.json`
-defaults that the agent needs for source-grounded advice.  The wheel build
-materializes that manifest into package data, so a plain `pip install leenef` is
-enough to install the skill without a source checkout.
+`assets.txt` in an installed skill.  It selects the papers, notes, package
+source, benchmark drivers, result JSON/log/script artifacts, and adopted
+default configs that the agent needs for source-grounded advice.  The wheel
+build materializes that manifest into package data, so a plain
+`pip install leenef` is enough to install the skill without a source checkout.
 
 ```bash
-# Copy the skill into a destination skill directory.
+# From a clone: symlink the manifest assets so local edits stay live.
+python skills/leenef/install_skill.py --dest ~/.config/agent/skills --link
+
+# From a package install: copy the generated package assets.
 leenef-install-skill --dest ~/.config/agent/skills
-# or symlink instead of copy (development checkouts only):
+
+# Editable installs support the same command and can also symlink.
+pip install -e .
 leenef-install-skill --dest ~/.config/agent/skills --link
 ```
 
 This writes `<dest>/leenef/SKILL.md` next to mirrored `docs/`, `src/`,
 `benchmarks/`, and `results/` folders containing this manual, the three SSUP
 papers, project notes, package source, benchmark drivers, and the
-`base_config*.json` defaults.  The installed skill intentionally omits `tests/`
-and `colab/`: they are useful for development and GPU launch workflows, but not
-needed for agent recommendations once the public APIs, benchmark drivers, docs,
-and default configs are present.  From a repository checkout, `--link` creates
-per-file symlinks to the manifest assets instead of copying them.
+full result JSON/log/script artifacts.  The installed skill intentionally omits
+`tests/` and `colab/`: they are useful for development and GPU launch workflows,
+but not needed for agent recommendations once the public APIs, benchmark
+drivers, docs, default configs, and result artifacts are present.  From a
+repository checkout, `--link` creates per-file symlinks to the manifest assets
+instead of copying them.
 
 ## Supervised learning
 

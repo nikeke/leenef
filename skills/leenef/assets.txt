@@ -6,11 +6,15 @@
 
 skills/leenef/SKILL.md
 skills/leenef/assets.txt
+skills/leenef/install_skill.py
 
 README.md
 AGENTS.md
 LICENSE
 pyproject.toml
+
+.github/workflows/*.yml
+scripts/*.sh
 
 docs/*.md
 !docs/SSUP-plain-language.md
@@ -21,4 +25,6 @@ src/leenef/py.typed
 benchmarks/**/*.py
 benchmarks/**/*.sh
 
-results/**/base_config*.json
+results/**/*.json
+results/**/*.log
+results/**/*.sh

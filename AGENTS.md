@@ -1,31 +1,5 @@
 # AGENTS.md — leenef
 
-> **Status — clean restart in progress.**
->
-> The library source (`src/leenef/`) and core tests (`tests/`) are
-> stable.  Everything else — `benchmarks/`, `docs/`, `results/`,
-> `notebooks/` — has been moved to `attic/` while the SSUP
-> three-paper series (Supervised → Continual → Reinforcement Learning)
-> is rebuilt with rl_clean-grade reproducibility.
->
-> The paper outline lives in
-> [`docs/paper_i_outline.md`](docs/paper_i_outline.md); the synthesized
-> insights story in [`docs/paper_insights.md`](docs/paper_insights.md);
-> the running sweep execution log in
-> [`docs/sl_clean_sweeps.md`](docs/sl_clean_sweeps.md); follow-up
-> experiment specs in [`docs/b1_followups.md`](docs/b1_followups.md).
-> Per-session work-in-progress notes live under
-> `~/.copilot/session-state/<session>/` (gitignored, may be wiped on
-> compaction); anything that should outlast a session must be migrated
-> into `docs/`.  New infrastructure
-> (`benchmarks/sl_clean/`, `results/sl_clean/`, `docs/sl_clean_sweeps.md`)
-> is in place.
->
-> The sections below labeled **(ATTIC EPOCH — pending rewrite)** describe
-> the prior infrastructure and are kept for reference until the new
-> equivalents are written.  Do not run their commands (the referenced
-> scripts and result paths now live under `attic/`).
-
 ## Commands
 
 ```bash

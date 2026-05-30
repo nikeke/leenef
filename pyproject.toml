@@ -29,12 +29,14 @@ Repository = "https://github.com/nikeke/leenef"
 Documentation = "https://github.com/nikeke/leenef/tree/main/docs"
 
 [project.scripts]
-leenef-install-skill = "leenef.install_skill:main"
+leenef-install-skill = "leenef._skill_cli:main"
 
 [project.optional-dependencies]
 dev = [
+    "build>=1.2",
     "pytest>=8.0",
     "ruff>=0.4",
+    "twine>=5.0",
 ]
 bench = [
     "matplotlib>=3.8",

@@ -3,13 +3,6 @@
 Machine learning with a rate-based specialization of the Neural
 Engineering Framework (NEF) in PyTorch.
 
-> **Repository status — SSUP paper series rebuild.** The stable core lives in
-> `src/leenef/` and `tests/`.  Active supervised-learning,
-> continual-learning, and reinforcement-learning experiments and preserved
-> artifacts live under `benchmarks/`, `results/`, and
-> `docs/SSUP-{I,II,III}.md`; older pre-restart infrastructure remains in
-> `attic/` for reference.
-
 ## Overview
 
 leenef keeps the NEF encoder/decoder split but uses rate neurons and an
@@ -172,9 +165,22 @@ source venv/bin/activate
 pip install -e '.[dev]'
 ```
 
-See [`docs/usage.md`](docs/usage.md) for the usage manual and
-[`skills/leenef/SKILL.md`](skills/leenef/SKILL.md) for leenef guidance that coding agents can
-install as a standard skill.
+See [`docs/usage.md`](docs/usage.md) for the usage manual.
+
+## Agent skill
+
+The leenef Agent Skill lives in [`skills/leenef/`](skills/leenef/) with its
+asset manifest.  From a clone, install it as symlinks so edits stay live:
+
+```bash
+python skills/leenef/install_skill.py --dest ~/.config/agent/skills --link
+```
+
+After `pip install leenef`, the same installed package provides:
+
+```bash
+leenef-install-skill --dest ~/.config/agent/skills
+```
 
 ## Tests
 

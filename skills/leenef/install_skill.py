@@ -2,8 +2,8 @@
 
 The canonical skill lives in ``skills/leenef/`` at the repository root.  Its
 ``assets.txt`` manifest lists the docs, source files, benchmark drivers, and
-default configs the agent should have available.  Repository installs read those
-files directly.  Wheel builds materialize the same manifest under
+result artifacts the agent should have available.  Repository installs read
+those files directly.  Wheel builds materialize the same manifest under
 ``leenef/skill_assets`` at build time so ``pip install leenef`` users can still
 run ``leenef-install-skill`` without a source checkout.
 """
@@ -13,7 +13,6 @@ from __future__ import annotations
 import argparse
 import shutil
 from collections.abc import Iterator
-from importlib import resources
 from pathlib import Path
 
 SKILL_NAME = "leenef"
@@ -130,11 +129,6 @@ def materialize_assets(
     return count
 
 
-def _packaged_assets_dir() -> Path:
-    """Real on-disk path of build-generated package skill assets, if present."""
-    return Path(str(resources.files("leenef").joinpath("skill_assets")))
-
-
 def _repo_root() -> Path | None:
     for parent in Path(__file__).resolve().parents:
         if (parent / "pyproject.toml").is_file() and (parent / MANIFEST_PATH).is_file():
@@ -146,9 +140,6 @@ def _source_root() -> Path:
     root = _repo_root()
     if root is not None:
         return root
-    packaged = _packaged_assets_dir()
-    if (packaged / MANIFEST_PATH).is_file():
-        return packaged
     raise FileNotFoundError(
         "leenef skill assets were not found. Reinstall leenef from a wheel that "
         "includes generated skill assets, or run this command from a repository checkout."

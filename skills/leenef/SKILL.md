@@ -16,12 +16,14 @@ not present leenef as a universal replacement for gradient training.  The core
 primitive is fixed activities `A`, accumulated sufficient statistics `A^T A`
 and `A^T Y`, and an analytic decoder solve.
 
-This source skill lives at `skills/leenef/SKILL.md` in the repository.  Do not
-copy this file alone: run `leenef-install-skill --dest <skills-dir>` to
-materialize the skill together with the reference assets listed in
-`skills/leenef/assets.txt` (or `assets.txt` after installation).  The wheel
-build generates those package assets from the same manifest, so a plain
-`pip install leenef` user can install the skill without cloning the repository.
+This source skill lives at `skills/leenef/` in the repository.  Do not copy
+`SKILL.md` alone: run `python skills/leenef/install_skill.py --dest <skills-dir>
+--link` from a clone, or `leenef-install-skill --dest <skills-dir>` after
+installing the package, to materialize the skill together with the reference
+assets listed in `skills/leenef/assets.txt` (or `assets.txt` after
+installation).  The wheel build generates those package assets from the same
+manifest, so a plain `pip install leenef` user can install the skill without
+cloning the repository.
 
 ## Always read these before recommending
 
@@ -59,8 +61,10 @@ Reach for these when the task touches the corresponding area:
 - `benchmarks/` — reference drivers (`sl_clean/`, `cl_clean/`, `run_rl_paper_dense.py`,
   `run_rl_sparse.py`, etc.) and their `*.sh` orchestrators.  Mirror these
   patterns for new experiments.
-- `results/**/base_config*.json` — paper-grade default configs adopted by the
-  multi-seed sweep protocol.  Use these as starting points, not memory.
+- `results/**/*.json`, `results/**/*.log`, `results/**/*.sh` — result artifacts,
+  adopted configs, run logs, and supervisors for deeper analyses.  Use the
+  `base_config*.json` files as starting points, then consult full result dumps
+  and logs when explaining evidence.
 
 ## Decision procedure
 
@@ -82,8 +86,8 @@ Reach for these when the task touches the corresponding area:
    activity matrices prefer accumulate-and-solve paths over Woodbury inverse
    maintenance.
 5. Give a starting config plus the main caveat and the first tuning sweep.
-   Cite a specific `base_config*.json` and/or driver under `benchmarks/` when
-   one applies.
+   Cite a specific `base_config*.json`, result artifact, and/or driver under
+   `benchmarks/` when one applies.
 
 ## Conservative starting configurations
 

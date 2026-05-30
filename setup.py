@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parent
 
 def _load_install_skill_module():
     spec = importlib.util.spec_from_file_location(
-        "_leenef_install_skill", ROOT / "src" / "leenef" / "install_skill.py"
+        "_leenef_install_skill", ROOT / "skills" / "leenef" / "install_skill.py"
     )
     if spec is None or spec.loader is None:
         raise RuntimeError("could not load leenef install_skill build helper")
