@@ -43,9 +43,8 @@ _C2_ACTIVATIONS = (
     "gauss",
     "cos_sin",
     "square_wave",
-    "square_floor",
+    "floor_wave",
     "box",
-    "staircase",
     "gelu",
     "silu",
 )

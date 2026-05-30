@@ -40,9 +40,8 @@ ORDER = (
     "gauss+g0.5_2.0",
     "cos_sin+g0.5_2.0",
     "square_wave+g0.5_2.0",
-    "square_floor+g0.5_2.0",
+    "floor_wave+g0.5_2.0",
     "box+g0.5_2.0",
-    "staircase+g0.5_2.0",
     "gelu+g0.5_2.0",
     "silu+g0.5_2.0",
     "cos+g0.05_0.2",
@@ -51,9 +50,8 @@ ORDER = (
     "gauss+g0.1_5.0",
     "cos_sin+g0.1_5.0",
     "square_wave+g0.1_5.0",
-    "square_floor+g0.1_5.0",
+    "floor_wave+g0.1_5.0",
     "box+g0.1_5.0",
-    "staircase+g0.1_5.0",
 )
 
 
