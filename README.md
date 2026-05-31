@@ -34,7 +34,7 @@ source for the repository's present claims, numbers, and caveats.
 A standalone adjunct paper, [`docs/activation_spectra.md`](docs/activation_spectra.md),
 develops the kernel/Hermite-spectrum view of the pointwise activation.
 
-Paper I abstract:
+SSUP-I abstract:
 
 > NEF's regularized least-squares solve over fixed-encoder neural
 > activities — $D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$
@@ -54,7 +54,7 @@ Paper I abstract:
 > depth does not buy accuracy on its own, and mean-pooled delay-line
 > features lose long-range order information.
 
-Paper II abstract:
+SSUP-II abstract:
 
 > NEF's regularized least-squares solve over fixed-encoder neural
 > activities — $D = (A^\top A + \alpha_{\mathrm{eff}} I)^{-1} A^\top Y$
@@ -77,7 +77,7 @@ Paper II abstract:
 > agreement through 10-task permuted sMNIST while revealing a lower
 > mean-pooled-delay-line ceiling of **58.3 $\pm$ 0.2 %** at 16000 neurons.
 
-Paper III abstract:
+SSUP-III abstract:
 
 > NEF's regularized least-squares solve over fixed-encoder neural
 > activities,
@@ -197,7 +197,7 @@ ruff format --check src/leenef/ tests/ benchmarks/
 ## Benchmarks and paper artifacts
 
 The active supervised-learning harness is the `sl_clean` stack used for
-Paper I.  Example launches:
+SSUP-I.  Example launches:
 
 ```bash
 source venv/bin/activate
@@ -221,7 +221,7 @@ python3 docs/generate_paper_i_figures.py
 # Regenerate the Paper-III figures
 python3 docs/generate_paper_iii_figures.py
 
-# Build Paper I / Paper II / Paper III and adjunct PDFs
+# Build SSUP-I / SSUP-II / SSUP-III and adjunct PDFs
 bash docs/build_ssup_pdf.sh docs/SSUP-I.md docs/SSUP-I.pdf
 bash docs/build_ssup_pdf.sh docs/SSUP-II.md docs/SSUP-II.pdf
 bash docs/build_ssup_pdf.sh docs/SSUP-III.md docs/SSUP-III.pdf
@@ -230,7 +230,7 @@ bash docs/build_ssup_pdf.sh docs/activation_spectra.md docs/activation_spectra.p
 
 All paper-grade result rows carry a code identity, dataset hashes, full
 config dictionaries, per-seed metrics, and aggregate summaries.  The
-preserved JSON/log artifacts used by Papers I, II, and III live under
+preserved JSON/log artifacts used by SSUP-I, SSUP-II, and SSUP-III live under
 `results/sl_clean/`, `results/cl_clean/`, `results/rl_paper/`, and
 `results/rl_sparse/`.
 
@@ -248,8 +248,8 @@ preserved JSON/log artifacts used by Papers I, II, and III live under
 | `src/leenef/encoders.py` | Encoder strategies: `hypersphere`, `gaussian`, `sparse`, `receptive_field`, `whitened`, `class_contrast`, `local_pca` |
 | `src/leenef/activations.py` | Activations: `abs`, `relu`, `softplus`, `lif_rate` |
 | `src/leenef/solvers.py` | Decoder solvers and normal-equation utilities |
-| `benchmarks/sl_clean/` | Active reproducible supervised-learning sweep harness for Paper I |
-| `benchmarks/cl_clean/` | Active reproducible continual-learning sweep harness for Paper II |
-| `results/sl_clean/` | Preserved multi-seed result rows, summaries, and logs used by Paper I |
-| `results/cl_clean/` | Preserved multi-seed result rows, summaries, and logs used by Paper II |
+| `benchmarks/sl_clean/` | Active reproducible supervised-learning sweep harness for SSUP-I |
+| `benchmarks/cl_clean/` | Active reproducible continual-learning sweep harness for SSUP-II |
+| `results/sl_clean/` | Preserved multi-seed result rows, summaries, and logs used by SSUP-I |
+| `results/cl_clean/` | Preserved multi-seed result rows, summaries, and logs used by SSUP-II |
 | `attic/` | Archived pre-restart infrastructure, reports, and notes kept for historical reference |
