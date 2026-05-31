@@ -11,10 +11,11 @@
       "results/abs_preimages",
       "benchmarks/abs_preimages/prototype_initialization_result.json"
     ],
-    "head": "5f1cc762c7be64a2373c68b8ebe85e46d20505d9",
-    "identity": "5f1cc762c7be64a2373c68b8ebe85e46d20505d9",
+    "head": "fbfe703703442ae58870aedb7f8cd3ccbdf179c2",
+    "identity": "fbfe703703442ae58870aedb7f8cd3ccbdf179c2",
     "source_dirty": false,
-    "source_dirty_hash": null
+    "source_dirty_hash": null,
+    "untracked_sources_hashed": []
   },
   "config": {
     "n_train": 10000,
@@ -22,7 +23,7 @@
   },
   "data_metadata": {
     "d_in": 784,
-    "data_root": "../leenef/data",
+    "data_root": "/home/amnesia/Persistent/src/leenef/data",
     "dataset": "MNIST",
     "n_classes": 10,
     "n_test": 10000,
@@ -247,7 +248,7 @@
     "torch_num_threads": 2,
     "torch_version": "2.10.0+cu128"
   },
-  "generated_at_utc": "2026-05-31T14:29:34.025193+00:00",
+  "generated_at_utc": "2026-05-31T15:48:54.251009+00:00",
   "plotted_arrays": {
     "nullspace_continuum": {
       "decode_deviations": [
