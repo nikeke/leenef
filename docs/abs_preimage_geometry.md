@@ -327,10 +327,12 @@ Eliasmith and Anderson (2003), where fixed population encoders represent
 vectors and linear decoders compute functions of those represented
 vectors. The SSUP paper series studies leenef as a rate-based, analytic
 least-squares specialization of that idea rather than a spiking Nengo
-model: Part I covers supervised learning (Bosnić, 2026a), Part II covers
-continual learning (Bosnić, 2026b), and Part III covers reinforcement
-learning (Bosnić, 2026c). This adjunct note supplies a local geometric
-analysis for the `abs` activation used by the supervised-learning stack.
+model: SSUP-I covers supervised learning (Bosnić, 2026a), SSUP-II covers
+continual learning (Bosnić, 2026b), and SSUP-III covers reinforcement
+learning (Bosnić, 2026c). A companion adjunct note develops the
+activation-spectrum view of pointwise nonlinearities (Bosnić, 2026d);
+this note instead supplies a local geometric analysis for the `abs`
+activation used by the supervised-learning stack.
 
 The preimage questions connect to two older literatures. Network
 inversion and feature visualization ask what inputs realize a target
@@ -389,14 +391,12 @@ Three next steps are most natural.
 
 ## Appendix A - Reproducibility and artifacts
 
-The source repository is `https://github.com/nikeke/leenef`. In the
-linked worktree used for this note, the sibling checkout provides the
-virtual environment and data directory:
+The source repository is `https://github.com/nikeke/leenef`. From the
+repository root:
 
 ```bash
-cd ../leenef-abs-preimages
-source ../leenef/venv/bin/activate
-export LEENEF_DATA_ROOT=../leenef/data
+source venv/bin/activate
+export LEENEF_DATA_ROOT=data
 
 python benchmarks/abs_preimages/sign_freedom_experiment.py
 python benchmarks/abs_preimages/visualize_preimages.py
@@ -430,13 +430,15 @@ audited by the run.
 
 - Bosnić, N. (2026a). *Sufficient Statistics as a Universal Primitive?
   (Part I): Supervised Learning via the Neural Engineering Framework*.
-  GitHub location: https://github.com/nikeke/leenef, `docs/SSUP-I.md`.
+  PDF: <https://github.com/nikeke/leenef/blob/main/docs/SSUP-I.pdf>.
 - Bosnić, N. (2026b). *Sufficient Statistics as a Universal Primitive?
   (Part II): Continual Learning Without Forgetting, by Construction*.
-  GitHub location: https://github.com/nikeke/leenef, `docs/SSUP-II.md`.
+  PDF: <https://github.com/nikeke/leenef/blob/main/docs/SSUP-II.pdf>.
 - Bosnić, N. (2026c). *Sufficient Statistics as a Universal Primitive?
   (Part III): Reinforcement Learning as Target Construction*.
-  GitHub location: https://github.com/nikeke/leenef, `docs/SSUP-III.md`.
+  PDF: <https://github.com/nikeke/leenef/blob/main/docs/SSUP-III.pdf>.
+- Bosnić, N. (2026d). *Activation Spectra in Analytic NEF Layers*. PDF:
+  <https://github.com/nikeke/leenef/blob/main/docs/activation_spectra.pdf>.
 - Candes, E. J., Strohmer, T., & Voroninski, V. (2013). PhaseLift:
   Exact and stable signal recovery from magnitude measurements via
   convex programming. *Communications on Pure and Applied Mathematics*.
