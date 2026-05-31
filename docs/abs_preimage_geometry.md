@@ -413,10 +413,16 @@ figures live in `docs/figures/abs_preimages/`; provenance-bearing JSON
 results live in `results/abs_preimages/`. Each result JSON records the
 source code identity, thread/runtime metadata, MNIST raw and processed
 hashes, the deterministic training-subset hash, script configuration,
-diagnostics, plotted arrays, and generated figure paths. The recorded
-source identity is the code commit used at run time; later commits that
-only add or refresh generated artifacts can therefore differ from the
-JSON `code_identity.head` without changing the source audited by the run.
+diagnostics, plotted arrays, and generated figure paths. The
+`code_identity.identity` field follows the SSUP-I/II convention: it is a
+content-addressed SHA computed by hashing
+`git ls-tree -r HEAD -- src/ benchmarks/ tests/ pyproject.toml`, with a
+`-dirty-...` suffix when watched source files differ from `HEAD` or when
+untracked watched source files are present. The separate
+`code_identity.head` field records the run-time commit for auditability;
+later commits that only add or refresh generated artifacts can therefore
+differ from `code_identity.head` without changing the source identity
+audited by the run.
 
 ---
 

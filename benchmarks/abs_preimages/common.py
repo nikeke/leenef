@@ -41,11 +41,11 @@ FIG_DIR.mkdir(exist_ok=True)
 RESULT_DIR = _REPO / "results" / "abs_preimages"
 RESULT_DIR.mkdir(exist_ok=True)
 
-GENERATED_PATHS = (
-    "docs/figures/abs_preimages",
-    "docs/abs_preimage_geometry.pdf",
-    "results/abs_preimages",
-    "benchmarks/abs_preimages/prototype_initialization_result.json",
+CODE_IDENTITY_PATHS = (
+    "src",
+    "benchmarks",
+    "tests",
+    "pyproject.toml",
 )
 
 
@@ -120,34 +120,41 @@ def _run_git(args: list[str]) -> str:
 
 
 def code_identity() -> dict[str, Any]:
-    """Return HEAD plus a source-dirty hash that excludes generated outputs."""
+    """Return SSUP-compatible source identity plus audit metadata."""
     head = _run_git(["rev-parse", "HEAD"]).strip()
-    pathspec = [".", *(f":(exclude){path}" for path in GENERATED_PATHS)]
-    status = _run_git(["status", "--porcelain", "--untracked-files=all", "--", *pathspec])
-    diff = _run_git(["diff", "HEAD", "--binary", "--", *pathspec])
-    source_dirty = bool(status.strip() or diff)
+    tree_listing = _run_git(["ls-tree", "-r", "HEAD", "--", *CODE_IDENTITY_PATHS])
+    content_id = hashlib.sha256(tree_listing.encode("utf-8")).hexdigest()[:40]
+    diff = _run_git(["diff", "--no-ext-diff", "HEAD", "--", *CODE_IDENTITY_PATHS])
+    untracked_list = _run_git(
+        ["ls-files", "--others", "--exclude-standard", "--", *CODE_IDENTITY_PATHS]
+    )
+    untracked_sources = [line for line in untracked_list.splitlines() if line.strip()]
+    source_dirty = bool(diff or untracked_sources)
     dirty_hash = None
-    untracked_sources = []
     if source_dirty:
         h = hashlib.sha256()
-        h.update(status.encode())
-        h.update(diff.encode())
-        for line in status.splitlines():
-            if not line.startswith("?? "):
-                continue
-            rel_path = line[3:]
+        h.update(diff.encode("utf-8"))
+        h.update(b"\n--untracked--\n")
+        for rel_path in sorted(untracked_sources):
+            h.update(rel_path.encode("utf-8"))
+            h.update(b"\0")
             path = _REPO / rel_path
-            if path.is_file():
-                untracked_sources.append(rel_path)
-                h.update(rel_path.encode())
+            try:
                 h.update(path.read_bytes())
+            except (OSError, IsADirectoryError):
+                h.update(b"<unreadable>")
+            h.update(b"\n")
         dirty_hash = h.hexdigest()
     return {
         "head": head,
+        "content_identity": content_id,
         "source_dirty": source_dirty,
         "source_dirty_hash": dirty_hash,
-        "identity": f"{head}-dirty-{dirty_hash[:12]}" if dirty_hash else head,
-        "excluded_generated_paths": list(GENERATED_PATHS),
+        "identity": f"{content_id}-dirty-{dirty_hash[:12]}" if dirty_hash else content_id,
+        "identity_definition": (
+            "sha256(git ls-tree -r HEAD -- src/ benchmarks/ tests/ pyproject.toml)[:40]"
+        ),
+        "code_identity_paths": list(CODE_IDENTITY_PATHS),
         "untracked_sources_hashed": untracked_sources,
     }
 
