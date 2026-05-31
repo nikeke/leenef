@@ -11,7 +11,9 @@
   },
   "prototype_stats": {
     "in_cell_count": 0.0,
-    "pilot_max_onehot_dev": 0.0651700496673584,
+    "max_linear_residual": 2.682209014892578e-07,
+    "max_decode_dev": 0.06517016887664795,
+    "max_sign_flip_fraction": 0.0430000014603138,
     "prototype_min": -0.106965571641922,
     "prototype_max": 0.9920792579650879,
     "prototype_mean": 0.12911933660507202

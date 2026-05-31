@@ -20,7 +20,7 @@ The confident regions of the decoder live off the data manifold -- the random
 features make the layer behave like a classic adversarial-prone linear model in
 activity space.
 
-Run::  python explorations/abs_preimages/canonical_prototypes.py
+Run::  python benchmarks/abs_preimages/canonical_prototypes.py
 """
 
 from __future__ import annotations

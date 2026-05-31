@@ -1,16 +1,17 @@
 """Visualize abs-activation preimages in both regimes.
 
-Produces three figures in ``figures/``:
+Produces three figures in ``docs/figures/abs_preimages/``:
 
 * ``perfect_twins.png``       — underdetermined (n<d_in): distinct inputs with
                                 identical activity and decode.
-* ``overdet_preimages.png``   — realistic default (n>d_in): per-class preimage
-                                of the one-hot target via the piecewise-linear
-                                cell, anchored at the class mean.
+* ``overdet_preimages.png``   — realistic default (n>d_in): per-class
+                                linearized candidate for the one-hot target
+                                via the piecewise-linear cell, anchored at
+                                the class mean.
 * ``nullspace_continuum.png`` — the (d_in - n_classes)-dim null-space family of
-                                exact preimages for one class.
+                                local candidates for one class.
 
-Run::  python explorations/abs_preimages/visualize_preimages.py
+Run::  python benchmarks/abs_preimages/visualize_preimages.py
 """
 
 from __future__ import annotations
@@ -21,6 +22,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import torch  # noqa: E402
 from common import FIG_DIR, build_layer, decode, load_mnist_subset, show, sign_cell  # noqa: E402
+
+from leenef.preimages import nullspace_basis  # noqa: E402
 
 
 def perfect_twins(xtr, ytr, *, n_neurons=400, c=3, n_twins=5, seed=0):
@@ -72,18 +75,18 @@ def overdet_preimages(xtr, ytr, *, n_neurons=2000, seed=0):
         s = sign_cell(W, b, anchor)
         M = (D.T * s) @ W  # (10, d_in): cell-linearized decode map
         rhs = torch.eye(10)[c] - (D.T * s) @ b
-        x = anchor + torch.linalg.pinv(M) @ (rhs - M @ anchor)  # nearest in-cell exact
+        x = anchor + torch.linalg.pinv(M) @ (rhs - M @ anchor)  # nearest local solve
         in_cell = bool((sign_cell(W, b, x) == s).all())
         p, cp = decode(layer, x)
         show(axes[0, c], means[c], f"class {c} mean")
         show(
             axes[1, c],
             x,
-            f"preimage [{'exact' if in_cell else 'approx'}]\npred {cp} p={p[cp]:.2f}",
+            f"candidate [{'in cell' if in_cell else 'approx'}]\npred {cp} p={p[cp]:.2f}",
         )
     fig.suptitle(
-        f"B) Realistic default (n_neurons={n_neurons} > d_in=784): preimage of each "
-        "one-hot target, nearest in-cell solution to the class mean",
+        f"B) Realistic default (n_neurons={n_neurons} > d_in=784): local candidate "
+        "for each one-hot target, anchored at the class mean",
         fontsize=11,
     )
     fig.tight_layout()
@@ -98,8 +101,7 @@ def nullspace_continuum(layer, W, b, D, xtr, ytr, *, c=3, n_show=7):
     M = (D.T * s) @ W
     rhs = torch.eye(10)[c] - (D.T * s) @ b
     x_part = x0 + torch.linalg.pinv(M) @ (rhs - M @ x0)
-    _, _, Vh = torch.linalg.svd(M, full_matrices=True)
-    null = Vh[10:]  # (d_in - 10, d_in)
+    null = nullspace_basis(M)  # (d_in - 10, d_in)
 
     rng = torch.Generator().manual_seed(7)
     mags = torch.linspace(0.3, 2.4, n_show)

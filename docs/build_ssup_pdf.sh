@@ -10,6 +10,7 @@ set -euo pipefail
 #   bash docs/build_ssup_pdf.sh --verbose docs/SSUP-II.md docs/SSUP-II.pdf
 #   bash docs/build_ssup_pdf.sh --regen-figures docs/SSUP-I.md
 #   bash docs/build_ssup_pdf.sh --regen-figures docs/activation_spectra.md
+#   bash docs/build_ssup_pdf.sh --verbose docs/abs_preimage_geometry.md docs/abs_preimage_geometry.pdf
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DOC=""

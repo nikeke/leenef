@@ -19,7 +19,7 @@ The null-space curve quantifies how far the continuum of confident preimages
 reaches before the abs folds (sign flips at non-negligible neurons) finally tip
 the decision.
 
-Run::  python explorations/abs_preimages/nullspace_radius_sweep.py
+Run::  python benchmarks/abs_preimages/nullspace_radius_sweep.py
 """
 
 from __future__ import annotations
@@ -30,6 +30,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import torch  # noqa: E402
 from common import FIG_DIR, build_layer, load_mnist_subset, sign_cell  # noqa: E402
+
+from leenef.preimages import nullspace_basis  # noqa: E402
 
 
 def directions(basis_or_dim, n_dirs, gen):
@@ -69,8 +71,7 @@ def main():
     rhs = torch.eye(10)[c] - (D.T * s) @ b
     x_part = x0 + torch.linalg.pinv(M) @ (rhs - M @ x0)
 
-    _, _, Vh = torch.linalg.svd(M, full_matrices=True)
-    null = Vh[10:]  # (d_in - 10, d_in)
+    null = nullspace_basis(M)  # (d_in - 10, d_in)
 
     gen = torch.Generator().manual_seed(0)
     n_dirs = 40

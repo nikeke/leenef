@@ -11,7 +11,7 @@ re-encodes to ``a*`` depends on whether ``s ⊙ a* - b`` lies in ``col(W)``, a
 * ``n_neurons >  d_in``  -> activities live on a thin d_in-dim manifold; only
                            signs near real data are realizable.
 
-Run::  python explorations/abs_preimages/sign_freedom_experiment.py
+Run::  python benchmarks/abs_preimages/sign_freedom_experiment.py
 """
 
 from __future__ import annotations
@@ -24,6 +24,7 @@ def run_regime(n_neurons, xtr, ytr, xte, yte, *, c=3, n_flip_trials=200, seed=0)
     layer, W, b = build_layer(n_neurons, xtr, ytr, seed=seed)
     d_in = xtr.shape[1]
     acc = (layer(xte).argmax(1) == yte).float().mean().item()
+    rank = int(torch.linalg.matrix_rank(W).item())
 
     D = layer.decoders
     a_star = layer.encode(xtr[ytr == c]).mean(0)  # class-mean activity target
@@ -54,6 +55,7 @@ def run_regime(n_neurons, xtr, ytr, xte, yte, *, c=3, n_flip_trials=200, seed=0)
 
     print(f"\n=== n_neurons={n_neurons}  (d_in={d_in}) ===")
     print(f"  baseline test acc                   : {acc:.4f}")
+    print(f"  rank(W)                             : {rank}/{min(n_neurons, d_in)}")
     print(f"  natural-sign recon err (real sample): {err_nat:.2e}")
     print(
         f"  random-flip recon err (class mean)  : median={errs.median():.2e}  max={errs.max():.2e}"

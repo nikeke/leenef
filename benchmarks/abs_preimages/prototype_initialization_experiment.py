@@ -1,8 +1,8 @@
-"""Single-run check: use one-hot preimages as centers for a second NEF layer.
+"""Single-run check: use linearized one-hot candidates as NEF centers.
 
 The earlier preimage analysis produced one class prototype per digit by
-anchoring the exact one-hot inverse at each class mean.  This script asks whether
-those generated prototypes are useful as `centers=` for a new layer.
+anchoring the local one-hot solve at each class mean.  This script asks whether
+those generated candidates are useful as `centers=` for a new layer.
 
 To isolate the center effect, all compared layers share the same encoders and
 gains; only the per-neuron center locations used to compute the data-driven
@@ -10,7 +10,8 @@ biases differ:
 
 * `train_sample`: ordinary default-style centers sampled from training data.
 * `class_mean`: balanced repeats of the ten class means.
-* `onehot_preimage`: balanced repeats of the ten generated one-hot preimages.
+* `onehot_preimage`: balanced repeats of the ten generated linearized one-hot
+  candidates.
 
 This is deliberately a single exploratory run, not a sweep.  CPU usage is kept
 below 25% on the 12-core workstation by pinning PyTorch and BLAS libraries to
@@ -21,7 +22,7 @@ Run:
     source ../leenef/venv/bin/activate
     LEENEF_DATA_ROOT=../leenef/data \
     OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 \
-      python explorations/abs_preimages/prototype_initialization_experiment.py
+      python benchmarks/abs_preimages/prototype_initialization_experiment.py
 """
 
 from __future__ import annotations
@@ -40,9 +41,10 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import torch  # noqa: E402
-from common import FIG_DIR, build_layer, load_mnist_subset, sign_cell  # noqa: E402
+from common import FIG_DIR, build_layer, load_mnist_subset  # noqa: E402
 
 from leenef.layers import NEFLayer  # noqa: E402
+from leenef.preimages import onehot_preimages_from_anchors  # noqa: E402
 
 torch.set_num_threads(2)
 torch.set_num_interop_threads(1)
@@ -59,33 +61,6 @@ def onehot_targets(y: torch.Tensor, n_classes: int = 10) -> torch.Tensor:
 
 def class_means(xtr: torch.Tensor, ytr: torch.Tensor) -> torch.Tensor:
     return torch.stack([xtr[ytr == c].mean(0) for c in range(10)])
-
-
-def onehot_preimages(
-    pilot: NEFLayer, W: torch.Tensor, b: torch.Tensor, means: torch.Tensor
-) -> tuple[torch.Tensor, dict[str, float]]:
-    """Generate class-mean-anchored one-hot preimages from a fitted pilot layer."""
-    D = pilot.decoders
-    xs, in_cell, max_dev = [], 0, 0.0
-    for c in range(10):
-        anchor = means[c]
-        s = sign_cell(W, b, anchor)
-        M = (D.T * s) @ W
-        rhs = torch.eye(10)[c] - (D.T * s) @ b
-        x = anchor + torch.linalg.pinv(M) @ (rhs - M @ anchor)
-        xs.append(x)
-        in_cell += int(bool((sign_cell(W, b, x) == s).all()))
-        dev = ((pilot.encode(x.reshape(1, -1)).squeeze(0) @ D) - torch.eye(10)[c]).abs()
-        max_dev = max(max_dev, dev.max().item())
-    prototypes = torch.stack(xs)
-    stats = {
-        "in_cell_count": float(in_cell),
-        "pilot_max_onehot_dev": max_dev,
-        "prototype_min": prototypes.min().item(),
-        "prototype_max": prototypes.max().item(),
-        "prototype_mean": prototypes.mean().item(),
-    }
-    return prototypes, stats
 
 
 def balanced_repeat(centers: torch.Tensor, n_neurons: int, *, seed: int) -> torch.Tensor:
@@ -192,7 +167,14 @@ def main() -> None:
     means = class_means(xtr, ytr)
 
     pilot, W, b = build_layer(n_neurons, xtr, ytr, seed=0)
-    prototypes, prototype_stats = onehot_preimages(pilot, W, b, means)
+    prototypes, prototype_stats = onehot_preimages_from_anchors(W, b, pilot.decoders, means)
+    prototype_stats.update(
+        {
+            "prototype_min": prototypes.min().item(),
+            "prototype_max": prototypes.max().item(),
+            "prototype_mean": prototypes.mean().item(),
+        }
+    )
 
     center_seed = 123
     train_gen = torch.Generator().manual_seed(center_seed)

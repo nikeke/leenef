@@ -27,8 +27,9 @@ sys.path.insert(0, str(_REPO / "src"))
 from datasets import load_mnist  # noqa: E402
 
 from leenef.layers import NEFLayer  # noqa: E402
+from leenef.preimages import affine_encoder  # noqa: E402
 
-FIG_DIR = _HERE / "figures"
+FIG_DIR = _REPO / "docs" / "figures" / "abs_preimages"
 FIG_DIR.mkdir(exist_ok=True)
 
 
@@ -78,15 +79,8 @@ def build_layer(
     onehot = torch.zeros(len(ytr), 10)
     onehot[torch.arange(len(ytr)), ytr] = 1.0
     layer.fit(xtr, onehot)
-    W = layer.gain[:, None] * layer.encoders  # (n_neurons, d_in)
-    return layer, W, layer.bias
-
-
-def sign_cell(W: Tensor, b: Tensor, x: Tensor) -> Tensor:
-    """Sign pattern s = sign(W x + b) with zeros mapped to +1."""
-    s = torch.sign(W @ x + b)
-    s[s == 0] = 1.0
-    return s
+    W, b = affine_encoder(layer)
+    return layer, W, b
 
 
 def decode(layer: NEFLayer, x: Tensor) -> tuple[Tensor, int]:
