@@ -46,6 +46,12 @@ Then read the SSUP paper that matches the task family:
 - [`docs/SSUP-II.md`](docs/SSUP-II.md) — continual-learning additivity, CL limits.
 - [`docs/SSUP-III.md`](docs/SSUP-III.md) — RL target-construction evidence,
   RL limits, NEF-AVR / NEF-SF caveats.
+- [`docs/activation_spectra.md`](docs/activation_spectra.md) — adjunct theory
+  paper for activation choices, Hermite spectra, kink/full-spectrum behavior,
+  and digital/RFF-like nonlinearities.
+- [`docs/abs_preimage_geometry.md`](docs/abs_preimage_geometry.md) — adjunct
+  theory paper for the local sign-cell/preimage geometry of the default `abs`
+  activation.
 
 Reach for these when the task touches the corresponding area:
 
@@ -56,11 +62,15 @@ Reach for these when the task touches the corresponding area:
   research notes.
 - `src/leenef/` — exact public APIs and defaults
   (`layers.py`, `ensemble.py`, `networks.py`, `recurrent.py`, `streaming.py`,
-  `conv.py`, `rl.py`, `rl_sf.py`, `rl_diag.py`, `encoders.py`, `activations.py`,
-  `solvers.py`).  Quote the actual signature when recommending a constructor.
-- `benchmarks/` — reference drivers (`sl_clean/`, `cl_clean/`, `run_rl_paper_dense.py`,
-  `run_rl_sparse.py`, etc.) and their `*.sh` orchestrators.  Mirror these
-  patterns for new experiments.
+  `conv.py`, `rl.py`, `rl_sf.py`, `rl_diag.py`, `encoders.py`,
+  `activations.py`, `preimages.py`, `solvers.py`).  Quote the actual signature
+  when recommending a constructor or diagnostic helper.
+- `benchmarks/` — reference drivers (`sl_clean/`, `cl_clean/`,
+  `abs_preimages/`, `run_rl_paper_dense.py`, `run_rl_sparse.py`, etc.) and
+  their `*.sh` orchestrators.  Mirror these patterns for new experiments.
+  For activation-spectrum questions, start with
+  `benchmarks/sl_clean/_c2_activation_exp.py` and the corresponding
+  `run_c2_alt_activations.sh` / `wait_for_c2_alt_activations.sh` scripts.
 - `results/**/*.json`, `results/**/*.log`, `results/**/*.sh` — result artifacts,
   adopted configs, run logs, and supervisors for deeper analyses.  Use the
   `base_config*.json` files as starting points, then consult full result dumps
@@ -77,6 +87,8 @@ Reach for these when the task touches the corresponding area:
      `NEFLayer` statistics;
    - dense discrete-action RL -> `NEFAVRAgent`;
    - sparse-reward RL research -> `NEFSFAgent`.
+   - `abs` geometry/preimage diagnostics -> `src/leenef/preimages.py` helpers
+     plus `benchmarks/abs_preimages/`.
 2. Ask whether target semantics are stable.  If output columns change meaning,
    do not promise the Paper-II no-forgetting identity.
 3. Ask whether fixed features are likely sufficient.  If visual/spatial
