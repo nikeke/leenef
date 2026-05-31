@@ -1353,196 +1353,6 @@ stationary target setting.
 
 ---
 
-## Appendix A — Reproducibility
-
-Every numeric claim in this paper is regeneratable from the
-accompanying repository,
-[`https://github.com/nikeke/leenef`](https://github.com/nikeke/leenef).
-Artifact paths in this appendix are relative to that repository.
-
-**Per-cell JSON rows under `results/cl_clean/`** carry, in
-addition to the standard `metrics.test_accuracy` and
-`metrics.fit_time_s`:
-
-- `code_identity` — a content-addressed SHA computed by
-  `git ls-tree -r HEAD -- src/ benchmarks/ tests/ pyproject.toml`
-  and SHA-256-hashed.  Pure-docs commits do not bump this hash;
-  any source change does.  Aggregated tables in §5 use rows whose
-  `code_identity` matches the expected identity for that panel, not
-  necessarily the current repository `HEAD` after later source
-  changes.  ConvNEF and streaming Colab-imported rows (§5.6–§5.7)
-  carry their own scaffold-side identities; those identities are
-  recorded in the JSONs and checked per-row before inclusion in an
-  aggregate.
-- `dataset_metadata.raw_hashes` — SHA-256 of the on-disk source
-  bytes of MNIST / CIFAR-10 / CIFAR-100;
-- `dataset_metadata.processed_hashes` — SHA-256 of the float32
-  task-stream tensors (per-task split, per-task pixel permutation
-  for Permuted-MNIST), so identical seed + scenario reproduces
-  bit-identical task streams across runs and machines.
-- `seed` — the master seed passed to `_make_subrngs(seed)`,
-  which derives independent `torch.Generator()` instances for
-  each random stream (encoder construction, gain sampling,
-  center selection, EWC Fisher estimation noise, ER reservoir
-  indices, evaluation permutation).  No code path consumes the
-  global default RNG.
-- `metrics.per_task_accuracy` — per-task test accuracy at the
-  end of training, 1-D array of length $T$.
-
-**Phase / panel layout.**  Each result in §5 corresponds to a
-single JSON file:
-
-- §5.1 / §5.2: `results/cl_clean/nef_continual_{split_mnist,
-  split_cifar10, split_cifar100, permuted_mnist}_panel.json`,
-  10 seeds × 7 cells each.
-- §5.3: `results/cl_clean/b4_centers_{split_mnist,
-  split_cifar10}.json`, 5 seeds × 4 cells each.
-- §5.4: `results/cl_clean/b5_solvers_{split_mnist,
-  permuted_mnist, split_cifar10}.json`, 5 seeds × 21 cells each
-  (3 solver modes × 7 $\alpha$ values).
-- §5.5: `results/cl_clean/b3_capacity_permuted_mnist_t{5, 10,
-  20, 50, 100}.json`, 5 seeds × 5 cells each (one cell per
-  $n$ value).
-- §5.6: `results/cl_clean/gpu_c1_convnef_split_cifar10_panel.json`
-  (10 seeds × 6 cells) and
-  `results/cl_clean/gpu_c2_flat_nef_split_cifar10_panel.json`
-  (10 seeds × 1 cell).
-- §5.7: fixed-$\alpha$ diagnostic rows in
-  `results/cl_clean/gpu_h8_streaming_permuted_smnist_panel.json`,
-  5 seeds × 12 cells;
-  `results/cl_clean/gpu_h8_streaming_diagnostics.json`, 2 seeds ×
-  33 cells; `results/cl_clean/gpu_h8_streaming_trace_repair_diagnostics.json`,
-  2 seeds × 80 cells; and
-  `results/cl_clean/gpu_h8_streaming_trace_a1em06_float32_panel.json`,
-  5 seeds × 12 cells for the trace-scaled headline.
-
-**Driver and runner.**  Each panel was launched via
-`benchmarks/cl_clean/cl_phase_runner.py`.  The runner is
-idempotent: re-launching a phase against an existing JSON
-re-runs only cells whose `code_identity` does not match the current
-checkout's code identity or whose stored config does not match the
-requested config.
-Results are written cell-by-cell so an interrupted phase
-preserves completed rows.  Long phases are detached with
-`setsid ... < /dev/null & disown` and watched via a sentinel
-file (`results/cl_clean/<phase>_done`); phase logs go to
-`results/cl_clean/logs/<phase>.log`.
-
-**Limits of reproduction.**  The repository preserves all result rows
-and panel metadata, but it is not a one-command benchmark archive.  Raw
-datasets are stored outside Git and are checked by hash after loading;
-CI validates code invariants, not every paper number; dirty worktree
-identities are auditable only to the extent that their result artifacts
-record enough configuration to reconstruct the run; and wall-clock
-comparisons are made within hardware-homogeneous panels, not across CPU,
-L4, and G4 runs.
-
-**Reproducing a single row.**  From a clean checkout of the
-repository at the matching `code_identity`:
-
-```
-python -m benchmarks.cl_clean.cl_phase_runner \
-    --experiment nef_continual_split_cifar100 \
-    --phase nef_continual_split_cifar100_panel \
-    --knob cell --values nef_accumulate \
-    --seeds 0 \
-    --base-config results/cl_clean/base_config_nef_continual_split_cifar100.json \
-    --out /tmp/repro.json --log /tmp/repro.log
-```
-
-Cell IDs, seed ranges, and base-config paths are
-self-describing in the panel JSONs.  The Phase-C ConvNEF panel
-uses an L4-class GPU and is launched through
-`colab/cl_clean/continual_cifar10_gpu_suite.ipynb`; its
-generated configs are saved alongside its results JSON for
-post-hoc audit.  The streaming continual panel uses the same
-Colab pattern through
-`colab/cl_clean/streaming_permuted_smnist_gpu_suite.ipynb` on a
-Google Colab G4 GPU (NVIDIA RTX PRO 6000 Blackwell Server
-Edition, 95.0 GiB); its rows carry a later H8 code identity and
-are audited as a homogeneous imported bundle rather than mixed
-with the CPU B-series rows.  The H8 diagnostic panel uses the
-same hardware and notebook pattern through
-`colab/cl_clean/streaming_permuted_smnist_diagnostics.ipynb`.
-
----
-
-## Appendix B — Negative results catalog
-
-We collect here the design directions that did not work, with
-the mechanism for each, so future readers don't repeat them.
-
-**Center adaptation across tasks.**  Replacing the `first_task`
-center bank with policies that re-fit centers on later tasks
-(`all_tasks`, `growing`, `replace_per_task`) does not improve
-final accuracy.  `all_tasks` is an oracle and matches
-`first_task` within SE.  `growing` collapses to the
-catastrophic-forgetting baseline because adding new neurons
-mid-stream changes the encoder map $\phi$, and the
-joint-equivalence identity §3.1 only holds for fixed $\phi$.
-Practical recommendation: pick the center bank once, at
-$t = 1$, from the first task's training data, and never touch
-it again.
-
-**Drift-as-regularization on the Woodbury inverse.**  An earlier
-single-seed exploration suggested that `woodbury_online` was
-"more accurate" than `accumulate` because of small drift in the
-cached $M_t$ acting as a regularizer.  This was a float32
-artifact: under float64 accumulators, the drift is below $2.3 \times 10^{-5}$ in
-coefficient norm and 0.002 pp in test accuracy, and the two
-solvers produce statistically indistinguishable results at the
-tuned $\alpha$.  Whatever benefit the drift was conveying in
-float32 was not separable from its harm.  The streaming panel in §5.7
-reinforces the same conclusion in a harder feature space: with the
-regularizer set on the streaming feature map's trace scale, exact
-accumulation, joint fitting, and online Woodbury again agree.  Solver
-family is not the source of the accuracy ceiling.
-
-**Trace-$\alpha$ as a universal regularizer.**  The intuition that
-$\alpha$ should scale with $\mathrm{tr}(A^\top A) / n$ across
-datasets so the regularizer becomes a single hyperparameter is
-appealing but breaks at the second decimal place: per-dataset
-tuning still wins by 0.2–0.4 pp.  SSUP-I §4 already discusses
-this; we did not re-test it on the continual side because the
-static optimum carries through under the additivity identity.
-
-**EWC at class-incremental settings.**  The "diagonal Fisher
-penalty resists drift" intuition is irrelevant when the output
-softmax is being asked to recognize fresh classes per task: the
-penalty is in parameter space, but the failure mode is
-output-space.  EWC delivered random-class accuracy on Split-MNIST
-(20.0 ± 0.3 %), Split-CIFAR-10 (16.1 ± 0.5 %), and Split-CIFAR-100
-(4.1 ± 0.2 %).  We did spot-check $\lambda \in \{0.1, 1, 10\} \cdot
-\lambda_{\mathrm{lit}}$; the verdict does not change; EWC
-cannot defend a model whose output space is structurally being
-asked to do something new on every task.  This is not new — the
-CL literature has flagged it repeatedly under the
-"task-incremental vs class-incremental" distinction (van de Ven
-& Tolias, 2019) — but it is worth restating because cross-
-table comparisons sometimes report only one of the two regimes.
-
-**Experience Replay at moderate buffer sizes on harder splits.**
-ER with a 500-sample buffer (which is comparable to MIR/GSS
-evaluations) rescues Split-MNIST to 86.5 % but
-fails on Split-CIFAR-10 and Split-CIFAR-100 (12.5 %, 2.0 %).
-Larger buffers do recover more, but the wall-clock cost grows with
-buffer size, and at some point ER is just
-joint training over a growing reservoir, which is not a meaningful
-continual learner.  We did not chase the curve; we report ER at
-the point where MIR/GSS-style evaluations typically run.
-
-**The MNIST capacity law is not the CIFAR capacity law.**
-Permuted-CIFAR-10 capacity sits well below Permuted-MNIST
-capacity at the same $(n, T)$ — pre-restart attic exploration
-put the analogous diagonal at ~40 % rather than ~80 % at
-$n = 10\,000, T = 20$.  We do not extrapolate the
-$n / T \approx 100$ rule beyond MNIST without a proper
-multi-seed sweep.  This is the right behavior; the wrong behavior
-would be reporting a "universal capacity law" on the strength of
-one dataset.
-
----
-
 ## Literature
 
 Aljundi, R., Babiloni, F., Elhoseiny, M., Rohrbach, M., &
@@ -1746,3 +1556,193 @@ learning on a pre-trained model. *ICCV*.
 Zhuang, H., Chen, Y., Fang, D., He, R., Tong, K., Wei, H.,
 Zeng, Z., & Chen, C. (2024). GACL: Exemplar-free generalized
 analytic continual learning. *NeurIPS*.
+
+---
+
+## Appendix A — Reproducibility
+
+Every numeric claim in this paper is regeneratable from the
+accompanying repository,
+[`https://github.com/nikeke/leenef`](https://github.com/nikeke/leenef).
+Artifact paths in this appendix are relative to that repository.
+
+**Per-cell JSON rows under `results/cl_clean/`** carry, in
+addition to the standard `metrics.test_accuracy` and
+`metrics.fit_time_s`:
+
+- `code_identity` — a content-addressed SHA computed by
+  `git ls-tree -r HEAD -- src/ benchmarks/ tests/ pyproject.toml`
+  and SHA-256-hashed.  Pure-docs commits do not bump this hash;
+  any source change does.  Aggregated tables in §5 use rows whose
+  `code_identity` matches the expected identity for that panel, not
+  necessarily the current repository `HEAD` after later source
+  changes.  ConvNEF and streaming Colab-imported rows (§5.6–§5.7)
+  carry their own scaffold-side identities; those identities are
+  recorded in the JSONs and checked per-row before inclusion in an
+  aggregate.
+- `dataset_metadata.raw_hashes` — SHA-256 of the on-disk source
+  bytes of MNIST / CIFAR-10 / CIFAR-100;
+- `dataset_metadata.processed_hashes` — SHA-256 of the float32
+  task-stream tensors (per-task split, per-task pixel permutation
+  for Permuted-MNIST), so identical seed + scenario reproduces
+  bit-identical task streams across runs and machines.
+- `seed` — the master seed passed to `_make_subrngs(seed)`,
+  which derives independent `torch.Generator()` instances for
+  each random stream (encoder construction, gain sampling,
+  center selection, EWC Fisher estimation noise, ER reservoir
+  indices, evaluation permutation).  No code path consumes the
+  global default RNG.
+- `metrics.per_task_accuracy` — per-task test accuracy at the
+  end of training, 1-D array of length $T$.
+
+**Phase / panel layout.**  Each result in §5 corresponds to a
+single JSON file:
+
+- §5.1 / §5.2: `results/cl_clean/nef_continual_{split_mnist,
+  split_cifar10, split_cifar100, permuted_mnist}_panel.json`,
+  10 seeds × 7 cells each.
+- §5.3: `results/cl_clean/b4_centers_{split_mnist,
+  split_cifar10}.json`, 5 seeds × 4 cells each.
+- §5.4: `results/cl_clean/b5_solvers_{split_mnist,
+  permuted_mnist, split_cifar10}.json`, 5 seeds × 21 cells each
+  (3 solver modes × 7 $\alpha$ values).
+- §5.5: `results/cl_clean/b3_capacity_permuted_mnist_t{5, 10,
+  20, 50, 100}.json`, 5 seeds × 5 cells each (one cell per
+  $n$ value).
+- §5.6: `results/cl_clean/gpu_c1_convnef_split_cifar10_panel.json`
+  (10 seeds × 6 cells) and
+  `results/cl_clean/gpu_c2_flat_nef_split_cifar10_panel.json`
+  (10 seeds × 1 cell).
+- §5.7: fixed-$\alpha$ diagnostic rows in
+  `results/cl_clean/gpu_h8_streaming_permuted_smnist_panel.json`,
+  5 seeds × 12 cells;
+  `results/cl_clean/gpu_h8_streaming_diagnostics.json`, 2 seeds ×
+  33 cells; `results/cl_clean/gpu_h8_streaming_trace_repair_diagnostics.json`,
+  2 seeds × 80 cells; and
+  `results/cl_clean/gpu_h8_streaming_trace_a1em06_float32_panel.json`,
+  5 seeds × 12 cells for the trace-scaled headline.
+
+**Driver and runner.**  Each panel was launched via
+`benchmarks/cl_clean/cl_phase_runner.py`.  The runner is
+idempotent: re-launching a phase against an existing JSON
+re-runs only cells whose `code_identity` does not match the current
+checkout's code identity or whose stored config does not match the
+requested config.
+Results are written cell-by-cell so an interrupted phase
+preserves completed rows.  Long phases are detached with
+`setsid ... < /dev/null & disown` and watched via a sentinel
+file (`results/cl_clean/<phase>_done`); phase logs go to
+`results/cl_clean/logs/<phase>.log`.
+
+**Limits of reproduction.**  The repository preserves all result rows
+and panel metadata, but it is not a one-command benchmark archive.  Raw
+datasets are stored outside Git and are checked by hash after loading;
+CI validates code invariants, not every paper number; dirty worktree
+identities are auditable only to the extent that their result artifacts
+record enough configuration to reconstruct the run; and wall-clock
+comparisons are made within hardware-homogeneous panels, not across CPU,
+L4, and G4 runs.
+
+**Reproducing a single row.**  From a clean checkout of the
+repository at the matching `code_identity`:
+
+```
+python -m benchmarks.cl_clean.cl_phase_runner \
+    --experiment nef_continual_split_cifar100 \
+    --phase nef_continual_split_cifar100_panel \
+    --knob cell --values nef_accumulate \
+    --seeds 0 \
+    --base-config results/cl_clean/base_config_nef_continual_split_cifar100.json \
+    --out /tmp/repro.json --log /tmp/repro.log
+```
+
+Cell IDs, seed ranges, and base-config paths are
+self-describing in the panel JSONs.  The Phase-C ConvNEF panel
+uses an L4-class GPU and is launched through
+`colab/cl_clean/continual_cifar10_gpu_suite.ipynb`; its
+generated configs are saved alongside its results JSON for
+post-hoc audit.  The streaming continual panel uses the same
+Colab pattern through
+`colab/cl_clean/streaming_permuted_smnist_gpu_suite.ipynb` on a
+Google Colab G4 GPU (NVIDIA RTX PRO 6000 Blackwell Server
+Edition, 95.0 GiB); its rows carry a later H8 code identity and
+are audited as a homogeneous imported bundle rather than mixed
+with the CPU B-series rows.  The H8 diagnostic panel uses the
+same hardware and notebook pattern through
+`colab/cl_clean/streaming_permuted_smnist_diagnostics.ipynb`.
+
+---
+
+## Appendix B — Negative results catalog
+
+We collect here the design directions that did not work, with
+the mechanism for each, so future readers don't repeat them.
+
+**Center adaptation across tasks.**  Replacing the `first_task`
+center bank with policies that re-fit centers on later tasks
+(`all_tasks`, `growing`, `replace_per_task`) does not improve
+final accuracy.  `all_tasks` is an oracle and matches
+`first_task` within SE.  `growing` collapses to the
+catastrophic-forgetting baseline because adding new neurons
+mid-stream changes the encoder map $\phi$, and the
+joint-equivalence identity §3.1 only holds for fixed $\phi$.
+Practical recommendation: pick the center bank once, at
+$t = 1$, from the first task's training data, and never touch
+it again.
+
+**Drift-as-regularization on the Woodbury inverse.**  An earlier
+single-seed exploration suggested that `woodbury_online` was
+"more accurate" than `accumulate` because of small drift in the
+cached $M_t$ acting as a regularizer.  This was a float32
+artifact: under float64 accumulators, the drift is below $2.3 \times 10^{-5}$ in
+coefficient norm and 0.002 pp in test accuracy, and the two
+solvers produce statistically indistinguishable results at the
+tuned $\alpha$.  Whatever benefit the drift was conveying in
+float32 was not separable from its harm.  The streaming panel in §5.7
+reinforces the same conclusion in a harder feature space: with the
+regularizer set on the streaming feature map's trace scale, exact
+accumulation, joint fitting, and online Woodbury again agree.  Solver
+family is not the source of the accuracy ceiling.
+
+**Trace-$\alpha$ as a universal regularizer.**  The intuition that
+$\alpha$ should scale with $\mathrm{tr}(A^\top A) / n$ across
+datasets so the regularizer becomes a single hyperparameter is
+appealing but breaks at the second decimal place: per-dataset
+tuning still wins by 0.2–0.4 pp.  SSUP-I §4 already discusses
+this; we did not re-test it on the continual side because the
+static optimum carries through under the additivity identity.
+
+**EWC at class-incremental settings.**  The "diagonal Fisher
+penalty resists drift" intuition is irrelevant when the output
+softmax is being asked to recognize fresh classes per task: the
+penalty is in parameter space, but the failure mode is
+output-space.  EWC delivered random-class accuracy on Split-MNIST
+(20.0 ± 0.3 %), Split-CIFAR-10 (16.1 ± 0.5 %), and Split-CIFAR-100
+(4.1 ± 0.2 %).  We did spot-check $\lambda \in \{0.1, 1, 10\} \cdot
+\lambda_{\mathrm{lit}}$; the verdict does not change; EWC
+cannot defend a model whose output space is structurally being
+asked to do something new on every task.  This is not new — the
+CL literature has flagged it repeatedly under the
+"task-incremental vs class-incremental" distinction (van de Ven
+& Tolias, 2019) — but it is worth restating because cross-
+table comparisons sometimes report only one of the two regimes.
+
+**Experience Replay at moderate buffer sizes on harder splits.**
+ER with a 500-sample buffer (which is comparable to MIR/GSS
+evaluations) rescues Split-MNIST to 86.5 % but
+fails on Split-CIFAR-10 and Split-CIFAR-100 (12.5 %, 2.0 %).
+Larger buffers do recover more, but the wall-clock cost grows with
+buffer size, and at some point ER is just
+joint training over a growing reservoir, which is not a meaningful
+continual learner.  We did not chase the curve; we report ER at
+the point where MIR/GSS-style evaluations typically run.
+
+**The MNIST capacity law is not the CIFAR capacity law.**
+Permuted-CIFAR-10 capacity sits well below Permuted-MNIST
+capacity at the same $(n, T)$ — pre-restart attic exploration
+put the analogous diagonal at ~40 % rather than ~80 % at
+$n = 10\,000, T = 20$.  We do not extrapolate the
+$n / T \approx 100$ rule beyond MNIST without a proper
+multi-seed sweep.  This is the right behavior; the wrong behavior
+would be reporting a "universal capacity law" on the strength of
+one dataset.

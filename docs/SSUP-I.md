@@ -1111,6 +1111,51 @@ composition is straightforward.  We have not built it.
 
 ---
 
+## Literature
+
+- Barreto, A., Dabney, W., Munos, R., Hunt, J. J., Schaul, T., van Hasselt, H., & Silver, D. (2017). *Successor Features for Transfer in Reinforcement Learning*. Advances in Neural Information Processing Systems 30.
+- Bosnić, N. (2026b). *Sufficient Statistics as a Universal Primitive?
+  (Part II): Continual Learning*. PDF:
+  <https://github.com/nikeke/leenef/blob/main/docs/SSUP-II.pdf>.
+- Bosnić, N. (2026c). *Sufficient Statistics as a Universal Primitive?
+  (Part III): Reinforcement Learning*. PDF:
+  <https://github.com/nikeke/leenef/blob/main/docs/SSUP-III.pdf>.
+- Bosnić, N. (2026d). *Activation Spectra for Analytic Fixed-Feature
+  Learning*. PDF:
+  <https://github.com/nikeke/leenef/blob/main/docs/activation_spectra.pdf>.
+- Chen, C. L. P., & Liu, Z. (2018). *Broad Learning System: An Effective and Efficient Incremental Learning System Without the Need for Deep Architecture*. IEEE Transactions on Neural Networks and Learning Systems, 29(1), 10-24.
+- Coates, A., Lee, H., & Ng, A. Y. (2011). *An Analysis of Single-Layer Networks in Unsupervised Feature Learning*. Proceedings of the Fourteenth International Conference on Artificial Intelligence and Statistics.
+- Eliasmith, C., & Anderson, C. H. (2003). *Neural Engineering: Computation, Representation, and Dynamics in Neurobiological Systems*. MIT Press.
+- Ernst, D., Geurts, P., & Wehenkel, L. (2005). *Tree-Based Batch Mode Reinforcement Learning*. Journal of Machine Learning Research, 6, 503-556.
+- Gu, A., Dao, D., Ermon, S., Rudra, A., & Ré, C. (2020). *HiPPO: Recurrent Memory with Optimal Polynomial Projections*. Advances in Neural Information Processing Systems 33.
+- Gu, A., & Dao, T. (2023). *Mamba: Linear-Time Sequence Modeling with Selective State Spaces*. arXiv preprint arXiv:2312.00752.
+- Gu, A., Goel, K., Dao, T., Rudra, A., & Ré, C. (2022). *Efficiently Modeling Long Sequences with Structured State Spaces*. International Conference on Learning Representations.
+- Huang, G.-B., Zhu, Q.-Y., & Siew, C.-K. (2006). *Extreme Learning Machine: Theory and Applications*. Neurocomputing, 70(1-3), 489-501.
+- Hochreiter, S., & Schmidhuber, J. (1997). *Long Short-Term Memory*. Neural Computation, 9(8), 1735-1780.
+- Hoerl, A. E., & Kennard, R. W. (1970). *Ridge Regression: Biased Estimation for Nonorthogonal Problems*. Technometrics, 12(1), 55-67.
+- Igelnik, B., & Pao, Y. H. (1995). *Stochastic Choice of Basis Functions in Adaptive Function Approximation and the Functional-Link Net*. IEEE Transactions on Neural Networks, 6(6), 1320-1329.
+- Jaeger, H. (2001). *The “Echo State” Approach to Analysing and Training Recurrent Neural Networks—With an Erratum Note*. GMD Report 148, German National Research Center for Information Technology.
+- Johnson, W. B., & Lindenstrauss, J. (1984). *Extensions of Lipschitz mappings into a Hilbert space*. Contemporary Mathematics, 26, 189-206.
+- Kingma, D. P., & Ba, J. (2015). *Adam: A Method for Stochastic Optimization*. International Conference on Learning Representations.
+- Krizhevsky, A. (2009). *Learning Multiple Layers of Features from Tiny Images*. Technical Report, University of Toronto.
+- Le, Q. V., Jaitly, N., & Hinton, G. E. (2015). *A Simple Way to Initialize Recurrent Networks of Rectified Linear Units*. arXiv preprint arXiv:1504.00941.
+- LeCun, Y., Cortes, C., & Burges, C. J. C. (1998). *The MNIST database of handwritten digits*.
+- Lee, D.-H., Zhang, S., Fischer, A., & Bengio, Y. (2015). *Difference Target Propagation*. Machine Learning, 104(2-3), 255-272.
+- Liang, N.-Y., Huang, G.-B., Saratchandran, P., & Sundararajan, N. (2006). *A Fast and Accurate Online Sequential Learning Algorithm for Feedforward Networks*. IEEE Transactions on Neural Networks, 17(6), 1411-1423.
+- Lukoševičius, M., & Jaeger, H. (2009). *Reservoir Computing Approaches to Recurrent Neural Network Training*. Computer Science Review, 3(3), 127-149.
+- Maass, W., Natschläger, T., & Markram, H. (2002). *Real-Time Computing Without Stable States: A New Framework for Neural Computation Based on Perturbations*. Neural Computation, 14(11), 2531-2560.
+- Orvieto, S., Jing, L., Dowling, M., Atanasov, L., Kretov, M., Cevher, V., & LeCun, Y. (2023). *Resurrecting Recurrent Neural Networks for Long Sequences*. arXiv preprint arXiv:2305.07078.
+- Pao, Y. H., Takefuji, Y., & Lee, P. (1992). *Functional-Link Net Computing: Theory, System Architecture, and Functionalities*. Computer, 25(5), 76-79.
+- Rahimi, A., & Recht, B. (2007). *Random Features for Large-Scale Kernel Machines*. Advances in Neural Information Processing Systems 20.
+- Saxe, A. M., Koh, P. W., Chen, Z., Bhand, M., Suresh, B., & Ng, A. Y. (2011). *Random Weights and Unsupervised Feature Learning*. Proceedings of the 28th International Conference on Machine Learning.
+- Söderström, T., & Stoica, P. (1988). *System Identification*. Prentice Hall.
+- Voelker, A. R., Kajić, I., & Eliasmith, C. (2019). *Legendre Memory Units: Continuous-Time Representation in Recurrent Neural Networks*. Advances in Neural Information Processing Systems 32.
+- Werbos, P. J. (1990). *Backpropagation through time: what it does and how to do it*. Proceedings of the IEEE, 78(10), 1550-1560.
+- Warden, P. (2018). *Speech Commands: A Dataset for Limited-Vocabulary Speech Recognition*. arXiv preprint arXiv:1804.03209.
+- Xiao, H., Rasul, K., & Vollgraf, R. (2017). *Fashion-MNIST: a Novel Image Dataset for Benchmarking Machine Learning Algorithms*. arXiv preprint arXiv:1708.07747.
+
+---
+
 ## Appendix A — Reproducibility
 
 Every numeric claim in the paper is regeneratable from the
@@ -1251,48 +1296,3 @@ order; an audio task whose discriminative information lives in
 phoneme order needs either a learned positional feature or a
 recurrent solver.  That limitation frames the temporal
 representation question carried into SSUP-III.
-
----
-
-## Literature
-
-- Barreto, A., Dabney, W., Munos, R., Hunt, J. J., Schaul, T., van Hasselt, H., & Silver, D. (2017). *Successor Features for Transfer in Reinforcement Learning*. Advances in Neural Information Processing Systems 30.
-- Bosnić, N. (2026b). *Sufficient Statistics as a Universal Primitive?
-  (Part II): Continual Learning*. PDF:
-  <https://github.com/nikeke/leenef/blob/main/docs/SSUP-II.pdf>.
-- Bosnić, N. (2026c). *Sufficient Statistics as a Universal Primitive?
-  (Part III): Reinforcement Learning*. PDF:
-  <https://github.com/nikeke/leenef/blob/main/docs/SSUP-III.pdf>.
-- Bosnić, N. (2026d). *Activation Spectra for Analytic Fixed-Feature
-  Learning*. PDF:
-  <https://github.com/nikeke/leenef/blob/main/docs/activation_spectra.pdf>.
-- Chen, C. L. P., & Liu, Z. (2018). *Broad Learning System: An Effective and Efficient Incremental Learning System Without the Need for Deep Architecture*. IEEE Transactions on Neural Networks and Learning Systems, 29(1), 10-24.
-- Coates, A., Lee, H., & Ng, A. Y. (2011). *An Analysis of Single-Layer Networks in Unsupervised Feature Learning*. Proceedings of the Fourteenth International Conference on Artificial Intelligence and Statistics.
-- Eliasmith, C., & Anderson, C. H. (2003). *Neural Engineering: Computation, Representation, and Dynamics in Neurobiological Systems*. MIT Press.
-- Ernst, D., Geurts, P., & Wehenkel, L. (2005). *Tree-Based Batch Mode Reinforcement Learning*. Journal of Machine Learning Research, 6, 503-556.
-- Gu, A., Dao, D., Ermon, S., Rudra, A., & Ré, C. (2020). *HiPPO: Recurrent Memory with Optimal Polynomial Projections*. Advances in Neural Information Processing Systems 33.
-- Gu, A., & Dao, T. (2023). *Mamba: Linear-Time Sequence Modeling with Selective State Spaces*. arXiv preprint arXiv:2312.00752.
-- Gu, A., Goel, K., Dao, T., Rudra, A., & Ré, C. (2022). *Efficiently Modeling Long Sequences with Structured State Spaces*. International Conference on Learning Representations.
-- Huang, G.-B., Zhu, Q.-Y., & Siew, C.-K. (2006). *Extreme Learning Machine: Theory and Applications*. Neurocomputing, 70(1-3), 489-501.
-- Hochreiter, S., & Schmidhuber, J. (1997). *Long Short-Term Memory*. Neural Computation, 9(8), 1735-1780.
-- Hoerl, A. E., & Kennard, R. W. (1970). *Ridge Regression: Biased Estimation for Nonorthogonal Problems*. Technometrics, 12(1), 55-67.
-- Igelnik, B., & Pao, Y. H. (1995). *Stochastic Choice of Basis Functions in Adaptive Function Approximation and the Functional-Link Net*. IEEE Transactions on Neural Networks, 6(6), 1320-1329.
-- Jaeger, H. (2001). *The “Echo State” Approach to Analysing and Training Recurrent Neural Networks—With an Erratum Note*. GMD Report 148, German National Research Center for Information Technology.
-- Johnson, W. B., & Lindenstrauss, J. (1984). *Extensions of Lipschitz mappings into a Hilbert space*. Contemporary Mathematics, 26, 189-206.
-- Kingma, D. P., & Ba, J. (2015). *Adam: A Method for Stochastic Optimization*. International Conference on Learning Representations.
-- Krizhevsky, A. (2009). *Learning Multiple Layers of Features from Tiny Images*. Technical Report, University of Toronto.
-- Le, Q. V., Jaitly, N., & Hinton, G. E. (2015). *A Simple Way to Initialize Recurrent Networks of Rectified Linear Units*. arXiv preprint arXiv:1504.00941.
-- LeCun, Y., Cortes, C., & Burges, C. J. C. (1998). *The MNIST database of handwritten digits*.
-- Lee, D.-H., Zhang, S., Fischer, A., & Bengio, Y. (2015). *Difference Target Propagation*. Machine Learning, 104(2-3), 255-272.
-- Liang, N.-Y., Huang, G.-B., Saratchandran, P., & Sundararajan, N. (2006). *A Fast and Accurate Online Sequential Learning Algorithm for Feedforward Networks*. IEEE Transactions on Neural Networks, 17(6), 1411-1423.
-- Lukoševičius, M., & Jaeger, H. (2009). *Reservoir Computing Approaches to Recurrent Neural Network Training*. Computer Science Review, 3(3), 127-149.
-- Maass, W., Natschläger, T., & Markram, H. (2002). *Real-Time Computing Without Stable States: A New Framework for Neural Computation Based on Perturbations*. Neural Computation, 14(11), 2531-2560.
-- Orvieto, S., Jing, L., Dowling, M., Atanasov, L., Kretov, M., Cevher, V., & LeCun, Y. (2023). *Resurrecting Recurrent Neural Networks for Long Sequences*. arXiv preprint arXiv:2305.07078.
-- Pao, Y. H., Takefuji, Y., & Lee, P. (1992). *Functional-Link Net Computing: Theory, System Architecture, and Functionalities*. Computer, 25(5), 76-79.
-- Rahimi, A., & Recht, B. (2007). *Random Features for Large-Scale Kernel Machines*. Advances in Neural Information Processing Systems 20.
-- Saxe, A. M., Koh, P. W., Chen, Z., Bhand, M., Suresh, B., & Ng, A. Y. (2011). *Random Weights and Unsupervised Feature Learning*. Proceedings of the 28th International Conference on Machine Learning.
-- Söderström, T., & Stoica, P. (1988). *System Identification*. Prentice Hall.
-- Voelker, A. R., Kajić, I., & Eliasmith, C. (2019). *Legendre Memory Units: Continuous-Time Representation in Recurrent Neural Networks*. Advances in Neural Information Processing Systems 32.
-- Werbos, P. J. (1990). *Backpropagation through time: what it does and how to do it*. Proceedings of the IEEE, 78(10), 1550-1560.
-- Warden, P. (2018). *Speech Commands: A Dataset for Limited-Vocabulary Speech Recognition*. arXiv preprint arXiv:1804.03209.
-- Xiao, H., Rasul, K., & Vollgraf, R. (2017). *Fashion-MNIST: a Novel Image Dataset for Benchmarking Machine Learning Algorithms*. arXiv preprint arXiv:1708.07747.

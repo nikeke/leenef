@@ -389,44 +389,7 @@ Three next steps are most natural.
 
 ---
 
-## Appendix A - Reproducibility and artifacts
-
-The source repository is `https://github.com/nikeke/leenef`. From the
-repository root:
-
-```bash
-source venv/bin/activate
-export LEENEF_DATA_ROOT=data
-
-python benchmarks/abs_preimages/sign_freedom_experiment.py
-python benchmarks/abs_preimages/visualize_preimages.py
-python benchmarks/abs_preimages/canonical_prototypes.py
-python benchmarks/abs_preimages/nullspace_radius_sweep.py
-
-OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 \
-  python benchmarks/abs_preimages/prototype_initialization_experiment.py
-```
-
-Reusable tensor helpers live in `src/leenef/preimages.py`; benchmark
-drivers and the prototype pilot live in `benchmarks/abs_preimages/`;
-figures live in `docs/figures/abs_preimages/`; provenance-bearing JSON
-results live in `results/abs_preimages/`. Each result JSON records the
-source code identity, thread/runtime metadata, MNIST raw and processed
-hashes, the deterministic training-subset hash, script configuration,
-diagnostics, plotted arrays, and generated figure paths. The
-`code_identity.identity` field follows the SSUP-I/II convention: it is a
-content-addressed SHA computed by hashing
-`git ls-tree -r HEAD -- src/ benchmarks/ tests/ pyproject.toml`, with a
-`-dirty-...` suffix when watched source files differ from `HEAD` or when
-untracked watched source files are present. The separate
-`code_identity.head` field records the run-time commit for auditability;
-later commits that only add or refresh generated artifacts can therefore
-differ from `code_identity.head` without changing the source identity
-audited by the run.
-
----
-
-## References
+## Literature
 
 - Bosnić, N. (2026a). *Sufficient Statistics as a Universal Primitive?
   (Part I): Supervised Learning via the Neural Engineering Framework*.
@@ -473,3 +436,40 @@ audited by the run.
   networks. *International Conference on Learning Representations*.
 - Zhang, L., Naitzat, G., & Lim, L.-H. (2018). Tropical geometry of deep
   neural networks. *International Conference on Machine Learning*.
+
+---
+
+## Appendix A - Reproducibility and artifacts
+
+The source repository is `https://github.com/nikeke/leenef`. From the
+repository root:
+
+```bash
+source venv/bin/activate
+export LEENEF_DATA_ROOT=data
+
+python benchmarks/abs_preimages/sign_freedom_experiment.py
+python benchmarks/abs_preimages/visualize_preimages.py
+python benchmarks/abs_preimages/canonical_prototypes.py
+python benchmarks/abs_preimages/nullspace_radius_sweep.py
+
+OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 \
+  python benchmarks/abs_preimages/prototype_initialization_experiment.py
+```
+
+Reusable tensor helpers live in `src/leenef/preimages.py`; benchmark
+drivers and the prototype pilot live in `benchmarks/abs_preimages/`;
+figures live in `docs/figures/abs_preimages/`; provenance-bearing JSON
+results live in `results/abs_preimages/`. Each result JSON records the
+source code identity, thread/runtime metadata, MNIST raw and processed
+hashes, the deterministic training-subset hash, script configuration,
+diagnostics, plotted arrays, and generated figure paths. The
+`code_identity.identity` field follows the SSUP-I/II convention: it is a
+content-addressed SHA computed by hashing
+`git ls-tree -r HEAD -- src/ benchmarks/ tests/ pyproject.toml`, with a
+`-dirty-...` suffix when watched source files differ from `HEAD` or when
+untracked watched source files are present. The separate
+`code_identity.head` field records the run-time commit for auditability;
+later commits that only add or refresh generated artifacts can therefore
+differ from `code_identity.head` without changing the source identity
+audited by the run.

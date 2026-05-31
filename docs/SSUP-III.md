@@ -706,6 +706,94 @@ interface for asking exactly where the learning problem lives.
 
 ---
 
+## Literature
+
+Andrychowicz, M., Wolski, F., Ray, A., Schneider, J., Fong, R.,
+Welinder, P., McGrew, B., Tobin, J., Abbeel, P., & Zaremba, W. (2017).
+Hindsight experience replay. *NeurIPS*.
+
+Barreto, A., Dabney, W., Munos, R., Hunt, J. J., Schaul, T., van
+Hasselt, H., & Silver, D. (2017). Successor features for transfer in
+reinforcement learning. *NeurIPS*.
+
+Bellemare, M. G., Srinivasan, S., Ostrovski, G., Schaul, T., Saxton, D.,
+& Munos, R. (2016). Unifying count-based exploration and intrinsic
+motivation. *NeurIPS*.
+
+Borsa, D., Barreto, A., Quan, J., Mankowitz, D. J., van Hasselt, H.,
+Munos, R., Silver, D., & Schaul, T. (2018). Universal successor features
+approximators. *arXiv:1812.07626*.
+
+Bosnić, N. (2026a). *Sufficient Statistics as a Universal Primitive?
+(Part I): Supervised Learning via the Neural Engineering Framework*.
+PDF: <https://github.com/nikeke/leenef/blob/main/docs/SSUP-I.pdf>.
+
+Bosnić, N. (2026b). *Sufficient Statistics as a Universal Primitive?
+(Part II): Continual Learning*. PDF:
+<https://github.com/nikeke/leenef/blob/main/docs/SSUP-II.pdf>.
+
+Bradtke, S. J., & Barto, A. G. (1996). Linear least-squares algorithms
+for temporal difference learning. *Machine Learning*, 22(1-3), 33-57.
+
+Burda, Y., Edwards, H., Storkey, A., & Klimov, O. (2019). Exploration by
+random network distillation. *ICLR*.
+
+Dayan, P. (1993). Improving generalization for temporal difference
+learning: The successor representation. *Neural Computation*, 5(4),
+613-624.
+
+Eliasmith, C., & Anderson, C. H. (2003). *Neural Engineering:
+Computation, Representation, and Dynamics in Neurobiological Systems*.
+MIT Press.
+
+Ernst, D., Geurts, P., & Wehenkel, L. (2005). Tree-based batch mode
+reinforcement learning. *Journal of Machine Learning Research*, 6,
+503-556.
+
+Geramifard, A., Walsh, T. J., Tellex, S., Chowdhary, G., Roy, N., & How,
+J. P. (2013). Representation expansion for reinforcement learning.
+*AAAI*.
+
+Mnih, V., Kavukcuoglu, K., Silver, D., Rusu, A. A., Veness, J.,
+Bellemare, M. G., Graves, A., Riedmiller, M., Fidjeland, A. K.,
+Ostrovski, G., Petersen, S., Beattie, C., Sadik, A., Antonoglou, I.,
+King, H., Kumaran, D., Wierstra, D., Legg, S., & Hassabis, D. (2015).
+Human-level control through deep reinforcement learning. *Nature*,
+518, 529-533.
+
+Lagoudakis, M. G., & Parr, R. (2003). Least-squares policy iteration.
+*Journal of Machine Learning Research*, 4, 1107-1149.
+
+Nedić, A., & Bertsekas, D. P. (2003). Least squares policy evaluation
+algorithms with linear function approximation. *Discrete Event Dynamic
+Systems*, 13, 79-110.
+
+Pathak, D., Agrawal, P., Efros, A. A., & Darrell, T. (2017).
+Curiosity-driven exploration by self-supervised prediction. *ICML
+Workshops*.
+
+Riedmiller, M. (2005). Neural fitted Q iteration -- first experiences
+with a data efficient neural reinforcement learning method. *European
+Conference on Machine Learning*.
+
+Schaul, T., Horgan, D., Gregor, K., & Silver, D. (2015). Universal value
+function approximators. *ICML*.
+
+Schaul, T., Quan, J., Antonoglou, I., & Silver, D. (2016). Prioritized
+experience replay. *ICLR*.
+
+van Hasselt, H., Guez, A., & Silver, D. (2016). Deep reinforcement
+learning with double Q-learning. *AAAI*.
+
+Wang, Z., Schaul, T., Hessel, M., van Hasselt, H., Lanctot, M., & de
+Freitas, N. (2016). Dueling network architectures for deep reinforcement
+learning. *ICML*.
+
+Werbos, P. J. (1990). Backpropagation through time: what it does and how
+to do it. *Proceedings of the IEEE*, 78(10), 1550-1560.
+
+---
+
 ## Appendix A — Reproducibility
 
 Every numeric claim in this paper is regeneratable from the accompanying
@@ -868,91 +956,3 @@ headline claims.  This appendix collects them in one place.
   seeds, while the original dot-product readout reproduced the non-flat
   $-158.8 \pm 1.4$ positive.  The working MountainCar readout uses
   successor magnitude as part of the signal.
-
----
-
-## Literature
-
-Andrychowicz, M., Wolski, F., Ray, A., Schneider, J., Fong, R.,
-Welinder, P., McGrew, B., Tobin, J., Abbeel, P., & Zaremba, W. (2017).
-Hindsight experience replay. *NeurIPS*.
-
-Barreto, A., Dabney, W., Munos, R., Hunt, J. J., Schaul, T., van
-Hasselt, H., & Silver, D. (2017). Successor features for transfer in
-reinforcement learning. *NeurIPS*.
-
-Bellemare, M. G., Srinivasan, S., Ostrovski, G., Schaul, T., Saxton, D.,
-& Munos, R. (2016). Unifying count-based exploration and intrinsic
-motivation. *NeurIPS*.
-
-Borsa, D., Barreto, A., Quan, J., Mankowitz, D. J., van Hasselt, H.,
-Munos, R., Silver, D., & Schaul, T. (2018). Universal successor features
-approximators. *arXiv:1812.07626*.
-
-Bosnić, N. (2026a). *Sufficient Statistics as a Universal Primitive?
-(Part I): Supervised Learning via the Neural Engineering Framework*.
-PDF: <https://github.com/nikeke/leenef/blob/main/docs/SSUP-I.pdf>.
-
-Bosnić, N. (2026b). *Sufficient Statistics as a Universal Primitive?
-(Part II): Continual Learning*. PDF:
-<https://github.com/nikeke/leenef/blob/main/docs/SSUP-II.pdf>.
-
-Bradtke, S. J., & Barto, A. G. (1996). Linear least-squares algorithms
-for temporal difference learning. *Machine Learning*, 22(1-3), 33-57.
-
-Burda, Y., Edwards, H., Storkey, A., & Klimov, O. (2019). Exploration by
-random network distillation. *ICLR*.
-
-Dayan, P. (1993). Improving generalization for temporal difference
-learning: The successor representation. *Neural Computation*, 5(4),
-613-624.
-
-Eliasmith, C., & Anderson, C. H. (2003). *Neural Engineering:
-Computation, Representation, and Dynamics in Neurobiological Systems*.
-MIT Press.
-
-Ernst, D., Geurts, P., & Wehenkel, L. (2005). Tree-based batch mode
-reinforcement learning. *Journal of Machine Learning Research*, 6,
-503-556.
-
-Geramifard, A., Walsh, T. J., Tellex, S., Chowdhary, G., Roy, N., & How,
-J. P. (2013). Representation expansion for reinforcement learning.
-*AAAI*.
-
-Mnih, V., Kavukcuoglu, K., Silver, D., Rusu, A. A., Veness, J.,
-Bellemare, M. G., Graves, A., Riedmiller, M., Fidjeland, A. K.,
-Ostrovski, G., Petersen, S., Beattie, C., Sadik, A., Antonoglou, I.,
-King, H., Kumaran, D., Wierstra, D., Legg, S., & Hassabis, D. (2015).
-Human-level control through deep reinforcement learning. *Nature*,
-518, 529-533.
-
-Lagoudakis, M. G., & Parr, R. (2003). Least-squares policy iteration.
-*Journal of Machine Learning Research*, 4, 1107-1149.
-
-Nedić, A., & Bertsekas, D. P. (2003). Least squares policy evaluation
-algorithms with linear function approximation. *Discrete Event Dynamic
-Systems*, 13, 79-110.
-
-Pathak, D., Agrawal, P., Efros, A. A., & Darrell, T. (2017).
-Curiosity-driven exploration by self-supervised prediction. *ICML
-Workshops*.
-
-Riedmiller, M. (2005). Neural fitted Q iteration -- first experiences
-with a data efficient neural reinforcement learning method. *European
-Conference on Machine Learning*.
-
-Schaul, T., Horgan, D., Gregor, K., & Silver, D. (2015). Universal value
-function approximators. *ICML*.
-
-Schaul, T., Quan, J., Antonoglou, I., & Silver, D. (2016). Prioritized
-experience replay. *ICLR*.
-
-van Hasselt, H., Guez, A., & Silver, D. (2016). Deep reinforcement
-learning with double Q-learning. *AAAI*.
-
-Wang, Z., Schaul, T., Hessel, M., van Hasselt, H., Lanctot, M., & de
-Freitas, N. (2016). Dueling network architectures for deep reinforcement
-learning. *ICML*.
-
-Werbos, P. J. (1990). Backpropagation through time: what it does and how
-to do it. *Proceedings of the IEEE*, 78(10), 1550-1560.
