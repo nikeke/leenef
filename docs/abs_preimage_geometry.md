@@ -23,7 +23,7 @@ $a=s\odot(Wx+b)$. This creates a sharp distinction between two
 preimage mechanisms. Arbitrary activity-level sign twins are guaranteed
 only under the rank condition $\mathrm{rank}(W)=n$; in MNIST with
 $d_{\mathrm{in}}=784$, an underdetermined $n=400$ sign solve realizes
-random sign flips to median $2.3\times10^{-6}$ relative activity error,
+random sign flips to median $2.2\times10^{-6}$ relative activity error,
 while a realistic $n=2000$ over-complete frame rejects them with median
 error $6.1\times10^{-1}$. Class-level targets behave differently: in a fixed
 sign cell, the one-hot equation is only $10$ linear constraints in $784$
@@ -143,26 +143,28 @@ construction.
 
 | regime | sample sign err | class-mean sign err | random sign err | random signs -> class 3 |
 |---|---:|---:|---:|---:|
-| $n=400\le 784$ | $1.3\times10^{-6}$ | $1.1\times10^{-6}$ | median $2.3\times10^{-6}$ | 200 / 200 |
+| $n=400\le 784$ | $1.3\times10^{-6}$ | $1.1\times10^{-6}$ | median $2.2\times10^{-6}$ | 200 / 200 |
 | $n=2000>784$ | $1.7\times10^{-6}$ | $2.0\times10^{-1}$ | median $6.1\times10^{-1}$ | 34 / 200 |
 
 The measured ranks were $400/400$ in the underdetermined sign solve and
-$784/784$ in the over-complete frame. The real-sample natural-sign column
-uses a real sample's activity and is therefore realizable in both regimes.
-The class-mean-sign and random-flip columns use the same class-mean
-activity target. The structured class-mean sign is closer than random
-signs in the over-complete frame, but it is still not exactly realizable;
-only the underdetermined full-row-rank case makes every sign right-hand
-side exact. These are real-valued algebraic preimages in
-$\mathbb{R}^{784}$, not pixel-box-constrained images.
+$784/784$ in the over-complete frame, using the default tolerance of
+`torch.linalg.matrix_rank`. The real-sample natural-sign column uses a
+real sample's activity and is therefore realizable in both regimes. The
+class-mean-sign and random-flip columns use the same class-mean activity
+target. The structured class-mean sign is closer than random signs in the
+over-complete frame, but it is still not exactly realizable; only the
+underdetermined full-row-rank case makes every sign right-hand side exact
+up to floating-point least-squares residual. These are real-valued
+algebraic preimages in $\mathbb{R}^{784}$, not pixel-box-constrained
+images.
 
 ![Perfect twins](figures/abs_preimages/perfect_twins.png)
 
 **Figure 1. Perfect twins in an underdetermined sign solve.** A real
 MNIST digit and five random sign-flipped preimages are visually unrelated.
-The exact collision and identical decode hold for the underlying
-unclamped least-squares vectors; the displayed panels are clamped to the
-pixel range only for visualization.
+The collision and identical decode hold for the underlying unclamped
+least-squares vectors up to floating-point residual; the displayed panels
+are clamped to the pixel range only for visualization.
 
 ---
 
@@ -187,8 +189,8 @@ For MNIST, $M_s$ has at most $10$ rows and $784$ columns. When it has
 rank $10$, the linearized affine solution set has null-space dimension
 $774$. Exact one-hot preimages are the intersection of that affine space
 with the sign cell $\mathcal{C}_s$, so the exact region is local and
-bounded by cell-validity inequalities. The scripts therefore track both
-the linear residual and the true nonlinear decode deviation after
+constrained by cell-validity inequalities. The scripts therefore track
+both the linear residual and the true nonlinear decode deviation after
 applying `abs` again.
 
 ![Per-class one-hot candidates](figures/abs_preimages/overdet_preimages.png)
@@ -363,18 +365,6 @@ class-target problem, but the activity-preimage multiplicity has the same
 basic source: magnitude observations identify a folded quotient of the
 affine encoder space.
 
-Selected references for this context are the SSUP papers (Bosnić,
-2026a,b,c) for the leenef sufficient-statistics program; Eliasmith and
-Anderson's *Neural Engineering* (2003) for the encoder-decoder framework;
-Mahendran and Vedaldi (2015), Simonyan, Vedaldi, and Zisserman (2014),
-Mordvintsev, Olah, and Tyka (2015), and Olah, Mordvintsev, and Schubert
-(2017) for network inversion and feature visualization; Montufar et al.
-(2014), Serra et al. (2018), and Zhang, Naitzat, and Lim (2018) for
-piecewise-linear network regions; Szegedy et al. (2014), Goodfellow,
-Shlens, and Szegedy (2015), and Nguyen, Yosinski, and Clune (2015) for
-adversarial and fooling-image phenomena; and Candes, Strohmer, and
-Voroninski (2013) for a canonical phase-retrieval reference.
-
 ## §9 - Limitations and further directions
 
 The empirical work here is intentionally small: one seed, MNIST, and
@@ -423,7 +413,10 @@ figures live in `docs/figures/abs_preimages/`; provenance-bearing JSON
 results live in `results/abs_preimages/`. Each result JSON records the
 source code identity, thread/runtime metadata, MNIST raw and processed
 hashes, the deterministic training-subset hash, script configuration,
-diagnostics, plotted arrays, and generated figure paths.
+diagnostics, plotted arrays, and generated figure paths. The recorded
+source identity is the code commit used at run time; later commits that
+only add or refresh generated artifacts can therefore differ from the
+JSON `code_identity.head` without changing the source audited by the run.
 
 ---
 

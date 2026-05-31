@@ -1,12 +1,13 @@
-"""How far does the realizable preimage continuum extend? (part b)
+"""How far do local linearized null-space directions extend? (part b)
 
-Anchor at an exact one-hot preimage ``x_part`` of class ``c`` (a real digit nudged
-onto the exact-one-hot solution within its sign cell ``s``).  Inside the cell the
+Anchor at a local one-hot candidate ``x_part`` of class ``c`` (a real digit
+nudged onto the one-hot solution for sign cell ``s``).  Inside the cell the
 decode is the affine map ``M x + const`` with ``M = D^T diag(s) W``; moving along
-the (d_in - n_classes)-dimensional null space of ``M`` leaves the decode EXACTLY
-one-hot.  We sweep the step radius ``r`` along
+the (d_in - n_classes)-dimensional null space of ``M`` leaves the linearized
+decode one-hot until the path exits the cell.  We sweep the step radius ``r``
+along
 
-* null-space directions  (the realizable continuum), and
+* local null-space directions, and
 * arbitrary ambient directions  (control),
 
 and measure, averaged over many random unit directions:
@@ -15,9 +16,9 @@ and measure, averaged over many random unit directions:
 * fraction of directions still predicting class ``c``,
 * fraction of the ``n_neurons`` sign constraints that have flipped.
 
-The null-space curve quantifies how far the continuum of confident preimages
-reaches before the abs folds (sign flips at non-negligible neurons) finally tip
-the decision.
+The null-space curve quantifies how far these local confident directions reach
+before the abs folds (sign flips at non-negligible neurons) finally tip the
+decision.
 
 Run::  python benchmarks/abs_preimages/nullspace_radius_sweep.py
 """
@@ -124,8 +125,8 @@ def main():
     )
     axes[2].legend()
     fig.suptitle(
-        f"Realizable preimage continuum extent (class {c}, n_neurons=2000): null-space "
-        f"moves preserve the decision far longer than ambient moves",
+        f"Local linearized null-space sweep (class {c}, n_neurons=2000): "
+        "null-space moves preserve the decision far longer than ambient moves",
         fontsize=11,
     )
     fig.tight_layout()

@@ -123,14 +123,24 @@ def code_identity() -> dict[str, Any]:
     """Return HEAD plus a source-dirty hash that excludes generated outputs."""
     head = _run_git(["rev-parse", "HEAD"]).strip()
     pathspec = [".", *(f":(exclude){path}" for path in GENERATED_PATHS)]
-    status = _run_git(["status", "--porcelain", "--", *pathspec])
-    diff = _run_git(["diff", "--binary", "--", *pathspec])
+    status = _run_git(["status", "--porcelain", "--untracked-files=all", "--", *pathspec])
+    diff = _run_git(["diff", "HEAD", "--binary", "--", *pathspec])
     source_dirty = bool(status.strip() or diff)
     dirty_hash = None
+    untracked_sources = []
     if source_dirty:
         h = hashlib.sha256()
         h.update(status.encode())
         h.update(diff.encode())
+        for line in status.splitlines():
+            if not line.startswith("?? "):
+                continue
+            rel_path = line[3:]
+            path = _REPO / rel_path
+            if path.is_file():
+                untracked_sources.append(rel_path)
+                h.update(rel_path.encode())
+                h.update(path.read_bytes())
         dirty_hash = h.hexdigest()
     return {
         "head": head,
@@ -138,6 +148,7 @@ def code_identity() -> dict[str, Any]:
         "source_dirty_hash": dirty_hash,
         "identity": f"{head}-dirty-{dirty_hash[:12]}" if dirty_hash else head,
         "excluded_generated_paths": list(GENERATED_PATHS),
+        "untracked_sources_hashed": untracked_sources,
     }
 
 
