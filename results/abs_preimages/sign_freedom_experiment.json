@@ -1,14 +1,16 @@
 {
   "artifact_paths": [],
   "code_identity": {
-    "excluded_generated_paths": [
-      "docs/figures/abs_preimages",
-      "docs/abs_preimage_geometry.pdf",
-      "results/abs_preimages",
-      "benchmarks/abs_preimages/prototype_initialization_result.json"
+    "code_identity_paths": [
+      "src",
+      "benchmarks",
+      "tests",
+      "pyproject.toml"
     ],
-    "head": "fbfe703703442ae58870aedb7f8cd3ccbdf179c2",
-    "identity": "fbfe703703442ae58870aedb7f8cd3ccbdf179c2",
+    "content_identity": "0e292917c162f37393db69ee372ab1d65fdaa873",
+    "head": "3c51d8ccd72b8578969b9170fab340c7b3feecbf",
+    "identity": "0e292917c162f37393db69ee372ab1d65fdaa873",
+    "identity_definition": "sha256(git ls-tree -r HEAD -- src/ benchmarks/ tests/ pyproject.toml)[:40]",
     "source_dirty": false,
     "source_dirty_hash": null,
     "untracked_sources_hashed": []
@@ -504,7 +506,7 @@
     "torch_num_threads": 2,
     "torch_version": "2.10.0+cu128"
   },
-  "generated_at_utc": "2026-05-31T15:48:50.112333+00:00",
+  "generated_at_utc": "2026-05-31T16:10:04.140047+00:00",
   "plotted_arrays": {},
   "script": "benchmarks/abs_preimages/sign_freedom_experiment.py"
 }

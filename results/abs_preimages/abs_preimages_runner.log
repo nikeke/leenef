@@ -1,6 +1,6 @@
 
 [proxychains] DLL init: proxychains-ng 4.17
-===== 2026-05-31T15:48:46Z BEGIN 1/6 sign-freedom =====
+===== 2026-05-31T16:10:00Z BEGIN 1/6 sign-freedom =====
 [proxychains] DLL init: proxychains-ng 4.17
 
 === n_neurons=400  (d_in=784) ===
@@ -20,10 +20,10 @@
   random flips decoding to class 3     : 34/200
 wrote results/abs_preimages/sign_freedom_experiment.json
 [proxychains] DLL init: proxychains-ng 4.17
-===== 2026-05-31T15:48:50Z END 1/6 sign-freedom =====
+===== 2026-05-31T16:10:04Z END 1/6 sign-freedom =====
 
 [proxychains] DLL init: proxychains-ng 4.17
-===== 2026-05-31T15:48:50Z BEGIN 2/6 visualizations =====
+===== 2026-05-31T16:10:04Z BEGIN 2/6 visualizations =====
 [proxychains] DLL init: proxychains-ng 4.17
 [A] perfect_twins.png  max activity deviation = 3.31e-06
 [B] naive min-norm activity inverse of one-hot: 29.18% negative entries on average (=> not realizable as |z|)
@@ -31,10 +31,10 @@ wrote results/abs_preimages/sign_freedom_experiment.json
 [B'] nullspace_continuum.png  null dim=774  kept=7/7
 wrote results/abs_preimages/visualize_preimages.json
 [proxychains] DLL init: proxychains-ng 4.17
-===== 2026-05-31T15:48:54Z END 2/6 visualizations =====
+===== 2026-05-31T16:10:09Z END 2/6 visualizations =====
 
 [proxychains] DLL init: proxychains-ng 4.17
-===== 2026-05-31T15:48:54Z BEGIN 3/6 canonical-prototypes =====
+===== 2026-05-31T16:10:09Z BEGIN 3/6 canonical-prototypes =====
 [proxychains] DLL init: proxychains-ng 4.17
 anchor   mean-margin   mean|x-mean|   argmax==class
   mean       -1.43          0.00           100%
@@ -47,35 +47,37 @@ saved canonical_prototypes.png
 saved margin_realism_tradeoff.png
 wrote results/abs_preimages/canonical_prototypes.json
 [proxychains] DLL init: proxychains-ng 4.17
-===== 2026-05-31T15:49:03Z END 3/6 canonical-prototypes =====
+===== 2026-05-31T16:10:18Z END 3/6 canonical-prototypes =====
 
 [proxychains] DLL init: proxychains-ng 4.17
-===== 2026-05-31T15:49:03Z BEGIN 4/6 nullspace-radius =====
+===== 2026-05-31T16:10:18Z BEGIN 4/6 nullspace-radius =====
 [proxychains] DLL init: proxychains-ng 4.17
 null-space dim = 774
 class-flip radius (kept<0.5): null=inf  ambient=10.00
 saved nullspace_radius_sweep.png
 wrote results/abs_preimages/nullspace_radius_sweep.json
 [proxychains] DLL init: proxychains-ng 4.17
-===== 2026-05-31T15:49:07Z END 4/6 nullspace-radius =====
+===== 2026-05-31T16:10:22Z END 4/6 nullspace-radius =====
 
 [proxychains] DLL init: proxychains-ng 4.17
-===== 2026-05-31T15:49:07Z BEGIN 5/6 prototype-initialization =====
+===== 2026-05-31T16:10:22Z BEGIN 5/6 prototype-initialization =====
 [proxychains] DLL init: proxychains-ng 4.17
 wrote results/abs_preimages/prototype_initialization_result.json
 {
   "script": "benchmarks/abs_preimages/prototype_initialization_experiment.py",
-  "generated_at_utc": "2026-05-31T15:49:11.387349+00:00",
+  "generated_at_utc": "2026-05-31T16:10:26.373230+00:00",
   "code_identity": {
-    "head": "fbfe703703442ae58870aedb7f8cd3ccbdf179c2",
+    "head": "3c51d8ccd72b8578969b9170fab340c7b3feecbf",
+    "content_identity": "0e292917c162f37393db69ee372ab1d65fdaa873",
     "source_dirty": false,
     "source_dirty_hash": null,
-    "identity": "fbfe703703442ae58870aedb7f8cd3ccbdf179c2",
-    "excluded_generated_paths": [
-      "docs/figures/abs_preimages",
-      "docs/abs_preimage_geometry.pdf",
-      "results/abs_preimages",
-      "benchmarks/abs_preimages/prototype_initialization_result.json"
+    "identity": "0e292917c162f37393db69ee372ab1d65fdaa873",
+    "identity_definition": "sha256(git ls-tree -r HEAD -- src/ benchmarks/ tests/ pyproject.toml)[:40]",
+    "code_identity_paths": [
+      "src",
+      "benchmarks",
+      "tests",
+      "pyproject.toml"
     ],
     "untracked_sources_hashed": []
   },
@@ -15981,10 +15983,10 @@ wrote results/abs_preimages/prototype_initialization_result.json
   ]
 }
 [proxychains] DLL init: proxychains-ng 4.17
-===== 2026-05-31T15:49:11Z END 5/6 prototype-initialization =====
+===== 2026-05-31T16:10:27Z END 5/6 prototype-initialization =====
 
 [proxychains] DLL init: proxychains-ng 4.17
-===== 2026-05-31T15:49:11Z BEGIN 6/6 pdf-build =====
+===== 2026-05-31T16:10:27Z BEGIN 6/6 pdf-build =====
 [proxychains] DLL init: proxychains-ng 4.17
 [proxychains] DLL init: proxychains-ng 4.17
 [proxychains] DLL init: proxychains-ng 4.17
@@ -15992,16 +15994,16 @@ wrote results/abs_preimages/prototype_initialization_result.json
 [proxychains] DLL init: proxychains-ng 4.17
 [proxychains] DLL init: proxychains-ng 4.17
 [proxychains] DLL init: proxychains-ng 4.17
-+ pandoc /home/amnesia/Persistent/src/leenef-abs-preimages/docs/abs_preimage_geometry.md --from=markdown+tex_math_dollars+footnotes+pipe_tables+table_captions+raw_tex --to=latex --standalone --resource-path=/home/amnesia/Persistent/src/leenef-abs-preimages:/home/amnesia/Persistent/src/leenef-abs-preimages/docs:/home/amnesia/Persistent/src/leenef-abs-preimages/docs/figures --include-in-header=/tmp/tmp.AQX6jy7J5m/header.tex --variable=geometry:margin=1in --variable=fontsize:11pt --variable=linestretch:1.05 --variable=colorlinks:true --variable=linkcolor:blue --variable=urlcolor:blue --output=/tmp/tmp.AQX6jy7J5m/abs_preimage_geometry.tex
++ pandoc /home/amnesia/Persistent/src/leenef-abs-preimages/docs/abs_preimage_geometry.md --from=markdown+tex_math_dollars+footnotes+pipe_tables+table_captions+raw_tex --to=latex --standalone --resource-path=/home/amnesia/Persistent/src/leenef-abs-preimages:/home/amnesia/Persistent/src/leenef-abs-preimages/docs:/home/amnesia/Persistent/src/leenef-abs-preimages/docs/figures --include-in-header=/tmp/tmp.6YIS5NBsAW/header.tex --variable=geometry:margin=1in --variable=fontsize:11pt --variable=linestretch:1.05 --variable=colorlinks:true --variable=linkcolor:blue --variable=urlcolor:blue --output=/tmp/tmp.6YIS5NBsAW/abs_preimage_geometry.tex
 [proxychains] DLL init: proxychains-ng 4.17
 [proxychains] DLL init: proxychains-ng 4.17
 [proxychains] DLL init: proxychains-ng 4.17
-+ xelatex -halt-on-error -interaction=nonstopmode -output-directory /tmp/tmp.AQX6jy7J5m /tmp/tmp.AQX6jy7J5m/abs_preimage_geometry.tex
++ xelatex -halt-on-error -interaction=nonstopmode -output-directory /tmp/tmp.6YIS5NBsAW /tmp/tmp.6YIS5NBsAW/abs_preimage_geometry.tex
 [proxychains] DLL init: proxychains-ng 4.17
 This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2025/dev/Debian) (preloaded format=xelatex)
  restricted \write18 enabled.
 entering extended mode
-(/tmp/tmp.AQX6jy7J5m/abs_preimage_geometry.tex
+(/tmp/tmp.6YIS5NBsAW/abs_preimage_geometry.tex
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
 (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
@@ -16123,7 +16125,7 @@ Package longtable Warning: Column widths have changed
 Overfull \vbox (154.9425pt too high) has occurred while \output is active
 [7]
 [8]
-Overfull \hbox (6.4476pt too wide) in paragraph at lines 693--698
+Overfull \hbox (6.4476pt too wide) in paragraph at lines 698--703
 \TU/LatinModernRoman(0)/m/it/10.95 ing via the Neural Engineering Framework\TU/
 LatinModernRoman(0)/m/n/10.95 . GitHub location: https://github.com/nikeke/leen
 ef,
@@ -16133,7 +16135,7 @@ ef,
 Package longtable Warning: Table widths have changed. Rerun LaTeX.
 
 
-[10] (/tmp/tmp.AQX6jy7J5m/abs_preimage_geometry.aux)
+[10] (/tmp/tmp.6YIS5NBsAW/abs_preimage_geometry.aux)
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
@@ -16142,17 +16144,17 @@ LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
 
  )
 (see the transcript file for additional information)
-Output written on /tmp/tmp.AQX6jy7J5m/abs_preimage_geometry.pdf (10 pages).
-Transcript written on /tmp/tmp.AQX6jy7J5m/abs_preimage_geometry.log.
+Output written on /tmp/tmp.6YIS5NBsAW/abs_preimage_geometry.pdf (10 pages).
+Transcript written on /tmp/tmp.6YIS5NBsAW/abs_preimage_geometry.log.
 [proxychains] DLL init: proxychains-ng 4.17
 [proxychains] DLL init: proxychains-ng 4.17
 [proxychains] DLL init: proxychains-ng 4.17
-+ xelatex -halt-on-error -interaction=nonstopmode -output-directory /tmp/tmp.AQX6jy7J5m /tmp/tmp.AQX6jy7J5m/abs_preimage_geometry.tex
++ xelatex -halt-on-error -interaction=nonstopmode -output-directory /tmp/tmp.6YIS5NBsAW /tmp/tmp.6YIS5NBsAW/abs_preimage_geometry.tex
 [proxychains] DLL init: proxychains-ng 4.17
 This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2025/dev/Debian) (preloaded format=xelatex)
  restricted \write18 enabled.
 entering extended mode
-(/tmp/tmp.AQX6jy7J5m/abs_preimage_geometry.tex
+(/tmp/tmp.6YIS5NBsAW/abs_preimage_geometry.tex
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
 (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
@@ -16240,7 +16242,7 @@ For additional information on amsmath, use the `?' option.
 (/usr/share/texlive/texmf-dist/tex/latex/caption/caption3.sty)
 (/usr/share/texlive/texmf-dist/tex/latex/caption/ltcaption.sty))
 (/usr/share/texlive/texmf-dist/tex/latex/xurl/xurl.sty)
-(/tmp/tmp.AQX6jy7J5m/abs_preimage_geometry.aux)
+(/tmp/tmp.6YIS5NBsAW/abs_preimage_geometry.aux)
 (/usr/share/texlive/texmf-dist/tex/latex/microtype/mt-LatinModernRoman.cfg)
 *geometry* driver: auto-detecting
 *geometry* detected driver: xetex
@@ -16266,24 +16268,24 @@ LaTeX Font Warning: Font shape `TU/LatinModernMono(0)/b/n' undefined
 Overfull \vbox (154.9425pt too high) has occurred while \output is active
 [7]
 [8]
-Overfull \hbox (6.4476pt too wide) in paragraph at lines 693--698
+Overfull \hbox (6.4476pt too wide) in paragraph at lines 698--703
 \TU/LatinModernRoman(0)/m/it/10.95 ing via the Neural Engineering Framework\TU/
 LatinModernRoman(0)/m/n/10.95 . GitHub location: https://github.com/nikeke/leen
 ef,
 
 [9]
-[10] (/tmp/tmp.AQX6jy7J5m/abs_preimage_geometry.aux)
+[10] (/tmp/tmp.6YIS5NBsAW/abs_preimage_geometry.aux)
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
  )
 (see the transcript file for additional information)
-Output written on /tmp/tmp.AQX6jy7J5m/abs_preimage_geometry.pdf (10 pages).
-Transcript written on /tmp/tmp.AQX6jy7J5m/abs_preimage_geometry.log.
+Output written on /tmp/tmp.6YIS5NBsAW/abs_preimage_geometry.pdf (10 pages).
+Transcript written on /tmp/tmp.6YIS5NBsAW/abs_preimage_geometry.log.
 [proxychains] DLL init: proxychains-ng 4.17
 [proxychains] DLL init: proxychains-ng 4.17
 wrote /home/amnesia/Persistent/src/leenef-abs-preimages/docs/abs_preimage_geometry.pdf
 [proxychains] DLL init: proxychains-ng 4.17
 [proxychains] DLL init: proxychains-ng 4.17
 [proxychains] DLL init: proxychains-ng 4.17
-===== 2026-05-31T15:49:16Z END 6/6 pdf-build =====
+===== 2026-05-31T16:10:30Z END 6/6 pdf-build =====
