@@ -1,6 +1,6 @@
 # Abs Folds and Preimage Geometry in Analytic NEF Layers
 
-## An adjunct note to the leenef sufficient-statistics paper series
+## An adjunct note to the SSUP sufficient-statistics paper series
 
 Nikša Bosnić<br>
 nikeke@otpisani.net[^ai]
@@ -22,10 +22,10 @@ then each sign pattern $s \in \{\pm 1\}^n$ defines a linear cell
 $a=s\odot(Wx+b)$. This creates a sharp distinction between two
 preimage mechanisms. Arbitrary activity-level sign twins are guaranteed
 only under the rank condition $\mathrm{rank}(W)=n$; in MNIST with
-$d_{\mathrm{in}}=784$, an undercomplete $n=400$ layer realizes random
-sign flips to median $2.3\times10^{-6}$ relative activity error, while a
-realistic $n=2000$ expansion layer rejects them with median error
-$6.1\times10^{-1}$. Class-level targets behave differently: in a fixed
+$d_{\mathrm{in}}=784$, an underdetermined $n=400$ sign solve realizes
+random sign flips to median $2.3\times10^{-6}$ relative activity error,
+while a realistic $n=2000$ over-complete frame rejects them with median
+error $6.1\times10^{-1}$. Class-level targets behave differently: in a fixed
 sign cell, the one-hot equation is only $10$ linear constraints in $784$
 pixel variables, yielding a high-dimensional linearized
 decoder-null-space family whose exact preimages are the sign-consistent
@@ -33,18 +33,19 @@ subset. A single prototype-center pilot found no statistically
 detectable difference among sampled, class-mean, and linearized one-hot
 center schemes. The results clarify what the `abs` activation
 contributes: a folded representation with exact sign symmetries in
-undercomplete regimes, thin folded activity manifolds in expansion
-regimes, and class-target candidate families supplied by the decoder
-rather than by arbitrary sign freedom.
+underdetermined sign solves, thin folded activity manifolds in
+over-complete frames, and class-target candidate families supplied by the
+decoder rather than by arbitrary sign freedom.
 
 ---
 
 ## §1 - Motivation and contributions
 
-The SSUP paper series treats analytic decoder fitting over fixed neural
-activities as the central primitive of leenef. This note isolates one
-geometric detail that the main papers use but do not dwell on: the
-absolute-value activation. A default static layer computes
+The SSUP paper series (Bosnić, 2026a,b,c) treats analytic decoder fitting
+over fixed neural activities as the central primitive of leenef. This
+adjunct note isolates one geometric detail that the main papers use but
+do not dwell on: the absolute-value activation. A default static layer
+computes
 
 $$
 z = Wx+b,\qquad a=|z|,\qquad \hat y = D^\top a,
@@ -62,8 +63,8 @@ This note makes four contributions.
    preimages.
 2. It shows that the tempting $2^n$ sign multiplicity is an exact
    activity-preimage multiplicity only when $W$ has full row rank. This
-   holds in an undercomplete MNIST demonstration and fails in the usual
-   overcomplete NEF regime.
+   holds in an underdetermined MNIST sign solve and fails in the usual
+   over-complete NEF frame.
 3. It shows that one-hot class targets have a large linearized candidate
    family: within a sign cell, the decoder equation has null-space
    dimension $d_{\mathrm{in}}-n_{\mathrm{classes}}$ under the usual
@@ -140,27 +141,28 @@ $s\odot a^* - b \in \mathrm{col}(W)$. Therefore:
 The MNIST check uses $d_{\mathrm{in}}=784$ and the default `abs` layer
 construction.
 
-| regime | natural-sign recon error | random-flip recon error | random flips decoding to class 3 |
-|---|---:|---:|---:|
-| $n=400\le 784$ | $1.3\times10^{-6}$ | median $2.3\times10^{-6}$ | 200 / 200 |
-| $n=2000>784$ | $1.7\times10^{-6}$ | median $6.1\times10^{-1}$ | 34 / 200 |
+| regime | sample sign err | class-mean sign err | random sign err | random signs -> class 3 |
+|---|---:|---:|---:|---:|
+| $n=400\le 784$ | $1.3\times10^{-6}$ | $1.1\times10^{-6}$ | median $2.3\times10^{-6}$ | 200 / 200 |
+| $n=2000>784$ | $1.7\times10^{-6}$ | $2.0\times10^{-1}$ | median $6.1\times10^{-1}$ | 34 / 200 |
 
-The measured ranks were $400/400$ in the undercomplete run and $784/784$
-in the expansion run. The natural-sign row uses a real sample's activity
-and is therefore realizable in both regimes. The random-flip row uses a
-class-mean activity target and is the diagnostic for arbitrary sign
-choices: undercomplete full row rank gives exact sign twins, while
-overcomplete expansion rejects nearly all arbitrary sign patterns. These
-are real-valued algebraic preimages in $\mathbb{R}^{784}$, not
-pixel-box-constrained images.
+The measured ranks were $400/400$ in the underdetermined sign solve and
+$784/784$ in the over-complete frame. The real-sample natural-sign column
+uses a real sample's activity and is therefore realizable in both regimes.
+The class-mean-sign and random-flip columns use the same class-mean
+activity target. The structured class-mean sign is closer than random
+signs in the over-complete frame, but it is still not exactly realizable;
+only the underdetermined full-row-rank case makes every sign right-hand
+side exact. These are real-valued algebraic preimages in
+$\mathbb{R}^{784}$, not pixel-box-constrained images.
 
 ![Perfect twins](figures/abs_preimages/perfect_twins.png)
 
-**Figure 1. Perfect twins in an undercomplete layer.** A real MNIST digit
-and five random sign-flipped preimages are visually unrelated. The exact
-collision and identical decode hold for the underlying unclamped
-least-squares vectors; the displayed panels are clamped to the pixel
-range only for visualization.
+**Figure 1. Perfect twins in an underdetermined sign solve.** A real
+MNIST digit and five random sign-flipped preimages are visually unrelated.
+The exact collision and identical decode hold for the underlying
+unclamped least-squares vectors; the displayed panels are clamped to the
+pixel range only for visualization.
 
 ---
 
@@ -196,7 +198,7 @@ image is the closest solution to the corresponding class mean under the
 linearized sign cell. The displayed panels are clamped for visualization.
 These candidates are not obtained by arbitrary sign flipping; they arise
 from the underdetermined decoder equation inside a local piecewise-linear
-region.
+region, not from the over-complete encoder sign solve.
 
 ![Null-space continuum](figures/abs_preimages/nullspace_continuum.png)
 
@@ -321,9 +323,12 @@ candidates are effectively tied.
 The encoder-decoder split follows the Neural Engineering Framework of
 Eliasmith and Anderson (2003), where fixed population encoders represent
 vectors and linear decoders compute functions of those represented
-vectors. The leenef paper series studies a rate-based, analytic
+vectors. The SSUP paper series studies leenef as a rate-based, analytic
 least-squares specialization of that idea rather than a spiking Nengo
-model.
+model: Part I covers supervised learning (Bosnić, 2026a), Part II covers
+continual learning (Bosnić, 2026b), and Part III covers reinforcement
+learning (Bosnić, 2026c). This adjunct note supplies a local geometric
+analysis for the `abs` activation used by the supervised-learning stack.
 
 The preimage questions connect to two older literatures. Network
 inversion and feature visualization ask what inputs realize a target
@@ -358,12 +363,13 @@ class-target problem, but the activity-preimage multiplicity has the same
 basic source: magnitude observations identify a folded quotient of the
 affine encoder space.
 
-Selected references for this context are Eliasmith and Anderson's
-*Neural Engineering* (2003) for the encoder-decoder framework; Mahendran
-and Vedaldi (2015), Simonyan, Vedaldi, and Zisserman (2014), Mordvintsev,
-Olah, and Tyka (2015), and Olah, Mordvintsev, and Schubert (2017) for
-network inversion and feature visualization; Montufar et al. (2014),
-Serra et al. (2018), and Zhang, Naitzat, and Lim (2018) for
+Selected references for this context are the SSUP papers (Bosnić,
+2026a,b,c) for the leenef sufficient-statistics program; Eliasmith and
+Anderson's *Neural Engineering* (2003) for the encoder-decoder framework;
+Mahendran and Vedaldi (2015), Simonyan, Vedaldi, and Zisserman (2014),
+Mordvintsev, Olah, and Tyka (2015), and Olah, Mordvintsev, and Schubert
+(2017) for network inversion and feature visualization; Montufar et al.
+(2014), Serra et al. (2018), and Zhang, Naitzat, and Lim (2018) for
 piecewise-linear network regions; Szegedy et al. (2014), Goodfellow,
 Shlens, and Szegedy (2015), and Nguyen, Yosinski, and Clune (2015) for
 adversarial and fooling-image phenomena; and Candes, Strohmer, and
@@ -371,6 +377,15 @@ Voroninski (2013) for a canonical phase-retrieval reference.
 
 ### References
 
+- Bosnić, N. (2026a). *Sufficient Statistics as a Universal Primitive?
+  (Part I): Supervised Learning via the Neural Engineering Framework*.
+  GitHub location: https://github.com/nikeke/leenef, `docs/SSUP-I.md`.
+- Bosnić, N. (2026b). *Sufficient Statistics as a Universal Primitive?
+  (Part II): Continual Learning Without Forgetting, by Construction*.
+  GitHub location: https://github.com/nikeke/leenef, `docs/SSUP-II.md`.
+- Bosnić, N. (2026c). *Sufficient Statistics as a Universal Primitive?
+  (Part III): Reinforcement Learning as Target Construction*.
+  GitHub location: https://github.com/nikeke/leenef, `docs/SSUP-III.md`.
 - Candes, E. J., Strohmer, T., & Voroninski, V. (2013). PhaseLift:
   Exact and stable signal recovery from magnitude measurements via
   convex programming. *Communications on Pure and Applied Mathematics*.

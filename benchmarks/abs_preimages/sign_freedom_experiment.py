@@ -27,14 +27,21 @@ def run_regime(n_neurons, xtr, ytr, xte, yte, *, c=3, n_flip_trials=200, seed=0)
     rank = int(torch.linalg.matrix_rank(W).item())
 
     D = layer.decoders
-    a_star = layer.encode(xtr[ytr == c]).mean(0)  # class-mean activity target
+    class_x = xtr[ytr == c]
+    a_star = layer.encode(class_x).mean(0)  # class-mean activity target
     Wpinv = torch.linalg.pinv(W)
 
     # a single real sample gives an exactly-realizable "natural" sign baseline
-    x0 = xtr[ytr == c][0]
+    x0 = class_x[0]
     a_real = (W @ x0 + b).abs()
     s_nat = torch.sign(W @ x0 + b)
     s_nat[s_nat == 0] = 1.0
+
+    # Same target as the random flips, but with the sign pattern of the
+    # class-mean input rather than an independent random sign vector.
+    x_mean = class_x.mean(0)
+    s_mean = torch.sign(W @ x_mean + b)
+    s_mean[s_mean == 0] = 1.0
 
     def recon(target_act, s):
         x = Wpinv @ (s * target_act - b)
@@ -43,6 +50,7 @@ def run_regime(n_neurons, xtr, ytr, xte, yte, *, c=3, n_flip_trials=200, seed=0)
         return x, rel_err, int((a_hat @ D).argmax())
 
     _, err_nat, _ = recon(a_real, s_nat)
+    _, err_mean_sign, cls_mean_sign = recon(a_star, s_mean)
 
     rng = torch.Generator().manual_seed(seed + 1)
     errs, correct = [], 0
@@ -57,6 +65,7 @@ def run_regime(n_neurons, xtr, ytr, xte, yte, *, c=3, n_flip_trials=200, seed=0)
     print(f"  baseline test acc                   : {acc:.4f}")
     print(f"  rank(W)                             : {rank}/{min(n_neurons, d_in)}")
     print(f"  natural-sign recon err (real sample): {err_nat:.2e}")
+    print(f"  class-mean-sign err (class mean)    : {err_mean_sign:.2e}  class={cls_mean_sign}")
     print(
         f"  random-flip recon err (class mean)  : median={errs.median():.2e}  max={errs.max():.2e}"
     )
@@ -65,8 +74,8 @@ def run_regime(n_neurons, xtr, ytr, xte, yte, *, c=3, n_flip_trials=200, seed=0)
 
 def main():
     xtr, ytr, xte, yte = load_mnist_subset()
-    run_regime(400, xtr, ytr, xte, yte)  # underdetermined: all flips realizable
-    run_regime(2000, xtr, ytr, xte, yte)  # overdetermined: only natural signs
+    run_regime(400, xtr, ytr, xte, yte)  # underdetermined sign solve
+    run_regime(2000, xtr, ytr, xte, yte)  # overdetermined sign solve
 
 
 if __name__ == "__main__":

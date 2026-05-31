@@ -33,6 +33,8 @@ reinforcement-learning papers are [`docs/SSUP-I.md`](docs/SSUP-I.md),
 source for the repository's present claims, numbers, and caveats.
 A standalone adjunct paper, [`docs/activation_spectra.md`](docs/activation_spectra.md),
 develops the kernel/Hermite-spectrum view of the pointwise activation.
+Another adjunct paper, [`docs/abs_preimage_geometry.md`](docs/abs_preimage_geometry.md),
+analyzes the preimage geometry induced by the default `abs` activation.
 
 SSUP-I abstract:
 
@@ -226,6 +228,7 @@ bash docs/build_ssup_pdf.sh docs/SSUP-I.md docs/SSUP-I.pdf
 bash docs/build_ssup_pdf.sh docs/SSUP-II.md docs/SSUP-II.pdf
 bash docs/build_ssup_pdf.sh docs/SSUP-III.md docs/SSUP-III.pdf
 bash docs/build_ssup_pdf.sh docs/activation_spectra.md docs/activation_spectra.pdf
+bash docs/build_ssup_pdf.sh docs/abs_preimage_geometry.md docs/abs_preimage_geometry.pdf
 ```
 
 All paper-grade result rows carry a code identity, dataset hashes, full
