@@ -420,7 +420,10 @@ OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 \
 Reusable tensor helpers live in `src/leenef/preimages.py`; benchmark
 drivers and the prototype pilot live in `benchmarks/abs_preimages/`;
 figures live in `docs/figures/abs_preimages/`; provenance-bearing JSON
-results live in `results/abs_preimages/`.
+results live in `results/abs_preimages/`. Each result JSON records the
+source code identity, thread/runtime metadata, MNIST raw and processed
+hashes, the deterministic training-subset hash, script configuration,
+diagnostics, plotted arrays, and generated figure paths.
 
 ---
 
