@@ -1407,7 +1407,7 @@ demonstrated the same workflow.
 
 ## CA — activation-kernel theory (small-nonlinearity ablation)
 
-Companion study to `docs/activation_kernel_theory.md`: frames leenef as
+Companion study to `docs/activation_spectra.md`: frames leenef as
 explicit random-feature ridge regression whose dual kernel is the
 Mehler/Hermite series $k_G(\rho)=\sum_k (a_k^2/k!)\rho^k$ of the scalar
 activation $G$, then tests the resulting predictions.  Three experiments,

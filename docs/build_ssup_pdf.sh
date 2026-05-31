@@ -9,7 +9,7 @@ set -euo pipefail
 #   bash docs/build_ssup_pdf.sh docs/SSUP-I.md
 #   bash docs/build_ssup_pdf.sh --verbose docs/SSUP-II.md docs/SSUP-II.pdf
 #   bash docs/build_ssup_pdf.sh --regen-figures docs/SSUP-I.md
-#   bash docs/build_ssup_pdf.sh --regen-figures docs/activation_kernel_theory.md
+#   bash docs/build_ssup_pdf.sh --regen-figures docs/activation_spectra.md
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DOC=""
@@ -127,8 +127,8 @@ if [[ "$regen_figures" -eq 1 ]]; then
         SSUP-I.md)
             "$PYTHON_BIN" "$ROOT/docs/generate_paper_i_figures.py"
             ;;
-        activation_kernel_theory.md)
-            "$PYTHON_BIN" "$ROOT/docs/generate_activation_kernel_figures.py"
+        activation_spectra.md)
+            "$PYTHON_BIN" "$ROOT/docs/generate_activation_spectra_figures.py"
             ;;
         *)
             echo "error: --regen-figures is not defined for $(basename "$DOC")" >&2

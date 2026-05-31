@@ -2,9 +2,14 @@
 
 ## A kernel view of nonlinearity in leenef
 
-Nilesh Tripuraneni
+Nikša Bosnić
+nikeke@otpisani.net[^ai]
 
-Adjunct paper to the SSUP series
+[^ai]: GitHub Copilot (powered by Anthropic Claude Opus and OpenAI
+GPT large language models) was used extensively during code
+development, drafting, editing, and analysis for this work.  All
+final content, judgments, and errors remain the author's
+responsibility.
 
 ---
 
@@ -25,7 +30,8 @@ nonlinear spectrum up to affine slack, so they tie in the analytic solve.
 Third, activations that change the spectrum -- polynomial, folded,
 Fourier/RBF, smooth-gate, and digital activations -- induce different
 function-space priors.  We validate the mechanism with a Hermite-mode
-recovery probe, a kink-angle sweep within $(\pi/4,5\pi/4)$, and
+recovery probe, a kink-angle sweep from one-quarter turn to five-quarter
+turns, and
 multi-seed MNIST, Fashion-MNIST, and CIFAR-10 activation panels.  The
 result is a practical rule: `abs`/ReLU-class activations are robust
 defaults, RBF-family activations can be stronger on the hardest tested task
@@ -36,6 +42,13 @@ method never differentiates through $G$.
 ---
 
 ## 1. Introduction
+
+The SSUP paper series (Bosnić, 2026a,b,c) studies leenef as a fixed-feature
+analytic-solve system for supervised learning, continual learning, and
+reinforcement learning.  This adjunct paper supplies the activation-level
+kernel theory behind that series: why a nonlinearity is needed at all, why
+`abs` and ReLU-class activations behave alike, and when other small
+nonlinearities change the induced function space.
 
 leenef uses fixed nonlinear features and fits only the decoder by a
 regularized least-squares solve.  That makes the pointwise activation
@@ -89,7 +102,9 @@ $\{x \mapsto G(z_i)\}_{i=1}^n$ (shrunk by $\alpha_{\mathrm{eff}}$).  So the rele
 object is the **hypothesis class**
 
 $$
-\mathcal{F}_G = \Big\{\, x \mapsto \textstyle\sum_i D_i\, G(g_i e_i^\top x + b_i) \;:\; D \in \mathbb{R}^{n\times d_{\mathrm{out}}} \,\Big\}.
+\mathcal{F}_G =
+\{x \mapsto \sum_{i=1}^n D_i G(g_i e_i^\top x + b_i)
+: D \in \mathbb{R}^{n\times d_{\mathrm{out}}}\}.
 $$
 
 Two activations that induce the same $\mathcal{F}_G$ (up to a bounded,
@@ -146,8 +161,9 @@ $$
 Mehler's formula then gives the dual kernel **exactly** as
 
 $$
-\boxed{\,k_G(\rho) = \mathbb{E}[G(U)G(V)] = \sum_{k\ge 0} \frac{a_k^2}{k!}\,\rho^{\,k}\,}
-\qquad (U,V)\ \text{std. normal, corr.}\ \rho .
+k_G(\rho) = \mathbb{E}[G(U)G(V)]
+= \sum_{k\ge 0} \frac{a_k^2}{k!}\rho^k,
+\qquad (U,V)\ \text{standard normal with correlation}\ \rho .
 $$
 
 The kernel's entire content is the **squared Hermite spectrum**
@@ -221,18 +237,18 @@ $$
 so the decoded function splits as
 
 $$
-f_D(x) = \underbrace{c_1 \sum_i D_i\,(g_i e_i^\top x + b_i)}_{\text{affine in } x,\ \dim \le d_{\mathrm{in}}+1} \;+\; \underbrace{c_2 \sum_i D_i\,|z_i|}_{=\,c_2\,\cdot\,\text{the } \texttt{abs}\text{ decode}} .
+f_D(x) = \underbrace{c_1 \sum_i D_i\,(g_i e_i^\top x + b_i)}_{\text{affine in } x,\ \dim \le d_{\mathrm{in}}+1} \;+\; \underbrace{c_2 \sum_i D_i\,|z_i|}_{=\,c_2\,\cdot\,\text{the } \mathrm{abs}\ \text{decode}} .
 $$
 
 Hence
 
 $$
-\mathcal{F}_{\text{bent}} \subseteq \mathrm{Affine}(x) + \mathcal{F}_{\texttt{abs}},
+\mathcal{F}_{\mathrm{bent}} \subseteq \mathrm{Affine}(x) + \mathcal{F}_{\mathrm{abs}},
 $$
 
 and because `abs` features with biases are universal (they already
 contain affine maps in their closure), the *closures* of
-$\mathcal{F}_{\text{bent}}$ and $\mathcal{F}_{\texttt{abs}}$ coincide in
+$\mathcal{F}_{\mathrm{bent}}$ and $\mathcal{F}_{\mathrm{abs}}$ coincide in
 the $n\to\infty$ limit.  At finite $n$ the two are not literally the same
 class -- the **single shared decoder $D$** must simultaneously serve the
 $c_2\,|z|$ part and the $c_1$ affine part -- but they differ only by a
@@ -240,11 +256,11 @@ cheap $(d_{\mathrm{in}}+1)$-dimensional affine slack that does not grow
 with $n$.  Spectrally (§3.1) this is the statement that
 
 $$
-a_k(\text{bent}) = c_2\, a_k(\texttt{abs}) \quad (k\ge 2), \qquad
-a_1(\text{bent}) = c_1 + c_2\,a_1(\texttt{abs}),
+a_k(\mathrm{bent}) = c_2\, a_k(\mathrm{abs}) \quad (k\ge 2), \qquad
+a_1(\mathrm{bent}) = c_1 + c_2\,a_1(\mathrm{abs}),
 $$
 
-so $k_{\text{bent}}(\rho) - c_2^2\,k_{\texttt{abs}}(\rho)$ is a degree-$\le 1$
+so $k_{\mathrm{bent}}(\rho) - c_2^2\,k_{\mathrm{abs}}(\rho)$ is a degree-$\le 1$
 polynomial in $\rho$: the two kernels share their entire nonlinear part
 up to a constant factor and a linear term.
 
@@ -279,8 +295,8 @@ left arm have slope $b=\tan(\tfrac\pi4+\theta)$, so $\theta$ is literally
 the angle between the two arms.  Then
 
 $$
-\theta=\tfrac\pi2 \to \texttt{abs},\qquad
-\theta=\tfrac{3\pi}4 \to \texttt{ReLU},\qquad
+\theta=\tfrac\pi2 \to \mathrm{abs},\qquad
+\theta=\tfrac{3\pi}4 \to \mathrm{ReLU},\qquad
 \theta=\pi \to \text{identity (linear collapse)},
 $$
 
@@ -419,7 +435,10 @@ result is **how cheaply it is removed.**  Three observations:
    which helps explain why they already score at the top on CIFAR-10 (§9.3).
 2. **The minimal symmetry-breaking activation is a phase, not a more
    complex function.**  Replace $\cos z$ by
-   $$\cos z+\sin z=\sqrt2\,\cos\!\big(z-\tfrac{\pi}{4}\big)\quad(\texttt{cos\_sin}).$$
+   $$
+   \cos z+\sin z=\sqrt{2}\cos\left(z-\frac{\pi}{4}\right).
+   $$
+   This activation is called `cos_sin`.
    This is a fixed $\pi/4$ phase shift — no qualitatively more complex
    activation, just a reflection-symmetry-breaking offset — and it is now
    neither even nor odd, so it carries **every** Hermite mode.  The probe
@@ -476,7 +495,7 @@ relatives of the RBF pair:
   modes of a monotone quantizer.  By linearity of the Hermite expansion this
   is not a mysterious new spectrum; it is a one-channel fusion of two simple
   spectra.
-- **`box` $=\mathbf 1[\,|z|<c\,]$** — the indicator / piecewise-constant
+- **`box` $=\mathbf{1}[\,|z|<c\,]$** — the indicator / piecewise-constant
   version of the `gauss` bump: with data-driven biases each neuron is a
   **hard receptive field** that fires iff the projection lands within $c$
   of its center.  Even kernel, with relatively more high-even energy than
@@ -653,7 +672,7 @@ Three signatures, all predicted:
    empirical fingerprint of the §4 collapse.
 
 The sweep at $\theta=\tfrac\pi2$ reproduces the `abs` cell
-($0.9704$ MNIST) and at $\theta=\tfrac{3\pi}4$ the `relu` cell to within
+(0.9704 MNIST) and at $\theta=\tfrac{3\pi}4$ the `relu` cell to within
 scale-invariance, validating the shared-feature recombination used to
 compute it.
 
@@ -701,35 +720,35 @@ Every §8 prediction holds:
    pushes the kernel toward the collapse mode — the smooth-activation cost
    the theory anticipates.
 3. **`tanh` trails the kink family but stays well clear of collapse**
-   ($0.9677$/$0.8711$/$0.4860$, i.e. $-0.3\%$/$-0.7\%$/$-0.9\%$ vs. `abs`).
+   (0.9677 / 0.8711 / 0.4860, i.e. -0.3% / -0.7% / -0.9% vs. `abs`).
    As an odd activation it discards the even ($k=2$) magnitude mode — the
    dominant discriminative mode for these datasets — so it cannot match
    the kink family; the gap widens on the harder CIFAR-10, where even
    modes matter most.  But it is nowhere near the linear-readout floor
-   ($0.39$ on CIFAR): its surviving odd $k\ge3$ modes (notably the cubic
+   (0.39 on CIFAR): its surviving odd $k\ge3$ modes (notably the cubic
    the Hermite test isolates) still carry real signal.  `tanh` is weaker,
    not broken -- exactly the §6 picture.
 4. **`double_fold` is a strong fold on the digit/garment
-   tasks** ($0.9710$/$0.8780$): the extra fold injects more even-mode
+   tasks** (0.9710 / 0.8780): the extra fold injects more even-mode
    structure, giving a small MNIST edge and a Fashion-MNIST tie within
    standard error.
 5. **`square` is competitive and the strongest fold-family activation on
-   CIFAR-10** ($0.4989$): a pure degree-2 polynomial kernel already
+   CIFAR-10** (0.4989): a pure degree-2 polynomial kernel already
    suffices, and helps most on the hardest task.
-6. **`sqrt_abs` trails on CIFAR-10** ($0.4798$): the $p<1$ cusp gives a
+6. **`sqrt_abs` trails on CIFAR-10** (0.4798): the $p<1$ cusp gives a
    slowly decaying high-$k$ tail (a rougher kernel), which costs the most
    where the data are hardest.
 7. **The RBF pair `cos`/`gauss` is the most powerful — on the hardest
    task, and when the bandwidth is right.** At the default gain they sit
    just below `abs` on MNIST/Fashion but are the **best activations
-   overall on CIFAR-10** ($0.5046$/$0.5062$ vs. `abs` $0.4945$, a
+   overall on CIFAR-10** (0.5046 / 0.5062 vs. `abs` 0.4945, a
    $5$–$9\,$SE margin): their dual kernel is an RBF-like projection kernel
    with an *infinite* $k\ge2$ spectrum.  They are **gain-sensitive**,
    exactly as §7 warns -- the per-neuron gain *is* the RBF bandwidth.  At
    tiny gain $U(0.05,0.2)$ the curvature barely engages: $\cos(z)\approx
    1-\tfrac{z^2}{2}$ with a quadratic signal of variance $\propto g^4$
    that trace-scaled ridge swamps, giving a signal-starved underfit
-   ($0.79$/$0.72$/$0.31$) — a different failure from the linear collapse.
+   (0.79 / 0.72 / 0.31) -- a different failure from the linear collapse.
    At adequate/wide gain they fully recover and keep the CIFAR edge.
    `abs`, by contrast, is gain-robust.
 
@@ -772,7 +791,7 @@ The readings:
 
 1. **`cos_sin` $\approx$ `cos`.** The parity-broken sinusoid tracks plain
    `cos` to within $\sim0.1\%$ on every dataset, and recovers the same
-   CIFAR-10 edge at wide gain ($0.4996$).  Restoring the odd modes is a
+   CIFAR-10 edge at wide gain (0.4996).  Restoring the odd modes is a
    clean *spectral* fix (§9.1) but **not** an accuracy win at matched gain:
    `cos`'s even $k=2$ mode already carries the signal these targets use, so
    the extra odd content neither helps nor hurts.  It does inherit the RBF
@@ -780,23 +799,23 @@ The readings:
 2. **`gelu`/`silu` tie `abs` and need no bandwidth.** Both sit within
    $\sim0.1$–$0.6\%$ of `abs` on all three datasets with no gain tuning —
    the gain-robust relu class, confirmed.  But they do **not** reach the
-   RBF CIFAR edge ($0.4984$/$0.4945$ vs. `gauss` $0.5062$): linear+even
+   RBF CIFAR edge (0.4984 / 0.4945 vs. `gauss` 0.5062): linear+even
    spectrum, no odd $k\ge3$.  They are the best *smooth, gain-robust*
    default candidates, not a stronger kernel.
 3. **`square_wave` is the most gain-sensitive activation tested.** At the
    default gain the cosine argument rarely crosses a sign change within the
-   active range, so the digital cosine collapses ($0.36$ CIFAR); at wide
-   gain it recovers to box-level ($0.45$).  The digital cosine inherits and
+   active range, so the digital cosine collapses (0.36 CIFAR); at wide
+   gain it recovers to box-level (0.45).  The digital cosine inherits and
    *amplifies* `cos`'s bandwidth dependence.
-4. **`box` is a usable but sub-`abs` hard receptive field** ($0.94$/$0.85$/
-   $0.43$, improving modestly at wide gain) — admissible and respectable,
+4. **`box` is a usable but sub-`abs` hard receptive field** (0.94 / 0.85 /
+   0.43, improving modestly at wide gain) -- admissible and respectable,
    not competitive with `abs`.
 5. **`floor_wave` is the best digital diagnostic but still sub-`abs`.** The
    integer-aligned wave+floor fusion improves sharply over `square_wave` and
    beats `box` on MNIST/Fashion while tying it on CIFAR at the default gain
-   ($0.4561$ vs. $0.4560$).  But it remains below `abs` and the RBF cells, and
-   it gets worse at wide gain ($0.9605\to0.9510$ MNIST,
-   $0.4561\to0.4407$ CIFAR).  The floor term provides a robust linear
+   (0.4561 vs. 0.4560).  But it remains below `abs` and the RBF cells, and
+   it gets worse at wide gain (0.9605 to 0.9510 MNIST,
+   0.4561 to 0.4407 CIFAR).  The floor term provides a robust linear
    component, while the useful oscillatory energy is too high-order and
    bandwidth-sensitive to make it a stronger default.
 
@@ -836,7 +855,7 @@ below the gain-robust `abs`/smooth-gate family.
 6. **Even-only is a parity artifact, not a complexity wall.** `cos`/`gauss`
    (and the digital `square_wave`/`box`) are even, so at zero bias they drop
    all odd Hermite modes.  The fix is *broken symmetry*, not added
-   complexity: a phase shift ($\texttt{cos\_sin}=\cos+\sin$, or a random RFF
+   complexity: a phase shift (`cos_sin` equals $\cos+\sin$, or a random RFF
    phase produces a stationary radial kernel -- the Gaussian RBF for Gaussian
    frequencies) restores the full spectrum, and the nonzero **data-driven
    bias the pipeline already uses** restores at least the dominant $k=1$ odd
@@ -912,12 +931,21 @@ the origin-angle panels are in
 Hermite-mode probes are in
 `results/sl_clean/hermite_mode_recovery.json` and
 `results/sl_clean/hermite_mode_recovery_bias2.json`.  The plotted figures
-are generated by `docs/generate_activation_kernel_figures.py`.
+are generated by `docs/generate_activation_spectra_figures.py`.
 
 ---
 
 ## Literature
 
+- Bosnić, N. (2026a). *Sufficient Statistics as a Universal Primitive?
+  (Part I): Supervised Learning via the Neural Engineering Framework*.
+  GitHub: <https://github.com/nikeke/leenef/blob/main/docs/SSUP-I.md>.
+- Bosnić, N. (2026b). *Sufficient Statistics as a Universal Primitive?
+  (Part II): Continual Learning*.  GitHub:
+  <https://github.com/nikeke/leenef/blob/main/docs/SSUP-II.md>.
+- Bosnić, N. (2026c). *Sufficient Statistics as a Universal Primitive?
+  (Part III): Reinforcement Learning*.  GitHub:
+  <https://github.com/nikeke/leenef/blob/main/docs/SSUP-III.md>.
 - Mehler, F. G. (1866). Ueber die Entwicklung einer Function von beliebig
   vielen Variabeln nach Laplaceschen Functionen hoeherer Ordnung.
   *Journal fuer die reine und angewandte Mathematik*.

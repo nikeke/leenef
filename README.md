@@ -31,6 +31,8 @@ reinforcement-learning papers are [`docs/SSUP-I.md`](docs/SSUP-I.md),
 [`docs/SSUP-II.md`](docs/SSUP-II.md), and
 [`docs/SSUP-III.md`](docs/SSUP-III.md).  They are the authoritative
 source for the repository's present claims, numbers, and caveats.
+A standalone adjunct paper, [`docs/activation_spectra.md`](docs/activation_spectra.md),
+develops the kernel/Hermite-spectrum view of the pointwise activation.
 
 Paper I abstract:
 
@@ -219,10 +221,11 @@ python3 docs/generate_paper_i_figures.py
 # Regenerate the Paper-III figures
 python3 docs/generate_paper_iii_figures.py
 
-# Build Paper I / Paper II / Paper III PDFs
+# Build Paper I / Paper II / Paper III and adjunct PDFs
 bash docs/build_ssup_pdf.sh docs/SSUP-I.md docs/SSUP-I.pdf
 bash docs/build_ssup_pdf.sh docs/SSUP-II.md docs/SSUP-II.pdf
 bash docs/build_ssup_pdf.sh docs/SSUP-III.md docs/SSUP-III.pdf
+bash docs/build_ssup_pdf.sh docs/activation_spectra.md docs/activation_spectra.pdf
 ```
 
 All paper-grade result rows carry a code identity, dataset hashes, full

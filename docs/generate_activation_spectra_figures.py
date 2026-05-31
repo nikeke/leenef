@@ -1,4 +1,4 @@
-"""Generate figures for docs/activation_kernel_theory.md.
+"""Generate figures for docs/activation_spectra.md.
 
 Reads the local worktree's `results/sl_clean/*.json` artifacts and writes PNGs
 to `docs/figures/`, matching the paper-series Markdown convention:
