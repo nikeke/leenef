@@ -2,7 +2,7 @@
 
 ## A kernel view of nonlinearity in leenef
 
-Nikša Bosnić
+Nikša Bosnić<br>
 nikeke@otpisani.net[^ai]
 
 [^ai]: GitHub Copilot (powered by Anthropic Claude Opus and OpenAI
@@ -22,20 +22,23 @@ the infinite-feature limit, the leenef decoder solve is kernel ridge
 regression with a dual activation kernel
 $k_G(x,y)=\mathbb{E}[G(z_x)G(z_y)]$.  In the Gaussian encoder model,
 Mehler's formula expands this kernel as a power series whose coefficients
-are the squared Hermite coefficients of $G$.  The spectrum explains three
+are the Mehler coefficients $\gamma_k=a_k^2/k!$ derived from the Hermite
+coefficients of $G$.  The spectrum explains three
 empirical facts that otherwise look unrelated.  First, affine activations
 collapse to a linear kernel.  Second, all exact single-kink activations
 (`abs`, ReLU, leaky-ReLU, and monotone bent lines) share the same
-nonlinear spectrum up to affine slack, so they tie in the analytic solve.
+nonlinear spectrum up to affine slack, so they are asymptotically the same
+nonlinear hypothesis family; finite-width ridge can still separate small
+nonlinear coefficients.
 Third, activations that change the spectrum -- polynomial, folded,
-Fourier/RBF, smooth-gate, and digital activations -- induce different
+Fourier/RBF-like, smooth-gate, and digital activations -- induce different
 function-space priors.  We validate the mechanism with a Hermite-mode
-recovery probe, a kink-angle sweep from one-quarter turn to five-quarter
-turns, and
+recovery probe, a kink-angle sweep over
+$\theta\in(\pi/4,5\pi/4)$, and
 multi-seed MNIST, Fashion-MNIST, and CIFAR-10 activation panels.  The
 result is a practical rule: `abs`/ReLU-class activations are robust
-defaults, RBF-family activations can be stronger on the hardest tested task
-when bandwidth is tuned,
+defaults, RBF-like projection activations can be stronger on the hardest
+tested raw-pixel mechanism task when bandwidth is tuned,
 and nondifferentiable digital activations are admissible because the
 method never differentiates through $G$.
 
@@ -60,7 +63,7 @@ than `abs`?**
 The answer is kernel-theoretic.  leenef is explicit random-feature ridge
 regression, so *the activation is a choice of kernel*.  Everything else
 -- the linear-collapse argument, the `abs`/ReLU equivalence, the weakness
-of `tanh`/`step`, the gain sensitivity of Fourier/RBF activations, and
+of `tanh`/`step`, the gain sensitivity of Fourier/RBF-like activations, and
 the possibility of zero-gradient digital activations -- follows from one
 object, the **dual activation kernel**.
 
@@ -75,7 +78,7 @@ This paper contributes four concrete pieces:
    sweep, and real-task activation panels -- that test the spectral
    predictions directly;
 4. a practical activation taxonomy: robust kink/smooth-gate defaults,
-   stronger but bandwidth-sensitive RBF-family activations, and
+   stronger but bandwidth-sensitive RBF-like activations, and
    admissible but not dominant digital activations.
 
 ---
@@ -123,9 +126,14 @@ $$
 k_G(x_j, x_k) := \mathbb{E}_{(e,b)\sim P}\big[\, G(g e^\top x_j + b)\, G(g e^\top x_k + b)\,\big]
 $$
 
-by the law of large numbers (this is the random-features → kernel limit
-of Rahimi & Recht, 2007; the network-as-kernel limit of Neal, 1996 and
-Williams, 1997).  Ridge regression on the explicit features converges to
+by the law of large numbers.  This is the random-features-to-kernel limit
+of Rahimi & Recht (2007); with regularization, convergence of explicit
+random-feature ridge to kernel ridge is the regularized random-feature
+statement studied by Bach (2017) and Rudi & Rosasco (2017).  The related
+but distinct infinite-width Gaussian-process limits of Neal (1996) and
+Williams (1997) describe priors over random networks rather than this
+explicit-feature ridge solve.  With the corresponding regularization
+scaling, ridge regression on the explicit features converges to
 **kernel ridge regression with kernel $k_G$**.  Hence:
 
 > **The activation $G$ selects the kernel $k_G$.**  Choosing an activation
@@ -192,10 +200,10 @@ $\gamma_k=a_k^2/k!$.  Read off the consequences:
 encoders (each $z_i$ then jointly Gaussian).  leenef's default
 `hypersphere` encoders put $e_i$ on the unit sphere, for which the exact
 dual kernel is the **Gegenbauer/spherical-harmonic** series on
-$S^{d_{\mathrm{in}}-1}$; in high dimension this converges to the Hermite
-series above (a single spherical marginal is asymptotically Gaussian), so
-we use the Hermite spectrum as the clean spectral proxy and validate it
-directly on Gaussian data in §8.
+$S^{d_{\mathrm{in}}-1}$ (Schoenberg, 1942); in high dimension this converges
+to the Hermite series above (a single spherical marginal is asymptotically
+Gaussian), so we use the Hermite spectrum as the clean spectral proxy and
+validate it directly on Gaussian data in §9.1.
 
 ---
 
@@ -276,7 +284,8 @@ up to a constant factor and a linear term.
   $G(t)=\tfrac34 t + \tfrac14|t|$ -- is a *monotone* relative of `abs`
   that merely changes the angle at the origin.  It carries
   $c_2=\tfrac14$ of `abs`'s nonlinear energy.  Prediction: **ties `abs`/
-  ReLU** to within the bounded affine slack.
+  ReLU asymptotically**, with a possible finite-width ridge cost when the
+  nonlinear coefficient is small.
 - **The slope is irrelevant (as long as there is a kink).**  Any two
   positive slopes work; the nonlinear energy is $((m_+-m_-)/2)^2$.  As
   $m_-\to m_+$ the kink vanishes, $c_2\to 0$, and the activation
@@ -307,7 +316,8 @@ vanishes **only** at $b=1$, i.e. $\theta=\pi$.  Every angle reuses the
 *same* features $z$ and $|z|$; only the scalar mix $(c_1,c_2)$ changes.
 
 > **Prediction.**  Sweeping $\theta$ within $(\tfrac\pi4,\tfrac{5\pi}4)$,
-> test accuracy is **flat** (all angles share `abs`'s $k\ge2$ spectrum)
+> test accuracy is **approximately flat** (all non-linear angles share
+> `abs`'s $k\ge2$ spectrum up to scale)
 > except for a **collapse dip at exactly $\theta=\pi$**.  Because the
 > trace-scaled $\alpha$ shrinks a vanishingly small $c_2$, the dip has a
 > finite width set by $\alpha/n$ rather than being a measure-zero spike:
@@ -323,9 +333,10 @@ This is verified in §9.2.
 Both discard magnitude, which is where the even ($k\ge2$) Hermite energy
 of `abs` lives.
 
-- **`step`** (our $G=\mathbf{1}[t>0]$, the $0/1$ Heaviside) has
+- **`step`** (our $G=\Theta(t)=\mathbf{1}[t>0]$, with $\Theta$ the $0/1$
+  Heaviside) has
   $a_0=\tfrac12$, $a_1=\tfrac{1}{\sqrt{2\pi}}$, and — because
-  $\Theta-\tfrac12$ is *odd* — all **even** modes $a_2=a_4=\dots=0$.
+  $\Theta-\tfrac12$ is *odd* -- all **even** modes $a_2=a_4=\dots=0$.
   Its dual kernel is the order-0 arc-cosine kernel
   $\mathbb{E}[\Theta(u)\Theta(v)] = \tfrac12 - \tfrac{\theta}{2\pi}$
   (Cho & Saul, 2009; the $\pm1$ sign version gives $1-\theta/\pi$), a
@@ -359,15 +370,20 @@ the constant/linear modes.  Candidates, with their kernels:
 - **Multi-fold $\big||t|-c\big|$ (`double_fold`).**  Two kinks per
   neuron give a richer even spectrum than a single `abs` fold at the same
   width.  A cheap way to add nonlinear modes per neuron.
-- **`cos` (random Fourier feature).**  With Gaussian-like encoders and
+- **`cos` (RFF-like projection feature).**  With Gaussian-like encoders and
   gain setting the bandwidth, a population of $\cos(g e^\top x + b)$
-  features approximates a **stationary (RBF/Gaussian) kernel**
-  (Rahimi & Recht, 2007): $k(x,y)\approx \exp(-\sigma^2\|x-y\|^2/2)$ with
-  $\sigma\propto$ gain.  Universal in principle — but two caveats matter
-  in leenef.  *(a) Bandwidth (gain) sensitivity:* too small a gain leaves
+  features is related to random Fourier features.  By Bochner's theorem,
+  the textbook Rahimi-Recht construction uses frequencies drawn from the
+  spectral measure of a stationary kernel plus an independent random
+  phase; Gaussian frequencies give the exact Gaussian-RBF kernel
+  $k(x,y)=\exp(-\sigma^2\|x-y\|^2/2)$ with $\sigma\propto$ gain (Rahimi &
+  Recht, 2007).  The deployed leenef row should instead be read as an
+  RBF-like projection kernel.  Universal in principle under the right
+  frequency/phase prior -- but two caveats matter in leenef.  *(a) Bandwidth
+  (gain) sensitivity:* too small a gain leaves
   $\cos$ nearly constant (collapse), too large a gain decorrelates every
   pair (white kernel).  *(b) leenef is not the textbook RFF construction:*
-  the clean Rahimi–Recht estimator uses Gaussian weights with a **random
+  the clean Rahimi-Recht estimator uses Gaussian weights with a **random
   phase** $b\sim U(0,2\pi)$ and no data term; leenef's data-driven bias
   makes $z = g\,e^\top(x-c)$, a *centered* feature, not a random-phase
   one.  A revealing consequence of the small-gain limit: since
@@ -378,17 +394,18 @@ the constant/linear modes.  Candidates, with their kernels:
   panel separates these regimes.
 - **`gauss` bump $\exp(-t^2/2)$.**  With data-driven biases each neuron
   is a soft RBF *receptive field* centered on a training sample along
-  $e_i$.  Also an RBF-family kernel; bandwidth set by gain.
+  $e_i$.  This is an RBF-like receptive-field kernel; bandwidth is set by
+  gain.
 
-**The bandwidth point is the whole game for the RBF family.**  In leenef
-the gain $g_i$ is exactly the kernel bandwidth: $z_i = g_i e_i^\top x + b_i$,
-so the per-neuron gain spread $U(g_{\mathrm{lo}},g_{\mathrm{hi}})$ is a
-multiscale RBF — a built-in bandwidth mixture.  This is why the gain
-range matters far more for `cos`/`gauss` than for the kink family
-for a kink, the degree-one homogeneity means changing gain mostly rescales
-feature magnitudes and trace-scaled $\alpha$ largely absorbs that scale.  For
-an RBF feature, gain *moves energy between Hermite modes* and so reshapes the
-kernel.
+**The bandwidth point is the whole game for the RBF-like family.**  In leenef
+the gain $g_i$ is exactly the kernel bandwidth:
+$z_i = g_i e_i^\top x + b_i$, so the per-neuron gain spread
+$U(g_{\mathrm{lo}},g_{\mathrm{hi}})$ is a multiscale projection-kernel
+bandwidth mixture.  This is why the gain range matters far more for
+`cos`/`gauss` than for the kink family: for a kink, the degree-one
+homogeneity means changing gain mostly rescales feature magnitudes and
+trace-scaled $\alpha$ largely absorbs that scale.  For an RBF feature, gain
+*moves energy between Hermite modes* and so reshapes the kernel.
 
 ### 7.1 The parity axis: a full-spectrum kernel needs broken symmetry
 
@@ -410,21 +427,22 @@ $k=0,2,4,\dots$.  Is that a problem?  Split the missing odd modes:
 So the "even-only limitation" is real in principle.  The instructive
 result is **how cheaply it is removed.**  Three observations:
 
-1. **Any nonzero bias breaks the exact even/odd selection rule.**  With a
-   per-neuron bias the population coefficient is no longer the zero-bias
+1. **Generic, neuron-varying bias breaks the exact even/odd selection rule.**
+   With a per-neuron bias the population coefficient is no longer the zero-bias
    $a_k$ but the **bias-averaged shifted** coefficient
    $\bar a_k^2=\mathbb{E}_b\!\big[a_k(b)^2\big]$ with
-   $a_k(b)=\mathbb{E}_z[G(z+b)\,\mathrm{he}_k(z)]$.  For an even *non-poly­nomial*
+   $a_k(b)=\mathbb{E}_z[G(z+b)\,\mathrm{He}_k(z)]$.  For an even *non-polynomial*
    $G$ a shift injects odd coefficients: by Stein's lemma
-   $a_1(b)=\mathbb{E}[G'(z+b)]$, and $G'$ is odd for even $G$, so $a_1(b)\neq0$
-   once $b\neq0$ — concretely $a_1(b)=-e^{-1/2}\sin b$ for $\cos$ and
+   $a_1(b)=\mathbb{E}[G'(z+b)]$, and $G'$ is odd for even $G$, so
+   $a_1(b)$ is nonzero for generic shifts away from symmetry points --
+   concretely $a_1(b)=-e^{-1/2}\sin b$ for $\cos$ and
    $a_1(b)=-\tfrac{b}{2\sqrt2}e^{-b^2/4}$ for the `gauss` bump.  Two caveats
    apply: a shift restores **at least the low odd modes (notably
    $k=1$)** but the higher odd modes may stay weak at finite width; and for a
    *polynomial* $G$ (e.g. `square`) a shift cannot create any mode above the
    polynomial degree (it gains $k=1$ but never $k=3$).  leenef's data-driven
    bias $b_i=-g_i\,e_i^\top c_i$ is exactly such a nonzero, neuron-varying
-   offset — a data-centered receptive-field shift, not the textbook uniform
+   offset -- a data-centered receptive-field shift, not the textbook uniform
    RFF phase, so its induced kernel depends on the center distribution.  The
    Hermite probe confirms the mechanism directly (§9.1): with
    $\mathrm{bias\ std}=2$, `cos` recovers $k=1$ ($R^2\;{-1.49}\to0.95$) and
@@ -436,11 +454,11 @@ result is **how cheaply it is removed.**  Three observations:
 2. **The minimal symmetry-breaking activation is a phase, not a more
    complex function.**  Replace $\cos z$ by
    $$
-   \cos z+\sin z=\sqrt{2}\cos\left(z-\frac{\pi}{4}\right).
+   \cos z+\sin z=\sqrt{2}\cos(z-\pi/4).
    $$
    This activation is called `cos_sin`.
-   This is a fixed $\pi/4$ phase shift — no qualitatively more complex
-   activation, just a reflection-symmetry-breaking offset — and it is now
+   This is a fixed $\pi/4$ phase shift -- no qualitatively more complex
+   activation, just a reflection-symmetry-breaking offset -- and it is now
    neither even nor odd, so it carries **every** Hermite mode.  The probe
    shows `cos_sin` recovers $k=1,2,3$ ($R^2=0.95/0.81/0.08$) at zero bias
    where `cos` recovers only $k=2$.  The general version is the textbook
@@ -449,7 +467,7 @@ result is **how cheaply it is removed.**  Three observations:
    cosine feature; with **Gaussian** frequency weights this integrates to the
    exact Gaussian-RBF kernel $\exp(-\sigma^2\|x-y\|^2/2)$, while the
    hypersphere encoders used here give a closely related stationary radial
-   kernel (Rahimi & Recht, 2007).  Fixing `cos`/`gauss` therefore does
+   projection kernel (Rahimi & Recht, 2007).  Fixing `cos`/`gauss` therefore does
    **not** require a more complex activation — only **broken parity**,
    which a single phase term (or the bias the pipeline already uses)
    supplies.
@@ -522,7 +540,7 @@ by differentiability.
 | `linear` | linear kernel ($a_1$ only) | collapse |
 | `abs` | even arc-cosine, $a_0,a_2,a_4,\dots$ | reference |
 | `relu` | $\tfrac14\times$`abs` nonlinear $+$ linear | tie |
-| `bent_line` (1, 1/2) | $\tfrac{1}{16}\times$`abs` nonlinear $+$ linear | **tie** |
+| `bent_line` (1, 1/2) | $\tfrac{1}{16}\times$`abs` nonlinear $+$ linear | asymptotic tie; possible finite-width cost |
 | `leaky_relu` (0.1) | bent-line member | tie |
 | `softplus` ($\beta{=}1$) | smoothed kink; sharp only if $\beta\cdot$gain large | tie if sharp, else **worse** |
 | `tanh` | saturating, magnitude-suppressing | worse |
@@ -530,9 +548,9 @@ by differentiability.
 | `square` | degree-2 polynomial kernel | $\approx$ / mild CIFAR edge |
 | `sqrt_abs` | heavier low-freq even spectrum | $\approx$ or slightly worse |
 | `double_fold` | richer even spectrum, 2 folds/neuron | $\approx$ to slightly better |
-| `cos` | RBF / random Fourier | **gain-dependent**; can match or beat |
-| `gauss` | RBF receptive field | **gain-dependent**; can match or beat |
-| `cos_sin` | parity-broken RFF, **all** modes | $\approx$ `cos`; full RBF, gain-dependent |
+| `cos` | RFF-like projection kernel | **gain-dependent**; can match or beat |
+| `gauss` | RBF-like receptive field | **gain-dependent**; can match or beat |
+| `cos_sin` | parity-broken sinusoid, **all** modes | $\approx$ `cos`; RFF-like, gain-dependent |
 | `square_wave` | digital cosine, rich even | $\approx$; gain-dependent |
 | `floor_wave` | integer-aligned digital cosine $+$ floor | fused diagnostic; gain-dependent |
 | `box` | digital bump (hard RF), even | $\approx$; gain-dependent |
@@ -542,7 +560,7 @@ by differentiability.
 The empirical panel tests these predictions with 10 seeds, $n=5000$,
 hypersphere encoders, data-driven biases, trace-scaled
 $\alpha=10^{-3}$, and MNIST, Fashion-MNIST, and CIFAR-10 targets.  The
-RBF-family rows include gain sweeps for `cos` and `gauss`.
+RBF-like rows include gain sweeps for `cos` and `gauss`.
 
 ---
 
@@ -586,8 +604,8 @@ while absent or tiny coefficients are not reliably learned.  In particular:
   collapse of §4, shown directly.
 - **`abs`/`relu`/`bent_line` all recover $k=2$ with the same $R^2$**:
   the kink family shares the even spectrum (§5), so it ties on any target
-  whose signal sits in low even modes — which is what real
-  image-classification targets largely are.
+  whose signal sits in low even modes — consistent with what the real-task
+  panels below appear to use.
 - **`relu` cannot learn the cubic $k=3$** ($a_3=0$ exactly, since
   $\mathrm{ReLU}=\tfrac12(t+|t|)$ inherits `abs`'s vanishing odd modes),
   whereas **`tanh` can** -- the standard saturating activation with odd
@@ -618,7 +636,7 @@ reliably learned by anyone at this $(n, N_{\text{train}})$ because its
 kernel coefficient is small -- a finite-sample effect consistent with
 learnability increasing with $\gamma_k$.)
 
-**Parity is broken by any nonzero bias — but read the spectrum carefully.**
+**Parity is broken by generic shifted bias — but read the spectrum carefully.**
 The $\gamma_k$ columns above are the **zero-bias** kernel coefficients of the scalar
 $G$.  With a nonzero bias the feature span is governed instead by the
 **bias-averaged** coefficient
@@ -632,7 +650,7 @@ $R^2\;{-1.49}\to0.95$, `abs` $-1.04\to1.00$, `box` $-1.02\to0.96$,
 `square_wave` $-1.10\to0.94$ — while the cubic $k=3$ stays near zero
 (`cos` $0.00$, `gauss` $-0.01$), exactly the "$k=1$ restored, high odd modes
 weak; polynomials capped at their degree" picture of §7.1.  Because leenef's
-data-driven bias $b_i=-g_i e_i^\top c_i$ is such a nonzero offset, the
+data-driven bias $b_i=-g_i e_i^\top c_i$ is such a neuron-varying offset, the
 even-only selection rule **does not bind in the real pipeline** for the
 dominant $k=1$ mode; a center-matched probe would be the cleanest further
 confirmation.
@@ -655,9 +673,9 @@ throughout except as noted):
 
 Three signatures, all predicted:
 
-1. **A flat plateau** at the dataset's `abs`-level accuracy across the
+1. **An approximately flat plateau** at the dataset's `abs`-level accuracy across the
    non-linear part of the tabulated arm-angle range -- every angle shares
-   `abs`'s $k\ge2$ spectrum, so they are statistically indistinguishable
+   `abs`'s $k\ge2$ spectrum up to scale, so they are nearly indistinguishable
    (the largest plateau spread, $\sim0.2\%$ on MNIST, is within $\sim2$ SE).
 2. **A collapse dip at exactly $\theta=\pi$** of the right magnitude
    (down to the *linear-readout* accuracy of each dataset), recovering
@@ -665,11 +683,13 @@ Three signatures, all predicted:
    by the $\alpha/n$ regularization floor -- not a measure-zero spike.
    The basin is **symmetric** ($\theta/\pi=0.99$ and $1.01$ agree to
    $10^{-4}$, etc.), because the two arms induce the same $|z|$ spectrum.
-3. **Zero seed variance at $\theta=\pi$** (SE $=0.0000$): at the linear
+3. **Seed variation rounded to zero at $\theta=\pi$** (reported SE $=0.0000$):
+   at the linear
    angle the features are exactly $z=g\,e^\top(x-c)$, so the readout is a
-   linear classifier, and in this overcomplete trace-scaled setting every
-   seed collapses to the identical reported accuracy.  This is a crisp
-   empirical fingerprint of the §4 collapse.
+   linear classifier, and in this overcomplete trace-scaled setting the
+   seeds are empirically indistinguishable at the printed precision.  This
+   is a crisp empirical fingerprint of the §4 collapse, not a separate
+   finite-design theorem.
 
 The sweep at $\theta=\tfrac\pi2$ reproduces the `abs` cell
 (0.9704 MNIST) and at $\theta=\tfrac{3\pi}4$ the `relu` cell to within
@@ -738,7 +758,7 @@ Every §8 prediction holds:
 6. **`sqrt_abs` trails on CIFAR-10** (0.4798): the $p<1$ cusp gives a
    slowly decaying high-$k$ tail (a rougher kernel), which costs the most
    where the data are hardest.
-7. **The RBF pair `cos`/`gauss` is the most powerful — on the hardest
+7. **The RBF-like pair `cos`/`gauss` is the most powerful — on the hardest
    task, and when the bandwidth is right.** At the default gain they sit
    just below `abs` on MNIST/Fashion but are the **best activations
    overall on CIFAR-10** (0.5046 / 0.5062 vs. `abs` 0.4945, a
@@ -749,14 +769,16 @@ Every §8 prediction holds:
    1-\tfrac{z^2}{2}$ with a quadratic signal of variance $\propto g^4$
    that trace-scaled ridge swamps, giving a signal-starved underfit
    (0.79 / 0.72 / 0.31) -- a different failure from the linear collapse.
-   At adequate/wide gain they fully recover and keep the CIFAR edge.
-   `abs`, by contrast, is gain-robust.
+   At adequate/wide gain they recover and keep much of the CIFAR edge.
+   `abs`, by contrast, is gain-robust.  The practical significance is
+   limited: this is a low-accuracy raw-pixel mechanism panel, not a
+   deployment recommendation over spatially structured encoders.
 
 The practical reading: the single-kink activations are interchangeable
 (use the cheapest, `relu` or `abs`); to *beat* `abs` you must change the
 $k\ge2$ spectrum, and on the hardest task an RBF activation with adequate
 bandwidth (`gauss`/`cos` at gain $\gtrsim1$) is the most powerful of the
-small nonlinearities tested.
+small nonlinearities tested in this raw-feature mechanism panel.
 
 ### 9.4 Full-spectrum, gain-robust, and digital activations
 
@@ -767,7 +789,7 @@ accuracy (mean $\pm$ SE over 10 seeds), gain $U(0.5,2)$:
 | activation | MNIST | Fashion | CIFAR-10 |
 |---|---|---|---|
 | `abs` (reference) | $0.9704\pm0.0001$ | $0.8778\pm0.0005$ | $0.4945\pm0.0011$ |
-| `cos` | $0.9666\pm0.0002$ | $0.8695\pm0.0004$ | $0.5047\pm0.0013$ |
+| `cos` | $0.9666\pm0.0002$ | $0.8695\pm0.0004$ | $0.5046\pm0.0013$ |
 | `gauss` | $0.9666\pm0.0002$ | $0.8689\pm0.0004$ | $\mathbf{0.5062}\pm0.0011$ |
 | `cos_sin` (parity-broken RFF) | $0.9668\pm0.0002$ | $0.8697\pm0.0002$ | $0.4963\pm0.0006$ |
 | `gelu` | $0.9695\pm0.0002$ | $0.8745\pm0.0003$ | $0.4984\pm0.0009$ |
@@ -794,12 +816,12 @@ The readings:
    CIFAR-10 edge at wide gain (0.4996).  Restoring the odd modes is a
    clean *spectral* fix (§9.1) but **not** an accuracy win at matched gain:
    `cos`'s even $k=2$ mode already carries the signal these targets use, so
-   the extra odd content neither helps nor hurts.  It does inherit the RBF
-   bandwidth sensitivity.
+   the extra odd content neither helps nor hurts.  It does inherit the
+   RBF-like bandwidth sensitivity.
 2. **`gelu`/`silu` tie `abs` and need no bandwidth.** Both sit within
    $\sim0.1$–$0.6\%$ of `abs` on all three datasets with no gain tuning —
    the gain-robust relu class, confirmed.  But they do **not** reach the
-   RBF CIFAR edge (0.4984 / 0.4945 vs. `gauss` 0.5062): linear+even
+   RBF-like CIFAR edge (0.4984 / 0.4945 vs. `gauss` 0.5062): linear+even
    spectrum, no odd $k\ge3$.  They are the best *smooth, gain-robust*
    default candidates, not a stronger kernel.
 3. **`square_wave` is the most gain-sensitive activation tested.** At the
@@ -822,9 +844,10 @@ The readings:
 The overall picture is stable across the extended activation set:
 **`abs` remains an excellent gain-robust default** (with `gelu`/`silu`
 as smooth equivalents);
-**the only way to the CIFAR-10 edge is the RBF family** (`cos`/`gauss`/
-`cos_sin`) at adequate gain; and the **digital activations are admissible
-but none dominate** — `floor_wave` is the strongest digital diagnostic at
+**the only way to the CIFAR-10 edge in this raw-feature panel is the
+RBF-like family** (`cos`/`gauss`/`cos_sin`) at adequate gain; and the
+**digital activations are admissible but none dominate** -- `floor_wave` is
+the strongest digital diagnostic at
 the default gain, `box` and wide-gain `square_wave` are usable, and all stay
 below the gain-robust `abs`/smooth-gate family.
 
@@ -838,10 +861,13 @@ below the gain-robust `abs`/smooth-gate family.
 2. **The linear mode ($k=1$) is the collapse mode**; all discrimination
    lives in $k\ge2$.  Linear activation = linear kernel = collapse.
 3. **Every *exact* single-kink (bent-line) activation equals `abs` up to
-   a bounded affine correction** -- exactly, for any bias.  ReLU,
-   leaky-ReLU, and the monotone $(1,\tfrac12)$ kink are all
-   `abs` to the solve, and the panel confirms they tie.  This *explains*
-   the `abs`$\approx$ReLU equivalence and predicts the kink-angle ties.
+   a bounded affine correction** -- exactly at the decomposition level, for
+   any bias, and asymptotically at the hypothesis-space level.  ReLU,
+   leaky-ReLU, and the monotone $(1,\tfrac12)$ kink share the same nonlinear
+   spectrum up to scale; the panel confirms the expected near-tie while also
+   showing the finite-width cost of a smaller nonlinear coefficient.  This
+   *explains* the `abs`$\approx$ReLU equivalence and predicts the
+   kink-angle ties away from the linear-collapse basin.
    Softplus is only an *approximate* kink: when its smoothing scale
    is comparable to the active range (as at the panel gain) it loses
    $k\ge2$ energy and trails -- a sharp kink is what the equivalence needs.
@@ -850,7 +876,7 @@ below the gain-robust `abs`/smooth-gate family.
    odd $k\ge3$ modes and so stays well above the collapse floor.
 5. **To beat `abs` you must change the $k\ge2$ spectrum**: `square`
    (degree-2 polynomial kernel), `double_fold` (more folds), or the RBF
-   family (`cos`, `gauss`) whose **bandwidth is the per-neuron gain**.
+   RBF-like family (`cos`, `gauss`) whose **bandwidth is the per-neuron gain**.
    These are the principled stronger alternatives.
 6. **Even-only is a parity artifact, not a complexity wall.** `cos`/`gauss`
    (and the digital `square_wave`/`box`) are even, so at zero bias they drop
@@ -863,7 +889,7 @@ below the gain-robust `abs`/smooth-gate family.
    degree).  `gelu`/`silu` are *not* a richer alternative -- they are
    $\tfrac12 z+$(even), i.e. smooth gain-robust members of the `relu` class
    that miss odd $k\ge3$ exactly as `relu` does.  The genuinely richer
-   activations remain the RBF family, at the price of bandwidth tuning.
+   activations remain the RBF-like family, at the price of bandwidth tuning.
 7. **The activation space is larger here than for gradient nets.** Because
    the solve is analytic, zero-gradient "digital" activations
    ($\mathrm{sign}\circ\cos$, indicators, quantizers) are admissible;
@@ -873,14 +899,18 @@ below the gain-robust `abs`/smooth-gate family.
 
 The mathematical ingredients are classical:
 
-- **Random features $\leftrightarrow$ kernels.**  That a population of fixed
+- **Random features and kernels.**  That a population of fixed
   random nonlinear features approximates a kernel is Rahimi & Recht (2007);
-  the infinite-width Gaussian-process limit is Neal (1996) and Williams
-  (1997).  `cos`-as-RFF and the Gaussian-RBF correspondence are theirs.
+  their Fourier construction is an application of Bochner's theorem, and
+  Bach (2017) and Rudi & Rosasco (2017) treat the regularized random-feature
+  approximation to kernel methods.  The infinite-width Gaussian-process
+  limits of Neal (1996) and Williams (1997) are related background but not
+  the same convergence statement as explicit-feature ridge regression.
 - **Activation-specific kernels.**  Arc-cosine kernels for
   `relu`/`abs`/`step` are Cho & Saul (2009).  The **dual activation
   kernel** and its Hermite/Mehler expansion -- the spine of this paper -- are
-  Daniely, Frostig & Singer (2016), resting on Mehler's (1866) formula.
+  Daniely, Frostig & Singer (2016), resting on Mehler's (1866) formula; the
+  spherical positive-definite counterpart is Schoenberg (1942).
 - **Random features + analytic linear solve as a method.**  This is exactly
   the **Extreme Learning Machine** (Huang, Zhu & Siew, 2006) and, in the
   temporal case, **reservoir computing / echo-state networks** (Jaeger,
@@ -897,20 +927,21 @@ applied and diagnostic:
 
 1. **A bridge.**  Framing the NEF / leenef pipeline explicitly as
    random-feature kernel ridge regression, so that the activation is read as
-   a *kernel choice* and the NEF $\leftrightarrow$ ELM $\leftrightarrow$
-   kernel-machine identification is made precise (encoders = random
-   projection, gain = RBF bandwidth, data-driven bias = parity-breaking
-   phase, decoder solve = kernel ridge).
+   a *kernel choice* and the NEF--ELM--kernel-machine identification is made
+   precise (encoders = random
+   projection, gain = projection-kernel bandwidth, data-driven bias =
+   parity-breaking shift, decoder solve = kernel ridge).
 2. **Sharp, falsifiable diagnostics with clean fingerprints.**  The
    Hermite-mode recovery probe (recoverable modes track appreciable
    $\gamma_k$, including the
    counterintuitive `relu`-cannot-learn-$k{=}3$ / `tanh`-can result), and
-   the origin-angle sweep with its **zero-variance symmetric collapse at
-   $\theta=\pi$** (the linear-readout signature, encoder-independent).
+   the origin-angle sweep with its **symmetric collapse at $\theta=\pi$**
+   and seed variation rounded to zero at the printed precision (the
+   linear-readout signature, encoder-independent in the tested protocol).
    These turn "abs works" into a mechanism with a measurable signature.
 3. **A practical degree of freedom specific to the analytic solve.**  The
    observation that *digital* (zero-gradient) activations are free here, and
-   that the even-only limitation of RBF activations is dissolved by the
+   that the even-only limitation of RBF-like activations is dissolved by the
    bias the method already uses -- both are consequences of the gradient-free
    construction that ordinary backpropagation papers have less reason to
    foreground.
@@ -983,3 +1014,5 @@ are generated by `docs/generate_activation_spectra_figures.py`.
 - Bach, F. (2017). On the equivalence between kernel quadrature rules and
   random feature expansions. *Journal of Machine Learning Research*, 18(21),
   1-38.
+- Rudi, A., & Rosasco, L. (2017). Generalization properties of learning with
+  random features. In *Advances in Neural Information Processing Systems 30*.

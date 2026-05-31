@@ -644,7 +644,10 @@ picture, which requires a nonlinearity that preserves a useful
 coefficient magnitude.  Practical implication: the project default
 `abs` is defensible, `relu` is a clean fallback at no measurable cost
 on raw image classification, and square is an interesting CIFAR-10
-variant rather than a robust replacement.
+variant rather than a robust replacement.  A companion activation-spectrum
+study extends this treatment beyond the small panel here, deriving the dual
+kernel of a fixed-feature activation and testing single-kink, polynomial,
+Fourier/RBF-like, smooth-gate, and digital variants (Bosnić, 2026d).
 
 ### §5.5 — Beyond random global features: ConvNEF
 
@@ -1260,6 +1263,9 @@ representation question carried into SSUP-III.
 - Bosnić, N. (2026c). *Sufficient Statistics as a Universal Primitive?
   (Part III): Reinforcement Learning*. PDF:
   <https://github.com/nikeke/leenef/blob/main/docs/SSUP-III.pdf>.
+- Bosnić, N. (2026d). *Activation Spectra for Analytic Fixed-Feature
+  Learning*. PDF:
+  <https://github.com/nikeke/leenef/blob/main/docs/activation_spectra.pdf>.
 - Chen, C. L. P., & Liu, Z. (2018). *Broad Learning System: An Effective and Efficient Incremental Learning System Without the Need for Deep Architecture*. IEEE Transactions on Neural Networks and Learning Systems, 29(1), 10-24.
 - Coates, A., Lee, H., & Ng, A. Y. (2011). *An Analysis of Single-Layer Networks in Unsupervised Feature Learning*. Proceedings of the Fourteenth International Conference on Artificial Intelligence and Statistics.
 - Eliasmith, C., & Anderson, C. H. (2003). *Neural Engineering: Computation, Representation, and Dynamics in Neurobiological Systems*. MIT Press.
