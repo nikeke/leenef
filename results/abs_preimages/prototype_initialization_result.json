@@ -9,8 +9,8 @@
       "results/abs_preimages",
       "benchmarks/abs_preimages/prototype_initialization_result.json"
     ],
-    "head": "1957d02c69076b2e884aee027bfec75ae8a9fd60",
-    "identity": "1957d02c69076b2e884aee027bfec75ae8a9fd60",
+    "head": "5f1cc762c7be64a2373c68b8ebe85e46d20505d9",
+    "identity": "5f1cc762c7be64a2373c68b8ebe85e46d20505d9",
     "source_dirty": false,
     "source_dirty_hash": null
   },
@@ -168,7 +168,7 @@
     "torch_num_threads": 2,
     "torch_version": "2.10.0+cu128"
   },
-  "generated_at_utc": "2026-05-31T14:09:41.475869+00:00",
+  "generated_at_utc": "2026-05-31T14:29:51.528190+00:00",
   "plotted_arrays": {
     "bar_chart": {
       "labels": [

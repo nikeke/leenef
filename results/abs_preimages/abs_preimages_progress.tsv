@@ -1,0 +1,14 @@
+2026-05-31T14:29:26Z	START	6	/home/amnesia/Persistent/src/leenef-abs-preimages/../leenef/venv/bin/python	../leenef/data
+2026-05-31T14:29:26Z	BEGIN	1	sign-freedom
+2026-05-31T14:29:30Z	END	1	sign-freedom	4
+2026-05-31T14:29:30Z	BEGIN	2	visualizations
+2026-05-31T14:29:34Z	END	2	visualizations	4
+2026-05-31T14:29:34Z	BEGIN	3	canonical-prototypes
+2026-05-31T14:29:43Z	END	3	canonical-prototypes	9
+2026-05-31T14:29:43Z	BEGIN	4	nullspace-radius
+2026-05-31T14:29:47Z	END	4	nullspace-radius	4
+2026-05-31T14:29:47Z	BEGIN	5	prototype-initialization
+2026-05-31T14:29:52Z	END	5	prototype-initialization	5
+2026-05-31T14:29:52Z	BEGIN	6	pdf-build
+2026-05-31T14:29:55Z	END	6	pdf-build	3
+2026-05-31T14:29:55Z	DONE	6
