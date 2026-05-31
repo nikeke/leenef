@@ -17,7 +17,7 @@ Run::  python benchmarks/abs_preimages/sign_freedom_experiment.py
 from __future__ import annotations
 
 import torch
-from common import build_layer, load_mnist_subset
+from common import build_layer, load_mnist_subset_with_metadata, write_result_json
 
 
 def run_regime(n_neurons, xtr, ytr, xte, yte, *, c=3, n_flip_trials=200, seed=0):
@@ -61,21 +61,51 @@ def run_regime(n_neurons, xtr, ytr, xte, yte, *, c=3, n_flip_trials=200, seed=0)
         correct += int(cls == c)
     errs = torch.tensor(errs)
 
+    err_median = errs.median().item()
+    err_max = errs.max().item()
     print(f"\n=== n_neurons={n_neurons}  (d_in={d_in}) ===")
     print(f"  baseline test acc                   : {acc:.4f}")
     print(f"  rank(W)                             : {rank}/{min(n_neurons, d_in)}")
     print(f"  natural-sign recon err (real sample): {err_nat:.2e}")
     print(f"  class-mean-sign err (class mean)    : {err_mean_sign:.2e}  class={cls_mean_sign}")
-    print(
-        f"  random-flip recon err (class mean)  : median={errs.median():.2e}  max={errs.max():.2e}"
-    )
+    print(f"  random-flip recon err (class mean)  : median={err_median:.2e}  max={err_max:.2e}")
     print(f"  random flips decoding to class {c}     : {correct}/{n_flip_trials}")
+    return {
+        "n_neurons": int(n_neurons),
+        "d_in": int(d_in),
+        "target_class": int(c),
+        "n_flip_trials": int(n_flip_trials),
+        "seed": int(seed),
+        "baseline_test_accuracy": acc,
+        "rank_W": rank,
+        "rank_W_denominator": int(min(n_neurons, d_in)),
+        "natural_sign_real_sample_relative_error": err_nat,
+        "class_mean_sign_relative_error": err_mean_sign,
+        "class_mean_sign_predicted_class": int(cls_mean_sign),
+        "random_flip_relative_error_median": err_median,
+        "random_flip_relative_error_max": err_max,
+        "random_flip_relative_errors": errs,
+        "random_flips_decoding_to_target": int(correct),
+    }
 
 
 def main():
-    xtr, ytr, xte, yte = load_mnist_subset()
-    run_regime(400, xtr, ytr, xte, yte)  # underdetermined sign solve
-    run_regime(2000, xtr, ytr, xte, yte)  # overdetermined sign solve
+    n_train = 10000
+    subset_seed = 0
+    xtr, ytr, xte, yte, data_metadata = load_mnist_subset_with_metadata(
+        n_train=n_train, seed=subset_seed
+    )
+    regimes = [
+        run_regime(400, xtr, ytr, xte, yte),  # underdetermined sign solve
+        run_regime(2000, xtr, ytr, xte, yte),  # overdetermined sign solve
+    ]
+    write_result_json(
+        "sign_freedom_experiment.json",
+        script="benchmarks/abs_preimages/sign_freedom_experiment.py",
+        config={"n_train": n_train, "subset_seed": subset_seed, "regimes": [400, 2000]},
+        data_metadata=data_metadata,
+        diagnostics={"regimes": regimes},
+    )
 
 
 if __name__ == "__main__":

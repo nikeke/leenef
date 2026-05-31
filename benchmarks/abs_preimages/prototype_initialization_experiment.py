@@ -29,7 +29,6 @@ from __future__ import annotations
 
 import json
 import os
-from pathlib import Path
 
 os.environ.setdefault("OMP_NUM_THREADS", "2")
 os.environ.setdefault("MKL_NUM_THREADS", "2")
@@ -41,16 +40,19 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import torch  # noqa: E402
-from common import FIG_DIR, build_layer, load_mnist_subset  # noqa: E402
+from common import (  # noqa: E402
+    FIG_DIR,
+    build_layer,
+    image_stats,
+    load_mnist_subset_with_metadata,
+    write_result_json,
+)
 
 from leenef.layers import NEFLayer  # noqa: E402
 from leenef.preimages import onehot_preimages_from_anchors  # noqa: E402
 
 torch.set_num_threads(2)
 torch.set_num_interop_threads(1)
-
-HERE = Path(__file__).resolve().parent
-RESULT_PATH = HERE / "prototype_initialization_result.json"
 
 
 def onehot_targets(y: torch.Tensor, n_classes: int = 10) -> torch.Tensor:
@@ -163,7 +165,11 @@ def plot_results(results: list[dict[str, object]]) -> None:
 
 def main() -> None:
     n_neurons = 1000
-    xtr, ytr, xte, yte = load_mnist_subset(n_train=10000, seed=0)
+    n_train = 10000
+    subset_seed = 0
+    xtr, ytr, xte, yte, data_metadata = load_mnist_subset_with_metadata(
+        n_train=n_train, seed=subset_seed
+    )
     means = class_means(xtr, ytr)
 
     pilot, W, b = build_layer(n_neurons, xtr, ytr, seed=0)
@@ -189,23 +195,40 @@ def main() -> None:
         fit_and_eval("onehot_preimage", prototype_centers, xtr, ytr, xte, yte, seed=final_seed),
     ]
 
-    payload = {
-        "n_train": int(len(xtr)),
-        "n_test": int(len(xte)),
-        "n_neurons": n_neurons,
-        "threads": {
-            "torch_num_threads": torch.get_num_threads(),
-            "torch_num_interop_threads": torch.get_num_interop_threads(),
-            "OMP_NUM_THREADS": os.environ.get("OMP_NUM_THREADS"),
-            "MKL_NUM_THREADS": os.environ.get("MKL_NUM_THREADS"),
-            "OPENBLAS_NUM_THREADS": os.environ.get("OPENBLAS_NUM_THREADS"),
-        },
-        "prototype_stats": prototype_stats,
-        "results": results,
-    }
-    RESULT_PATH.write_text(json.dumps(payload, indent=2) + "\n")
     plot_results(results)
-
+    payload = write_result_json(
+        "prototype_initialization_result.json",
+        script="benchmarks/abs_preimages/prototype_initialization_experiment.py",
+        config={
+            "n_train": int(len(xtr)),
+            "n_test": int(len(xte)),
+            "subset_seed": subset_seed,
+            "n_neurons": n_neurons,
+            "center_seed": center_seed,
+            "final_seed": final_seed,
+        },
+        data_metadata=data_metadata,
+        diagnostics={
+            "prototype_stats": prototype_stats,
+            "prototype_image_stats": image_stats(prototypes),
+            "center_image_stats": {
+                "train_sample": image_stats(train_centers),
+                "class_mean": image_stats(mean_centers),
+                "onehot_preimage": image_stats(prototype_centers),
+            },
+            "results": results,
+        },
+        plotted_arrays={
+            "class_means": means,
+            "linearized_onehot_candidates": prototypes,
+            "bar_chart": {
+                "labels": [str(r["label"]) for r in results],
+                "test_accuracy": [float(r["test"]["accuracy"]) for r in results],
+                "test_mean_margin": [float(r["test"]["mean_margin"]) for r in results],
+            },
+        },
+        artifact_paths=[FIG_DIR / "prototype_initialization_result.png"],
+    )
     print(json.dumps(payload, indent=2))
 
 

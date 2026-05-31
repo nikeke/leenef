@@ -375,54 +375,6 @@ Shlens, and Szegedy (2015), and Nguyen, Yosinski, and Clune (2015) for
 adversarial and fooling-image phenomena; and Candes, Strohmer, and
 Voroninski (2013) for a canonical phase-retrieval reference.
 
-### References
-
-- Bosnić, N. (2026a). *Sufficient Statistics as a Universal Primitive?
-  (Part I): Supervised Learning via the Neural Engineering Framework*.
-  GitHub location: https://github.com/nikeke/leenef, `docs/SSUP-I.md`.
-- Bosnić, N. (2026b). *Sufficient Statistics as a Universal Primitive?
-  (Part II): Continual Learning Without Forgetting, by Construction*.
-  GitHub location: https://github.com/nikeke/leenef, `docs/SSUP-II.md`.
-- Bosnić, N. (2026c). *Sufficient Statistics as a Universal Primitive?
-  (Part III): Reinforcement Learning as Target Construction*.
-  GitHub location: https://github.com/nikeke/leenef, `docs/SSUP-III.md`.
-- Candes, E. J., Strohmer, T., & Voroninski, V. (2013). PhaseLift:
-  Exact and stable signal recovery from magnitude measurements via
-  convex programming. *Communications on Pure and Applied Mathematics*.
-- Eliasmith, C., & Anderson, C. H. (2003). *Neural Engineering:
-  Computation, Representation, and Dynamics in Neurobiological Systems*.
-  MIT Press.
-- Goodfellow, I. J., Shlens, J., & Szegedy, C. (2015). Explaining and
-  harnessing adversarial examples. *International Conference on Learning
-  Representations*.
-- Mahendran, A., & Vedaldi, A. (2015). Understanding deep image
-  representations by inverting them. *IEEE Conference on Computer Vision
-  and Pattern Recognition*.
-- Montufar, G. F., Pascanu, R., Cho, K., & Bengio, Y. (2014). On the
-  number of linear regions of deep neural networks. *Advances in Neural
-  Information Processing Systems*.
-- Mordvintsev, A., Olah, C., & Tyka, M. (2015). Inceptionism: Going
-  deeper into neural networks. Google Research Blog.
-- Nguyen, A., Yosinski, J., & Clune, J. (2015). Deep neural networks are
-  easily fooled: High confidence predictions for unrecognizable images.
-  *IEEE Conference on Computer Vision and Pattern Recognition*.
-- Olah, C., Mordvintsev, A., & Schubert, L. (2017). Feature
-  visualization. *Distill*.
-- Serra, T., Tjandraatmadja, C., & Ramalingam, S. (2018). Bounding and
-  counting linear regions of deep neural networks. *International
-  Conference on Machine Learning*.
-- Simonyan, K., Vedaldi, A., & Zisserman, A. (2014). Deep inside
-  convolutional networks: Visualising image classification models and
-  saliency maps. *International Conference on Learning Representations
-  Workshop*.
-- Szegedy, C., Zaremba, W., Sutskever, I., Bruna, J., Erhan, D.,
-  Goodfellow, I., & Fergus, R. (2014). Intriguing properties of neural
-  networks. *International Conference on Learning Representations*.
-- Zhang, L., Naitzat, G., & Lim, L.-H. (2018). Tropical geometry of deep
-  neural networks. *International Conference on Machine Learning*.
-
----
-
 ## §9 - Limitations and further directions
 
 The empirical work here is intentionally small: one seed, MNIST, and
@@ -467,5 +419,53 @@ OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 \
 
 Reusable tensor helpers live in `src/leenef/preimages.py`; benchmark
 drivers and the prototype pilot live in `benchmarks/abs_preimages/`;
-figures live in `docs/figures/abs_preimages/`; the prototype pilot result
-JSON is `benchmarks/abs_preimages/prototype_initialization_result.json`.
+figures live in `docs/figures/abs_preimages/`; provenance-bearing JSON
+results live in `results/abs_preimages/`.
+
+---
+
+## References
+
+- Bosnić, N. (2026a). *Sufficient Statistics as a Universal Primitive?
+  (Part I): Supervised Learning via the Neural Engineering Framework*.
+  GitHub location: https://github.com/nikeke/leenef, `docs/SSUP-I.md`.
+- Bosnić, N. (2026b). *Sufficient Statistics as a Universal Primitive?
+  (Part II): Continual Learning Without Forgetting, by Construction*.
+  GitHub location: https://github.com/nikeke/leenef, `docs/SSUP-II.md`.
+- Bosnić, N. (2026c). *Sufficient Statistics as a Universal Primitive?
+  (Part III): Reinforcement Learning as Target Construction*.
+  GitHub location: https://github.com/nikeke/leenef, `docs/SSUP-III.md`.
+- Candes, E. J., Strohmer, T., & Voroninski, V. (2013). PhaseLift:
+  Exact and stable signal recovery from magnitude measurements via
+  convex programming. *Communications on Pure and Applied Mathematics*.
+- Eliasmith, C., & Anderson, C. H. (2003). *Neural Engineering:
+  Computation, Representation, and Dynamics in Neurobiological Systems*.
+  MIT Press.
+- Goodfellow, I. J., Shlens, J., & Szegedy, C. (2015). Explaining and
+  harnessing adversarial examples. *International Conference on Learning
+  Representations*.
+- Mahendran, A., & Vedaldi, A. (2015). Understanding deep image
+  representations by inverting them. *IEEE Conference on Computer Vision
+  and Pattern Recognition*.
+- Montufar, G. F., Pascanu, R., Cho, K., & Bengio, Y. (2014). On the
+  number of linear regions of deep neural networks. *Advances in Neural
+  Information Processing Systems*.
+- Mordvintsev, A., Olah, C., & Tyka, M. (2015). Inceptionism: Going
+  deeper into neural networks. Google Research Blog.
+- Nguyen, A., Yosinski, J., & Clune, J. (2015). Deep neural networks are
+  easily fooled: High confidence predictions for unrecognizable images.
+  *IEEE Conference on Computer Vision and Pattern Recognition*.
+- Olah, C., Mordvintsev, A., & Schubert, L. (2017). Feature
+  visualization. *Distill*.
+- Serra, T., Tjandraatmadja, C., & Ramalingam, S. (2018). Bounding and
+  counting linear regions of deep neural networks. *International
+  Conference on Machine Learning*.
+- Simonyan, K., Vedaldi, A., & Zisserman, A. (2014). Deep inside
+  convolutional networks: Visualising image classification models and
+  saliency maps. *International Conference on Learning Representations
+  Workshop*.
+- Szegedy, C., Zaremba, W., Sutskever, I., Bruna, J., Erhan, D.,
+  Goodfellow, I., & Fergus, R. (2014). Intriguing properties of neural
+  networks. *International Conference on Learning Representations*.
+- Zhang, L., Naitzat, G., & Lim, L.-H. (2018). Tropical geometry of deep
+  neural networks. *International Conference on Machine Learning*.

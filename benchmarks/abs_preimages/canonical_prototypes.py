@@ -30,7 +30,14 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import torch  # noqa: E402
-from common import FIG_DIR, build_layer, load_mnist_subset, show  # noqa: E402
+from common import (  # noqa: E402
+    FIG_DIR,
+    build_layer,
+    image_stats,
+    load_mnist_subset_with_metadata,
+    show,
+    write_result_json,
+)
 
 CLASSES = torch.arange(10)
 
@@ -63,8 +70,13 @@ def maximize_margin(W, b, D, means, *, anchor_w=0.0, steps=400, lr=0.05):
 
 
 def main():
-    xtr, ytr, _, _ = load_mnist_subset()
-    layer, W, b = build_layer(2000, xtr, ytr)
+    n_train = 10000
+    subset_seed = 0
+    n_neurons = 2000
+    xtr, ytr, _, _, data_metadata = load_mnist_subset_with_metadata(
+        n_train=n_train, seed=subset_seed
+    )
+    layer, W, b = build_layer(n_neurons, xtr, ytr)
     D, W, b = layer.decoders.detach(), W.detach(), b.detach()
     means = torch.stack([xtr[ytr == c].mean(0) for c in range(10)])
 
@@ -113,6 +125,50 @@ def main():
     fig.tight_layout()
     fig.savefig(FIG_DIR / "margin_realism_tradeoff.png", dpi=110)
     print("saved margin_realism_tradeoff.png")
+
+    write_result_json(
+        "canonical_prototypes.json",
+        script="benchmarks/abs_preimages/canonical_prototypes.py",
+        config={
+            "n_train": n_train,
+            "subset_seed": subset_seed,
+            "n_neurons": n_neurons,
+            "anchors": anchors,
+            "optimizer": {"steps": 400, "lr": 0.05},
+        },
+        data_metadata=data_metadata,
+        diagnostics={
+            "rank_W": int(torch.linalg.matrix_rank(W).item()),
+            "class_mean_margin_mean": base_m.mean().item(),
+            "class_mean_argmax_accuracy": base_acc.item(),
+            "class_mean_image_stats": image_stats(means),
+            "by_anchor": {
+                str(aw): {
+                    "mean_margin": margins[aw].mean().item(),
+                    "mean_distance_from_class_mean": dists[aw].mean().item(),
+                    "argmax_accuracy": (((protos[aw] @ W.T + b).abs() @ D).argmax(1) == CLASSES)
+                    .float()
+                    .mean()
+                    .item(),
+                    "prototype_image_stats": image_stats(protos[aw]),
+                }
+                for aw in anchors
+            },
+        },
+        plotted_arrays={
+            "class_means": means,
+            "prototypes_by_anchor": {str(aw): protos[aw] for aw in anchors},
+            "margin_realism_frontier": {
+                "anchors": anchors,
+                "mean_distance_from_class_mean": torch.tensor(xs),
+                "mean_margin": torch.tensor(ys),
+            },
+        },
+        artifact_paths=[
+            FIG_DIR / "canonical_prototypes.png",
+            FIG_DIR / "margin_realism_tradeoff.png",
+        ],
+    )
 
 
 if __name__ == "__main__":

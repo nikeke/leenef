@@ -21,7 +21,16 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import torch  # noqa: E402
-from common import FIG_DIR, build_layer, decode, load_mnist_subset, show, sign_cell  # noqa: E402
+from common import (  # noqa: E402
+    FIG_DIR,
+    build_layer,
+    decode,
+    image_stats,
+    load_mnist_subset_with_metadata,
+    show,
+    sign_cell,
+    write_result_json,
+)
 
 from leenef.preimages import nullspace_basis  # noqa: E402
 
@@ -37,11 +46,15 @@ def perfect_twins(xtr, ytr, *, n_neurons=400, c=3, n_twins=5, seed=0):
     p0, c0 = decode(layer, x0)
     show(axes[0], x0, f"real digit\npred {c0} p={p0[c0]:.2f}")
     acts = [a_star]
+    images = [x0]
+    preds = [{"class": int(c0), "prob": p0[c0].item()}]
     for i in range(n_twins):
         s = torch.randint(0, 2, (n_neurons,), generator=rng).float() * 2 - 1
         x = Wpinv @ (s * a_star - b)
         acts.append(layer.encode(x.reshape(1, -1)).squeeze(0))
         p, cp = decode(layer, x)
+        images.append(x)
+        preds.append({"class": int(cp), "prob": p[cp].item()})
         show(axes[i + 1], x, f"twin {i + 1}\npred {cp} p={p[cp]:.2f}")
     max_dev = (torch.stack(acts) - a_star).abs().max().item()
     fig.suptitle(
@@ -52,6 +65,19 @@ def perfect_twins(xtr, ytr, *, n_neurons=400, c=3, n_twins=5, seed=0):
     fig.tight_layout()
     fig.savefig(FIG_DIR / "perfect_twins.png", dpi=110)
     print(f"[A] perfect_twins.png  max activity deviation = {max_dev:.2e}")
+    return {
+        "diagnostics": {
+            "n_neurons": int(n_neurons),
+            "target_class": int(c),
+            "n_twins": int(n_twins),
+            "seed": int(seed),
+            "rank_W": int(torch.linalg.matrix_rank(W).item()),
+            "max_activity_deviation": max_dev,
+            "predictions": preds,
+            "image_stats": image_stats(torch.stack(images)),
+        },
+        "plotted_arrays": {"images": torch.stack(images)},
+    }
 
 
 def overdet_preimages(xtr, ytr, *, n_neurons=2000, seed=0):
@@ -69,6 +95,13 @@ def overdet_preimages(xtr, ytr, *, n_neurons=2000, seed=0):
     )
 
     means = torch.stack([xtr[ytr == c].mean(0) for c in range(10)])
+    candidates = []
+    in_cell_count = 0
+    ranks_M = []
+    linear_residuals = []
+    nonlinear_decode_devs = []
+    sign_flip_fractions = []
+    predictions = []
     fig, axes = plt.subplots(2, 10, figsize=(20, 4.4))
     for c in range(10):
         anchor = means[c]
@@ -76,8 +109,17 @@ def overdet_preimages(xtr, ytr, *, n_neurons=2000, seed=0):
         M = (D.T * s) @ W  # (10, d_in): cell-linearized decode map
         rhs = torch.eye(10)[c] - (D.T * s) @ b
         x = anchor + torch.linalg.pinv(M) @ (rhs - M @ anchor)  # nearest local solve
-        in_cell = bool((sign_cell(W, b, x) == s).all())
+        new_s = sign_cell(W, b, x)
+        sign_flip_fraction = (new_s != s).float().mean().item()
+        in_cell = sign_flip_fraction == 0.0
+        in_cell_count += int(in_cell)
+        ranks_M.append(int(torch.linalg.matrix_rank(M).item()))
+        linear_residuals.append((M @ x - rhs).abs().max().item())
+        nonlinear_decode_devs.append(((W @ x + b).abs() @ D - torch.eye(10)[c]).abs().max().item())
+        sign_flip_fractions.append(sign_flip_fraction)
+        candidates.append(x)
         p, cp = decode(layer, x)
+        predictions.append({"target": int(c), "class": int(cp), "prob": p[cp].item()})
         show(axes[0, c], means[c], f"class {c} mean")
         show(
             axes[1, c],
@@ -92,7 +134,31 @@ def overdet_preimages(xtr, ytr, *, n_neurons=2000, seed=0):
     fig.tight_layout()
     fig.savefig(FIG_DIR / "overdet_preimages.png", dpi=110)
     print("[B] overdet_preimages.png saved")
-    return layer, W, b, D
+    candidates = torch.stack(candidates)
+    return (
+        layer,
+        W,
+        b,
+        D,
+        {
+            "diagnostics": {
+                "n_neurons": int(n_neurons),
+                "seed": int(seed),
+                "rank_W": int(torch.linalg.matrix_rank(W).item()),
+                "naive_activity_inverse_negative_fraction_mean": frac_neg.item(),
+                "in_cell_count": int(in_cell_count),
+                "rank_M_min": int(min(ranks_M)),
+                "rank_M_max": int(max(ranks_M)),
+                "linear_residual_max": max(linear_residuals),
+                "nonlinear_decode_deviation_max": max(nonlinear_decode_devs),
+                "sign_flip_fraction_max": max(sign_flip_fractions),
+                "candidate_image_stats": image_stats(candidates),
+                "mean_image_stats": image_stats(means),
+                "predictions": predictions,
+            },
+            "plotted_arrays": {"class_means": means, "candidates": candidates},
+        },
+    )
 
 
 def nullspace_continuum(layer, W, b, D, xtr, ytr, *, c=3, n_show=7):
@@ -109,6 +175,10 @@ def nullspace_continuum(layer, W, b, D, xtr, ytr, *, c=3, n_show=7):
     p, cp = decode(layer, x_part)
     show(axes[0], x_part, f"anchor\npred {cp} p={p[cp]:.2f}")
     kept, max_dev = 0, 0.0
+    images = [x_part]
+    decode_devs = []
+    sign_flip_fractions = []
+    predictions = [{"class": int(cp), "prob": p[cp].item()}]
     for i in range(n_show):
         coeff = torch.randn(null.shape[0], generator=rng)
         coeff = coeff / coeff.norm() * float(mags[i])
@@ -118,6 +188,10 @@ def nullspace_continuum(layer, W, b, D, xtr, ytr, *, c=3, n_show=7):
         max_dev = max(max_dev, dev)
         p, cp = decode(layer, x)
         kept += int(cp == c)
+        images.append(x)
+        decode_devs.append(dev)
+        sign_flip_fractions.append((sign_cell(W, b, x) != s).float().mean().item())
+        predictions.append({"class": int(cp), "prob": p[cp].item()})
         show(axes[i + 1], x, f"|Δ|={mags[i]:.1f}\npred {cp} dev={dev:.1e}")
     fig.suptitle(
         f"B') Null-space continuum (class {c}): {null.shape[0]} free dims; "
@@ -127,13 +201,58 @@ def nullspace_continuum(layer, W, b, D, xtr, ytr, *, c=3, n_show=7):
     fig.tight_layout()
     fig.savefig(FIG_DIR / "nullspace_continuum.png", dpi=110)
     print(f"[B'] nullspace_continuum.png  null dim={null.shape[0]}  kept={kept}/{n_show}")
+    return {
+        "diagnostics": {
+            "target_class": int(c),
+            "n_show": int(n_show),
+            "rank_M": int(torch.linalg.matrix_rank(M).item()),
+            "null_dim": int(null.shape[0]),
+            "kept_target_class": int(kept),
+            "max_onehot_decode_deviation": max_dev,
+            "linear_residual_anchor": (M @ x_part - rhs).abs().max().item(),
+            "sign_flip_fraction_max": max(sign_flip_fractions),
+            "image_stats": image_stats(torch.stack(images)),
+            "predictions": predictions,
+        },
+        "plotted_arrays": {
+            "mags": mags,
+            "images": torch.stack(images),
+            "decode_deviations": torch.tensor(decode_devs),
+            "sign_flip_fractions": torch.tensor(sign_flip_fractions),
+        },
+    }
 
 
 def main():
-    xtr, ytr, _, _ = load_mnist_subset()
-    perfect_twins(xtr, ytr)
-    layer, W, b, D = overdet_preimages(xtr, ytr)
-    nullspace_continuum(layer, W, b, D, xtr, ytr)
+    n_train = 10000
+    subset_seed = 0
+    xtr, ytr, _, _, data_metadata = load_mnist_subset_with_metadata(
+        n_train=n_train, seed=subset_seed
+    )
+    twins = perfect_twins(xtr, ytr)
+    layer, W, b, D, overdet = overdet_preimages(xtr, ytr)
+    continuum = nullspace_continuum(layer, W, b, D, xtr, ytr)
+    write_result_json(
+        "visualize_preimages.json",
+        script="benchmarks/abs_preimages/visualize_preimages.py",
+        config={"n_train": n_train, "subset_seed": subset_seed},
+        data_metadata=data_metadata,
+        diagnostics={
+            "perfect_twins": twins["diagnostics"],
+            "overdet_preimages": overdet["diagnostics"],
+            "nullspace_continuum": continuum["diagnostics"],
+        },
+        plotted_arrays={
+            "perfect_twins": twins["plotted_arrays"],
+            "overdet_preimages": overdet["plotted_arrays"],
+            "nullspace_continuum": continuum["plotted_arrays"],
+        },
+        artifact_paths=[
+            FIG_DIR / "perfect_twins.png",
+            FIG_DIR / "overdet_preimages.png",
+            FIG_DIR / "nullspace_continuum.png",
+        ],
+    )
 
 
 if __name__ == "__main__":

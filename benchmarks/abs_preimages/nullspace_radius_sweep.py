@@ -29,7 +29,14 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import torch  # noqa: E402
-from common import FIG_DIR, build_layer, load_mnist_subset, sign_cell  # noqa: E402
+from common import (  # noqa: E402
+    FIG_DIR,
+    build_layer,
+    image_stats,
+    load_mnist_subset_with_metadata,
+    sign_cell,
+    write_result_json,
+)
 
 from leenef.preimages import nullspace_basis  # noqa: E402
 
@@ -61,8 +68,13 @@ def sweep(layer, W, b, D, x_part, s, dirs, radii, c):
 
 
 def main():
-    xtr, ytr, _, _ = load_mnist_subset()
-    layer, W, b = build_layer(2000, xtr, ytr)
+    n_train = 10000
+    subset_seed = 0
+    n_neurons = 2000
+    xtr, ytr, _, _, data_metadata = load_mnist_subset_with_metadata(
+        n_train=n_train, seed=subset_seed
+    )
+    layer, W, b = build_layer(n_neurons, xtr, ytr)
     D = layer.decoders
     c = 3
     x0 = xtr[ytr == c][0]
@@ -119,6 +131,45 @@ def main():
     fig.tight_layout()
     fig.savefig(FIG_DIR / "nullspace_radius_sweep.png", dpi=110)
     print("saved nullspace_radius_sweep.png")
+    write_result_json(
+        "nullspace_radius_sweep.json",
+        script="benchmarks/abs_preimages/nullspace_radius_sweep.py",
+        config={
+            "n_train": n_train,
+            "subset_seed": subset_seed,
+            "n_neurons": n_neurons,
+            "target_class": c,
+            "n_dirs": n_dirs,
+            "direction_seed": 0,
+            "radii": radii,
+        },
+        data_metadata=data_metadata,
+        diagnostics={
+            "rank_W": int(torch.linalg.matrix_rank(W).item()),
+            "rank_M": int(torch.linalg.matrix_rank(M).item()),
+            "nullspace_dim": int(null.shape[0]),
+            "linear_residual_anchor": (M @ x_part - rhs).abs().max().item(),
+            "class_flip_radius": {
+                "null_space": flip_radius(kept_n),
+                "ambient": flip_radius(kept_a),
+            },
+            "anchor_image_stats": image_stats(x_part.unsqueeze(0)),
+        },
+        plotted_arrays={
+            "radii": radii,
+            "null_space": {
+                "decode_dev": dev_n,
+                "class_kept": kept_n,
+                "sign_flipped": flip_n,
+            },
+            "ambient": {
+                "decode_dev": dev_a,
+                "class_kept": kept_a,
+                "sign_flipped": flip_a,
+            },
+        },
+        artifact_paths=[FIG_DIR / "nullspace_radius_sweep.png"],
+    )
 
 
 if __name__ == "__main__":
