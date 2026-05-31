@@ -70,7 +70,7 @@ def figure_activation_hermite_spectrum() -> Path:
             [coefficients[a][mode] ** 2 for a in activations],
             width=width,
             color=colors[j],
-            label=f"$a_{mode}^2$",
+            label=rf"$\gamma_{mode}$",
         )
         axes[1].bar(
             [i + (j - 1) * width for i in x],
@@ -80,7 +80,7 @@ def figure_activation_hermite_spectrum() -> Path:
             label=f"$R^2(k={mode})$",
         )
 
-    axes[0].set_ylabel("Hermite energy")
+    axes[0].set_ylabel("Mehler coefficient")
     axes[1].set_ylabel("held-out $R^2$ (clipped at 0)")
     axes[1].set_xticks(x)
     axes[1].set_xticklabels(activations, rotation=35, ha="right")

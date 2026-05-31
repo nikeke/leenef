@@ -9,11 +9,13 @@ set -euo pipefail
 #   bash docs/build_ssup_pdf.sh docs/SSUP-I.md
 #   bash docs/build_ssup_pdf.sh --verbose docs/SSUP-II.md docs/SSUP-II.pdf
 #   bash docs/build_ssup_pdf.sh --regen-figures docs/SSUP-I.md
+#   bash docs/build_ssup_pdf.sh --regen-figures docs/activation_kernel_theory.md
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DOC=""
 OUT=""
 ARXIV_OUT=""
+PYTHON_BIN="${PYTHON:-python3}"
 regen_figures=0
 verbose=0
 
@@ -21,12 +23,12 @@ usage() {
     cat <<EOF
 usage: $(basename "$0") [options] [source.md] [output.pdf]
 
-Build an SSUP PDF from a Markdown source.  If source.md is omitted,
+Build an SSUP-series or adjunct PDF from a Markdown source.  If source.md is omitted,
 docs/SSUP-I.md is used.  If output.pdf is omitted, the output is
 build/<source-basename>.pdf.
 
 Options:
-  --regen-figures              Regenerate Paper-I figures before building.
+  --regen-figures              Regenerate figures for supported manuscripts.
   --arxiv-package [archive]    Create an arXiv source tarball.
   --verbose                    Print pandoc/xelatex commands and show missing-character warnings.
   -h, --help                   Show this help.
@@ -121,11 +123,18 @@ if ! kpsewhich lmodern.sty >/dev/null 2>&1; then
 fi
 
 if [[ "$regen_figures" -eq 1 ]]; then
-    if [[ "$(basename "$DOC")" != "SSUP-I.md" ]]; then
-        echo "error: --regen-figures is currently defined only for docs/SSUP-I.md" >&2
-        exit 1
-    fi
-    python3 "$ROOT/docs/generate_paper_i_figures.py"
+    case "$(basename "$DOC")" in
+        SSUP-I.md)
+            "$PYTHON_BIN" "$ROOT/docs/generate_paper_i_figures.py"
+            ;;
+        activation_kernel_theory.md)
+            "$PYTHON_BIN" "$ROOT/docs/generate_activation_kernel_figures.py"
+            ;;
+        *)
+            echo "error: --regen-figures is not defined for $(basename "$DOC")" >&2
+            exit 1
+            ;;
+    esac
 fi
 
 mkdir -p "$(dirname "$OUT")"
