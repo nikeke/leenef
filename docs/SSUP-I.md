@@ -50,7 +50,7 @@ to compose decoded signals; we depart in three places.
 
 - We use **rate neurons with `abs` activation**, not spiking LIF.
   `abs` is a minimal departure from linearity that escapes the
-  linear-collapse argument of Paper I §2; it is also what gives our
+  linear-collapse argument in §2; it is also what gives our
   activations the frame-coefficient-magnitude interpretation that the
   paper series uses throughout.
 - We use **data-driven biases**.  The bias of neuron *i* is
@@ -98,14 +98,16 @@ solve; P5–P6 are leenef-specific.
   continual learning is the cleanest case; reinforcement learning shows
   why unstable or mismatched targets must be constructed with care.
 
-The rest of Paper I is one of these primitives applied somewhere
-new: §3 (method) is **P1–P4**, §6 (streaming classifier) is **P5**,
-and the multi-layer experiments (Appendix B) are the load-bearing
-negative result that says **P2** does not extend cleanly through
-stacked nonlinearities — which is why we stay single-layer for the
-rest of the paper series.  **P6** is a forward look owned by Paper II:
-we exhibit additivity here without claiming in this paper that it solves
-continual learning.
+The rest of SSUP-I is one of these primitives applied somewhere new:
+§3 (method) is **P1–P4**, §6 (streaming classifier) is **P5**, and the
+multi-layer experiments (Appendix B) are the load-bearing negative result
+that says **P2** does not extend cleanly through stacked nonlinearities —
+which is why we stay single-layer for the rest of the paper series.
+**P6** is a forward look owned by SSUP-II (Bosnić, 2026b): we exhibit
+additivity here without claiming in this paper that it solves continual
+learning.  SSUP-III (Bosnić, 2026c) takes the same fixed-feature solve
+into reinforcement learning, where target construction rather than
+supervised labels becomes the limiting object.
 
 ---
 
@@ -295,7 +297,7 @@ online updates are required.
 ### What composes through $A^\top A$ and $A^\top Y$
 
 Every leenef variant is a different additive use of these
-statistics.  The relevant cases for Paper I:
+statistics.  The relevant cases for SSUP-I:
 
 - **Ensembles.**  `K` independent layers with different seeds
   share inputs but produce independent activities $A^{(k)}$;
@@ -318,7 +320,7 @@ statistics.  The relevant cases for Paper I:
   property is latent.  It is what lets the same NEF feature
   bank predict, for example, both a digit class and a
   foreground-to-background ratio in one fit, and is exploited
-  heavily by the per-action action-value regression of Paper III.
+  heavily by the per-action action-value regression of SSUP-III.
 
 The central negative result is the one composition the primitive
 does *not* support cleanly:
@@ -710,7 +712,7 @@ features, analytic readout, no gradient — extends past the raw
 pixel without any change to the solve.  The `partial_fit` /
 `accumulate + solve` machinery from §3 carries over verbatim;
 the only thing that changed is the feature map.  This is the
-piece Paper II picks up and pushes into the continual setting,
+piece SSUP-II picks up and pushes into the continual setting,
 where the additivity of $A^\top A$ over data partitions is the
 mechanism behind exact joint equivalence.
 
@@ -726,7 +728,7 @@ table:
    for like-for-like comparison with the flat-NEF rows in
    §5.2.  Light augmentation (random crops + horizontal flip)
    and a wider head close more of the gap, but that
-   configuration is the one we exercise in Paper II's visual
+   configuration is the one we exercise in SSUP-II's visual
    panel rather than here.
 3. Five seeds is *fewer* than the ten-seed bar this paper uses
    for headline rows.  We accept it because the panel SE is
@@ -888,7 +890,7 @@ cross-position information is washed out).  The architecture
 is a measurement device for short-time-locally-coherent input
 streams; once that assumption breaks, preserving order becomes
 the next modeling question rather than something pooling can
-hide.  Paper III picks up from that boundary.
+hide.  SSUP-III picks up from that boundary.
 
 We attempted four cheap mitigations on permuted sMNIST (larger
 `K`, positional concatenation, max-pool, data-adapted
@@ -1047,9 +1049,9 @@ computationally cheap: a single $a^\top M^{-1} a$ per test point.  Whether
 it is empirically calibrated is a separate question that we do not
 claim to settle here.
 
-We do not exploit this in Paper I — it deserves its own
+We do not exploit this in SSUP-I — it deserves its own
 careful treatment — but two consequences are worth flagging
-(one is developed below).  First, it gives Paper II
+(one is developed below).  First, it gives SSUP-II
 (continual learning) its primary mechanism for measuring
 drift without extra machinery.  Second, it supports the
 gradient-trained-network bridge sketched below.
@@ -1059,7 +1061,7 @@ gradient-trained-network bridge sketched below.
 Per-class columns of $A^\top Y$ are additive, while the shared $A^\top A$
 term determines how changes in representation statistics propagate
 to every decoder column.  That separation is the load-bearing
-property for Paper II: class-specific target statistics can be
+property for SSUP-II: class-specific target statistics can be
 reset, decayed, or merged at one timescale while the shared activity
 statistics are managed explicitly at another.  This paper
 only exposes the algebraic structure; the continual-learning paper
@@ -1071,11 +1073,11 @@ The same accumulator handles harder targets.  $Y$ becomes a
 return, an $n$-step target, or a successor target rather than a
 supervised label, and the per-action decomposition (FQI; Ernst
 et al., 2005; successor features; Barreto et al., 2017) is again
-just additive sufficient statistics.  Paper III turns this from
+just additive sufficient statistics.  SSUP-III turns this from
 speculation into a bounded result.  With a stable non-bootstrapped
 target, the NEF-AVR control head reaches $201.3 \pm 9.8$ robust
 return on LunarLander-v3 over 10 seeds, crossing the informal
-200-return reference line under Paper III's evaluation protocol;
+200-return reference line under SSUP-III's evaluation protocol;
 with sparse rewards, a full-successor random-direction readout
 breaks MountainCar-v0's flat floor without solving the environment
 ($-158.8 \pm 1.4$), while a known-goal directional readout gives a
@@ -1245,13 +1247,19 @@ Commands v2 keyword-spotting task (Warden, 2018) plateaus at ~76 % vs LSTM
 order; an audio task whose discriminative information lives in
 phoneme order needs either a learned positional feature or a
 recurrent solver.  That limitation frames the temporal
-representation question carried into Paper III.
+representation question carried into SSUP-III.
 
 ---
 
 ## Literature
 
 - Barreto, A., Dabney, W., Munos, R., Hunt, J. J., Schaul, T., van Hasselt, H., & Silver, D. (2017). *Successor Features for Transfer in Reinforcement Learning*. Advances in Neural Information Processing Systems 30.
+- Bosnić, N. (2026b). *Sufficient Statistics as a Universal Primitive?
+  (Part II): Continual Learning*. PDF:
+  <https://github.com/nikeke/leenef/blob/main/docs/SSUP-II.pdf>.
+- Bosnić, N. (2026c). *Sufficient Statistics as a Universal Primitive?
+  (Part III): Reinforcement Learning*. PDF:
+  <https://github.com/nikeke/leenef/blob/main/docs/SSUP-III.pdf>.
 - Chen, C. L. P., & Liu, Z. (2018). *Broad Learning System: An Effective and Efficient Incremental Learning System Without the Need for Deep Architecture*. IEEE Transactions on Neural Networks and Learning Systems, 29(1), 10-24.
 - Coates, A., Lee, H., & Ng, A. Y. (2011). *An Analysis of Single-Layer Networks in Unsupervised Feature Learning*. Proceedings of the Fourteenth International Conference on Artificial Intelligence and Statistics.
 - Eliasmith, C., & Anderson, C. H. (2003). *Neural Engineering: Computation, Representation, and Dynamics in Neurobiological Systems*. MIT Press.

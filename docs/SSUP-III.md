@@ -60,7 +60,7 @@ to compose decoded signals; we depart in three places.
 
 - We use **rate neurons with `abs` activation**, not spiking LIF.
   `abs` is a minimal departure from linearity that escapes the
-  linear-collapse argument of Paper I §2; it is also what gives our
+  linear-collapse argument of SSUP-I §2; it is also what gives our
   activations the frame-coefficient-magnitude interpretation that the
   paper series uses throughout.
 - We use **data-driven biases**.  The bias of neuron *i* is
@@ -108,10 +108,11 @@ solve; P5–P6 are leenef-specific.
   continual learning is the cleanest case; reinforcement learning shows
   why unstable or mismatched targets must be constructed with care.
 
-Paper III is mostly about **P4**.  Papers I and II could treat $Y$ as a
-given: labels in Paper I, stable task labels in Paper II.  Reinforcement
-learning removes that comfort.  The same formula still exists, but $Y$
-is no longer just data.  It is an object we have to build.
+SSUP-III is mostly about **P4**.  SSUP-I (Bosnić, 2026a) and SSUP-II
+(Bosnić, 2026b) could treat $Y$ as a given: supervised labels in SSUP-I,
+stable task labels in SSUP-II.  Reinforcement learning removes that
+comfort.  The same formula still exists, but $Y$ is no longer just data.
+It is an object we have to build.
 
 ---
 
@@ -253,7 +254,7 @@ The dense result section includes four kinds of rows.
    two-hidden-layer replay DQN, not a tuned external implementation and
    not a claim about all DQN implementations or hyperparameter budgets.
 4. **Ensemble closure.**  Three-member Thompson and voting variants test
-   whether the ensemble story from Paper I carries over to dense control.
+   whether the ensemble story from SSUP-I carries over to dense control.
    It mostly does not.
 
 The main dense metric is `robust_eval`: the mean of the last three
@@ -392,7 +393,7 @@ The ensemble rows are more useful as a boundary.  A three-member Thompson
 ensemble reaches $200.0 \pm 12.8$ robust return over 3 seeds, essentially
 matching but not improving the single final agent.  A voting ensemble is
 brittle, with $64.5 \pm 81.4$ robust return and one catastrophic seed.
-This is unlike the supervised-learning ensemble story in Paper I.  In
+This is unlike the supervised-learning ensemble story in SSUP-I.  In
 dense control, independent fixed-feature members do not automatically
 make exploration and policy selection better.
 
@@ -524,11 +525,11 @@ story places the burden.
 
 ### §6.1 — What RL adds to the series
 
-Paper I established that a fixed nonlinear NEF activity map plus an
-analytic decoder can be a useful supervised-learning primitive.  Paper II
+SSUP-I established that a fixed nonlinear NEF activity map plus an
+analytic decoder can be a useful supervised-learning primitive.  SSUP-II
 showed that when the output semantics remain stable, task streams add
 into the same sufficient statistics and continual forgetting disappears
-relative to the joint fixed-feature model.  Paper III asks what happens
+relative to the joint fixed-feature model.  SSUP-III asks what happens
 when the target itself is induced by a policy.
 
 The answer is that the target axis becomes load-bearing.  The data-stream
@@ -630,7 +631,7 @@ The second follow-up is **continual RL**.  We have not run a paper-grade
 continual-RL benchmark panel, so this paper does not claim a continual-RL
 result.  What we do have is the mechanism that makes such a study
 natural: per-action normal equations, exponential statistic retention,
-and the Paper II result that compatible fixed-feature statistics add
+and the SSUP-II result that compatible fixed-feature statistics add
 cleanly across task partitions.  Natural experiments are task sequences
 with changing reward maps, per-goal normal-equation blocks that can be
 combined at decision time, conflict-aware decoder merging when new
@@ -692,10 +693,10 @@ without a usable goal handle or a readout matched to the task.
 Across the three papers, the same object keeps reappearing:
 $A^\top A$ records the geometry induced by fixed activities, and
 $A^\top Y$ records the task semantics those activities are asked to
-decode.  Paper I showed that this is already a useful supervised-learning
-primitive; Paper II showed that compatible task streams can add into the
+decode.  SSUP-I showed that this is already a useful supervised-learning
+primitive; SSUP-II showed that compatible task streams can add into the
 same statistics without forgetting relative to the joint fixed-feature
-model; Paper III shows that reinforcement learning is the case where the
+model; SSUP-III shows that reinforcement learning is the case where the
 target block itself becomes the main design object.  Supervised learning
 supplies labels, continual learning preserves label semantics across a
 stream, and reinforcement learning must construct the target it wants the
@@ -887,6 +888,14 @@ motivation. *NeurIPS*.
 Borsa, D., Barreto, A., Quan, J., Mankowitz, D. J., van Hasselt, H.,
 Munos, R., Silver, D., & Schaul, T. (2018). Universal successor features
 approximators. *arXiv:1812.07626*.
+
+Bosnić, N. (2026a). *Sufficient Statistics as a Universal Primitive?
+(Part I): Supervised Learning via the Neural Engineering Framework*.
+PDF: <https://github.com/nikeke/leenef/blob/main/docs/SSUP-I.pdf>.
+
+Bosnić, N. (2026b). *Sufficient Statistics as a Universal Primitive?
+(Part II): Continual Learning*. PDF:
+<https://github.com/nikeke/leenef/blob/main/docs/SSUP-II.pdf>.
 
 Bradtke, S. J., & Barto, A. G. (1996). Linear least-squares algorithms
 for temporal difference learning. *Machine Learning*, 22(1-3), 33-57.

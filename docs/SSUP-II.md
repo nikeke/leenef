@@ -53,7 +53,7 @@ to compose decoded signals; we depart in three places.
 
 - We use **rate neurons with `abs` activation**, not spiking LIF.
   `abs` is a minimal departure from linearity that escapes the
-  linear-collapse argument of Paper I §2; it is also what gives our
+  linear-collapse argument of SSUP-I §2; it is also what gives our
   activations the frame-coefficient-magnitude interpretation that the
   paper series uses throughout.
 - We use **data-driven biases**.  The bias of neuron *i* is
@@ -101,14 +101,18 @@ solve; P5–P6 are leenef-specific.
   continual learning is the cleanest case; reinforcement learning shows
   why unstable or mismatched targets must be constructed with care.
 
-In Paper II, **P3** and **P6** are the whole mechanism.  P3 says that
-the learner's state is the pair $(A^\top A, A^\top Y)$, and those
-statistics add over tasks exactly as they add over mini-batches.  P6
-says that class-incremental targets write into decoder columns rather
-than overwriting a shared classifier head.  Together they turn
-continual learning from a parameter-drift problem into an accounting
-problem: preserve the sufficient statistics, then solve the same
-quadratic objective the joint learner would have solved.
+In SSUP-II, **P3** and **P6** are the whole mechanism.  SSUP-I
+(Bosnić, 2026a) establishes the supervised fixed-feature solve whose
+statistics we reuse here.  P3 says that the learner's state is the pair
+$(A^\top A, A^\top Y)$, and those statistics add over tasks exactly as
+they add over mini-batches.  P6 says that class-incremental targets write
+into decoder columns rather than overwriting a shared classifier head.
+Together they turn continual learning from a parameter-drift problem into
+an accounting problem: preserve the sufficient statistics, then solve the
+same quadratic objective the joint learner would have solved.  SSUP-III
+(Bosnić, 2026c) carries the same primitive into reinforcement learning,
+where the central question becomes how to construct a stable target matrix
+rather than how to add already-compatible labels.
 
 ---
 
@@ -165,7 +169,7 @@ to preserve, and the failure mode is that it cannot fully succeed.
 
 ### Sufficient-statistic accumulation as an analytic family
 
-The analytic primitive of Paper I sits outside the SGD frame.
+The analytic primitive of SSUP-I sits outside the SGD frame.
 With fixed encoders, the loss
 
 $$
@@ -179,7 +183,7 @@ D^\star \;=\; (A^\top A + N \alpha I)^{-1} A^\top Y
 $$
 
 depends on $A^\top A$ and $A^\top Y$ only (we absorb $N$ into an
-$\alpha_{\mathrm{eff}}$ as in Paper I §4 and drop the factor for the
+$\alpha_{\mathrm{eff}}$ as in SSUP-I §4 and drop the factor for the
 remainder of the paper).  Both $A^\top A$ and $A^\top Y$ are sums
 over training samples, hence sums over any partition into tasks.
 The sequential update rule is then trivially:
@@ -245,7 +249,7 @@ or the incremental/joint identity.  It is to place the NEF
 delay-line features inside this analytic-CL family; to show exactly
 where the fixed-feature sufficient-statistics primitive succeeds and
 where its representational ceiling appears; and to do so under the
-same multi-seed, code-identity-tagged artifact discipline as Paper I.
+same multi-seed, code-identity-tagged artifact discipline as SSUP-I.
 Throughout, "sufficient statistics" means this fixed-feature ridge
 sense: for a fixed encoder map, $(A^\top A, A^\top Y)$ fully determines
 the Tikhonov estimator, not arbitrary learned representations or
@@ -267,18 +271,18 @@ regime.  We therefore measure four things.
   The phrase "knowledge of old tasks" reduces to "the columns of
   $A^\top Y$ that those tasks contributed", and they sit in the
   accumulator as a faithful record.
-- **Where the regime is competitive and where it is not.**  Paper I
+- **Where the regime is competitive and where it is not.**  SSUP-I
   established that the analytic primitive is competitive on image
   classification with strong analytic-feature priors (ConvNEF,
   receptive-field encoders) and uncompetitive against deep CNNs.
-  We carry that limit straight into Paper II.  On class-incremental
+  We carry that limit straight into SSUP-II.  On class-incremental
   splits — the regime where SGD baselines collapse most dramatically —
   the analytic primitive is strongest among the tested baselines because
   it does not collapse at all; on domain-incremental Permuted-MNIST it loses to EWC and joint
   MLP because the static-image accuracy ceiling of a single-layer NEF
   is below theirs.  The reading is structural, not triumphalist: this
   paper's contribution is the no-forgetting identity under fixed
-  features, and the absolute accuracy inherits whatever Paper I
+  features, and the absolute accuracy inherits whatever SSUP-I
   established about those features.
 - **Capacity, not just possibility.**  "No forgetting" is necessary
   but not sufficient.  We measure the multi-seed Permuted-MNIST
@@ -290,7 +294,7 @@ regime.  We therefore measure four things.
   half that retention level, which is the empirical limiter on how
   general we are willing to make the rule.
 - **The visual ceiling moves cleanly.**  We import a gradient-free
-  convolutional feature stack (the ConvNEF of Paper I, §5.5) as the
+  convolutional feature stack (the ConvNEF of SSUP-I, §5.5) as the
   front end, fit its analytic NEF head on a stream of tasks via the
   same accumulation path, and show that the additive property survives
   the change of features.  The Split-CIFAR-10 continual ceiling moves
@@ -298,14 +302,14 @@ regime.  We therefore measure four things.
   bit-identical to the joint fit at every neuron count tested.
 
 We are not claiming this is the strongest continual learner across
-all regimes.  Paper I's image-accuracy ceiling carries through:
+all regimes.  SSUP-I's image-accuracy ceiling carries through:
 single-layer NEF cannot match a deep CNN on raw CIFAR even when the
 deep CNN is trained jointly, and our ConvNEF is a Coates-style 2011
 feature stack rather than a modern encoder.  We are also not claiming
 that this primitive trivially extends to feature-adaptive continual
 learning.  When the front end itself must change across tasks, the
 additive identity holds only with respect to the fixed component, and
-Paper I's negative result on purely analytic depth is the limiter.  We
+SSUP-I's negative result on purely analytic depth is the limiter.  We
 document the working operating regime and label the boundary.
 
 ### A note on the four CL evaluation protocols
@@ -344,25 +348,25 @@ of the same architecture is implicit but rarely made explicit;
 see e.g. the "online learning in echo state networks" line of
 Jaeger & Haas (2004) for the closest explicit statement.  This
 paper differs from that line in its choice of feature space (the
-NEF interpretation of Paper I §3 rather than a random recurrent
+NEF interpretation of SSUP-I §3 rather than a random recurrent
 network), in its evaluation discipline (multi-seed,
 code-identity-tagged, against modern CL baselines rather than
 single-seed against linear baselines), and in its scope (the
 non-stationary stream is the *data*, not the input signal of a
 recurrent system).
 
-### Inheritance from Paper I
+### Inheritance from SSUP-I
 
-Everything in Paper I about encoder choice, bias placement,
+Everything in SSUP-I about encoder choice, bias placement,
 activation, regularization, accumulate-and-solve numerics, and
-ConvNEF feature extraction carries through unchanged.  Paper I is
+ConvNEF feature extraction carries through unchanged.  SSUP-I is
 the prerequisite; the present paper inherits its operating defaults
 (`abs` activation, hypersphere encoders, data-driven first-task
 biases, $\alpha$ at $10^{-3}$ for raw-MNIST-scale features and
 $10^{-2}$ for Split-CIFAR-10 features) and its numerical discipline
 (float64 accumulators, float32 features, code-identity-tagged
 results).  We do not re-derive any of them here; we point to the
-Paper I sections that own each design choice and use them.
+SSUP-I sections that own each design choice and use them.
 
 ---
 
@@ -371,7 +375,7 @@ Paper I sections that own each design choice and use them.
 ### §3.1 — The joint-equivalence identity
 
 Fix an encoder map $\phi: \mathbb{R}^{d_{\mathrm{in}}} \to
-\mathbb{R}^n$ as in Paper I §3; concretely, $\phi(x)_i =
+\mathbb{R}^n$ as in SSUP-I §3; concretely, $\phi(x)_i =
 |g_i (e_i \cdot (x - d_i))|$ for a unit encoder $e_i$,
 gain $g_i$, and center $d_i$, all sampled before any training data
 arrives and held constant for the entire stream.  Let
@@ -423,7 +427,7 @@ holds independently of the ordering of tasks, the size of each
 task's training set, and the number of tasks.  It depends on two
 assumptions: (a) the encoder map $\phi$ does not change across
 tasks, and (b) the regularizer $\alpha$ does not change across
-tasks.  Paper I §4 already explained why $\alpha$ behaves as a
+tasks.  SSUP-I §4 already explained why $\alpha$ behaves as a
 multiplier of the encoder-span and not a hyperparameter to
 re-tune per task as long as the encoder distribution is fixed,
 so (b) is automatic in the regime we use.
@@ -462,7 +466,7 @@ Decoders are then $D_t = M_t B_t$.  This is the cheaper option
 when test-time queries are frequent and per-batch updates can be
 small (the $O(N_t \, n^2 + N_t^2 \, n)$ Woodbury cost beats the
 full $O(n^3)$ solve when $N_t \ll n$); it is the operating mode
-of streaming-NEF in Paper I §6.  Numerically, Paper I §5.3 and
+of streaming-NEF in SSUP-I §6.  Numerically, SSUP-I §5.3 and
 the analysis in §5.4 of this paper show that the two paths agree
 to within float drift at the tuned $\alpha$.  The running normal
 equations must be accumulated in double precision at the stream
@@ -480,7 +484,7 @@ float64 accumulator discipline.
 
 ### §3.3 — Center placement on a non-stationary stream
 
-Paper I established that data-driven biases — placing each
+SSUP-I established that data-driven biases — placing each
 neuron's hinge at a training sample, $b_i = -g_i \, e_i \cdot d_i$
 with $d_i$ drawn from training data — beat a uniform prior on
 biases for every static benchmark (§5.1).  On a continual stream
@@ -512,7 +516,7 @@ see the negative-results discussion in §6.
 
 ### §3.4 — ConvNEF as a continual feature stack
 
-Paper I §5.5 introduced ConvNEF: a stack of one-shot PCA
+SSUP-I §5.5 introduced ConvNEF: a stack of one-shot PCA
 convolution + abs + pool stages whose final feature vector is
 fed into a NEF analytic head.  The PCA filters are fit once on
 patches of training data; they are not gradient-updated and
@@ -574,7 +578,7 @@ This matters for §5.1: the continual and joint rows for a given seed
 must use bit-identical encoders, gains, centers, and task streams or
 Equation (1) would compare two different feature matrices.
 
-For comparative language we use the same SE rule as Paper I:
+For comparative language we use the same SE rule as SSUP-I:
 $|\Delta| \ge \sqrt{\mathrm{SE}_a^2 + \mathrm{SE}_b^2}$ before
 calling a rounded difference meaningful.  Appendix A gives the
 artifact layout and exact audit fields.
@@ -611,7 +615,7 @@ that two runs at the same seed produce bit-identical task streams.
 
 ### §4.2 — Models and baselines
 
-The NEF defaults are inherited from Paper I and held constant
+The NEF defaults are inherited from SSUP-I and held constant
 across panels unless explicitly varied:
 
 - 5 000 hidden neurons (10 000 for the visual ConvNEF panel;
@@ -622,7 +626,7 @@ across panels unless explicitly varied:
   varies this);
 - $\alpha = 10^{-3}$ for raw-MNIST features (Split-MNIST,
   Permuted-MNIST), $\alpha = 10^{-2}$ for raw-CIFAR features
-  (Split-CIFAR-10/100).  These match Paper I §4 for static
+  (Split-CIFAR-10/100).  These match SSUP-I §4 for static
   benchmarks and are not re-tuned per CL panel.
 - `partial_fit` with float64 accumulators, batch size 4 096,
   followed by `solve_accumulated` after the last task.
@@ -769,7 +773,7 @@ The NEF-continual row sits 1.0 pp below `mlp_joint` and 11 pp
 above `mlp_er` while running ~1.7× less wall-clock time than
 `mlp_joint`.  Crucially, the gap to `nef_joint` is zero pp;
 the only thing keeping `nef_accumulate` away from `mlp_joint`
-is the Paper I gap between a single-layer NEF and an MLP on
+is the SSUP-I gap between a single-layer NEF and an MLP on
 joint MNIST training, which is 1.0 pp here.
 
 #### Split-CIFAR-10 (5 tasks, class-incremental)
@@ -879,7 +883,7 @@ is comparable to or faster than the MLP CL methods; on Permuted-
 MNIST, NEF runs the full 60 000 sample stream T=10 times through
 the encoder, which costs 5–10× more than the MLP's per-task
 SGD epochs.  Reducing this is the same accumulator-batching
-optimization Paper I used for static SL; we did not aggressively
+optimization SSUP-I used for static SL; we did not aggressively
 chase it here because Permuted-MNIST is the regime we already
 know NEF loses on.
 
@@ -1034,16 +1038,16 @@ law.
 ### §5.6 — ConvNEF lifts the visual ceiling without breaking additivity
 
 The flat-NEF Split-CIFAR-10 ceiling sits at 49.5 ± 0.1 %.
-Substituting the front end with a ConvNEF stack (Paper I §5.5)
+Substituting the front end with a ConvNEF stack (SSUP-I §5.5)
 lifts that ceiling cleanly while leaving the analytic head's
 joint-equivalence intact.  This panel runs on an NVIDIA L4 GPU,
 $n = 10$ seeds per cell.
 
-This is not the same configuration as Paper I's static CIFAR-10 ConvNEF
-result (65.89 %).  Paper I evaluates ordinary 10-class CIFAR-10 image
+This is not the same configuration as SSUP-I's static CIFAR-10 ConvNEF
+result (65.89 %).  SSUP-I evaluates ordinary 10-class CIFAR-10 image
 classification; this panel evaluates a five-task Split-CIFAR-10
 continual protocol with a separately configured ConvNEF feature stack
-and analytic head.  The comparison that matters inside Paper II is the
+and analytic head.  The comparison that matters inside SSUP-II is the
 before/after lift within the same split protocol, not cross-paper
 equality of the two ConvNEF percentages.
 
@@ -1061,7 +1065,7 @@ Three things are worth flagging in this table.
 
 1. **The visual ceiling moves +25 pp.**  At 20 000 neurons the
    ConvNEF stack reaches 74.7 ± 0.1 %, a 25.2 pp lift over the
-   flat-NEF floor of 49.5 %.  This is the full Paper I §5.5
+   flat-NEF floor of 49.5 %.  This is the full SSUP-I §5.5
    contribution carried through to a continual stream; the
    present paper does not re-derive it but does re-validate it
    at multi-seed under the paper's artifact discipline.
@@ -1096,13 +1100,13 @@ solver-overhead, not numerical disagreement.
 ### §5.7 — Streaming continual is a boundary case, not a free corollary
 
 The last panel asks whether the same story carries through the
-streaming classifier of Paper I §6.  Each task is a full MNIST
+streaming classifier of SSUP-I §6.  Each task is a full MNIST
 classification problem under a fresh fixed pixel permutation, reshaped
 as a 784-step sequence with one scalar per timestep.  The feature map is
 fixed from first-task centers and the model sees ten task permutations.
 The panel was run on a Google Colab G4 GPU (NVIDIA RTX PRO 6000
 Blackwell Server Edition, 95.0 GiB) with 5 seeds per cell.  As in
-Paper I's streaming section, $\alpha$ is set relative to the streaming
+SSUP-I's streaming section, $\alpha$ is set relative to the streaming
 feature map's own
 $\mathrm{tr}(A^\top A) / n$ scale rather than inherited as a fixed
 absolute ridge term.
@@ -1133,9 +1137,9 @@ within 0.02 pp at 8000 neurons and to stored precision at 4000 and
 4000 neurons to 58.3 % at 16000.
 
 The wider meaning is that the SSUP primitive survives the composition
-that matters for this paper series.  Paper I showed that delay-line
+that matters for this paper series.  SSUP-I showed that delay-line
 Stream-NEF can turn temporal sequences into fixed activity statistics;
-Paper II shows that those same statistics remain additive over a
+SSUP-II shows that those same statistics remain additive over a
 non-stationary task stream.  Time pooling and task accumulation are not
 separate mechanisms here: both reduce to preserving and solving
 $(A^\top A, A^\top Y)$.  The continual-learning part of the problem is
@@ -1143,14 +1147,14 @@ therefore still solved by P3 and P6.
 
 The boundary that remains is representational.  The 10-task
 permuted-sMNIST stream is far above the reset lower bound, but far below
-the static Permuted-MNIST panel of §5.2.  This matches Paper I's
+the static Permuted-MNIST panel of §5.2.  This matches SSUP-I's
 streaming lesson: mean-pooled delay-line features are cheap and
 analytic, but they discard long-range order information and are more
 fragile under domain shifts than static image features.  This panel is
 therefore not a comparison with the modern sequence-model frontier (LMU,
 S4/HiPPO, LRU, or Mamba-style models; Voelker et al., 2019; Gu et al.,
 2020; Gu et al., 2022; Orvieto et al., 2023; Gu & Dao, 2023); it is a
-test of whether the Paper I Stream-NEF feature map keeps the
+test of whether the SSUP-I Stream-NEF feature map keeps the
 sufficient-statistics interface intact under a task stream.  For the
 larger program, streaming continual is encouraging because the primitive
 still works when time and task streams are combined; it is also a
@@ -1164,9 +1168,9 @@ different solver.
 
 Section §5 collected seven classes of evidence.  For the static CL
 panels, at no point did
-we have to choose a $\alpha$ that was different from Paper I's
+we have to choose a $\alpha$ that was different from SSUP-I's
 static defaults.  At no point did we have to introduce a
-mechanism that was not present in Paper I — `partial_fit` and
+mechanism that was not present in SSUP-I — `partial_fit` and
 `solve_accumulated` are the entire CL machinery of this paper.
 The headline rows are joint-equivalent in test accuracy at
 $10$ seeds across four datasets; the capacity diagonal sits
@@ -1179,7 +1183,7 @@ on splits, the EWC baseline wins on Permuted-MNIST, and the
 joint-MLP upper bound is 1–2 pp ahead on Split-MNIST and
 Split-CIFAR-10 and 0.3 pp *behind* NEF on Split-CIFAR-100.
 The streaming follow-up preserves exact accumulate/joint equality but
-also carries the primitive through Paper I's time-collapsed
+also carries the primitive through SSUP-I's time-collapsed
 Stream-NEF setting: exact, joint, and online Woodbury all coincide
 again once the same trace-scaled regularization policy is used.
 
@@ -1221,8 +1225,8 @@ MLP reaches 98.0 %, NEF-continual reaches 94.5 %.  The gap is
 not a continual-learning failure; joint-equivalence still holds
 (94.5 $\equiv$ 94.5).  It is the same gap a single-layer NEF would
 exhibit on the joint version of the benchmark, inherited from
-Paper I.  The direct reading is that the analytic primitive
-inherits its absolute level from Paper I, and where a static
+SSUP-I.  The direct reading is that the analytic primitive
+inherits its absolute level from SSUP-I, and where a static
 NEF is below an MLP, the continual NEF is below the continual
 or joint MLP by the same gap.
 
@@ -1234,7 +1238,7 @@ form solution is independent of the order of observations.  We
 agree that the algebra is unsurprising.  The claim is not that
 the algebra is novel.  The claim is that
 
-(a) **a benchmark-relevant model can be built around it**.  Paper I
+(a) **a benchmark-relevant model can be built around it**.  SSUP-I
 already showed that an analytic NEF is competitive on static SL
 when the feature stack is right (ConvNEF for vision); §5 of the
 present paper shows that this same model is — with no further
@@ -1284,9 +1288,9 @@ the continual-learning mechanism and solver identity still hold, so the
 remaining problem is how to build richer fixed streaming features while
 keeping the sufficient-statistics interface intact.
 
-### Bridge to Paper III
+### Bridge to SSUP-III
 
-Paper III takes the same primitive into reinforcement learning.
+SSUP-III takes the same primitive into reinforcement learning.
 The algebra continues to apply: the targets matrix $Y$ becomes a
 return, an $n$-step target, a bootstrap target
 $Y_t = R_t + \gamma \, V_\theta(S_{t+1})$, or a successor target,
@@ -1298,7 +1302,7 @@ data-stream axis has length zero for fixed-feature static CL, Paper
 III asks when the target-stream axis also has length zero in the same
 primitive.  The answer is conditional: a stable non-bootstrapped NEF-AVR
 target crosses the informal 200-return reference line on LunarLander-v3
-under Paper III's evaluation protocol, full-successor target construction
+under SSUP-III's evaluation protocol, full-successor target construction
 breaks MountainCar-v0's flat floor without solving the environment, and
 directional successor readout supports Acrobot-v1, while one-step
 bootstrap targets and mismatched sparse readouts fail.
@@ -1326,7 +1330,7 @@ continual baselines, and on Split-CIFAR-100 it edges past even the
 joint-MLP upper-bound reference while using ~5× less wall-clock time.  On
 domain-incremental Permuted-MNIST EWC and joint-MLP win by ~1
 and ~3.5 pp respectively, inheriting the static-NEF–MLP gap from
-Paper I.  We characterized capacity ($\sim 100$ neurons per task
+SSUP-I.  We characterized capacity ($\sim 100$ neurons per task
 at $\sim 80\,\%$ retention on Permuted-MNIST, with caveat for
 harder visual splits), the operating regime of online Woodbury
 vs offline accumulate (equivalence at tuned $\alpha$, 5–9× less
@@ -1341,10 +1345,10 @@ used.  The remaining limitation is the lower streaming representation
 ceiling, not the continual-learning update.
 
 The right reading is that the same primitive that handled static
-supervised learning in Paper I handles its non-stationary
+supervised learning in SSUP-I handles its non-stationary
 data-stream variant here, with no continual-learning machinery
 added on top, as long as the fixed-feature joint objective is the
-object we want.  Paper III takes the same primitive into the non-
+object we want.  SSUP-III takes the same primitive into the non-
 stationary target setting.
 
 ---
@@ -1498,7 +1502,7 @@ family is not the source of the accuracy ceiling.
 $\alpha$ should scale with $\mathrm{tr}(A^\top A) / n$ across
 datasets so the regularizer becomes a single hyperparameter is
 appealing but breaks at the second decimal place: per-dataset
-tuning still wins by 0.2–0.4 pp.  Paper I §4 already discusses
+tuning still wins by 0.2–0.4 pp.  SSUP-I §4 already discusses
 this; we did not re-test it on the continual side because the
 static optimum carries through under the additivity identity.
 
@@ -1557,6 +1561,14 @@ Gradient based sample selection for online continual learning.
 Azoury, K. S., & Warmuth, M. K. (2001). Relative loss bounds for
 on-line density estimation with the exponential family of
 distributions. *Machine Learning*, 43, 211–246.
+
+Bosnić, N. (2026a). *Sufficient Statistics as a Universal Primitive?
+(Part I): Supervised Learning via the Neural Engineering Framework*.
+PDF: <https://github.com/nikeke/leenef/blob/main/docs/SSUP-I.pdf>.
+
+Bosnić, N. (2026c). *Sufficient Statistics as a Universal Primitive?
+(Part III): Reinforcement Learning*. PDF:
+<https://github.com/nikeke/leenef/blob/main/docs/SSUP-III.pdf>.
 
 Bradtke, S. J., & Barto, A. G. (1996). Linear least-squares
 algorithms for temporal difference learning. *Machine
