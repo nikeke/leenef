@@ -47,6 +47,13 @@ activity energy.  Woodbury/update-inverse paths use fixed alpha because the
 cached inverse is parameterized by that exact diagonal value; do not change
 `fixed_alpha` mid-stream without `refresh_inverse()` or `reset_continuous()`.
 
+`NEFLayer` and `StreamingNEFClassifier` checkpoints include accumulated
+statistics when available, but not the Woodbury inverse or its fixed alpha.
+After loading, pass the original `fixed_alpha` explicitly to
+`continuous_fit()` or `refresh_inverse()` to resume with a non-default value.
+Load a checkpoint without statistics into a fresh or reset model for strict
+loading. A non-strict load does not carry old statistics forward.
+
 The repository's `skills/leenef/` directory is a standard Agent Skill: it
 contains `SKILL.md`, its installer, and the asset manifest.  Keep it as a
 directory rather than moving `SKILL.md` back to the repository root; a root file

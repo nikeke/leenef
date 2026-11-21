@@ -13,7 +13,7 @@ from torch import Tensor
 
 from .activations import make_activation
 from .encoders import make_encoders
-from .layers import _make_gain
+from .layers import _make_gain, _WoodburyModule
 from .solvers import (
     DEFAULT_ALPHA,
     DEFAULT_FIXED_ALPHA,
@@ -52,7 +52,7 @@ def _normal_equation_inputs(
     )
 
 
-class StreamingNEFClassifier(nn.Module):
+class StreamingNEFClassifier(_WoodburyModule):
     """Classify variable-length sequences via temporal NEF encoding.
 
     Architecture::
@@ -135,7 +135,7 @@ class StreamingNEFClassifier(nn.Module):
 
         self.decoders = nn.Parameter(torch.zeros(n_neurons, d_out), requires_grad=False)
 
-        # Woodbury state — initialized lazily by continuous_fit
+        self._woodbury_alpha = None
 
     def _delay_features(self, x_seq: Tensor) -> Tensor:
         """Convert (N, T, d) sequences to (N, T, K*d) delay-line features."""
@@ -260,10 +260,10 @@ class StreamingNEFClassifier(nn.Module):
 
         # Statistics without a cached inverse (e.g. after accumulate()) must
         # seed the inverse; starting from I / fixed_alpha would ignore them.
-        needs_rebuild = not has_inverse and getattr(self, "_ata", None) is not None
-        if not hasattr(self, "_ata") or self._ata is None:
-            self.register_buffer("_ata", ata)
-            self.register_buffer("_aty", aty)
+        needs_rebuild = not has_inverse and self._ata is not None
+        if self._ata is None:
+            self._ata = ata
+            self._aty = aty
         else:
             self._ata.add_(ata)
             self._aty.add_(aty)
@@ -302,9 +302,9 @@ class StreamingNEFClassifier(nn.Module):
         aty = (A_stats.T @ T_stats).double()
         if getattr(self, "_M_inv", None) is not None:
             self._M_inv = None
-        if not hasattr(self, "_ata") or self._ata is None:
-            self.register_buffer("_ata", ata)
-            self.register_buffer("_aty", aty)
+        if self._ata is None:
+            self._ata = ata
+            self._aty = aty
         else:
             self._ata.add_(ata)
             self._aty.add_(aty)
@@ -363,7 +363,7 @@ class StreamingNEFClassifier(nn.Module):
         Args:
             alpha: Explicit ``(value, mode)`` ridge policy.
         """
-        if not hasattr(self, "_ata") or self._ata is None:
+        if self._ata is None:
             raise RuntimeError("No accumulated statistics — call accumulate() first")
         D = solve_from_normal_equations(self._ata, self._aty, alpha=alpha)
         self.decoders.data.copy_(D.to(self.decoders.dtype))
@@ -371,13 +371,12 @@ class StreamingNEFClassifier(nn.Module):
     @torch.no_grad()
     def refresh_inverse(self, fixed_alpha: float | None = None) -> None:
         """Recompute the inverse exactly from accumulated statistics."""
-        if not hasattr(self, "_ata") or self._ata is None:
+        if self._ata is None:
             raise RuntimeError("No accumulated statistics — call continuous_fit() first")
         if fixed_alpha is None:
-            if not hasattr(self, "_woodbury_alpha"):
+            fixed_alpha = self._woodbury_alpha
+            if fixed_alpha is None:
                 fixed_alpha = DEFAULT_FIXED_ALPHA
-            else:
-                fixed_alpha = self._woodbury_alpha
         self._M_inv = inverse_from_normal_equations(self._ata, alpha=(fixed_alpha, "fixed"))
         self._woodbury_alpha = fixed_alpha
         self.decoders.data.copy_(
@@ -386,11 +385,7 @@ class StreamingNEFClassifier(nn.Module):
 
     def reset_continuous(self) -> None:
         """Clear all continuous-learning state."""
-        if hasattr(self, "_ata"):
-            self._ata = None
-        if hasattr(self, "_aty"):
-            self._aty = None
+        self._ata = self._aty = None
         if hasattr(self, "_M_inv"):
             self._M_inv = None
-        if hasattr(self, "_woodbury_alpha"):
-            del self._woodbury_alpha
+        self._woodbury_alpha = None

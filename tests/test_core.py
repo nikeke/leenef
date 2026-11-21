@@ -18,6 +18,7 @@ from leenef.encoders import (
 )
 from leenef.layers import NEFLayer
 from leenef.solvers import (
+    DEFAULT_FIXED_ALPHA,
     lstsq,
     normal_equations,
     regularization_strength,
@@ -25,6 +26,7 @@ from leenef.solvers import (
     solve_from_normal_equations,
     tikhonov,
 )
+from leenef.streaming import StreamingNEFClassifier
 
 # ── Encoders ──────────────────────────────────────────────────────────
 
@@ -825,6 +827,118 @@ class TestNEFLayer:
                 else:
                     assert actual is not None and torch.equal(expected, actual)
             assert layer._woodbury_alpha == before_alpha
+
+
+class TestWoodburyCheckpoint:
+    @pytest.fixture(params=["layer", "streaming"])
+    def problem(self, request):
+        rng = torch.Generator().manual_seed(86)
+        if request.param == "layer":
+            factory, shape = NEFLayer, (8, 2)
+        else:
+            factory, shape = StreamingNEFClassifier, (8, 3, 2)
+
+        def make(seed):
+            return factory(2, 6, 2, rng=torch.Generator().manual_seed(seed)).double()
+
+        return (
+            make,
+            torch.randn(shape, generator=rng).double(),
+            torch.randn(8, 2, generator=rng).double(),
+        )
+
+    @pytest.mark.parametrize("existing", [False, True], ids=["fresh", "existing"])
+    def test_nested_checkpoint_restores_stats_and_rebuilds_inverse(self, problem, existing):
+        make, x, targets = problem
+        source = make(861)
+        source.continuous_fit(x[:4], targets[:4], fixed_alpha=0.2)
+        state = torch.nn.Sequential(source).state_dict()
+
+        dest = make(862)
+        if existing:
+            dest.continuous_fit(x[4:], targets[4:], fixed_alpha=0.3)
+        torch.nn.Sequential(dest).load_state_dict(state)
+        assert dest._M_inv is None
+        assert dest._woodbury_alpha is None
+        torch.testing.assert_close(dest._ata, source._ata)
+        torch.testing.assert_close(dest._aty, source._aty)
+        torch.testing.assert_close(dest(x), source(x))
+
+        encode = source.encode if isinstance(source, NEFLayer) else source.encode_sequence
+        activities = encode(x)
+        if existing:
+            # The destination's old alpha and statistics must not be reused.
+            dest.continuous_fit(x[4:], targets[4:], fixed_alpha=0.4)
+            expected = tikhonov(activities, targets, alpha=(0.4, "fixed"))
+        else:
+            dest.refresh_inverse()
+            expected = tikhonov(activities[:4], targets[:4], alpha=(DEFAULT_FIXED_ALPHA, "fixed"))
+        torch.testing.assert_close(dest.decoders, expected)
+
+    @pytest.mark.parametrize(
+        ("omitted", "strict"),
+        [("_ata", True), ("_aty", False), ("encoders", False)],
+    )
+    def test_partial_checkpoint_reports_missing_keys_and_discards_stats(
+        self, problem, omitted, strict
+    ):
+        make, x, targets = problem
+        source = make(861)
+        source.continuous_fit(x[:4], targets[:4], fixed_alpha=0.2)
+        state = source.state_dict()
+        del state[omitted]
+        dest = make(862)
+        if not strict:
+            dest.continuous_fit(x[4:], targets[4:], fixed_alpha=0.3)
+
+        if strict:
+            with pytest.raises(RuntimeError, match=rf'Missing key.*"{omitted}"'):
+                dest.load_state_dict(state)
+        else:
+            report = dest.load_state_dict(state, strict=False)
+            assert report.missing_keys == [omitted]
+            assert report.unexpected_keys == []
+        assert dest._ata is dest._aty is dest._M_inv is dest._woodbury_alpha is None
+
+    def test_malformed_checkpoint_discards_stats_even_on_failed_load(self, problem):
+        make, x, targets = problem
+        source = make(861)
+        source.continuous_fit(x[:4], targets[:4], fixed_alpha=0.2)
+        state = source.state_dict()
+        state["_ata"] = state["_ata"][:-1]
+        dest = make(862)
+        dest.continuous_fit(x[4:], targets[4:], fixed_alpha=0.3)
+
+        with pytest.raises(RuntimeError, match="size mismatch for _ata"):
+            dest.load_state_dict(state, strict=False)
+        assert dest._ata is dest._aty is dest._M_inv is dest._woodbury_alpha is None
+
+    def test_fresh_stats_load_uses_accumulator_dtype(self, problem):
+        make, x, targets = problem
+        source = make(861)
+        source.continuous_fit(x[:4], targets[:4], fixed_alpha=0.2)
+        source.float()  # Casting the source module also casts its registered buffers.
+        dest = make(862).float()
+
+        dest.load_state_dict(source.state_dict())
+        torch.testing.assert_close(dest._ata, source._ata.double())
+        torch.testing.assert_close(dest._aty, source._aty.double())
+        assert dest.decoders.dtype == torch.float32
+
+    def test_inference_checkpoint_does_not_keep_existing_stats(self, problem):
+        make, x, targets = problem
+        source = make(861)
+        source.fit(x, targets)
+        state = source.state_dict()
+        dest = make(862)
+        dest.load_state_dict(state)
+        dest.continuous_fit(x[4:], targets[4:], fixed_alpha=0.3)
+
+        report = dest.load_state_dict(state, strict=False)
+        assert set(report.missing_keys) == {"_ata", "_aty"}
+        assert report.unexpected_keys == []
+        assert dest._ata is dest._aty is dest._M_inv is dest._woodbury_alpha is None
+        torch.testing.assert_close(dest(x), source(x))
 
 
 # ── Exception paths ───────────────────────────────────────────────────

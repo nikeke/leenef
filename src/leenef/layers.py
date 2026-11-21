@@ -95,7 +95,57 @@ def _density_adaptive_gain(
     return lo + (hi - lo) * t
 
 
-class NEFLayer(nn.Module):
+class _WoodburyModule(nn.Module):
+    n_neurons: int
+    d_out: int
+    decoders: nn.Parameter
+    _M_inv: Tensor | None
+    _woodbury_alpha: float | None
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.register_buffer("_ata", None)
+        self.register_buffer("_aty", None)
+
+    def _load_from_state_dict(
+        self, state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs
+    ) -> None:
+        # Neither cache is serialized, even when the statistics are available.
+        self._M_inv = None
+        self._woodbury_alpha = None
+        stats = (
+            ("_ata", (self.n_neurons, self.n_neurons)),
+            ("_aty", (self.n_neurons, self.d_out)),
+        )
+        # A None buffer is invisible to PyTorch's loader. Materialize the pair
+        # when either key is supplied so it can report missing or malformed stats.
+        keep_stats = False
+        try:
+            if any(prefix + name in state_dict for name, _ in stats):
+                for name, shape in stats:
+                    if getattr(self, name) is None:
+                        setattr(self, name, self.decoders.new_empty(shape, dtype=torch.float64))
+            num_missing, num_errors = len(missing_keys), len(error_msgs)
+            super()._load_from_state_dict(
+                state_dict,
+                prefix,
+                local_metadata,
+                strict,
+                missing_keys,
+                unexpected_keys,
+                error_msgs,
+            )
+            keep_stats = (
+                len(missing_keys) == num_missing
+                and len(error_msgs) == num_errors
+                and all(prefix + name in state_dict for name, _ in stats)
+            )
+        finally:
+            if not keep_stats:
+                self._ata = self._aty = None
+
+
+class NEFLayer(_WoodburyModule):
     """Single NEF layer: encode → activate → decode.
 
     Encoders (input weights) are random and optionally trainable.
@@ -181,12 +231,7 @@ class NEFLayer(nn.Module):
         # Decoders — always a parameter so it participates in state_dict
         self.decoders = nn.Parameter(torch.zeros(n_neurons, d_out), requires_grad=False)
 
-        # Pre-register buffers for incremental / continuous fit so they
-        # move with .to(device) and serialize via state_dict.  ``_M_inv``
-        # is non-persistent because it can be recomputed exactly from
-        # ``_ata`` via :meth:`refresh_inverse`.
-        self.register_buffer("_ata", None, persistent=True)
-        self.register_buffer("_aty", None, persistent=True)
+        # Recomputed from the persistent statistics by refresh_inverse().
         self.register_buffer("_M_inv", None, persistent=False)
         self._woodbury_alpha: float | None = None
 
