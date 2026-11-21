@@ -58,7 +58,8 @@ def _make_gain(
         return _density_adaptive_gain(selected_centers, all_centers, k_density)
     if isinstance(spec, tuple):
         lo, hi = spec
-        return lo + (hi - lo) * torch.rand(n_neurons, generator=rng)
+        device = rng.device if rng is not None else None
+        return lo + (hi - lo) * torch.rand(n_neurons, generator=rng, device=device)
     return torch.full((n_neurons,), spec, dtype=torch.float32)
 
 
@@ -249,6 +250,153 @@ class NEFLayer(_WoodburyModule):
         """Recompute biases from data-driven centers."""
         idx = torch.randint(len(centers), (self.n_neurons,), generator=self._rng)
         self.bias.data.copy_(-self._gain * (centers[idx].float() * self.encoders.data).sum(dim=1))
+
+    def _check_resize_activation(self) -> None:
+        for module in self.activation.modules():
+            state = (
+                *module.parameters(recurse=False),
+                *module.buffers(recurse=False),
+                *vars(module).values(),
+            )
+            if any(isinstance(value, Tensor) and value.ndim > 0 for value in state):
+                raise NotImplementedError("Resizing activations with possible per-neuron state")
+
+    def _resize_neurons(
+        self, encoders: Tensor, bias: Tensor, gain: Tensor, decoders: Tensor
+    ) -> None:
+        for name, value in (
+            ("encoders", encoders),
+            ("bias", bias),
+            ("_gain", gain),
+            ("decoders", decoders),
+        ):
+            previous = getattr(self, name)
+            if isinstance(previous, nn.Parameter):
+                value = nn.Parameter(value, requires_grad=previous.requires_grad)
+            else:
+                value.requires_grad_(previous.requires_grad)
+            setattr(self, name, value)
+        self.n_neurons = encoders.shape[0]
+
+    @torch.no_grad()
+    def prune(self, keep: Tensor) -> None:
+        """Keep the given unique neuron indices in their supplied order.
+
+        Sliced statistics are exactly those of the sub-population. Decoders
+        are sliced, not refit; call :meth:`solve_accumulated` to refit them.
+        If using a gradient optimizer, recreate it after resizing parameters.
+        """
+        if keep.ndim != 1 or keep.numel() == 0:
+            raise ValueError("keep must be a non-empty 1-D integer tensor")
+        try:
+            torch.iinfo(keep.dtype)
+        except TypeError as exc:
+            raise ValueError("keep must be a non-empty 1-D integer tensor") from exc
+        if keep.is_quantized:
+            raise ValueError("keep must be a non-empty 1-D integer tensor")
+        keep = keep.to(device=self.encoders.device, dtype=torch.long)
+        if (keep < 0).any() or (keep >= self.n_neurons).any():
+            raise ValueError("keep indices must be in range")
+        if keep.unique().numel() != keep.numel():
+            raise ValueError("keep indices must be unique")
+        self._check_resize_activation()
+
+        self._resize_neurons(
+            self.encoders[keep], self.bias[keep], self._gain[keep], self.decoders[keep]
+        )
+        if self._ata is not None:
+            self._ata = self._ata[keep[:, None], keep]
+        if self._aty is not None:
+            self._aty = self._aty[keep]
+        self._M_inv = None
+        self._woodbury_alpha = None
+
+    @torch.no_grad()
+    def grow(
+        self,
+        encoders: Tensor,
+        *,
+        bias: Tensor | None = None,
+        centers: Tensor | None = None,
+        gain: float | tuple[float, float] | Tensor = (0.5, 2.0),
+        rng: torch.Generator | None = None,
+    ) -> None:
+        """Append encoders with zero decoder rows.
+
+        Supply biases directly, sample them via ``centers``, or omit both
+        for Gaussian biases. Random draws use ``rng`` if given, otherwise
+        the layer's generator; one is required when sampling gains or biases.
+        Accumulated statistics and Woodbury state are cleared because new
+        neurons have no historical cross-moments. Re-accumulate data before
+        calling :meth:`solve_accumulated`. Recreate any gradient optimizer.
+        """
+        if bias is not None and centers is not None:
+            raise ValueError("bias and centers are mutually exclusive")
+        if isinstance(gain, str):
+            raise ValueError("grow() does not support string gain modes")
+        if encoders.ndim != 2 or encoders.shape[1] != self.d_in or encoders.shape[0] == 0:
+            raise ValueError(f"encoders must have shape (m, {self.d_in}) with m > 0")
+        m = encoders.shape[0]
+        if bias is not None and bias.shape != (m,):
+            raise ValueError(f"bias must have shape ({m},)")
+        if centers is not None and (
+            centers.ndim != 2 or centers.shape[1] != self.d_in or centers.shape[0] == 0
+        ):
+            raise ValueError(f"centers must have shape (N, {self.d_in}) with N > 0")
+        self._check_resize_activation()
+
+        encoders = encoders.to(self.encoders)
+        if rng is None:
+            rng = self._rng
+        if rng is None and (isinstance(gain, tuple) or bias is None):
+            raise ValueError("Pass rng= to grow() when sampling gains, centers, or biases")
+        if centers is not None:
+            idx = torch.randint(len(centers), (m,), generator=rng, device=rng.device)
+            selected = centers[idx.to(centers.device)].to(encoders)
+        new_gain = _make_gain(gain, m, rng).to(self._gain)
+        if bias is None:
+            if centers is not None:
+                bias = -new_gain * (selected * encoders).sum(dim=1)
+            else:
+                bias = torch.randn(m, generator=rng, device=rng.device, dtype=self.bias.dtype)
+
+        self._resize_neurons(
+            torch.cat((self.encoders, encoders)),
+            torch.cat((self.bias, bias.to(self.bias))),
+            torch.cat((self._gain, new_gain)),
+            torch.cat((self.decoders, self.decoders.new_zeros((m, self.d_out)))),
+        )
+        self.reset_continuous()
+
+    def _load_from_state_dict(
+        self,
+        state_dict: dict[str, Tensor],
+        prefix: str,
+        local_metadata: dict,
+        strict: bool,
+        missing_keys: list[str],
+        unexpected_keys: list[str],
+        error_msgs: list[str],
+    ) -> None:
+        stats_shapes = (
+            ("_ata", (self.n_neurons, self.n_neurons)),
+            ("_aty", (self.n_neurons, self.d_out)),
+        )
+        # Fresh layers have None buffers, which PyTorch otherwise refuses to load.
+        for name, shape in stats_shapes:
+            if getattr(self, name) is None and prefix + name in state_dict:
+                setattr(self, name, self.decoders.new_zeros(shape, dtype=torch.float64))
+        error_count = len(error_msgs)
+        super()._load_from_state_dict(
+            state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs
+        )
+        # Let PyTorch report missing keys for strict loads, but never retain partial
+        # or stale statistics after loading other parameters.
+        if len(error_msgs) != error_count or any(
+            prefix + name not in state_dict for name, _ in stats_shapes
+        ):
+            self.reset_accumulators()
+        self._M_inv = None
 
     def forward(self, x: Tensor) -> Tensor:
         """Full forward pass: encode → decode."""

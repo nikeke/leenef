@@ -123,6 +123,20 @@ def inverse_from_normal_equations(
     return inverse_spd(matrix)
 
 
+def downdate_inverse(inverse: Tensor, keep: Tensor, drop: Tensor) -> Tensor:
+    """Return the inverse of the kept principal submatrix using a Schur complement.
+
+    ``inverse`` is the inverse of the full regularized system; ``keep`` and
+    ``drop`` partition its indices. This is exact only at fixed regularization.
+    """
+    kept_inverse = inverse[keep[:, None], keep]
+    if drop.numel() > 0:
+        p_ks = inverse[keep[:, None], drop]
+        p_ss = inverse[drop[:, None], drop]
+        kept_inverse = kept_inverse - p_ks @ solve_spd(p_ss, p_ks.T)
+    return 0.5 * (kept_inverse + kept_inverse.mT)
+
+
 def woodbury_initial_inverse(
     n_neurons: int,
     *,
