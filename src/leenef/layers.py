@@ -368,36 +368,6 @@ class NEFLayer(_WoodburyModule):
         )
         self.reset_continuous()
 
-    def _load_from_state_dict(
-        self,
-        state_dict: dict[str, Tensor],
-        prefix: str,
-        local_metadata: dict,
-        strict: bool,
-        missing_keys: list[str],
-        unexpected_keys: list[str],
-        error_msgs: list[str],
-    ) -> None:
-        stats_shapes = (
-            ("_ata", (self.n_neurons, self.n_neurons)),
-            ("_aty", (self.n_neurons, self.d_out)),
-        )
-        # Fresh layers have None buffers, which PyTorch otherwise refuses to load.
-        for name, shape in stats_shapes:
-            if getattr(self, name) is None and prefix + name in state_dict:
-                setattr(self, name, self.decoders.new_zeros(shape, dtype=torch.float64))
-        error_count = len(error_msgs)
-        super()._load_from_state_dict(
-            state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs
-        )
-        # Let PyTorch report missing keys for strict loads, but never retain partial
-        # or stale statistics after loading other parameters.
-        if len(error_msgs) != error_count or any(
-            prefix + name not in state_dict for name, _ in stats_shapes
-        ):
-            self.reset_accumulators()
-        self._M_inv = None
-
     def forward(self, x: Tensor) -> Tensor:
         """Full forward pass: encode → decode."""
         if x.dim() != 2 or x.shape[1] != self.d_in:

@@ -17,6 +17,7 @@ from leenef import (
     sample_shaped_directions,
 )
 from leenef.solvers import (
+    DEFAULT_FIXED_ALPHA,
     downdate_inverse,
     inverse_from_normal_equations,
     solve_from_normal_equations,
@@ -63,19 +64,23 @@ def test_prune_preserves_parameters_and_round_trips_accumulated_state():
     assert layer._M_inv is None and layer._woodbury_alpha is None
     torch.testing.assert_close(layer.decoders, decoded)
 
-    restored = NEFLayer(4, 3, 2, trainable_encoders=True, rng=rng).double()
+    restored = NEFLayer(4, 2, 2, trainable_encoders=True, rng=rng).double()
+    restored.grow(torch.randn(1, 4, generator=rng, dtype=torch.float64))
     restored.load_state_dict(layer.state_dict())
     torch.testing.assert_close(restored(x), layer(x))
     torch.testing.assert_close(restored._ata, layer._ata)
     torch.testing.assert_close(restored._aty, layer._aty)
 
-    # A rank-one continuous update after pruning must still use the retained statistics.
-    layer.continuous_fit(x[:1], y[:1], fixed_alpha=0.2)
-    expected = solve_from_normal_equations(layer._ata, layer._aty, alpha=(0.2, "fixed"))
-    torch.testing.assert_close(layer.decoders, expected, rtol=1e-12, atol=1e-12)
+    # Resume from the pruned checkpoint, including its pre-load statistics.
+    a = layer.encode(x[:1])
+    restored.continuous_fit(x[:1], y[:1], fixed_alpha=0.2)
+    expected = solve_from_normal_equations(
+        layer._ata + a.T @ a, layer._aty + a.T @ y[:1], alpha=(0.2, "fixed")
+    )
+    torch.testing.assert_close(restored.decoders, expected, rtol=1e-12, atol=1e-12)
 
 
-def test_load_without_statistics_clears_stale_buffers_but_preserves_alpha():
+def test_load_without_statistics_clears_stale_buffers_and_alpha():
     rng = _rng()
     x = torch.randn(6, 2, generator=rng)
     y = torch.randn(6, 1, generator=rng)
@@ -86,10 +91,12 @@ def test_load_without_statistics_clears_stale_buffers_but_preserves_alpha():
 
     result = layer.load_state_dict(state, strict=False)
     assert set(result.missing_keys) == {"_ata", "_aty"}
-    assert layer._ata is layer._aty is layer._M_inv is None
+    assert layer._ata is layer._aty is layer._M_inv is layer._woodbury_alpha is None
     layer.partial_fit(x, y)
     layer.refresh_inverse()
-    expected = solve_from_normal_equations(layer._ata, layer._aty, alpha=(fixed_alpha, "fixed"))
+    expected = solve_from_normal_equations(
+        layer._ata, layer._aty, alpha=(DEFAULT_FIXED_ALPHA, "fixed")
+    )
     torch.testing.assert_close(layer.decoders, expected.float())
 
     with pytest.raises(RuntimeError, match="Missing key.*_ata.*_aty"):
