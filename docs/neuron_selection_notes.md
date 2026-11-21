@@ -41,15 +41,18 @@ Let $G = A^\top A$, $R = A^\top Y$, $M = G + \lambda I$, $D = M^{-1} R$.
 
 * **Closure.**  For a kept index set $K$, the sufficient statistics of
   the sub-population are $G_{KK}$ and $R_K$.  No data pass.
-* **Exact saliency.**  Removing neuron $i$ and refitting the others at
-  the same $\lambda$ increases the minimum of
+* **Saliency for one deletion.**  Removing neuron $i$ and refitting the
+  others at the same $\lambda$ increases the minimum of
   $J(D) = \lVert Y - AD \rVert_F^2 + \lambda \lVert D \rVert_F^2$ by
 
   $$s_i = \frac{\lVert d_i \rVert^2}{[M^{-1}]_{ii}} .$$
 
-  This is Optimal Brain Surgeon, exact here because $J$ is quadratic.
-  $[M^{-1}]_{ii}$ is large when neuron $i$ is redundant given the
-  others, which is why raw magnitude misleads.
+  This is unit-level Optimal Brain Surgeon, exact for a single deletion
+  because $J$ is quadratic.  $[M^{-1}]_{ii}$ is large when neuron $i$ is
+  redundant given the others, which is why raw magnitude misleads.
+  Dropping several units per round between recomputations is a greedy
+  approximation (*batched greedy OBS*); it does not find the best
+  $k$-subset.
 * **Exact downdate.**  With $P = M^{-1}$ and drop set $S$,
   $(M_{KK})^{-1} = P_{KK} - P_{KS} P_{SS}^{-1} P_{SK}$ at fixed
   $\lambda$, so a backward-elimination sweep costs one inversion plus
@@ -75,13 +78,17 @@ $$H_c = \sum_x r_c(x)\,(x-\mu)(x-\mu)^\top .$$
 
 Candidate directions are random Gaussian combinations of the
 top-$|\lambda|$ eigenvectors of one randomly chosen $H_c$, scaled by
-$\sqrt{|\lambda|}$, then normalized.  Rationale: `abs` is even, so it
-has no first-order Hermite component and a residual–input correlation
-$\sum r\,x$ carries no information about where to put a hinge; the
-second-order moment is the leading directional statistic (Li's
-principal Hessian directions).  $H_c$ is additive over samples, so it
-is a sufficient statistic in the same sense as $G$ and $R$ and can be
-accumulated in a stream.
+$\sqrt{|\lambda|}$, then normalized.  Working rationale: the `abs`
+feature has no first-order Hermite component, so the second-order
+residual moment is the natural leading directional statistic (Li's
+principal Hessian directions; information exponent 2).  This rationale
+is not established: a neuron $|e \cdot (x - c_i)|$ is even about its own
+center, not about the data mean, so a residual-weighted mean can still
+identify a useful axis, and an unwhitened residual second moment is not
+a Hessian in general.  The `first_order` arm of the growth panel tests
+the rationale instead of assuming it.  $H_c$ is additive over samples,
+so it is a sufficient statistic in the same sense as $G$ and $R$ and can
+be accumulated in a stream.
 
 **What the probes say about each ingredient** (§4): selection alone
 gives roughly $2\times$ neuron efficiency; an AGOP-reshaped frame alone
