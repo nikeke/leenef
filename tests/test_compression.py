@@ -5,6 +5,7 @@ import pytest
 import torch
 
 from benchmarks.compression import series
+from benchmarks.compression.baselines import AdaptiveCategorical, ARConfig, PrequentialAR
 from benchmarks.compression.prequential import PredictorConfig, score_symbols
 from benchmarks.compression.quantization import UniformQuantizer
 from leenef import NEFLayer
@@ -205,3 +206,167 @@ def test_prequential_does_not_fit_raw_values_or_accept_invalid_config(stream):
         replace(config, fixed_alpha=math.nan)
     with pytest.raises(ValueError, match="noise_variance"):
         replace(config, noise_variance=-1)
+
+
+def test_categorical_predictive_probabilities_and_updates():
+    grid = UniformQuantizer(0, 3, 2)
+    coder = AdaptiveCategorical(grid, pseudocount=0.5)
+    assert [coder.bits_for(s) for s in range(4)] == [2.0] * 4
+    assert coder.score_symbols(torch.tensor([1, 1, 3])).tolist() == pytest.approx([2.0, 1.0, 3.0])
+    probabilities = [2 ** -coder.bits_for(s) for s in range(4)]
+    assert probabilities == pytest.approx([0.1, 0.5, 0.1, 0.3])
+    assert sum(probabilities) == pytest.approx(1.0)
+
+    suffix = torch.tensor([1, 0, 0])
+    other = AdaptiveCategorical(grid, pseudocount=0.5)
+    batch = other.score_symbols(torch.cat((torch.tensor([1, 1, 3]), suffix)))
+    torch.testing.assert_close(coder.score_symbols(suffix), batch[3:], atol=0, rtol=0)
+    changed = AdaptiveCategorical(grid, pseudocount=0.5)
+    prefix = changed.score_symbols(torch.tensor([1, 1, 3, 2]))
+    torch.testing.assert_close(prefix[:3], batch[:3], atol=0, rtol=0)
+    assert prefix[3] == pytest.approx(-math.log2(probabilities[2]))
+
+
+def test_categorical_large_sparse_alphabet_and_extreme_pseudocounts():
+    grid = UniformQuantizer(0, 3, 32)
+    k = 2**32
+    for a in (0.5, 1e308, math.ulp(0.0)):
+        coder = AdaptiveCategorical(grid, pseudocount=a)
+        bits = coder.score_symbols(torch.tensor([k - 1, k - 1]))
+        assert bits[0] == 32
+        if a == 0.5:
+            assert bits[1] == pytest.approx(math.log2((1 + k * a) / (1 + a)))
+            assert coder.bits_for(0) == pytest.approx(math.log2((2 + k * a) / a))
+        elif a > 1:
+            assert bits[1] == pytest.approx(32)
+            assert coder.bits_for(0) == pytest.approx(32)
+        else:
+            assert 0 < bits[1] < 1e-300
+            assert coder.bits_for(0) == pytest.approx(1075)
+        seen, unseen = (coder.bits_for(s) for s in (k - 1, 0))
+        assert 2**-seen + (k - 1) * 2**-unseen == pytest.approx(1.0)
+
+
+def test_ar_matches_closed_form_refits_and_scores_before_update():
+    grid = UniformQuantizer(0, 3, 2)
+    config = ARConfig(order=1, warmup=2, resolve_every=3, fixed_alpha=2.0, noise_variance=0.25)
+    seq = [0, 1, 2, 0, 3, 1, 3, 2, 3, 0, 3, 2]
+    result = PrequentialAR(grid, config).score_symbols(torch.tensor(seq))
+    assert result.uniform_prefix == 3
+    assert result.bits[:3].tolist() == [2.0] * 3
+    for i, (x, y) in enumerate(zip(seq[:-1], seq[1:], strict=True)):
+        if i < 2:
+            continue
+        rows = max(count for count in (2, 4, 7, 10) if count <= i)
+        xs, ys = seq[:rows], seq[1 : rows + 1]
+        a, b, d = rows + 2, sum(xs), sum(p * p for p in xs) + 2
+        u = sum(ys)
+        v = sum(p * q for p, q in zip(xs, ys, strict=True))
+        determinant = a * d - b**2
+        mean = (d * u - b * v + x * (a * v - b * u)) / determinant
+        variance = 0.25 * (1 + (d - 2 * b * x + a * x**2) / determinant)
+        assert float(result.mean[i - 2]) == pytest.approx(mean)
+        assert float(result.variance[i - 2]) == pytest.approx(variance)
+        scale = math.sqrt(2 * variance)
+        lower = -1 if y == 0 else math.erf((y - 0.5 - mean) / scale)
+        upper = 1 if y == 3 else math.erf((y + 0.5 - mean) / scale)
+        assert float(result.bits[i + 1]) == pytest.approx(-math.log2((upper - lower) / 2))
+
+
+def test_ar_chunk_parity_causality_and_reconstruction():
+    grid = UniformQuantizer(-1.5, 1.5, 2)
+    config = ARConfig(order=2, warmup=2, resolve_every=3, fixed_alpha=0.1, noise_variance=0.2)
+    symbols = torch.tensor([1, 2, 2, 1, 1, 0, 2, 3, 0])
+    coder = PrequentialAR(grid, config)
+    result = PrequentialAR(grid, config).score_symbols(symbols)
+    chunks = [coder.score_symbols(part) for part in symbols.split((0, 3, 1, 2, 3))]
+    assert [part.uniform_prefix for part in chunks] == [0, 3, 1, 0, 0]
+    for field in ("bits", "mean", "variance"):
+        torch.testing.assert_close(
+            torch.cat([getattr(part, field) for part in chunks]),
+            getattr(result, field),
+            atol=0,
+            rtol=0,
+        )
+
+    changed = symbols.clone()
+    changed[5:] = 3 - changed[5:]
+    other = PrequentialAR(grid, config).score_symbols(changed)
+    torch.testing.assert_close(result.bits[:5], other.bits[:5], atol=0, rtol=0)
+    for field in ("mean", "variance"):
+        torch.testing.assert_close(
+            getattr(result, field)[:2], getattr(other, field)[:2], atol=0, rtol=0
+        )
+    assert result.bits[5] != other.bits[5]
+    centers = grid.reconstruct(symbols)
+    near_centers = grid.quantize(centers + grid.delta / 3)
+    reconstructed = PrequentialAR(grid, config).score_symbols(near_centers)
+    torch.testing.assert_close(result.bits, reconstructed.bits, atol=0, rtol=0)
+
+
+def test_compression_baselines_stable_and_do_not_draw_global_rng():
+    grid = UniformQuantizer(-1, 1, 2)
+    # The initial design is rank one for five coefficients. Use an unlikely
+    # saturated cell to test the log-domain score far out in the left tail.
+    config = ARConfig(order=4, warmup=1, resolve_every=2, fixed_alpha=0.1, noise_variance=1e-4)
+    symbols = torch.tensor([3, 3, 3, 3, 3, 0, 3, 3, 3])
+    before = torch.random.get_rng_state()
+    result = PrequentialAR(grid, config).score_symbols(symbols)
+    AdaptiveCategorical(grid, pseudocount=0.5).score_symbols(symbols)
+    assert torch.equal(before, torch.random.get_rng_state())
+    assert float(result.mean[0]) == pytest.approx(5 / 5.1)
+    assert float(result.variance[0]) == pytest.approx(1e-4 * (1 + 5 / 5.1))
+    assert torch.isfinite(result.bits).all()
+    assert result.bits[5] > 1000
+
+
+def test_compression_baselines_reject_invalid_inputs():
+    grid = UniformQuantizer(0, 3, 2)
+    config = ARConfig(order=1, warmup=2, resolve_every=3, fixed_alpha=2.0, noise_variance=0.25)
+    for name in ("order", "warmup", "resolve_every"):
+        for bad in (0, True, 1.5):
+            with pytest.raises(ValueError, match=name):
+                replace(config, **{name: bad})
+    for bad in (0, -1, math.nan, math.inf, True):
+        with pytest.raises(ValueError, match="pseudocount"):
+            AdaptiveCategorical(grid, pseudocount=bad)
+        for name in ("fixed_alpha", "noise_variance"):
+            with pytest.raises(ValueError, match=name):
+                replace(config, **{name: bad})
+    categorical = AdaptiveCategorical(grid, pseudocount=0.5)
+    ar = PrequentialAR(grid, config)
+    ar.score_symbols(torch.tensor([0, 1, 2]))
+    for scorer in (categorical, ar):
+        with pytest.raises(ValueError, match="one-dimensional CPU"):
+            scorer.score_symbols(torch.tensor([[1, 2]]))
+        with pytest.raises(ValueError, match="integers"):
+            scorer.score_symbols(torch.tensor([1.0]))
+        with pytest.raises(ValueError, match="alphabet"):
+            scorer.score_symbols(torch.tensor([1, 4]))
+    assert categorical.bits_for(1) == 2.0  # Invalid batch did not count its valid prefix.
+    with pytest.raises(ValueError, match="alphabet"):
+        categorical.bits_for(-1)
+    expected = PrequentialAR(grid, config).score_symbols(torch.tensor([0, 1, 2, 0, 3]))
+    torch.testing.assert_close(
+        ar.score_symbols(torch.tensor([0, 3])).bits, expected.bits[3:], atol=0, rtol=0
+    )
+
+
+def test_ar_refit_failure_makes_scorer_unusable():
+    wide = UniformQuantizer(-1e155, 1e155, 2)
+    config = ARConfig(order=1, warmup=2, resolve_every=3, fixed_alpha=2.0, noise_variance=0.25)
+    ar = PrequentialAR(wide, config)
+    with pytest.raises(FloatingPointError, match="sufficient statistics"):
+        ar.score_symbols(torch.tensor([3, 3, 3, 3]))
+    with pytest.raises(RuntimeError, match="unusable.*fresh scorer"):
+        ar.score_symbols(torch.tensor([0]))
+
+
+def test_ar_predictive_overflow_makes_scorer_unusable():
+    grid = UniformQuantizer(-1, 1, 2)
+    config = ARConfig(order=1, warmup=1, resolve_every=1, fixed_alpha=1.0, noise_variance=1.5e308)
+    ar = PrequentialAR(grid, config)
+    with pytest.raises(FloatingPointError, match="nonfinite AR predictive moments"):
+        ar.score_symbols(torch.tensor([3, 3, 3]))
+    with pytest.raises(RuntimeError, match="unusable.*fresh scorer"):
+        ar.score_symbols(torch.empty(0, dtype=torch.int64))
