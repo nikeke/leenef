@@ -254,14 +254,21 @@ wait_for_b2_panels.sh}` and the B2 launch in
   `nohup ... &`.  After launch, immediately `ps -ef | grep` for the
   runner — a stale instance + the new instance racing on the same
   result JSON is the most common silent failure.
-- **GPT-5.5 review pass.** Before launching any long sweep that will
-  consume hours of CPU/GPU, dispatch a `task` agent with model
-  `gpt-5.5` to review the hot path for optimization opportunities
-  (matmul shapes, dtype churn, missing in-place ops) **and**
-  reproducibility hazards (default-RNG draws, scatter-with-collision
-  patterns).  See `7703a1010c10bbcf0c11d821792c3aad386ef6e7` for the
-  precedent.  GPT-5.5's pattern-matching here is genuinely
-  complementary to the main agent's coding strengths.
+- **Cross-model review pass.** Before launching any long sweep that will
+  consume hours of CPU/GPU, dispatch a `task` agent to review the hot
+  path for optimization opportunities (matmul shapes, dtype churn,
+  missing in-place ops) **and** reproducibility hazards (default-RNG
+  draws, scatter-with-collision patterns).  The reviewer must be a
+  different model from the one that wrote the code: delegated
+  implementation uses `gpt-6.2-sol` and is reviewed by
+  `claude-opus-5.5`; code written by a Claude model is reviewed by
+  `gpt-6.2-sol`.  Use `gpt-6.2-astra` for science review of claims
+  headed to a manuscript.  `gpt-6-luna` is for straightforward,
+  well-defined chores only (monitoring experiment output when a script
+  cannot, digging through large amounts of code or data, web search).
+  See `7703a1010c10bbcf0c11d821792c3aad386ef6e7` for the precedent: a
+  second model's pattern-matching is genuinely complementary to the
+  author's.
 - **Scatter-write with possibly-colliding indices is non-deterministic.**
   `W[rows, cols] = vals` where `rows`/`cols` come from independent
   `randint` draws is non-deterministic on collisions because PyTorch
