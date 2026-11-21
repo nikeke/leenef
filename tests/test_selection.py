@@ -13,6 +13,7 @@ from leenef import (
     psd_power,
     residual_moments,
     sample_directions_from_bases,
+    sample_patch_directions_from_moments,
     sample_shaped_directions,
 )
 from leenef.solvers import (
@@ -328,6 +329,50 @@ def test_residual_moments_are_additive_and_phd_recovers_curvature():
     assert ((dirs @ w.float()).abs() > 0.95).all()
 
 
+def test_subspace_phd_matches_signed_eigenspaces_and_is_reproducible():
+    d_in, q = 200, 10
+    rng = _rng()
+    orthogonal = torch.linalg.qr(torch.randn(2, d_in, d_in, dtype=torch.float64, generator=rng)).Q
+    index = torch.arange(d_in, dtype=torch.float64)
+    spectrum = torch.exp(-index / 10) * torch.where(index % 2 == 0, 1, -1)
+    moments = (orthogonal * spectrum) @ orthogonal.mT
+    moments = torch.cat((moments, torch.zeros_like(moments[:1])))
+    expected = phd_bases(moments, q)
+    actual = phd_bases(moments, q, method="subspace", rng=_rng())
+    torch.testing.assert_close(
+        actual.square().sum(dim=1), expected.square().sum(dim=1), rtol=1e-6, atol=0
+    )
+    normalized, reference = [
+        torch.nn.functional.normalize(bases[:2], dim=1) for bases in (actual, expected)
+    ]
+    actual_values = (normalized * (moments[:2] @ normalized.double())).sum(dim=1)
+    torch.testing.assert_close(
+        actual_values, spectrum[:q].expand_as(actual_values), rtol=1e-6, atol=0
+    )
+    assert (
+        (normalized @ normalized.mT - reference @ reference.mT).norm(dim=(-2, -1)) < 1e-5
+    ).all()
+    assert torch.equal(actual, phd_bases(moments, q, method="subspace", rng=_rng()))
+
+
+def test_subspace_phd_requires_generator_and_warns_on_iteration_limit():
+    moments = torch.diag(torch.linspace(-1.0, 1.0, 25))[None]
+    with pytest.raises(ValueError, match="requires rng"):
+        phd_bases(moments, 2, method="subspace")
+    info = {}
+    with pytest.warns(
+        RuntimeWarning, match=r"max_iter=6; worst relative Ritz-value change"
+    ) as warning:
+        phd_bases(moments, 2, method="subspace", rng=_rng(), oversample=2, max_iter=6, info=info)
+    assert warning[0].filename == __file__
+    assert info["iterations"] == 6 and info["worst_relative_change"] >= 1e-7
+    assert info["converged"] is False
+    torch.testing.assert_close(
+        phd_bases(moments, 2, method="subspace", rng=_rng(), oversample=23),
+        phd_bases(moments, 2),
+    )
+
+
 def test_shaped_sampling_and_zero_basis_fallback():
     shaping = psd_power(torch.diag(torch.tensor([-0.01, 1.0, 4.0])), 0.5)
     torch.testing.assert_close(shaping, torch.diag(torch.tensor([0.0, 0.5, 1.0])))
@@ -341,6 +386,22 @@ def test_shaped_sampling_and_zero_basis_fallback():
     ):
         torch.testing.assert_close(fallback.norm(dim=1), torch.ones(64))
         assert (fallback.square().mean(dim=0) > 0.1).all()
+
+
+def test_patch_proposals_follow_local_curvature_and_keep_their_support():
+    moments = torch.diag(torch.tensor([1.0, -4.0, 0.0, 0.0, 100.0])).unsqueeze(0)
+    supports = torch.tensor([[0, 1], [2, 3]]).repeat(16, 1)
+    directions = sample_patch_directions_from_moments(moments, supports, 1, rng=_rng())
+    torch.testing.assert_close(directions.norm(dim=1), torch.ones(32))
+    mask = torch.zeros_like(directions, dtype=torch.bool).scatter_(1, supports, True)
+    assert torch.count_nonzero(directions[~mask]) == 0
+    torch.testing.assert_close(directions[::2, 1].abs(), torch.ones(16))
+    assert (directions[1::2, 2:4].square().mean(dim=0) > 0.1).all()
+    assert torch.equal(
+        directions, sample_patch_directions_from_moments(moments, supports, 1, rng=_rng())
+    )
+    with pytest.raises(ValueError, match="in-range"):
+        sample_patch_directions_from_moments(moments, torch.tensor([[0, -1]]), 1, rng=_rng())
 
 
 def test_agop_matches_autograd_and_recovers_target_direction():
