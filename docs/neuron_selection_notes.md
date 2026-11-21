@@ -163,8 +163,66 @@ Readings:
 
 ## 7. Prior art to position against
 
-To be filled from the literature pass: Optimal Brain Surgeon and its
-layer-wise exact forms; OP-ELM, I-ELM, EM-ELM; orthogonal least squares
-for RBF centers; cascade-correlation; projection pursuit; SIR and pHd;
-recursive feature machines (AGOP); one-gradient-step feature learning;
-ReLU model extraction; ternary random projections.
+From a delegated literature pass (2026-11-21).  The references were
+checked online by the search agent but have not been independently
+re-checked; verify each one before it is cited in a manuscript.
+
+**What is already known.**
+
+* *Unit-level OBS.*  Hassibi & Stork (1993) give OBS; Stahlberger &
+  Riedmiller (NeurIPS 1996, "Unit-OBS") remove whole hidden units by
+  grouping their outgoing weights.  Our saliency is that criterion,
+  exact for a ridge readout, and equivalent to one step of backward
+  stepwise regression.  Layer-wise OBS (Dong et al., 2017) and
+  OBC / SparseGPT (Frantar & Alistarh, 2022–2023) prune weights, not
+  fixed-feature units.  **The selection step is not a novelty claim.**
+* *Grow/prune ELMs.*  OP-ELM (Miche et al., 2010) ranks a random pool
+  by LARS/MRSR with leave-one-out sizing; CS-ELM (Lan et al., 2010)
+  forward-selects from a random reservoir; DCI-ELM (Sun et al., 2017)
+  combines incremental addition with removal of low-output-weight
+  units; OLS for RBF centers (Chen, Cowan & Grant, 1991).  All draw
+  candidates at random or from data points; none proposes spectral
+  directions from the residual.
+* *Residual-directed constructive units.*  Cascade-correlation
+  (Fahlman & Lebiere, 1990) and projection pursuit regression
+  (Friedman & Stuetzle, 1981) fit candidate units to the residual by
+  iterative optimization; DA-ELM (Feng et al., 2015) adjusts
+  insignificant units along a residual-decreasing direction.
+* *Second-order statistics for directions.*  pHd (Li, 1992), SIR
+  (Li, 1991); tensor-moment recovery of two-layer networks (Janzamin
+  et al., 2015).  Information-exponent theory (Ben Arous et al., 2021)
+  explains why an even activation needs second-order information.
+* *Gradient outer products.*  Recursive Feature Machines
+  (Radhakrishnan et al., 2022); one-gradient-step feature learning
+  (Ba et al., 2022).
+* *Data-dependent random features.*  Sinha & Duchi (2016); Rudi &
+  Rosasco (2017); leverage-score sampling (Li et al., 2019).  These
+  reweight within a kernel family.
+* *Ternary projections and integer ELMs.*  Achlioptas (2003); Li,
+  Hastie & Church (2006); an integer-only ELM with ternary input
+  weights and integerized output weights (Machado et al., arXiv 2026,
+  ReLU).  **Multiplier-free inference is an engineering payoff, not a
+  novelty claim.**
+* *Hinge location by queries.*  Rolnick & Kording (2020); Jagielski
+  et al. (2020); shallow mimic students (Ba & Caruana, 2014).
+* *Adaptive predictive coding.*  MPEG-4 ALS RLS–LMS cascade (Huang
+  et al., 2008); DeepZip; NNCP; Vovk's online ridge bound (1997).
+* *Neuron turnover.*  ReDo (Sokar et al., 2023) recycles dormant
+  units by activation; continual backprop (Dohare et al., 2024) by a
+  contribution utility; neither uses the exact refit loss increase.
+
+**What the pass did not find** (absence of evidence only):
+
+1. residual pHd eigenvectors used to propose hidden-unit directions for
+   fixed-feature or `abs` networks;
+2. the propose–accumulate–select loop with exact OBS selection from
+   normal-equation statistics;
+3. a fixed-feature predictor with an analytic readout used as a
+   lossless compressor;
+4. an exact-utility criterion for neuron turnover.
+
+Positioning that follows: the contribution to test is the **proposal
+distribution and the closed loop**, with OBS as the known exact
+selector; the comparison arms must therefore include OP-ELM-style
+ranking and random-proposal grow/prune, which the growth panel already
+has in the form of the random-proposal arm.
