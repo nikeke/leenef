@@ -18,6 +18,7 @@ from .solvers import (
     DEFAULT_ALPHA,
     DEFAULT_FIXED_ALPHA,
     AlphaPolicy,
+    alpha_policy,
     inverse_from_normal_equations,
     solve_decoders,
     solve_from_normal_equations,
@@ -238,6 +239,16 @@ class StreamingNEFClassifier(nn.Module):
             targets: (N, d_out) target values.
             fixed_alpha: Fixed Tikhonov regularisation strength.
         """
+        alpha_policy((fixed_alpha, "fixed"))  # reject invalid values before touching state
+        has_inverse = getattr(self, "_M_inv", None) is not None
+        if has_inverse and self._woodbury_alpha != fixed_alpha:
+            raise ValueError(
+                f"continuous_fit: fixed_alpha changed mid-stream "
+                f"({self._woodbury_alpha} -> {fixed_alpha}); the cached inverse is "
+                f"invalid for the new regularizer. Call refresh_inverse() or "
+                f"reset_continuous() before changing fixed_alpha."
+            )
+
         A = self.encode_sequence(x_seq, max_tokens=max_tokens)  # (N, n)
         # Match :meth:`accumulate`: float32 GEMM, float64 running stats.
         # Keeping the dtypes aligned across the two paths is what lets
@@ -247,6 +258,9 @@ class StreamingNEFClassifier(nn.Module):
         ata = (A_stats.T @ A_stats).double()
         aty = (A_stats.T @ T_stats).double()
 
+        # Statistics without a cached inverse (e.g. after accumulate()) must
+        # seed the inverse; starting from I / fixed_alpha would ignore them.
+        needs_rebuild = not has_inverse and getattr(self, "_ata", None) is not None
         if not hasattr(self, "_ata") or self._ata is None:
             self.register_buffer("_ata", ata)
             self.register_buffer("_aty", aty)
@@ -254,25 +268,16 @@ class StreamingNEFClassifier(nn.Module):
             self._ata.add_(ata)
             self._aty.add_(aty)
 
-        if not hasattr(self, "_M_inv") or self._M_inv is None:
-            n = A.shape[1]
-            self._M_inv = woodbury_initial_inverse(
-                n, fixed_alpha=fixed_alpha, device=A.device, dtype=torch.float64
-            )
-            self._woodbury_alpha = fixed_alpha
-        elif self._woodbury_alpha != fixed_alpha:
-            raise ValueError(
-                f"continuous_fit: fixed_alpha changed mid-stream "
-                f"({self._woodbury_alpha} -> {fixed_alpha}); the cached inverse is "
-                f"invalid for the new regularizer. Call refresh_inverse() or "
-                f"reset_continuous() before changing fixed_alpha."
-            )
-
         k, n = A.shape
-        if k >= n:
+        if k >= n or needs_rebuild:
             self._M_inv = inverse_from_normal_equations(self._ata, alpha=(fixed_alpha, "fixed"))
         else:
+            if not has_inverse:
+                self._M_inv = woodbury_initial_inverse(
+                    n, fixed_alpha=fixed_alpha, device=A.device, dtype=torch.float64
+                )
             woodbury_update_inverse_(self._M_inv, A)
+        self._woodbury_alpha = fixed_alpha
 
         self.decoders.data.copy_(
             woodbury_decoders(self._M_inv, self._aty, dtype=self.decoders.dtype)
@@ -288,11 +293,15 @@ class StreamingNEFClassifier(nn.Module):
         """Accumulate ``AᵀA`` / ``AᵀY`` from an encoded chunk.
 
         Float32 GEMMs, float64 running stats — see :meth:`accumulate`
-        for the rationale.
+        for the rationale.  Any cached Woodbury inverse is dropped because
+        it no longer matches the statistics; the next
+        :meth:`continuous_fit` rebuilds it.
         """
         A_stats, T_stats = _normal_equation_inputs(A, targets, stats_dtype=stats_dtype)
         ata = (A_stats.T @ A_stats).double()
         aty = (A_stats.T @ T_stats).double()
+        if getattr(self, "_M_inv", None) is not None:
+            self._M_inv = None
         if not hasattr(self, "_ata") or self._ata is None:
             self.register_buffer("_ata", ata)
             self.register_buffer("_aty", aty)

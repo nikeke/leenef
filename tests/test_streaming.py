@@ -204,6 +204,74 @@ class TestStreamingNEFClassifier:
         assert acc_a > 0.7
         assert abs(acc_w - acc_a) < 0.05
 
+    @staticmethod
+    def _reference_decoders(x_seq, targets, alpha, seed):
+        """Decoders of an independent classifier solved on all the data at once."""
+        ref = StreamingNEFClassifier(
+            2, 100, 3, window_size=3, rng=torch.Generator().manual_seed(seed)
+        )
+        ref.accumulate(x_seq, targets, stats_dtype="float64")
+        ref.solve(alpha=(alpha, "fixed"))
+        return ref.decoders
+
+    def test_continuous_fit_after_accumulate_uses_prior_statistics(self):
+        """A missing inverse must be rebuilt from already accumulated statistics."""
+        g = torch.Generator().manual_seed(82)
+        x_seq = torch.randn(60, 6, 2, generator=g)
+        targets = torch.randn(60, 3, generator=g)
+        alpha = 1e-2
+
+        clf = StreamingNEFClassifier(
+            2, 100, 3, window_size=3, rng=torch.Generator().manual_seed(820)
+        )
+        f64 = {"stats_dtype": "float64"}  # float32 Gram round-off is amplified when n > N
+        clf.accumulate(x_seq[:40], targets[:40], **f64)
+        clf.continuous_fit(x_seq[40:], targets[40:], fixed_alpha=alpha, **f64)  # k=20 < n
+
+        reference = self._reference_decoders(x_seq, targets, alpha, 820)
+        assert torch.allclose(clf.decoders, reference, atol=1e-6)
+
+    def test_accumulate_between_continuous_fits_invalidates_inverse(self):
+        """accumulate() must not leave a stale inverse for the next Woodbury update."""
+        g = torch.Generator().manual_seed(84)
+        x_seq = torch.randn(60, 6, 2, generator=g)
+        targets = torch.randn(60, 3, generator=g)
+        alpha = 1e-2
+
+        clf = StreamingNEFClassifier(
+            2, 100, 3, window_size=3, rng=torch.Generator().manual_seed(840)
+        )
+        f64 = {"stats_dtype": "float64"}
+        clf.continuous_fit(x_seq[:20], targets[:20], fixed_alpha=alpha, **f64)
+        clf.accumulate(x_seq[20:40], targets[20:40], **f64)
+        clf.continuous_fit(x_seq[40:], targets[40:], fixed_alpha=alpha, **f64)
+
+        reference = self._reference_decoders(x_seq, targets, alpha, 840)
+        assert torch.allclose(clf.decoders, reference, atol=1e-6)
+
+    @pytest.mark.parametrize("bad_alpha", [1e-1, -1.0])
+    def test_rejected_fixed_alpha_leaves_state_untouched(self, bad_alpha, monkeypatch):
+        g = torch.Generator().manual_seed(83)
+        clf = StreamingNEFClassifier(2, 50, 2, window_size=3, rng=g)
+        clf.continuous_fit(
+            torch.randn(10, 5, 2, generator=g), torch.randn(10, 2, generator=g), fixed_alpha=1e-2
+        )
+        before = [t.clone() for t in (clf._ata, clf._aty, clf._M_inv, clf.decoders.detach())]
+
+        def _no_encoding(*_args, **_kwargs):
+            raise AssertionError("a rejected call must not encode")
+
+        monkeypatch.setattr(clf, "encode_sequence", _no_encoding)
+        with pytest.raises(ValueError):
+            clf.continuous_fit(
+                torch.randn(10, 5, 2, generator=g),
+                torch.randn(10, 2, generator=g),
+                fixed_alpha=bad_alpha,
+            )
+        after = (clf._ata, clf._aty, clf._M_inv, clf.decoders.detach())
+        assert all(torch.equal(x, y) for x, y in zip(before, after))
+        assert clf._woodbury_alpha == 1e-2
+
     def test_accumulate_solve_no_woodbury_inverse(self):
         """accumulate + solve should not create the Woodbury inverse."""
         torch.manual_seed(81)
