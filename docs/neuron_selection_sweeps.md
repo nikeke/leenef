@@ -67,23 +67,38 @@ proposals per generation, prune $2k \to k$.
 
 CIFAR-10 runs the first four global arms and both patch arms.
 
-**Primary contrasts** (final generation, family `global`, $k = 1000$,
-paired by seed, one-sided paired $t$-tests, Holm-adjusted across the
-two confirmatory datasets × three contrasts, family-wise
-$\alpha = 0.05$):
+**Primary metric.**  Test accuracy of the model at the final generation
+(generation 12), with the decoder $\alpha$ selected on validation.  The
+fixed-$\alpha$ test accuracy is reported alongside as a secondary
+table.  For the reference rows of the pruning panel the same
+validation-selected-$\alpha$ test accuracy is used.
+
+**Primary contrasts** (family `global`, $k = 1000$, paired by seed on
+the same split, one-sided paired $t$-tests with
+$H_1$: difference $> 0$, Holm-adjusted across the two confirmatory
+datasets × three contrasts):
 
 1. `width3x`: `phd` at $k = 1000$ minus an unpruned random layer of
-   width 3000.  Non-inferiority margin 0: the one-sided 95 % lower
-   confidence bound of the paired difference must be $\ge 0$.
-2. `proposal`: `phd` minus `random` proposals, $> 0$.
-3. `mechanism`: `phd` minus `phd_classshuffle`, $> 0$.
+   width 3000 (the leading 3000 neurons of that seed's random pool).
+2. `proposal`: `phd` minus `random` proposals.
+3. `mechanism`: `phd` minus `phd_classshuffle`.
+
+**Decision rule.**  A contrast *holds* on a dataset iff its
+Holm-adjusted one-sided $p$-value is $\le 0.05$.  For `width3x` this
+means the selected 1000-unit layer must be significantly *more*
+accurate than the random 3000-unit layer; a difference that is merely
+indistinguishable from zero does not count.  The unadjusted one-sided
+95 % lower confidence bound of each paired difference is reported for
+description only.  Seeds missing from either side of a pair are
+dropped and the reported $n$ reflects it; a contrast with $n < 8$ is
+reported as undecided.
 
 **Gate.**
 
 * *Pass:* contrast 1 and contrast 2 hold on both confirmatory datasets.
   The claim supported is then the narrow one: "at 1000 units, pHd
-  proposals with batched greedy OBS selection are at least as accurate
-  as a random layer three times wider".  Proceed with the streaming,
+  proposals with batched greedy OBS selection are more accurate than a
+  random layer three times wider".  Proceed with the streaming,
   continual, replication, and compression uses of the loop.
 * *Partial:* holds on Fashion-MNIST only.  Proceed with the patch
   variant as the primary form and re-plan before the dependent tracks.
@@ -104,6 +119,26 @@ activity-scale effects under ridge (columns are not RMS-normalized);
 center choice for new neurons (random samples, not high-residual ones);
 parameter and operation counts alongside unit counts; comparison with a
 gradient-trained MLP of equal width.
+
+**Interpretation caveats fixed in advance.**
+
+* The `first_order` arm proposes only $\pm$ one direction per class
+  (20 distinct directions; diversity comes from centers and gains
+  alone), so a loss for that arm confounds "first order" with "low
+  diversity" and cannot by itself confirm the second-order rationale.
+* The top-40 eigenpairs are computed by a block subspace iteration
+  converged to $10^{-7}$ relative change in the Ritz values; every
+  solve's iteration count and convergence flag is stored with the row,
+  and rows containing a non-converged solve are listed by the analyzer.
+* The per-dataset summaries are progress reports.  The registered
+  analysis is the combined summary over both confirmatory datasets.
+
+**Amendment log.**  2026-11-21, before launch and before any
+confirmatory result: after the pre-sweep code review, the primary
+metric and the decision rule were made explicit (previously the text
+required a lower confidence bound $\ge 0$ for `width3x` without saying
+how it combined with the Holm adjustment), and the two caveats above
+were added.  No result informed these changes.
 
 ### Execution
 
