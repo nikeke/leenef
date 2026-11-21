@@ -188,6 +188,26 @@ pipelines should use the exploratory dataset.
 * Do not commit to branch `run/ns-1` or edit files in that worktree
   while the run is alive.
 
+**Exploratory MNIST precomputation — 2026-11-21.** While the CIFAR-10
+workers continue, two separate growth workers may precompute the MNIST
+shards (seeds 0–4 and 5–9) using the same pinned code, data, and panel
+configuration. Each uses two PyTorch threads rather than the manifest's
+four; the workers share a three-CPU affinity mask and run at lower
+priority. Their private outputs and logs live under
+`results/ns1_precompute/`, outside the active sweep watcher's patterns.
+
+Only a fully completed shard with the expected keys, pinned identity,
+seed set, and matching dataset metadata may be published to its normal
+output path. Publication must not overwrite an existing file or overlap
+the driver's MNIST workers; if that cannot be established, leave the
+private output unused. The driver and CIFAR workers are not modified.
+The thread count is recorded per row. Different reduction orders may
+alter numerical results or discrete selections, and the overlapping
+workload makes growth timings and peak memory unsuitable for cross-phase
+comparisons. MNIST is exploratory and does not enter the confirmatory
+gate. The change was made without examining registered confirmatory
+metrics.
+
 ### Results
 
 _To be filled from the analyzer output._
