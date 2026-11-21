@@ -1,0 +1,157 @@
+{
+  "rows": [
+    {
+      "code_identity": "fb527214106a564ae8c76ccdcc8bd77789422ae4",
+      "dataset_metadata": {
+        "processed_hashes": {
+          "henon_seed0_reconstructed.f32le": "d49ef0acccb24cbaa367eeee24954334896befef2b4032635a2f25e7fc12472f",
+          "henon_seed0_symbols.u8": "3f623651e12d0363b10e613130f2542d88d1355099d71eb3693e2de7ef532996"
+        },
+        "raw_hashes": {
+          "henon_seed0_raw.f64le": "606f772124b70a7a26346f2f41b9347d64bc954efaece608a77a997fd3193348"
+        }
+      },
+      "kind": "exploratory",
+      "methods": {
+        "c0_fixed_feature": {
+          "all_stream_ideal_bits": 3063.249142899468,
+          "common_suffix_ideal_bits": 2791.249142899468
+        },
+        "categorical_order0": {
+          "all_stream_ideal_bits": 3946.811904952876,
+          "common_suffix_ideal_bits": 3676.054773600821
+        },
+        "ridge_ar": {
+          "all_stream_ideal_bits": 18115.729911171424,
+          "common_suffix_ideal_bits": 17843.729911171424
+        }
+      },
+      "saturation": {
+        "above_hi": 0,
+        "below_lo": 0
+      },
+      "trajectory_seed": 0
+    },
+    {
+      "code_identity": "fb527214106a564ae8c76ccdcc8bd77789422ae4",
+      "dataset_metadata": {
+        "processed_hashes": {
+          "henon_seed1_reconstructed.f32le": "9f609914e4a3e90d29983c81c6699bbd3427c5ea3a3b87d47bf7a8cc769bb6f8",
+          "henon_seed1_symbols.u8": "5ddea8c38c4b1f01d0fdf990e4d91ccc65fd987136d2f0d661ec5a226e369ca8"
+        },
+        "raw_hashes": {
+          "henon_seed1_raw.f64le": "68267fd20a665eb794fcb522c58f9316c9b2b209689b02fbb89fdb3178d9e1a5"
+        }
+      },
+      "kind": "exploratory",
+      "methods": {
+        "c0_fixed_feature": {
+          "all_stream_ideal_bits": 3103.626146055034,
+          "common_suffix_ideal_bits": 2831.626146055034
+        },
+        "categorical_order0": {
+          "all_stream_ideal_bits": 3941.398485376436,
+          "common_suffix_ideal_bits": 3666.734463428774
+        },
+        "ridge_ar": {
+          "all_stream_ideal_bits": 18117.28950132272,
+          "common_suffix_ideal_bits": 17845.289501322724
+        }
+      },
+      "saturation": {
+        "above_hi": 0,
+        "below_lo": 0
+      },
+      "trajectory_seed": 1
+    },
+    {
+      "code_identity": "fb527214106a564ae8c76ccdcc8bd77789422ae4",
+      "dataset_metadata": {
+        "processed_hashes": {
+          "henon_seed2_reconstructed.f32le": "46b7bb766cf8dd08a7dd6cbdba4097bb5f773ca94f1070b9a2479b7b23d23a52",
+          "henon_seed2_symbols.u8": "b1631494f305291f960850bd200e1e0e3a85e579a45a90771ee13953ac086131"
+        },
+        "raw_hashes": {
+          "henon_seed2_raw.f64le": "7a3dac4df117b4cb579be1f3a8dcc43f136ed12cd51fd77d3cc59d1cb59a7d70"
+        }
+      },
+      "kind": "exploratory",
+      "methods": {
+        "c0_fixed_feature": {
+          "all_stream_ideal_bits": 3086.112934371372,
+          "common_suffix_ideal_bits": 2814.112934371372
+        },
+        "categorical_order0": {
+          "all_stream_ideal_bits": 3942.1129685960345,
+          "common_suffix_ideal_bits": 3670.6188716498145
+        },
+        "ridge_ar": {
+          "all_stream_ideal_bits": 18073.49072839624,
+          "common_suffix_ideal_bits": 17801.49072839624
+        }
+      },
+      "saturation": {
+        "above_hi": 0,
+        "below_lo": 0
+      },
+      "trajectory_seed": 2
+    }
+  ],
+  "run": {
+    "all_stream_symbols": 512,
+    "calibration": "none; grid fixed before observing data",
+    "code_identity": "fb527214106a564ae8c76ccdcc8bd77789422ae4",
+    "common_suffix_start": 34,
+    "common_suffix_symbols": 478,
+    "config": {
+      "a": 1.4,
+      "ar": {
+        "fixed_alpha": 0.1,
+        "noise_variance": 0.01,
+        "order": 2,
+        "resolve_every": 8,
+        "warmup": 32
+      },
+      "b": 0.3,
+      "burn_in": 200,
+      "c0": {
+        "activation": "abs",
+        "fixed_alpha": 0.1,
+        "noise_variance": 0.01,
+        "refresh_every": 16,
+        "resolve_every": 8,
+        "seed": 7,
+        "warmup": 32,
+        "width": 16,
+        "window": 2
+      },
+      "grid": {
+        "hi": 2.0,
+        "lo": -2.0,
+        "n_bits": 8
+      },
+      "n": 512,
+      "noise_std": 0.005,
+      "pseudocount": 0.5,
+      "trajectory_seeds": [
+        0,
+        1,
+        2
+      ]
+    },
+    "kind": "exploratory",
+    "libraries": {
+      "leenef_source": "0.2.1",
+      "numpy": "2.4.2",
+      "python": "3.13.5",
+      "torch": "2.10.0+cu128"
+    },
+    "machine": "x86_64",
+    "overheads_included": false,
+    "protocol": "c1-henon-ideal-v1",
+    "ridge_policy": "fixed",
+    "source": "benchmarks.compression.series.henon",
+    "torch_interop_threads": 1,
+    "torch_threads": 1
+  }
+}
