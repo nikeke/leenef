@@ -140,9 +140,53 @@ required a lower confidence bound $\ge 0$ for `width3x` without saying
 how it combined with the Holm adjustment), and the two caveats above
 were added.  No result informed these changes.
 
+**Disclosure.**  2026-11-21, between the amendment above and the
+launch: the pipeline was smoke-tested on Fashion-MNIST and CIFAR-10 at
+toy sizes (2 seeds, subsampled fit split, 400-neuron pool, widths
+$\le 100$, 2 generations), and the head of the resulting Fashion-MNIST
+pruning table, including test accuracies, was displayed.  The
+pre-sweep code reviewer also ran toy-size Fashion-MNIST smoke rows for
+a determinism check and full-size eigensolver comparisons on both
+datasets.  None of these are registered cells and no protocol,
+analysis, or code change followed from them, but the statement above
+that no test number from the confirmatory datasets had been seen holds
+only for registered-size configurations.  Smoke tests of confirmatory
+pipelines should use the exploratory dataset.
+
 ### Execution
 
-_To be filled at launch: code identity, command, log paths, sentinel._
+**Launch 1 — 2026-11-21T17:47:04Z.**
+
+* Code: commit `7b5b0ae` on `research/neuron-selection`, checked out as
+  branch `run/ns-1` in the dedicated worktree `.worktrees/ns1-run`
+  (inside the repository directory, the only persistent path visible
+  both to the CLI sandbox and to the host).  Pinned identity
+  `2d43012f8b9d7644efb9f1267c17bb6c65043f21`.
+* Command, from the worktree root:
+
+  ```bash
+  PYTHON=/home/amnesia/Persistent/src/leenef/venv/bin/python \
+  SEEDS=0-9 THREADS=4 GROWTH_SHARDS=2 \
+      bash benchmarks/neuron_selection/run_panels.sh \
+      >> results/neuron_selection/logs/driver.log 2>&1 < /dev/null
+  ```
+
+* Order: Fashion-MNIST, CIFAR-10, MNIST.  Per dataset: one pruning
+  process and two growth shards (seeds 0–4, 5–9), 4 threads each.
+* Outputs: `results/neuron_selection/{prune_<dataset>,growth_<dataset>_s<i>}.json`,
+  logs and `run_manifest.txt` under `results/neuron_selection/logs/`,
+  sentinel `panels_done`, failure marker `panels_failed`.
+* Watcher: `benchmarks/neuron_selection/wait_for_panels.sh` (checks
+  row counts against the pinned identity).
+* Estimated wall time: about 2 h, 8–11 h, and 2 h for the three
+  datasets.
+* The first launch was made from inside the CLI sandbox, so it dies
+  with the CLI session.  The driver resumes from completed rows: to
+  continue after an interruption, rerun the same command on the host
+  from the worktree root (prefix with `setsid` and append `&`).  A
+  second driver refuses to start while one holds the lock.
+* Do not commit to branch `run/ns-1` or edit files in that worktree
+  while the run is alive.
 
 ### Results
 
