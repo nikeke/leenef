@@ -40,6 +40,73 @@ PYTHON=$PWD/venv/bin/python SEEDS=0-9 \
 > commands have moved to `attic/`; only the `sl_clean` block above is
 > live.  See `docs/sl_clean_sweeps.md` for the running phase log.
 
+## Model roles and delegation
+
+The budget is limited, but never trade correctness for savings.  These
+repository rules take precedence over any generic default delegate; the
+user-level cost-conscious delegation rules and their dated price
+reference still apply to everything not covered here.  If these rules
+are limiting progress, say so and let the user decide.
+
+### Roles
+
+| Role | Model | Scope |
+|---|---|---|
+| Main agent during open-ended research | Claude Fable (`claude-fable-5.2`) | Out-of-the-box thinking, hypotheses, experiment design, go/no-go gate decisions, interpretation, final say on claims. |
+| Implementation | GPT-6.2 Sol (`gpt-6.2-sol`) | Bounded coding tasks with a written spec and acceptance checks. |
+| Review of Sol-written code | Claude Opus (`claude-opus-5.5`) | Independent correctness and reproducibility review before commit. |
+| Review of Claude-written code (Fable or Opus as author) | GPT-6.2 Sol (`gpt-6.2-sol`) | Same, for code the main agent or another Claude model wrote. |
+| Serious science review | GPT-6.2 Astra (`gpt-6.2-astra`) | Claims headed to a manuscript, designs of expensive sweeps, or whenever a Sol review is not enough. |
+| Well-defined chores | GPT-6 Luna (`gpt-6-luna`, max reasoning effort) | Monitoring experiment output when a script cannot, digging through large amounts of code, data, or logs, web and literature search. Not design and not non-trivial implementation. |
+
+- **Cross-family review.** The reviewer must come from a different model
+  family than the author: Opus reviews what Sol wrote, Sol reviews what
+  a Claude model wrote, Astra replaces Sol when the science is at stake.
+- **Switching the main model.** The main agent must tell the user when a
+  cheaper main model would do the job (execution phases: running panels,
+  routine analysis, log and documentation updates) and when to switch
+  back (gates, surprising results, new designs).  Staying on the
+  expensive model is acceptable when getting it right requires it.
+
+### Workflow
+
+- **Scripts and ordinary tools first.**  Do not delegate what a script
+  or about five direct tool calls can finish.  Delegate what is cost
+  effective: substantial bounded work, parallel work, context isolation,
+  or a capability the main agent lacks.
+- **One coherent task per delegate.**  Give complete context, the
+  intended math or behavior, an exact spec, acceptance commands, the
+  expected concise report, and a stop condition.  Ask the delegate to
+  state explicitly when the spec is wrong or infeasible instead of
+  working around it.
+- **Delegates do not commit, switch branches, or push.**  They leave
+  changes in the working tree and report every deviation from the spec.
+- **The parent verifies independently before review.**  Inspect the
+  diff (out-of-spec edits in particular), rerun the acceptance checks
+  yourself, and where possible validate end to end against known
+  numbers rather than trusting the report.
+- **Review before commit.**  The reviewer is read-only, writes scratch
+  files outside the repository, and receives the spec, the intended
+  math, and an explicit list of scrutiny points, including every
+  out-of-spec change the implementer made.  Ask for a prioritized list
+  (blocker / should-fix / minor) with reproductions and a one-line
+  verdict.
+- **Fixes go back to the original implementer** as a follow-up message
+  so its context is reused; every bug the reviewer found must get a
+  regression test that fails without the fix.  Re-review only when the
+  fixes are non-trivial.
+- **The parent commits**, staging paths explicitly, with independent
+  changes in separate commits.
+- **One writer per working tree.**  Use a separate git worktree per
+  branch when delegates run concurrently.  The parent may edit disjoint
+  files in a tree a delegate is using, but must never commit the
+  delegate's unreviewed changes.
+- **Wait for completion notifications; do not poll.**  Read results
+  once, steer only when needed, cancel obsolete work.
+- **Count the whole lifecycle** (briefing, child context, review,
+  fixes, retries) when deciding whether delegation saves anything.  The
+  parent owns price checks; children do not research prices.
+
 ## SSUP paper series (Papers I–II)
 
 Paper I owns the `benchmarks/sl_clean/`, `results/sl_clean/`,
@@ -258,15 +325,10 @@ wait_for_b2_panels.sh}` and the B2 launch in
   consume hours of CPU/GPU, dispatch a `task` agent to review the hot
   path for optimization opportunities (matmul shapes, dtype churn,
   missing in-place ops) **and** reproducibility hazards (default-RNG
-  draws, scatter-with-collision patterns).  The reviewer must be a
-  different model from the one that wrote the code: delegated
-  implementation uses `gpt-6.2-sol` and is reviewed by
-  `claude-opus-5.5`; code written by a Claude model is reviewed by
-  `gpt-6.2-sol`.  Use `gpt-6.2-astra` for science review of claims
-  headed to a manuscript.  `gpt-6-luna` is for straightforward,
-  well-defined chores only (monitoring experiment output when a script
-  cannot, digging through large amounts of code or data, web search).
-  See `7703a1010c10bbcf0c11d821792c3aad386ef6e7` for the precedent: a
+  draws, scatter-with-collision patterns).  Pick the reviewer from the
+  "Model roles and delegation" section: it must come from a different
+  model family than the author of the code.  See
+  `7703a1010c10bbcf0c11d821792c3aad386ef6e7` for the precedent: a
   second model's pattern-matching is genuinely complementary to the
   author's.
 - **Scatter-write with possibly-colliding indices is non-deterministic.**
