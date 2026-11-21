@@ -1,0 +1,4 @@
+# Runtime-only files; scientific JSON and run logs may be archived.
+/driver.lock
+/panels_done
+/panels_failed
