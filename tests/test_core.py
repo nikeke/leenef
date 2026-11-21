@@ -710,6 +710,122 @@ class TestNEFLayer:
         out2 = layer2(x)
         assert torch.allclose(out1, out2, atol=1e-5)
 
+    @staticmethod
+    def _reference_decoders(x, targets, alpha, seed):
+        """Decoders of an independent layer solved on all the data at once."""
+        ref = NEFLayer(2, 100, 3, rng=torch.Generator().manual_seed(seed)).double()
+        ref.partial_fit(x, targets)
+        ref.solve_accumulated(alpha=(alpha, "fixed"))
+        return ref.decoders
+
+    @pytest.mark.parametrize(
+        ("encoded", "batch_sizes"),
+        [
+            pytest.param(False, (20,), id="small-batch"),
+            pytest.param(True, (20,), id="encoded"),
+            pytest.param(False, (100,), id="neuron-count-batch"),
+            pytest.param(False, (20, 20), id="woodbury-after-rebuild"),
+        ],
+    )
+    def test_continuous_fit_after_partial_fit_uses_prior_statistics(self, encoded, batch_sizes):
+        """A missing inverse must be rebuilt from already accumulated statistics."""
+        g = torch.Generator().manual_seed(82)
+        size = 40 + sum(batch_sizes)
+        x = torch.randn(size, 2, generator=g, dtype=torch.float64)
+        targets = torch.randn(size, 3, generator=g, dtype=torch.float64)
+        alpha = 1e-2
+
+        layer = NEFLayer(2, 100, 3, rng=torch.Generator().manual_seed(820)).double()
+        layer.partial_fit(x[:40], targets[:40])
+        fit = layer.continuous_fit_encoded if encoded else layer.continuous_fit
+        for xb, yb in zip(x[40:].split(batch_sizes), targets[40:].split(batch_sizes)):
+            fit(layer.encode(xb) if encoded else xb, yb, fixed_alpha=alpha)
+
+        reference = self._reference_decoders(x, targets, alpha, 820)
+        assert torch.allclose(layer.decoders, reference, atol=1e-9, rtol=0)
+
+    @pytest.mark.parametrize("refresh", [False, True], ids=["continuous-fit", "refresh"])
+    def test_partial_fit_invalidates_inverse_before_next_solve(self, refresh):
+        """The next solve must include the partial batch and use the intended alpha."""
+        g = torch.Generator().manual_seed(84)
+        size = 40 if refresh else 60
+        x = torch.randn(size, 2, generator=g, dtype=torch.float64)
+        targets = torch.randn(size, 3, generator=g, dtype=torch.float64)
+        alpha = 3e-2
+
+        layer = NEFLayer(2, 100, 3, rng=torch.Generator().manual_seed(840)).double()
+        layer.continuous_fit(x[:20], targets[:20], fixed_alpha=alpha)
+        layer.partial_fit(x[20:40], targets[20:40])
+        if refresh:
+            assert layer._woodbury_alpha == alpha
+            layer.refresh_inverse()
+        else:
+            layer.continuous_fit(x[40:], targets[40:], fixed_alpha=alpha)
+
+        reference = self._reference_decoders(x, targets, alpha, 840)
+        assert torch.allclose(layer.decoders, reference, atol=1e-9, rtol=0)
+
+    def test_reset_accumulators_invalidates_woodbury_inverse(self):
+        """Continuous fitting after a reset must not use discarded data."""
+        g = torch.Generator().manual_seed(85)
+        x = torch.randn(40, 2, generator=g, dtype=torch.float64)
+        targets = torch.randn(40, 3, generator=g, dtype=torch.float64)
+        alpha = 1e-2
+
+        layer = NEFLayer(2, 100, 3, rng=torch.Generator().manual_seed(850)).double()
+        layer.continuous_fit(x[:20], targets[:20], fixed_alpha=alpha)
+        layer.reset_accumulators()
+        assert layer._woodbury_alpha == alpha
+        layer.continuous_fit(x[20:], targets[20:], fixed_alpha=alpha)
+
+        reference = self._reference_decoders(x[20:], targets[20:], alpha, 850)
+        assert torch.allclose(layer.decoders, reference, atol=1e-9, rtol=0)
+
+    @pytest.mark.parametrize(
+        ("setup", "bad_alpha", "message"),
+        [
+            ("fresh", -1.0, "alpha must be > 0"),
+            ("partial", -1.0, "alpha must be > 0"),
+            ("cached", -1.0, "alpha must be > 0"),
+            ("cached", 1e-1, "fixed_alpha changed"),
+        ],
+    )
+    def test_rejected_fixed_alpha_leaves_state_untouched(
+        self, setup, bad_alpha, message, monkeypatch
+    ):
+        g = torch.Generator().manual_seed(83)
+        layer = NEFLayer(2, 50, 2, rng=g).double()
+        x = torch.randn(10, 2, generator=g, dtype=torch.float64)
+        targets = torch.randn(10, 2, generator=g, dtype=torch.float64)
+        if setup == "partial":
+            layer.partial_fit(x, targets)
+        elif setup == "cached":
+            layer.continuous_fit(x, targets, fixed_alpha=1e-2)
+        before = [
+            t.clone() if t is not None else None
+            for t in (layer._ata, layer._aty, layer._M_inv, layer.decoders)
+        ]
+        before_alpha = layer._woodbury_alpha
+        activities = layer.encode(x)
+
+        def _no_encoding(*_args, **_kwargs):
+            raise AssertionError("a rejected call must not encode")
+
+        monkeypatch.setattr(layer, "encode", _no_encoding)
+        for fit, batch in (
+            (layer.continuous_fit, x),
+            (layer.continuous_fit_encoded, activities),
+        ):
+            with pytest.raises(ValueError, match=message):
+                fit(batch, targets, fixed_alpha=bad_alpha)
+            after = (layer._ata, layer._aty, layer._M_inv, layer.decoders)
+            for expected, actual in zip(before, after):
+                if expected is None:
+                    assert actual is None
+                else:
+                    assert actual is not None and torch.equal(expected, actual)
+            assert layer._woodbury_alpha == before_alpha
+
 
 # ── Exception paths ───────────────────────────────────────────────────
 

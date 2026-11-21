@@ -10,6 +10,7 @@ from .solvers import (
     DEFAULT_ALPHA,
     DEFAULT_FIXED_ALPHA,
     AlphaPolicy,
+    alpha_policy,
     inverse_from_normal_equations,
     solve_decoders,
     solve_from_normal_equations,
@@ -235,8 +236,9 @@ class NEFLayer(nn.Module):
         """Accumulate normal-equation statistics for an incremental solve.
 
         Call repeatedly with data chunks, then call :meth:`solve_accumulated`
-        once to set decoders.  This avoids materialising the full activity
-        matrix when data arrives in batches or streams.
+        once to set decoders.  This avoids materializing the full activity
+        matrix when data arrives in batches or streams.  Any cached Woodbury
+        inverse is dropped; the next :meth:`continuous_fit` rebuilds it.
 
         Args:
             x:       (N, d_in) input data batch
@@ -255,6 +257,8 @@ class NEFLayer(nn.Module):
         ata = (A_stats.T @ A_stats).double()
         aty = (A_stats.T @ T_stats).double()
 
+        if self._M_inv is not None:
+            self._M_inv = None
         if self._ata is None:
             self._ata = ata.clone()
             self._aty = aty.clone()
@@ -277,11 +281,24 @@ class NEFLayer(nn.Module):
         self.decoders.data.copy_(D.to(self.decoders.dtype))
 
     def reset_accumulators(self) -> None:
-        """Clear accumulated normal-equation statistics."""
+        """Clear normal-equation statistics and the cached Woodbury inverse.
+
+        Retain the last fixed alpha and the current decoders.
+        """
         self._ata = None
         self._aty = None
+        self._M_inv = None
 
     # ── Continuous fit (Woodbury rank-k updates) ──────────────────────
+
+    def _validate_continuous_fixed_alpha(self, fixed_alpha: float) -> None:
+        alpha_policy((fixed_alpha, "fixed"))
+        cached = self._woodbury_alpha
+        if self._M_inv is not None and cached is not None and cached != fixed_alpha:
+            raise ValueError(
+                f"continuous_fit fixed_alpha changed from {cached} to {fixed_alpha}; "
+                "call reset_continuous() or refresh_inverse(fixed_alpha=...) first"
+            )
 
     @torch.no_grad()
     def continuous_fit(
@@ -289,10 +306,10 @@ class NEFLayer(nn.Module):
     ) -> None:
         """Accumulate new data and update decoders via rank-k Woodbury update.
 
-        On the first call (or after :meth:`reset_continuous`), performs an
-        initial solve and caches the system inverse.  Subsequent calls apply
-        the Sherman-Morrison-Woodbury identity for *O(n²k)* updates (where
-        *k* is the batch size) instead of the *O(n³)* full re-solve.
+        For batches smaller than the neuron count, uses an *O(n²k)* Woodbury
+        update when the inverse is cached or there are no prior statistics.
+        Otherwise, including after :meth:`partial_fit`, rebuilds the inverse
+        from all accumulated statistics.
 
         The method also maintains ``_ata`` / ``_aty`` accumulators so that
         :meth:`refresh_inverse` can periodically perform an exact re-solve
@@ -302,7 +319,7 @@ class NEFLayer(nn.Module):
             x:       (N, d_in) input data batch.
             targets: (N, d_out) target batch.
             fixed_alpha:
-                     Fixed Tikhonov regularisation strength (not trace-scaled,
+                     Fixed Tikhonov regularization strength (not trace-scaled,
                      to keep the cached inverse consistent across updates).
         """
         if x.shape[0] != targets.shape[0]:
@@ -310,6 +327,7 @@ class NEFLayer(nn.Module):
                 f"x and targets must have same number of samples, "
                 f"got {x.shape[0]} vs {targets.shape[0]}"
             )
+        self._validate_continuous_fixed_alpha(fixed_alpha)
         A = self.encode(x)
         self.continuous_fit_encoded(A, targets, fixed_alpha=fixed_alpha)
 
@@ -329,13 +347,14 @@ class NEFLayer(nn.Module):
         Args:
             activities: (N, n_neurons) pre-encoded neuron activities.
             targets:    (N, d_out) target batch.
-            fixed_alpha: Fixed Tikhonov regularisation strength.
+            fixed_alpha: Fixed Tikhonov regularization strength.
         """
         if activities.shape[0] != targets.shape[0]:
             raise ValueError(
                 f"activities and targets must have same number of samples, "
                 f"got {activities.shape[0]} vs {targets.shape[0]}"
             )
+        self._validate_continuous_fixed_alpha(fixed_alpha)
         A = activities  # (k, n)
         # Accumulate normal equations in float64 (review finding 2).
         A_stats = A.float() if A.dtype in (torch.float16, torch.bfloat16) else A
@@ -343,6 +362,8 @@ class NEFLayer(nn.Module):
         ata = (A_stats.T @ A_stats).double()
         aty = (A_stats.T @ T_stats).double()
 
+        inverse = self._M_inv
+        needs_refresh = inverse is None and self._ata is not None
         if self._ata is None:
             self._ata = ata.clone()
             self._aty = aty.clone()
@@ -350,33 +371,19 @@ class NEFLayer(nn.Module):
             self._ata.add_(ata)
             self._aty.add_(aty)
 
-        # Woodbury inverse is maintained in float64 to prevent drift
-        # across many rank-k updates in float32.  Reject mid-stream
-        # alpha changes — they silently invalidate the cached inverse
-        # (review finding 3).
-        if self._M_inv is None:
-            n = A.shape[1]
-            self._M_inv = woodbury_initial_inverse(
-                n, fixed_alpha=fixed_alpha, device=A.device, dtype=torch.float64
-            )
-            self._woodbury_alpha = fixed_alpha
-        else:
-            cached = self._woodbury_alpha
-            if cached is not None and cached != fixed_alpha:
-                raise ValueError(
-                    f"continuous_fit fixed_alpha changed from {cached} to {fixed_alpha}; "
-                    "call reset_continuous() or refresh_inverse(fixed_alpha=...) first"
-                )
-
         k, n = A.shape
-        if k >= n:
-            self._M_inv = inverse_from_normal_equations(self._ata, alpha=(fixed_alpha, "fixed"))
+        if k >= n or needs_refresh:
+            inverse = inverse_from_normal_equations(self._ata, alpha=(fixed_alpha, "fixed"))
         else:
-            woodbury_update_inverse_(self._M_inv, A)
+            if inverse is None:
+                inverse = woodbury_initial_inverse(
+                    n, fixed_alpha=fixed_alpha, device=A.device, dtype=torch.float64
+                )
+            woodbury_update_inverse_(inverse, A)
+        self._M_inv = inverse
+        self._woodbury_alpha = fixed_alpha
 
-        self.decoders.data.copy_(
-            woodbury_decoders(self._M_inv, self._aty, dtype=self.decoders.dtype)
-        )
+        self.decoders.data.copy_(woodbury_decoders(inverse, self._aty, dtype=self.decoders.dtype))
 
     @torch.no_grad()
     def refresh_inverse(self, fixed_alpha: float | None = None) -> None:
@@ -404,7 +411,6 @@ class NEFLayer(nn.Module):
         )
 
     def reset_continuous(self) -> None:
-        """Clear Woodbury inverse, accumulators, and decoders."""
+        """Clear the accumulators, cached Woodbury inverse, and fixed alpha."""
         self.reset_accumulators()
-        self._M_inv = None
         self._woodbury_alpha = None
