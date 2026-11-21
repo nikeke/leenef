@@ -1,6 +1,8 @@
 """Neuron selection from sufficient statistics and data-directed proposals."""
 
+import math
 import operator
+import warnings
 
 import torch
 from torch import Tensor
@@ -52,10 +54,10 @@ def prune_from_stats(
     drop_fraction: float = 0.1,
     method: str = "refit",
 ) -> Tensor:
-    """Greedily delete the least salient neurons and return sorted original indices.
+    """Run batched greedy OBS and return sorted original indices.
 
-    Each round refreshes the OBS scores and drops at least one neuron, capped
-    at the requested width. Ties are broken by dropping lower indices first.
+    Each round refreshes exact single-deletion scores, then uses them as a
+    greedy approximation for the whole batch. Ties drop lower indices first.
     ``refit`` re-evaluates the alpha policy on each smaller normal matrix;
     ``downdate`` evaluates it on the initial matrix and holds it fixed.
     If a downdated inverse has an invalid diagonal, it is rebuilt at the
@@ -129,32 +131,132 @@ def residual_moments(
         raise ValueError(f"out must have shape {shape}, dtype float64 and be on x.device")
     if mean is not None:
         mean = mean.to(x)
+    product = x.new_empty((d_in, d_in))
     for start in range(0, x.shape[0], batch_size):
         xc = x[start : start + batch_size]
         if mean is not None:
             xc = xc - mean
         r = residual[start : start + batch_size].to(xc)
+        weighted = torch.empty_like(xc)
         for c in range(d_out):
-            out[c].add_((xc * r[:, c : c + 1]).T @ xc)
+            torch.mul(xc, r[:, c : c + 1], out=weighted)
+            torch.mm(weighted.T, xc, out=product)
+            out[c].add_(product)
     return out
 
 
+def _top_magnitude(values: Tensor, q: int) -> Tensor:
+    return values.abs().argsort(dim=-1, descending=True, stable=True)[..., :q]
+
+
+def _selected_vectors(vectors: Tensor, order: Tensor) -> Tensor:
+    return vectors.gather(-1, order.unsqueeze(-2).expand(-1, vectors.shape[-2], -1))
+
+
+def _phd_subspace(
+    moments: Tensor,
+    q: int,
+    width: int,
+    rng: torch.Generator,
+    tol: float,
+    max_iter: int,
+    info: dict | None,
+) -> Tensor:
+    d_out, d_in, _ = moments.shape
+    if d_out == 0 or q == 0:
+        if info is not None:
+            info.update(iterations=0, worst_relative_change=0.0, converged=True)
+        return moments.new_empty((d_out, d_in, q), dtype=torch.float32)
+    h = moments.double()
+    h = (h + h.mT).mul_(0.5)
+    initial = torch.randn(
+        (d_out, d_in, width), device=rng.device, dtype=torch.float64, generator=rng
+    ).to(h.device)
+    # QR and eigh estimate residual curvature; neither is a ridge solve.
+    basis = torch.linalg.qr(initial).Q
+    product = h @ basis
+    previous = None
+    worst = math.inf
+    for iteration in range(1, max_iter + 1):
+        basis = torch.linalg.qr(product).Q
+        product = h @ basis
+        if iteration % 5 != 0 and iteration != max_iter:
+            continue
+        projected = basis.mT @ product
+        values, vectors = torch.linalg.eigh((projected + projected.mT).mul_(0.5))
+        order = _top_magnitude(values, q)
+        ritz = values.gather(-1, order)
+        if previous is not None:
+            scale = ritz.abs().amax(dim=-1).clamp_min(torch.finfo(h.dtype).tiny)
+            worst = float(((ritz - previous).abs().amax(dim=-1) / scale).max())
+            if worst < tol:
+                break
+        previous = ritz
+    converged = worst < tol
+    if info is not None:
+        info.update(
+            iterations=iteration,
+            worst_relative_change=worst if math.isfinite(worst) else None,
+            converged=converged,
+        )
+    if not converged:
+        warnings.warn(
+            f"pHd subspace iteration reached max_iter={max_iter}; "
+            f"worst relative Ritz-value change was {worst:.3g} (tol={tol:.3g})",
+            RuntimeWarning,
+            stacklevel=4,
+        )
+    return ((basis @ _selected_vectors(vectors, order)) * ritz.abs().sqrt().unsqueeze(-2)).float()
+
+
 @torch.no_grad()
-def phd_bases(moments: Tensor, n_components: int) -> Tensor:
+def phd_bases(
+    moments: Tensor,
+    n_components: int,
+    *,
+    method: str = "eigh",
+    rng: torch.Generator | None = None,
+    oversample: int = 20,
+    tol: float = 1e-7,
+    max_iter: int = 300,
+    info: dict | None = None,
+) -> Tensor:
     """Return float32 pHd bases of shape ``(d_out, d_in, min(n_components, d_in))``.
 
     Each basis contains eigenvectors of the symmetrized residual moment,
     ordered by decreasing absolute eigenvalue and scaled by its square root.
+    ``eigh`` honors float32 or float64 moment precision. ``subspace`` uses
+    batched float64 block iteration with an explicit generator, falling
+    back to ``eigh`` if the oversampled width covers the input dimension.
+    It checks the top Ritz values every five iterations and warns if their
+    relative change has not fallen below ``tol`` by ``max_iter``.
+    For ``subspace``, ``info`` receives the iteration count, worst relative
+    change (``None`` if unavailable), and convergence status. An exact
+    fallback reports successful convergence in zero iterations.
     """
     if n_components < 0:
         raise ValueError("n_components must be non-negative")
-    moments = moments.double()
+    if method == "subspace":
+        if rng is None:
+            raise ValueError("phd_bases(method='subspace') requires rng=")
+        if oversample < 0 or not math.isfinite(tol) or tol <= 0 or max_iter < 1:
+            raise ValueError("oversample must be nonnegative; tol and max_iter must be positive")
+        d_in = moments.shape[-1]
+        q = min(n_components, d_in)
+        if q + oversample < d_in:
+            return _phd_subspace(moments, q, q + oversample, rng, tol, max_iter, info)
+        if info is not None:
+            info.update(iterations=0, worst_relative_change=0.0, converged=True)
+    elif method != "eigh":
+        raise ValueError(f"unknown pHd method: {method!r}")
+    if moments.dtype not in (torch.float32, torch.float64):
+        moments = moments.double()
     # This eigendecomposition orders residual curvature; it is not a ridge solve.
     values, vectors = torch.linalg.eigh((moments + moments.mT) * 0.5)
-    magnitude = values.abs()
-    order = magnitude.argsort(dim=-1, descending=True, stable=True)[..., :n_components]
-    basis = vectors.gather(-1, order.unsqueeze(-2).expand(-1, vectors.shape[-2], -1))
-    return (basis * magnitude.gather(-1, order).sqrt().unsqueeze(-2)).float()
+    order = _top_magnitude(values, n_components)
+    return (
+        _selected_vectors(vectors, order) * values.gather(-1, order).abs().sqrt().unsqueeze(-2)
+    ).float()
 
 
 def _randn(shape: tuple[int, ...], device: torch.device, rng: torch.Generator) -> Tensor:
@@ -189,6 +291,48 @@ def sample_directions_from_bases(n_neurons: int, bases: Tensor, *, rng: torch.Ge
         chunk = slice(start, start + chunk_size)
         directions[chunk] = torch.einsum("nq,ndq->nd", coeff[chunk], bases[cls[chunk]])
     return _normalize_directions(directions, rng)
+
+
+@torch.no_grad()
+def sample_patch_directions_from_moments(
+    moments: Tensor, supports: Tensor, n_components: int, *, rng: torch.Generator
+) -> Tensor:
+    """Sample float32 pHd directions restricted to each neuron's input support.
+
+    ``moments`` has shape ``(d_out, d_in, d_in)``; ``supports`` must be a
+    rectangular int64 tensor ``(n, p)`` with ``p > 0`` unique in-range
+    indices per row. Each neuron picks an output uniformly and samples from
+    its local pHd basis, falling back to an isotropic draw on its support
+    if the local combination is zero.
+    """
+    d_out, d_in, _ = moments.shape
+    if not isinstance(supports, Tensor) or supports.dtype != torch.long:
+        raise ValueError("supports must be a rectangular int64 tensor")
+    if supports.ndim != 2 or supports.shape[1] == 0:
+        raise ValueError("supports must have shape (n, p) with the same positive p for every row")
+    supports = supports.to(moments.device)
+    sorted_supports = supports.sort(dim=1).values
+    if (sorted_supports[:, 0] < 0).any() or (sorted_supports[:, -1] >= d_in).any():
+        raise ValueError("supports must contain in-range input indices")
+    if (sorted_supports[:, 1:] == sorted_supports[:, :-1]).any():
+        raise ValueError("each row of supports must contain unique indices")
+    if n_components < 0:
+        raise ValueError("n_components must be non-negative")
+
+    n_neurons, p = supports.shape
+    q = min(n_components, p)
+    cls = torch.randint(d_out, (n_neurons,), generator=rng, device=rng.device).to(moments.device)
+    coeff = _randn((n_neurons, q), moments.device, rng)
+    result = torch.zeros((n_neurons, d_in), device=moments.device, dtype=torch.float32)
+    chunk_size = max(1, (1 << 26) // (p * p * 8))
+    for start in range(0, n_neurons, chunk_size):
+        chunk = slice(start, start + chunk_size)
+        idx = supports[chunk]
+        blocks = moments[cls[chunk, None, None], idx[:, :, None], idx[:, None, :]]
+        bases = phd_bases(blocks, q)
+        local = (bases @ coeff[chunk, :, None]).squeeze(-1)
+        result[chunk].scatter_(1, idx, _normalize_directions(local, rng))
+    return result
 
 
 @torch.no_grad()

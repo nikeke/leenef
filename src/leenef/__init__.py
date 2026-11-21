@@ -31,6 +31,7 @@ from .selection import (
     psd_power,
     residual_moments,
     sample_directions_from_bases,
+    sample_patch_directions_from_moments,
     sample_shaped_directions,
 )
 from .solvers import SOLVERS, solve_decoders, solve_from_normal_equations
@@ -71,6 +72,7 @@ __all__ = [
     "residual_moments",
     "phd_bases",
     "sample_directions_from_bases",
+    "sample_patch_directions_from_moments",
     "agop",
     "psd_power",
     "sample_shaped_directions",
