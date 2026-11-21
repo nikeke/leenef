@@ -652,10 +652,14 @@ output layer decodes.  Five training strategies are supported:
   after every batch.  The inverse is stored in float64 to prevent drift.
   `refresh_inverse()` recomputes the inverse exactly from accumulated
   statistics; `reset_continuous()` clears all Woodbury state.
+  `prune()` retains the selected neurons and their exact sufficient
+  statistics; `grow()` appends neurons and requires re-accumulating data.
   Accepts optional `centers=` training data to derive data-driven biases
   (`bias = -gain * (d · e)`), placing each neuron around a training sample.
   Gain can be scalar, range tuple, or per-neuron tensor (`_gain` buffer).
   `encoder_kwargs=` dict passes strategy-specific args (e.g. `image_shape`).
+- `selection.py` — OBS saliency and backward pruning from sufficient
+  statistics, plus pHd and AGOP diagnostics for proposing encoder directions.
 - `ensemble.py` — `NEFEnsemble(nn.Module)` wraps N independent NEFLayers
   with different random seeds.  Combines via probability averaging (`mean`)
   or majority voting (`vote`).  Ideal for exploiting the fast analytic

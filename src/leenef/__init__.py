@@ -23,6 +23,16 @@ from .rl_diag import (
     sparse_metric_summary,
 )
 from .rl_sf import NEFHindsightSFAgent, NEFSFAgent, NEFSuccessor
+from .selection import (
+    agop,
+    obs_saliency,
+    phd_bases,
+    prune_from_stats,
+    psd_power,
+    residual_moments,
+    sample_directions_from_bases,
+    sample_shaped_directions,
+)
 from .solvers import SOLVERS, solve_decoders, solve_from_normal_equations
 from .streaming import StreamingNEFClassifier
 
@@ -56,4 +66,12 @@ __all__ = [
     "solve_decoders",
     "solve_from_normal_equations",
     "SOLVERS",
+    "obs_saliency",
+    "prune_from_stats",
+    "residual_moments",
+    "phd_bases",
+    "sample_directions_from_bases",
+    "agop",
+    "psd_power",
+    "sample_shaped_directions",
 ]
