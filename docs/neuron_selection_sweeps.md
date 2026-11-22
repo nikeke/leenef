@@ -208,6 +208,13 @@ comparisons. MNIST is exploratory and does not enter the confirmatory
 gate. The change was made without examining registered confirmatory
 metrics.
 
+**Follow-up — 2026-11-22.** Both private MNIST growth shards completed
+and were verified and published before the driver reached MNIST. With
+CIFAR growth still active, apply the same private-output and verification
+protocol to one two-thread, low-priority MNIST pruning worker on the
+same CPU mask, using all ten seeds and the original pruning grid.
+The same numerical and timing caveats apply to its rows.
+
 ### Results
 
 _To be filled from the analyzer output._
