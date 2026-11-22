@@ -1,0 +1,2474 @@
+{
+  "code_identity": "2d43012f8b9d7644efb9f1267c17bb6c65043f21",
+  "prune": [
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.40147000000000005,
+        "se": 0.0011370576062803496
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.43228,
+        "se": 0.0010182555889581178
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 750,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.44597999999999993,
+        "se": 0.0010675829397912505
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.4559,
+        "se": 0.0010570398920255238
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.46875999999999995,
+        "se": 0.0011830469136936204
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.47756999999999994,
+        "se": 0.0007502666192761109
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 3000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.48719,
+        "se": 0.0009134124053362866
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 4000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.49233000000000005,
+        "se": 0.0008379936356162439
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 6000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.49977,
+        "se": 0.0007049113419430826
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 8000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.50312,
+        "se": 0.0009884668262853712
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.47756999999999994,
+        "se": 0.0007502666192761109
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.45382,
+        "se": 0.000899234242131728
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0020799999999999872,
+        "se": 0.0012750424829523679,
+        "z": -1.631318193558332
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.45776000000000006,
+        "se": 0.0009412993383852167
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0018600000000000062,
+        "se": 0.0009530302548537792,
+        "z": 1.9516694150338183
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.46653,
+        "se": 0.0008243583363238737
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.010630000000000006,
+        "se": 0.0013124235427466023,
+        "z": 8.099519441531692
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.46482999999999997,
+        "se": 0.0007973637117958729
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.00893000000000001,
+        "se": 0.0010118245346347786,
+        "z": 8.825640903462896
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.42808999999999997,
+        "se": 0.001025177491407653
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.004189999999999988,
+        "se": 0.0018352384041317358,
+        "z": -2.2830821274047532
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.42872000000000005,
+        "se": 0.0010172730432113299
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0035599999999999855,
+        "se": 0.0011851113402920773,
+        "z": -3.0039371651971565
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.45006,
+        "se": 0.001140682057172617
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01778,
+        "se": 0.0014069509981200852,
+        "z": 12.63725604072705
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.44237000000000004,
+        "se": 0.000975254952421274
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.010090000000000005,
+        "se": 0.0013608371606396452,
+        "z": 7.414553549711504
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.39792,
+        "se": 0.001125541844821613
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0035500000000000032,
+        "se": 0.0016294000259127418,
+        "z": -2.1787160571642916
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.39991,
+        "se": 0.0008914968685680658
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0015600000000000002,
+        "se": 0.0016741963246087142,
+        "z": -0.9317903623785558
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.43117,
+        "se": 0.0009599826387319012
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.029699999999999997,
+        "se": 0.0011466860463478596,
+        "z": 25.900725045528443
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.4159,
+        "se": 0.0013176578547643653
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.014429999999999998,
+        "se": 0.0017476364991992307,
+        "z": 8.256865776499772
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 4000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.49233000000000005,
+        "se": 0.0008379936356162439
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.47294,
+        "se": 0.0012577051412084707
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0046300000000000065,
+        "se": 0.0015332644912082207,
+        "z": -3.0197007930129143
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.47388,
+        "se": 0.0010734989520255725
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0036900000000000045,
+        "se": 0.0012528589527778318,
+        "z": -2.9452637041213277
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.48467000000000005,
+        "se": 0.000957897002118005
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.007099999999999995,
+        "se": 0.0012232016277875957,
+        "z": 5.804439626884541
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.48284000000000005,
+        "se": 0.0006896375859826641
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.005270000000000002,
+        "se": 0.0010079737650906973,
+        "z": 5.228310678825861
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.44766000000000006,
+        "se": 0.00118829476328243
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.008239999999999987,
+        "se": 0.0016590626536960233,
+        "z": -4.966659927907543
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.44719,
+        "se": 0.0011208578064242697
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.008709999999999996,
+        "se": 0.0010776981642989538,
+        "z": -8.08204030454657
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.4707,
+        "se": 0.0007912016177940977
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.014800000000000008,
+        "se": 0.0015303594349040997,
+        "z": 9.670930673177084
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.46335999999999994,
+        "se": 0.0010559040360436827
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.00746,
+        "se": 0.0016977239665701468,
+        "z": 4.394118329536916
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.42119,
+        "se": 0.0007234869268572377
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.011089999999999989,
+        "se": 0.0012838700176506246,
+        "z": -8.637946090752838
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.42024,
+        "se": 0.0013688762625680318
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.01204,
+        "se": 0.0016206445905530568,
+        "z": -7.4291427436852535
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.45471000000000006,
+        "se": 0.0010049267524440645
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.022430000000000012,
+        "se": 0.0016581147259597082,
+        "z": 13.527411371983108
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.43983999999999995,
+        "se": 0.0005817979794472369
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.007560000000000011,
+        "se": 0.0011581786467457324,
+        "z": 6.527490401625182
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.39434,
+        "se": 0.0009639271526186778
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0071299999999999975,
+        "se": 0.0016301363269507385,
+        "z": -4.373867315341081
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.39119000000000004,
+        "se": 0.0014237235998918068
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.010280000000000006,
+        "se": 0.0022143872992570882,
+        "z": -4.642367666870594
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.43413,
+        "se": 0.000654734891217641
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.03266000000000001,
+        "se": 0.001335930803264566,
+        "z": 24.447374010831957
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.41217,
+        "se": 0.0010116048855380497
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.010699999999999998,
+        "se": 0.0010042133460796306,
+        "z": 10.655106349434561
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 8000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.50312,
+        "se": 0.0009884668262853712
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.46704,
+        "se": 0.0008630952052545138
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.010530000000000006,
+        "se": 0.0013049521064008448,
+        "z": -8.069261659757409
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.4641,
+        "se": 0.0010195859726161187
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.013469999999999992,
+        "se": 0.0012958094853111044,
+        "z": -10.395046611937747
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.48571,
+        "se": 0.0011966109550634117
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.008140000000000003,
+        "se": 0.0007254423937616728,
+        "z": 11.220739330922271
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.48107,
+        "se": 0.0008121370984425398
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0035000000000000087,
+        "se": 0.0009340473459329818,
+        "z": 3.747133392369957
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.44136,
+        "se": 0.0011773982617052999
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.014539999999999992,
+        "se": 0.0013928547822527793,
+        "z": -10.438992050903718
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.43698,
+        "se": 0.0009810198774744597
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.018919999999999992,
+        "se": 0.0010862575917136583,
+        "z": -17.41759978878691
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.47275,
+        "se": 0.0012688796458118297
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.016850000000000014,
+        "se": 0.0019946177578674044,
+        "z": 8.4477338745924
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.4608,
+        "se": 0.000890068661521245
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.004900000000000004,
+        "se": 0.0015116583976253072,
+        "z": 3.24147307863834
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.41676,
+        "se": 0.0005487764167268499
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.015519999999999983,
+        "se": 0.0011967363025235684,
+        "z": -12.968604668608133
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.40925,
+        "se": 0.0007014667173541137
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.023029999999999995,
+        "se": 0.00142283363593765,
+        "z": -16.186010379789188
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.45624000000000003,
+        "se": 0.0009184770002564021
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.023960000000000002,
+        "se": 0.00150998160400862,
+        "z": 15.867742982028558
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.43617,
+        "se": 0.0009712592055905804
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.00389000000000001,
+        "se": 0.0009415648912552173,
+        "z": 4.131419975541124
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.39161999999999997,
+        "se": 0.0009248183004725252
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.009849999999999992,
+        "se": 0.0013604125191360986,
+        "z": -7.24045086431212
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.38739,
+        "se": 0.0008543288463921722
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.014079999999999987,
+        "se": 0.0011932029723954497,
+        "z": -11.800171744236664
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.43384999999999996,
+        "se": 0.0006620255114251851
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.03238,
+        "se": 0.001103005993738122,
+        "z": 29.35614147504599
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.40408,
+        "se": 0.0014245311119413613
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.002610000000000001,
+        "se": 0.001363202927748555,
+        "z": 1.9146085640460273
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.41830999999999996,
+        "se": 0.0011676614806241273
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.45500999999999997,
+        "se": 0.0015386465914346051
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 750,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.4772,
+        "se": 0.001508789065590166
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.48941,
+        "se": 0.0014820743721029824
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.5072300000000001,
+        "se": 0.001206100235377554
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.51845,
+        "se": 0.0012214972597413192
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 3000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.53635,
+        "se": 0.0007397071492602083
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 4000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.54558,
+        "se": 0.0007255342858886781
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 6000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.55641,
+        "se": 0.0006819009377386768
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 8000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.5618000000000001,
+        "se": 0.0007325753658611986
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.51845,
+        "se": 0.0012214972597413192
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.4756,
+        "se": 0.0007304488726499326
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.013809999999999989,
+        "se": 0.001495508089060189,
+        "z": -9.234319828171913
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.48310000000000003,
+        "se": 0.0013076696830622034
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0063099999999999875,
+        "se": 0.0016471153234940469,
+        "z": -3.8309400137292777
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.50959,
+        "se": 0.0008295179322956169
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.020180000000000014,
+        "se": 0.0014914422550001735,
+        "z": 13.53052720099959
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.50751,
+        "se": 0.0008604197941831794
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.018100000000000012,
+        "se": 0.0014574711737191355,
+        "z": 12.418770488484462
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.43248,
+        "se": 0.001221638244326036
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.022529999999999984,
+        "se": 0.001266320128035036,
+        "z": -17.791709616872357
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.43548,
+        "se": 0.0017577637308049496
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.019529999999999985,
+        "se": 0.00233285947569358,
+        "z": -8.37170014031537
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.49389000000000005,
+        "se": 0.0008304550292192551
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.03888000000000001,
+        "se": 0.0015778184658290413,
+        "z": 24.641618058114876
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.48650000000000004,
+        "se": 0.0012727922061357875
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.031490000000000004,
+        "se": 0.0014459483623790502,
+        "z": 21.77809444604842
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.39388999999999996,
+        "se": 0.001006031808642248
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.024420000000000004,
+        "se": 0.0008354373438837581,
+        "z": -29.230199222932722
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.40054999999999996,
+        "se": 0.001531828972176721
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.017760000000000005,
+        "se": 0.0013673331708109753,
+        "z": -12.988787501927142
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.4692,
+        "se": 0.0016431676725155002
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.05088999999999999,
+        "se": 0.0022152727446825456,
+        "z": 22.972340594247083
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.45419,
+        "se": 0.0014763656578082403
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.03587999999999999,
+        "se": 0.001673837905334125,
+        "z": 21.435767397583078
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 4000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.54558,
+        "se": 0.0007255342858886781
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.5031399999999999,
+        "se": 0.001257086578826878
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.01531,
+        "se": 0.0018204669730593778,
+        "z": -8.40993010396165
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.50525,
+        "se": 0.0010925251077714966
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.01319999999999999,
+        "se": 0.0013572848714334903,
+        "z": -9.72529811376949
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.5373699999999999,
+        "se": 0.0012603394604453035
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.018919999999999992,
+        "se": 0.0015941420541748688,
+        "z": 11.868452971584784
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.53406,
+        "se": 0.0008385437111776339
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01560999999999999,
+        "se": 0.0017569828937382625,
+        "z": 8.884548651914997
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.46044,
+        "se": 0.001014911052479206
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.028970000000000003,
+        "se": 0.0016945041883820932,
+        "z": -17.096446381558053
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.45965,
+        "se": 0.0009431919799866369
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.029759999999999998,
+        "se": 0.0015970945842720518,
+        "z": -18.633836901753984
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.5206299999999999,
+        "se": 0.0005521775076911419
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.031220000000000008,
+        "se": 0.0016996600967383016,
+        "z": 18.368378512805073
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.51407,
+        "se": 0.0009048081441818345
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.02466000000000001,
+        "se": 0.0015884443822669853,
+        "z": 15.524622879654066
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.42234999999999995,
+        "se": 0.0008839620404117409
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.032659999999999995,
+        "se": 0.0013834899509734264,
+        "z": -23.606965830883233
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.42083000000000004,
+        "se": 0.0009971124978322857
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.03417999999999999,
+        "se": 0.0018739026418443184,
+        "z": -18.24000843841044
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.50123,
+        "se": 0.0006884846484208
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.04622000000000002,
+        "se": 0.0013660811753983598,
+        "z": 33.83400696266963
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.48643000000000003,
+        "se": 0.0007183391337739536
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.031420000000000003,
+        "se": 0.0016032467059064852,
+        "z": 19.59773245393007
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.39388,
+        "se": 0.0010595386836837182
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.024429999999999997,
+        "se": 0.00171386826927989,
+        "z": -14.254304393105233
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.3921,
+        "se": 0.0013295780450119405
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.026209999999999994,
+        "se": 0.0013917574820667851,
+        "z": -18.832304002474388
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.47501,
+        "se": 0.0008742552386015341
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.05670000000000001,
+        "se": 0.0013530213104998268,
+        "z": 41.90621356810275
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.45132000000000005,
+        "se": 0.002367877624465514
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.03301,
+        "se": 0.0029017025653532754,
+        "z": 11.376079820910627
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 8000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.5618000000000001,
+        "se": 0.0007325753658611986
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.48579999999999995,
+        "se": 0.0012221111060601462
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.03265,
+        "se": 0.002072853642257988,
+        "z": -15.751232665145574
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.4787,
+        "se": 0.0008724168218868272
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.039749999999999994,
+        "se": 0.001568456424500079,
+        "z": -25.3433881739301
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.54538,
+        "se": 0.0008050948874373582
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.02693,
+        "se": 0.0012952949042163713,
+        "z": 20.79063224315866
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.537,
+        "se": 0.000839047078536119
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01855,
+        "se": 0.0016163917291987775,
+        "z": 11.476178493684184
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.44847000000000004,
+        "se": 0.001276892930341287
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.04093999999999999,
+        "se": 0.0017202196242211538,
+        "z": -23.799286686161352
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.44051,
+        "se": 0.0014198161070285748
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.04889999999999999,
+        "se": 0.001510187626312265,
+        "z": -32.38008254604043
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.5271399999999999,
+        "se": 0.0008019697971591963
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.03773,
+        "se": 0.0016762424910760688,
+        "z": 22.5086765195763
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.51217,
+        "se": 0.0009818406750135749
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.02276000000000001,
+        "se": 0.0017360363539460294,
+        "z": 13.110324532240517
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.41508,
+        "se": 0.0008125132477552448
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.03992999999999998,
+        "se": 0.0016370060747867975,
+        "z": -24.39209030131451
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.41079999999999994,
+        "se": 0.0017614388058251331
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.044209999999999985,
+        "se": 0.0024980636945887173,
+        "z": -17.69770726653899
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.5085200000000001,
+        "se": 0.001056282790418051
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.053510000000000016,
+        "se": 0.001989274016095094,
+        "z": 26.899260517683278
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.48155000000000003,
+        "se": 0.0013038617854494983
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.02654000000000002,
+        "se": 0.002559479113673978,
+        "z": 10.369297353594515
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.39174000000000003,
+        "se": 0.0011289326325733021
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.02657,
+        "se": 0.001764970884242063,
+        "z": -15.054072697301201
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.38888,
+        "se": 0.0009907124260405305
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.02943,
+        "se": 0.001506655604679156,
+        "z": -19.53332925494088
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.48038,
+        "se": 0.0008057846417554053
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.06206999999999999,
+        "se": 0.001741394715610321,
+        "z": 35.64384308944328
+      }
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.44342,
+        "se": 0.0011999814813385887
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.02511,
+        "se": 0.0015403066072845505,
+        "z": 16.301949158205016
+      }
+    }
+  ],
+  "growth": [],
+  "contrasts": [
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "panel": "prune",
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "contrast": "obs \u2212 random",
+      "n": 10,
+      "mean": 0.014800000000000008,
+      "se": 0.0015303594349040997,
+      "t": 9.670930673177084,
+      "p_one_sided": 2.3620428653496975e-06,
+      "lower_95": 0.011994678328264811
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "panel": "prune",
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "contrast": "obs \u2212 random",
+      "n": 10,
+      "mean": 0.031220000000000008,
+      "se": 0.0016996600967383016,
+      "t": 18.368378512805073,
+      "p_one_sided": 9.603374893829594e-09,
+      "lower_95": 0.028104331095549277
+    }
+  ],
+  "diagnostics": [],
+  "contrasts_loop": [
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "panel": "prune",
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "contrast": "obs \u2212 random",
+      "n": 10,
+      "mean": 0.013709999999999995,
+      "se": 0.0014230210430239178,
+      "t": 9.634432369929163,
+      "p_one_sided": 2.4371484033577514e-06,
+      "lower_95": 0.011101441722590883
+    },
+    {
+      "dataset": "CIFAR10",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "panel": "prune",
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "contrast": "obs \u2212 random",
+      "n": 10,
+      "mean": 0.031200000000000006,
+      "se": 0.0014625700363097563,
+      "t": 21.33231176998637,
+      "p_one_sided": 2.5686220748416412e-09,
+      "lower_95": 0.02851894395152509
+    }
+  ],
+  "eig_failures": []
+}

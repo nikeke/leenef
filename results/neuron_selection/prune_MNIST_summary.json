@@ -1,0 +1,2474 @@
+{
+  "code_identity": "2d43012f8b9d7644efb9f1267c17bb6c65043f21",
+  "prune": [
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.8904299999999999,
+        "se": 0.0007864194526812987
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.9233800000000001,
+        "se": 0.0008671537093016165
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 750,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.93652,
+        "se": 0.00048437818099314
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.94414,
+        "se": 0.0004805552344250757
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.95286,
+        "se": 0.0004960286730063533
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.9586600000000001,
+        "se": 0.00036914315199752817
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 3000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.96398,
+        "se": 0.00038810078874207594
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 4000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.9681599999999999,
+        "se": 0.00032768548606518715
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 6000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.9716400000000001,
+        "se": 0.00023485219938411422
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 8000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.9736499999999999,
+        "se": 0.0002140872096444197
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.9586600000000001,
+        "se": 0.00036914315199752817
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.9424899999999999,
+        "se": 0.0005226960025780829
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.001650000000000007,
+        "se": 0.000641915536153751,
+        "z": -2.5704316332434125
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.9472400000000001,
+        "se": 0.0004387355569006119
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.003100000000000003,
+        "se": 0.0002780887148615299,
+        "z": 11.147521759534907
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.9515499999999999,
+        "se": 0.000498720585320299
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.007410000000000016,
+        "se": 0.0006891943767101533,
+        "z": 10.751683778053165
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.95146,
+        "se": 0.000426927003908939
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.007319999999999993,
+        "se": 0.0005811482885919383,
+        "z": 12.595752484680958
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.91708,
+        "se": 0.0007643152345582136
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.006299999999999995,
+        "se": 0.0011659998094148878,
+        "z": -5.403088361705143
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.9236000000000001,
+        "se": 0.0004973261840415523
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.00022000000000002017,
+        "se": 0.0009989772547738809,
+        "z": 0.22022523430707872
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.9409700000000001,
+        "se": 0.0006509906980048867
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01759000000000003,
+        "se": 0.0011342594255479789,
+        "z": 15.507916093800162
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.93721,
+        "se": 0.0006092709669031622
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.013830000000000009,
+        "se": 0.0009988938326413277,
+        "z": 13.845315235784362
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.88422,
+        "se": 0.0010507986380738144
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.006210000000000005,
+        "se": 0.0012016146544453331,
+        "z": -5.168046159412518
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.88939,
+        "se": 0.0005197114584074499
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0010400000000000075,
+        "se": 0.0010862985061411248,
+        "z": -0.9573795730368956
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.9228799999999999,
+        "se": 0.000697742391176314
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.03245,
+        "se": 0.0011226209412699242,
+        "z": 28.905571602193806
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.9107900000000001,
+        "se": 0.0007488435528644629
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.02036,
+        "se": 0.0008818163074019416,
+        "z": 23.088708871789652
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 4000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.9681599999999999,
+        "se": 0.00032768548606518715
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.95709,
+        "se": 0.0005000999900019994
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0015699999999999824,
+        "se": 0.0004594803828480899,
+        "z": -3.4169032206953753
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.96018,
+        "se": 0.0004682829154356308
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0015200000000000103,
+        "se": 0.0005832476127493301,
+        "z": 2.6060972505913718
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.96394,
+        "se": 0.0003155946767611893
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.005279999999999996,
+        "se": 0.00038810078874208293,
+        "z": 13.60471339703688
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.96355,
+        "se": 0.00028017851452243596
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0048900000000000055,
+        "se": 0.0004191128196029852,
+        "z": 11.667502808986317
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.93772,
+        "se": 0.0006178457196852138
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0064199999999999926,
+        "se": 0.0006478682993736745,
+        "z": -9.909421415134087
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.94153,
+        "se": 0.0006515025368757709
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.00260999999999999,
+        "se": 0.0007217956004915133,
+        "z": -3.6159821398505154
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.95641,
+        "se": 0.00032367679352506186
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.012270000000000026,
+        "se": 0.0004975607165629868,
+        "z": 24.66030695662195
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.95486,
+        "se": 0.0004575781657572644
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.010719999999999997,
+        "se": 0.0007131775530835478,
+        "z": 15.031319975860434
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.9100400000000001,
+        "se": 0.0008076302784484138
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.013339999999999986,
+        "se": 0.0011600957814862653,
+        "z": -11.499050520560765
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.9098200000000001,
+        "se": 0.0009388882314264599
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.013559999999999984,
+        "se": 0.0012975361266646841,
+        "z": -10.450576073635773
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.9458,
+        "se": 0.0004152643067305921
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.022420000000000006,
+        "se": 0.0010765995851135435,
+        "z": 20.824826899441433
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.93933,
+        "se": 0.0005575840743780297
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01595000000000001,
+        "se": 0.0012048282496319239,
+        "z": 13.238401411049873
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.87822,
+        "se": 0.0009868918661918146
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.012210000000000009,
+        "se": 0.0014452566092797048,
+        "z": -8.448326699633844
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.87931,
+        "se": 0.0007908434316179962
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.011119999999999996,
+        "se": 0.001192644121270041,
+        "z": -9.323820745587009
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.92893,
+        "se": 0.0005660879397722224
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.03849999999999999,
+        "se": 0.0012406091693644378,
+        "z": 31.033141581343852
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.9149499999999999,
+        "se": 0.0010022474744293478
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.024519999999999997,
+        "se": 0.0013727344972717776,
+        "z": 17.862157648643592
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 8000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.9736499999999999,
+        "se": 0.0002140872096444197
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.9549799999999999,
+        "se": 0.0004068305680638003
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0036800000000000053,
+        "se": 0.0003086889840744201,
+        "z": -11.921384273022243
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.95512,
+        "se": 0.00023795424396766505
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.003539999999999999,
+        "se": 0.0004645667037382583,
+        "z": -7.620003697024468
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.9666,
+        "se": 0.0003803507153492226
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.007940000000000013,
+        "se": 0.0005777735042577025,
+        "z": 13.74240933772304
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.96494,
+        "se": 0.00039530578880996
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.006279999999999985,
+        "se": 0.000581339449509113,
+        "z": 10.802638639615564
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.9310700000000001,
+        "se": 0.000644299792194766
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.013069999999999993,
+        "se": 0.0006616561712013979,
+        "z": -19.753461947265187
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.93025,
+        "se": 0.0006744956963868935
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.013889999999999991,
+        "se": 0.0007165426249242464,
+        "z": -19.38475049054961
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.95938,
+        "se": 0.0004062839729384727
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.015240000000000009,
+        "se": 0.0006352952069707464,
+        "z": 23.98884775578319
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.9545999999999999,
+        "se": 0.0002476556749467587
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.010460000000000025,
+        "se": 0.0006177378084592251,
+        "z": 16.932750200428206
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.8992000000000001,
+        "se": 0.0007652160188832622
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.02417999999999999,
+        "se": 0.0013667317057694693,
+        "z": -17.691840979416412
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.90014,
+        "se": 0.0007335151289812963
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.023239999999999993,
+        "se": 0.0012873918509054563,
+        "z": -18.052001792348378
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.9485100000000001,
+        "se": 0.0005624253036823822
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.02513000000000003,
+        "se": 0.0007564610587025121,
+        "z": 33.22048069877279
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.9389,
+        "se": 0.00035433819375781946
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.015520000000000023,
+        "se": 0.0009509994742374929,
+        "z": 16.319672534460537
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.8728400000000001,
+        "se": 0.0008949487881065184
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.017590000000000005,
+        "se": 0.0009941439645354277,
+        "z": -17.69361443361975
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.87447,
+        "se": 0.0009516126663021416
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.015959999999999995,
+        "se": 0.0015034183272351913,
+        "z": -10.615807796723267
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.93155,
+        "se": 0.0005344259641064518
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.04112000000000001,
+        "se": 0.0006352252443906102,
+        "z": 64.73294372840552
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.9121600000000001,
+        "se": 0.0009164181481301093
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.021730000000000006,
+        "se": 0.0010893474091297902,
+        "z": 19.947722662101626
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.88866,
+        "se": 0.0025673678695850664
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.9238200000000001,
+        "se": 0.0012735601892158665
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 750,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.9398099999999999,
+        "se": 0.0007515095918660433
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.94772,
+        "se": 0.0005202136313306531
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.9575400000000001,
+        "se": 0.00022420228961066415
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.9627800000000001,
+        "se": 0.0003629508690350927
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 3000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.9682299999999999,
+        "se": 0.0002724579478255905
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 4000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.9709199999999999,
+        "se": 0.00043071000813901957
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 6000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.97428,
+        "se": 0.00029242282932615487
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 8000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.97651,
+        "se": 0.0002469592858932204
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.9627800000000001,
+        "se": 0.0003629508690350927
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.95747,
+        "se": 0.0003896009354312294
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.00974999999999997,
+        "se": 0.0006820312798300892,
+        "z": 14.295532020802531
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.95956,
+        "se": 0.00045294100670568603
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.011839999999999984,
+        "se": 0.000702250351054072,
+        "z": 16.86008413129056
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.96064,
+        "se": 0.0003742251253516375
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.012919999999999997,
+        "se": 0.0006380177635980596,
+        "z": 20.250219879676234
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.9609400000000001,
+        "se": 0.00032359096265364306
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.013219999999999987,
+        "se": 0.0005425863986500229,
+        "z": 24.364783254596663
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.9373099999999999,
+        "se": 0.0007822261679193388
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01348999999999998,
+        "se": 0.001792729142335164,
+        "z": 7.524840022641817
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.9438599999999999,
+        "se": 0.0007476184410067278
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.02003999999999998,
+        "se": 0.0017204133870155221,
+        "z": 11.648363208080044
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.95404,
+        "se": 0.00037452191747168223
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.03021999999999998,
+        "se": 0.0015715385242918267,
+        "z": 19.22956359826931
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.95062,
+        "se": 0.0005046010525377665
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0268,
+        "se": 0.0015729660588271526,
+        "z": 17.03787557881753
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.9046799999999999,
+        "se": 0.0007198456624706246
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.016020000000000024,
+        "se": 0.002940740647448451,
+        "z": 5.447607225717052
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.9125099999999999,
+        "se": 0.0011299410014096627
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.023850000000000027,
+        "se": 0.003181657499550254,
+        "z": 7.49609283946225
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.94078,
+        "se": 0.000507893252126417
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.05212000000000002,
+        "se": 0.0028062153239629324,
+        "z": 18.57305800981667
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.92865,
+        "se": 0.0011567435132973734
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.03999000000000001,
+        "se": 0.0025693254627106475,
+        "z": 15.564396406911571
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 4000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.9709199999999999,
+        "se": 0.00043071000813901957
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.9683999999999999,
+        "se": 0.00048534065928536676
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.005619999999999991,
+        "se": 0.0005034988690266393,
+        "z": 11.161892003579945
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.96932,
+        "se": 0.0003375730373645941
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.006539999999999979,
+        "se": 0.0003969886648255826,
+        "z": 16.474022004818035
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.9702999999999999,
+        "se": 0.0002534210374499755
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.007520000000000004,
+        "se": 0.0002576819745344885,
+        "z": 29.183259766559722
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.9699199999999999,
+        "se": 0.0003299158141775609
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.007139999999999991,
+        "se": 0.00034195516275285136,
+        "z": 20.87993040526321
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.9573499999999999,
+        "se": 0.00034359213546813594
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.009629999999999982,
+        "se": 0.000680857302719646,
+        "z": 14.143932893916967
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.96045,
+        "se": 0.00046314144707638137
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.012729999999999986,
+        "se": 0.0006432642449949316,
+        "z": 19.789690005388515
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.96599,
+        "se": 0.0003745960787597967
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.018269999999999988,
+        "se": 0.0007453634460225824,
+        "z": 24.511532055257856
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.96484,
+        "se": 0.000363990231859162
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01711999999999998,
+        "se": 0.0005511200716117491,
+        "z": 31.06401106011724
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.93438,
+        "se": 0.0005401234426807818
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01055999999999998,
+        "se": 0.0015084355398152722,
+        "z": 7.000630601220913
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.93855,
+        "se": 0.00040858835573771103
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.014729999999999998,
+        "se": 0.001506508103750744,
+        "z": 9.777577673380453
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.95893,
+        "se": 0.00028946310453819316
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.035109999999999995,
+        "se": 0.0013767473745510907,
+        "z": 25.502136883644425
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.95139,
+        "se": 0.0005062827492836599
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.027570000000000004,
+        "se": 0.001487058991581849,
+        "z": 18.539950436446777
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.8992699999999999,
+        "se": 0.001242493013617741
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01061000000000003,
+        "se": 0.0025228048764112544,
+        "z": 4.20563639273323
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.9009600000000001,
+        "se": 0.0010329246503658163
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01230000000000001,
+        "se": 0.0023829953140253276,
+        "z": 5.161571207298346
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.94596,
+        "se": 0.0003403266404826716
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.05730000000000003,
+        "se": 0.0024722009986604555,
+        "z": 23.177727066305543
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.92649,
+        "se": 0.0010114291319162645
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.037830000000000016,
+        "se": 0.0028447241615937907,
+        "z": 13.298301645810646
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 8000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.97651,
+        "se": 0.0002469592858932204
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.9688800000000001,
+        "se": 0.0005176442364747861
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.006100000000000006,
+        "se": 0.0005140255073653661,
+        "z": 11.867115371891778
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.97037,
+        "se": 0.00028946310453819836
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.007589999999999974,
+        "se": 0.0004099999999999904,
+        "z": 18.512195121951592
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.97326,
+        "se": 0.00022617593938250197
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.010480000000000012,
+        "se": 0.000435073429306921,
+        "z": 24.087887915138417
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.9728,
+        "se": 0.000294769212925785
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.010020000000000006,
+        "se": 0.0002961981318869619,
+        "z": 33.82870761596815
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.9549099999999999,
+        "se": 0.0004121623196967152
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.007189999999999963,
+        "se": 0.0005982288673892121,
+        "z": 12.018811515028572
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.95671,
+        "se": 0.00044358388909727936
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.008989999999999988,
+        "se": 0.0006541236716231734,
+        "z": 13.743578454654878
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.9685900000000001,
+        "se": 0.00031708743974564514
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.02086999999999999,
+        "se": 0.0006104734046441194,
+        "z": 34.18658346331456
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.9640299999999999,
+        "se": 0.00036999999999999593
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01630999999999998,
+        "se": 0.0006466065264130849,
+        "z": 25.223995325992625
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.9294399999999999,
+        "se": 0.000795291700502961
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.005619999999999981,
+        "se": 0.0012447936018116059,
+        "z": 4.514804696795464
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.9302300000000001,
+        "se": 0.0008037481639861559
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0064100000000000155,
+        "se": 0.0015263209215481371,
+        "z": 4.199641051567579
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.9609300000000001,
+        "se": 0.0003700000000000025
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.03711000000000001,
+        "se": 0.0014012256539663143,
+        "z": 26.483957023593103
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.9484,
+        "se": 0.0005902918298980937
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.02458000000000001,
+        "se": 0.0015620357087965538,
+        "z": 15.735875858393335
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.89204,
+        "se": 0.0012827227984945882
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0033800000000000384,
+        "se": 0.0019841482919490754,
+        "z": 1.703501705852734
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.8947800000000001,
+        "se": 0.0008214891627066322
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.006120000000000026,
+        "se": 0.0025267370262850868,
+        "z": 2.422096140728148
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.9491799999999999,
+        "se": 0.0004941434789388301
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.06052000000000002,
+        "se": 0.0025575509118425524,
+        "z": 23.663263053637206
+      }
+    },
+    {
+      "dataset": "MNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.9221999999999999,
+        "se": 0.0007407203700902659
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.03354,
+        "se": 0.0029420401084961413,
+        "z": 11.400252465335821
+      }
+    }
+  ],
+  "growth": [],
+  "contrasts": [
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "panel": "prune",
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "contrast": "obs \u2212 random",
+      "n": 10,
+      "mean": 0.012270000000000026,
+      "se": 0.0004975607165629868,
+      "t": 24.66030695662195,
+      "p_one_sided": 7.108057533581011e-10,
+      "lower_95": 0.01135791501568671
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "panel": "prune",
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "contrast": "obs \u2212 random",
+      "n": 10,
+      "mean": 0.018269999999999988,
+      "se": 0.0007453634460225824,
+      "t": 24.511532055257856,
+      "p_one_sided": 7.500454918462328e-10,
+      "lower_95": 0.01690366462756677
+    }
+  ],
+  "diagnostics": [],
+  "contrasts_loop": [
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "panel": "prune",
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "contrast": "obs \u2212 random",
+      "n": 10,
+      "mean": 0.01228999999999999,
+      "se": 0.0005147707148710868,
+      "t": 23.874707019955,
+      "p_one_sided": 9.474625463506524e-10,
+      "lower_95": 0.011346367145217105
+    },
+    {
+      "dataset": "MNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": true,
+      "panel": "prune",
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "contrast": "obs \u2212 random",
+      "n": 10,
+      "mean": 0.017979999999999996,
+      "se": 0.0007643152345582206,
+      "t": 23.52432502590709,
+      "p_one_sided": 1.080242319396943e-09,
+      "lower_95": 0.016578923858905137
+    }
+  ],
+  "eig_failures": []
+}
