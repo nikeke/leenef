@@ -233,3 +233,59 @@ distribution and the closed loop**, with OBS as the known exact
 selector; the comparison arms must therefore include OP-ELM-style
 ranking and random-proposal grow/prune, which the growth panel already
 has in the form of the random-proposal arm.
+
+## NS-1 interpretation and the one-shot probe (2026-11-22, exploratory)
+
+Reading the archived NS-1 tables beyond the registered gate (secondary
+arms are descriptive, not preregistered):
+
+- **Selection is necessary; pHd proposals alone are not better
+  neurons.** `phd_randkeep` (pHd proposals, uniform retention) ends
+  near the random-proposal arm on Fashion-MNIST and CIFAR-10. The gain
+  comes from a heavier tail of useful candidates that OBS picks out.
+- **Iteration matters little.** `phd_frozen` (bases from the
+  generation-0 residual only) is within 0.2 pp of the refreshed arm on
+  Fashion-MNIST and equal on MNIST.
+- **What the residual adds is dataset-dependent.** On MNIST unsupervised
+  PCA directions and within-class-shuffled residuals recover most of the
+  gain; on Fashion-MNIST PCA is no better than random and sample-level
+  residual pairing carries most of it; CIFAR-10 sits between.
+- **Spatial locality dominates on CIFAR-10.** Random receptive-field
+  proposals + OBS (53.5 %) beat global pHd (50.2 %); patch pHd adds
+  only about 0.5 pp (54.0 %). The global-family equivalent widths
+  (about 6000–8000 at k = 1000) are therefore relative to hypersphere
+  baselines only.
+
+`explorations/neuron_selection/probe4_oneshot.py` then asked whether
+the 12-generation loop is needed at all. Validation accuracy only (test
+metrics computed by the shared helper were discarded), hypersphere
+family, k = 1000, seeds 0–2, 8 threads; time is the whole trial.
+
+| Pool → 1000, one OBS pass | MNIST val % | Fashion val % | time |
+|---|---:|---:|---:|
+| random 4000 | 95.46 | 87.24 | 9 s |
+| random 13000 | 95.81 | 87.64 | 89 s |
+| label-pHd 4000 (no model; class-moment contrasts) | 96.80 | 87.49 | 12 s |
+| label-pHd 13000 | 97.20 | 87.90 | 91 s |
+| residual-pHd 4000 | 97.14 | 88.45 | 12 s |
+| residual-pHd 13000 | 97.34 | 88.88 | 92 s |
+| residual-pHd 4000, three rounds | 97.35 | 88.99 | 35 s |
+| NS-1 loop, 12 generations (same seeds, val) | 97.34 | 89.09 | 170–380 s (6 threads) |
+
+Single seed, k = 5000, two rounds from a 10000 pool (about 2 min):
+MNIST 98.23 % val (random-proposal control 97.43 %), Fashion-MNIST
+90.12 % val (control 89.54 %).
+
+Working conclusions, all requiring confirmation:
+
+1. The method reduces to **sample a supervised candidate pool once (or
+   2–3 times), prune once with OBS**: seconds, not minutes, and one or
+   two extra data passes.
+2. Model-free label-pHd uses only additive per-class input moments
+   `(n_c, mu_c, Sigma_c)`. It works on MNIST but adds almost nothing
+   over random on Fashion-MNIST, so continual/streaming variants
+   cannot rely on it alone; they need residual moments.
+3. At k = 5000 the validation numbers are in the range of the tuned
+   MLP test accuracies in SSUP-I (98.10 % / 89.39 %), but the splits,
+   training-set sizes and metric differ; an equal-protocol comparison
+   is the next confirmatory target.
