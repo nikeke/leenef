@@ -217,4 +217,28 @@ The same numerical and timing caveats apply to its rows.
 
 ### Results
 
-_To be filled from the analyzer output._
+NS-1 finished at 05:56:55 UTC on 2026-11-22. All 3940 expected rows
+were verified against the pinned identity, with consistent dataset
+hashes and four threads on the confirmatory datasets. The driver
+reused all three verified two-thread MNIST checkpoints. The run archive
+is `86540cc` on `run/ns-1`; see the
+[combined analysis](../results/neuron_selection/logs/summary_all.md).
+
+**Registered gate: pass.** At generation 12 and global width 1000,
+the pHd arm with batched greedy OBS beat the unpruned random width-3000
+layer and the matched random-proposal growth arm on both confirmatory
+datasets. The within-class residual shuffle contrast also passed on
+both. Each contrast has ten seed pairs; the six primary comparisons
+were Holm-adjusted together.
+
+| Dataset | Contrast | Mean difference ± SE (percentage points) | Holm-adjusted p |
+|---|---|---:|---:|
+| Fashion-MNIST | Width 3000 reference | +1.082 ± 0.091 | 8.15e-7 |
+| Fashion-MNIST | Random proposals | +1.654 ± 0.084 | 2.68e-8 |
+| Fashion-MNIST | Within-class residual shuffle | +1.317 ± 0.072 | 3.91e-8 |
+| CIFAR-10 | Width 3000 reference | +1.461 ± 0.125 | 8.15e-7 |
+| CIFAR-10 | Random proposals | +2.268 ± 0.102 | 1.05e-8 |
+| CIFAR-10 | Within-class residual shuffle | +1.026 ± 0.078 | 5.48e-7 |
+
+These are accuracy and neuron-count comparisons, not evidence of an
+end-to-end speedup or of transfer to other tasks.
