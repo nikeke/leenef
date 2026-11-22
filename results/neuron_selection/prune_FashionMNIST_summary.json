@@ -1,0 +1,2474 @@
+{
+  "code_identity": "2d43012f8b9d7644efb9f1267c17bb6c65043f21",
+  "prune": [
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.80661,
+        "se": 0.0010019370128794467
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.8307100000000001,
+        "se": 0.0006564974401236419
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 750,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.84174,
+        "se": 0.0005033664448270078
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.8488300000000001,
+        "se": 0.000563136060133097
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.85695,
+        "se": 0.0004349329450233292
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.8623200000000001,
+        "se": 0.0006704558979613116
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 3000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.8694900000000001,
+        "se": 0.0006229767250869037
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 4000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.87364,
+        "se": 0.0005680766771405988
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 6000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.88002,
+        "se": 0.000633649044117573
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 8000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.88376,
+        "se": 0.000484011019158309
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.8623200000000001,
+        "se": 0.0006704558979613116
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.84742,
+        "se": 0.0004884897360459286
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0014100000000000113,
+        "se": 0.0004056407825212411,
+        "z": -3.4759818557597266
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.85193,
+        "se": 0.0005238850594887731
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0030999999999999917,
+        "se": 0.000626099033699944,
+        "z": 4.951293378749498
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.8562,
+        "se": 0.0005475196597180574
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.00737000000000001,
+        "se": 0.0005781291666516536,
+        "z": 12.748016230844717
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.85595,
+        "se": 0.000567107671532585
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.007119999999999993,
+        "se": 0.0006687965975458369,
+        "z": 10.645987174765814
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.8289,
+        "se": 0.0006473879139365458
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0018100000000000117,
+        "se": 0.0010011604378031662,
+        "z": -1.8079020421259073
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.83583,
+        "se": 0.0005149002060809685
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.005120000000000013,
+        "se": 0.0004348179695765462,
+        "z": 11.775042335500071
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.84573,
+        "se": 0.0005647123161398133
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01502,
+        "se": 0.0007015538309907386,
+        "z": 21.409618672866007
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.84178,
+        "se": 0.0006031030868212618
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.011070000000000024,
+        "se": 0.0010240496949747073,
+        "z": 10.810022261930794
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.80914,
+        "se": 0.0008014154145427156
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.00253000000000001,
+        "se": 0.0012366666666666724,
+        "z": 2.0458221024258747
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.81454,
+        "se": 0.0007639371701913676
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.007930000000000003,
+        "se": 0.0011886547017532056,
+        "z": 6.671407590702038
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.8303799999999999,
+        "se": 0.0005638754787677482
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.023769999999999993,
+        "se": 0.0010060980734169747,
+        "z": 23.62592736041209
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.82318,
+        "se": 0.0007480047534014143
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01657000000000002,
+        "se": 0.0009193052932634616,
+        "z": 18.024480138885984
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 4000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.87364,
+        "se": 0.0005680766771405988
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.86119,
+        "se": 0.0003491099794875236
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0011299999999999978,
+        "se": 0.0005459039394537366,
+        "z": -2.069961248366776
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.8641500000000001,
+        "se": 0.00027375982985902643
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0018299999999999983,
+        "se": 0.000495098194525308,
+        "z": 3.6962364642726526
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.86858,
+        "se": 0.0005561374730126481
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.006259999999999999,
+        "se": 0.0004326147888775268,
+        "z": 14.470147949038804
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.86837,
+        "se": 0.0004912682001152175
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0060499999999999885,
+        "se": 0.000681868348322781,
+        "z": 8.872680503327977
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.84519,
+        "se": 0.0007415374419257473
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.00364000000000001,
+        "se": 0.0007733333333333357,
+        "z": -4.706896551724136
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.84978,
+        "se": 0.0005482902718653909
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0009499999999999842,
+        "se": 0.0005719848482841705,
+        "z": 1.6608831559957862
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.8604900000000001,
+        "se": 0.0004264713094427048
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01165999999999997,
+        "se": 0.000543691088762728,
+        "z": 21.446001674470164
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.8565400000000001,
+        "se": 0.0005389702115042053
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.007710000000000006,
+        "se": 0.0005451707174006238,
+        "z": 14.142358996758515
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.82659,
+        "se": 0.000610000000000006
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.00411999999999999,
+        "se": 0.0008233805654468508,
+        "z": -5.003761532510857
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.83202,
+        "se": 0.0005834380858325894
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.001309999999999989,
+        "se": 0.000682877897008119,
+        "z": 1.9183517371692203
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.8483499999999999,
+        "se": 0.0006215124920528724
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01764,
+        "se": 0.0010089818850923154,
+        "z": 17.482969972633406
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.84046,
+        "se": 0.0006805553287981504
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.009749999999999991,
+        "se": 0.0008704085886014238,
+        "z": 11.201635792296504
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.8069599999999999,
+        "se": 0.0007310874700669405
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.00035000000000000585,
+        "se": 0.0012184005909387924,
+        "z": 0.2872618436029538
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.8102600000000001,
+        "se": 0.0007899648374734454
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.003649999999999998,
+        "se": 0.000697654801619139,
+        "z": 5.231813773128149
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.83337,
+        "se": 0.0007089977276252558
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.026760000000000006,
+        "se": 0.0008333599995733493,
+        "z": 32.11097246532132
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.81983,
+        "se": 0.0008271839779234906
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01322000000000002,
+        "se": 0.0010524891131661806,
+        "z": 12.560699996440414
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 8000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.88376,
+        "se": 0.000484011019158309
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.85921,
+        "se": 0.0004483178435985932
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0031100000000000238,
+        "se": 0.0008720919931087822,
+        "z": -3.5661375457807827
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.86202,
+        "se": 0.0006966267931172941
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.00030000000000001136,
+        "se": 0.0007842901957254755,
+        "z": -0.3825114755164173
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.8720100000000001,
+        "se": 0.000400124980474848
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.009689999999999999,
+        "se": 0.0005886802565437636,
+        "z": 16.460548646376466
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.8686400000000001,
+        "se": 0.0002753583523741749
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0063200000000000036,
+        "se": 0.0007616940184731494,
+        "z": 8.297295038063622
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.8423700000000001,
+        "se": 0.0005223983154643606
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.006459999999999999,
+        "se": 0.00042405450383437883,
+        "z": -15.23389078900823
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.8451299999999999,
+        "se": 0.00058043087443726
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0037000000000000145,
+        "se": 0.000753657747256673,
+        "z": -4.909390255017051
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.86297,
+        "se": 0.0004452340208624335
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.014139999999999986,
+        "se": 0.0006867313885355798,
+        "z": 20.590292268644987
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.8569100000000001,
+        "se": 0.0005534638400313254
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.008079999999999976,
+        "se": 0.0006826093725957417,
+        "z": 11.836930936465698
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.8255100000000001,
+        "se": 0.0005288246926492312
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.005199999999999982,
+        "se": 0.0008806563209081949,
+        "z": -5.904687080014796
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.8269500000000001,
+        "se": 0.0005615949509111393
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0037600000000000077,
+        "se": 0.0008388086790204308,
+        "z": -4.482547801473601
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.851,
+        "se": 0.00042713515945710343
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.02029000000000001,
+        "se": 0.0005663626635528489,
+        "z": 35.825101663161966
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.8399699999999999,
+        "se": 0.000898894382622958
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.009260000000000013,
+        "se": 0.001058216528987437,
+        "z": 8.750572067571575
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.80572,
+        "se": 0.0007147338276900346
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.000890000000000013,
+        "se": 0.0013357020625873242,
+        "z": -0.6663162578906532
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.8070600000000001,
+        "se": 0.0005957628163399721
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.00045000000000001706,
+        "se": 0.0011638298844762543,
+        "z": 0.3866544466698633
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.83639,
+        "se": 0.000592630670072948
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.029780000000000008,
+        "se": 0.001034064257620818,
+        "z": 28.798983990142
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "hypersphere",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.8164300000000001,
+        "se": 0.0011475626344561714
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.009820000000000006,
+        "se": 0.0014112090954607396,
+        "z": 6.95857193068467
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.80392,
+        "se": 0.0009923932912129407
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.8300699999999999,
+        "se": 0.0007498222011472657
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 750,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.84292,
+        "se": 0.0008445643189768803
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.85106,
+        "se": 0.0007031990393116855
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.8611599999999999,
+        "se": 0.0008592244565110237
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.86923,
+        "se": 0.0007733117813088824
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 3000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.87661,
+        "se": 0.0004847565253700977
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 4000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.88181,
+        "se": 0.0005570657252265847
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 6000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.8876,
+        "se": 0.0005656854249492376
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 8000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": null,
+      "criterion": "random",
+      "test": {
+        "n": 10,
+        "mean": 0.8908799999999999,
+        "se": 0.0005559376463837196
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.86923,
+        "se": 0.0007733117813088824
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.8485400000000001,
+        "se": 0.0005404113659467563
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.002520000000000011,
+        "se": 0.0006124268663821465,
+        "z": -4.1147770261724
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.8560399999999999,
+        "se": 0.0006968500556073677
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.004979999999999996,
+        "se": 0.000848109007668746,
+        "z": 5.871886697311299
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.8628500000000001,
+        "se": 0.0006849574196011494
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01179,
+        "se": 0.0008058742664543453,
+        "z": 14.63007381023989
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.86202,
+        "se": 0.0006100637489457742
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.010960000000000015,
+        "se": 0.0007658256256412924,
+        "z": 14.311351870502184
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.8256399999999999,
+        "se": 0.0005404113659467639
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0044299999999999895,
+        "se": 0.0005808136055951528,
+        "z": -7.627231795750757
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.83485,
+        "se": 0.0006744956963869018
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.004779999999999995,
+        "se": 0.0010930894036831778,
+        "z": 4.3729268474232095
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.85108,
+        "se": 0.000819457815333478
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.021010000000000018,
+        "se": 0.0013533866984552353,
+        "z": 15.52401839325078
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.84913,
+        "se": 0.0006925075210181278
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01906000000000001,
+        "se": 0.0013117587854141184,
+        "z": 14.530110422689354
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.8029299999999999,
+        "se": 0.0014372079413455371
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.000990000000000002,
+        "se": 0.0018669315288283434,
+        "z": -0.5302819009229065
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.81415,
+        "se": 0.0010208112242503775
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.010229999999999984,
+        "se": 0.0015129111011556481,
+        "z": 6.761798490463666
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.8356199999999999,
+        "se": 0.0008906676646701
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.031700000000000006,
+        "se": 0.0014919040779412655,
+        "z": 21.248014848075236
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 2000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.82752,
+        "se": 0.0005488978856662538
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.02359999999999999,
+        "se": 0.0010477489097001217,
+        "z": 22.52448060934236
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 4000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.88181,
+        "se": 0.0005570657252265847
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.8655799999999999,
+        "se": 0.0006003332407921535
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.00365000000000002,
+        "se": 0.0005952123803969372,
+        "z": -6.132264919566855
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.87072,
+        "se": 0.0007284382075524507
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0014899999999999913,
+        "se": 0.0007664419960658157,
+        "z": 1.944047961422044
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.87719,
+        "se": 0.0006023011428402452
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.00796,
+        "se": 0.0007060374557266038,
+        "z": 11.274189400912352
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.87605,
+        "se": 0.0005554277630799525
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.006819999999999993,
+        "se": 0.0007438339121664836,
+        "z": 9.168713456658793
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.8450900000000001,
+        "se": 0.00047666666666666647
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.005969999999999987,
+        "se": 0.0007975030477127315,
+        "z": -7.485864809071475
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.853,
+        "se": 0.0005234500931320921
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0019400000000000083,
+        "se": 0.0006143108152863409,
+        "z": 3.158010491962022
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.8691700000000001,
+        "se": 0.0007513025725734921
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.018110000000000015,
+        "se": 0.0011521429309479378,
+        "z": 15.718535880873583
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.86621,
+        "se": 0.000574929947423547
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01515000000000002,
+        "se": 0.0006716894123526585,
+        "z": 22.555067448414363
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.82477,
+        "se": 0.0007316723614053276
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.005299999999999994,
+        "se": 0.0008525777905205395,
+        "z": -6.216441548124413
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.83302,
+        "se": 0.0007848283605703599
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.002950000000000008,
+        "se": 0.001204459307001368,
+        "z": 2.4492317696845674
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.8573299999999999,
+        "se": 0.0006241527590795967
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.027259999999999996,
+        "se": 0.0011722912038681648,
+        "z": 23.253607900538032
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.84991,
+        "se": 0.0006874186820595207
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01983999999999999,
+        "se": 0.0010608382429841874,
+        "z": 18.70219152751238
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.80442,
+        "se": 0.0010011992808627143
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0005000000000000115,
+        "se": 0.0015344923156101777,
+        "z": 0.3258406672445217
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.81268,
+        "se": 0.0009513499180988392
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.00875999999999998,
+        "se": 0.001408403351316661,
+        "z": 6.219809113497635
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.8413600000000001,
+        "se": 0.0007656805251974635
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.03743999999999999,
+        "se": 0.0014666060593538164,
+        "z": 25.52832763864072
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.8246,
+        "se": 0.0008440642418942102
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.02068000000000001,
+        "se": 0.0011689311356962028,
+        "z": 17.69137579493357
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 8000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "pool",
+      "test": {
+        "n": 10,
+        "mean": 0.8908799999999999,
+        "se": 0.0005559376463837196
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.0,
+        "se": 0.0,
+        "z": 0.0
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.86191,
+        "se": 0.0006791252543611655
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.007319999999999993,
+        "se": 0.000866641025261715,
+        "z": -8.446403743452422
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.8680199999999999,
+        "se": 0.0005613079962611176
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.001210000000000011,
+        "se": 0.0007808044284938202,
+        "z": -1.5496838335485794
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.8815799999999999,
+        "se": 0.0004215843134336631
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.012349999999999983,
+        "se": 0.0008704085886014284,
+        "z": 14.188738670242156
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 2000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.87945,
+        "se": 0.0005516137940423318
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.010219999999999996,
+        "se": 0.001077528035211462,
+        "z": 9.484672014120124
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.84376,
+        "se": 0.0005568163471418932
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.007299999999999996,
+        "se": 0.0007722981577373124,
+        "z": -9.452307929087407
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.84945,
+        "se": 0.0005895855418097607
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.0016099999999999893,
+        "se": 0.0010072459701802852,
+        "z": -1.5984179114777874
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.8718199999999999,
+        "se": 0.0005144144459696134
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.02076000000000002,
+        "se": 0.0009750441585441674,
+        "z": 21.29134339002313
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.8662699999999999,
+        "se": 0.0005923681287847981
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.015210000000000001,
+        "se": 0.0011154919193890251,
+        "z": 13.63523996510059
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.8241400000000001,
+        "se": 0.0006795750306053156
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -0.005930000000000002,
+        "se": 0.000868849814409827,
+        "z": -6.825115113856588
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.8301999999999999,
+        "se": 0.0008183995221026041
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.00013000000000000788,
+        "se": 0.0012657057758859668,
+        "z": 0.10270949416266247
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.8609500000000001,
+        "se": 0.0004266796873013213
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.030880000000000008,
+        "se": 0.0009172180160075808,
+        "z": 33.6670229553633
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 500,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.8467,
+        "se": 0.0008167687011089044
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.01663,
+        "se": 0.0011684795438707738,
+        "z": 14.232170419441394
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "activity",
+      "test": {
+        "n": 10,
+        "mean": 0.8038500000000001,
+        "se": 0.000912170792974405
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": -6.99999999999923e-05,
+        "se": 0.0011729402750732456,
+        "z": -0.05967908297429813
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "magnitude",
+      "test": {
+        "n": 10,
+        "mean": 0.80719,
+        "se": 0.0009487360012142473
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.003269999999999984,
+        "se": 0.001435196463516024,
+        "z": 2.2784337079461277
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs",
+      "test": {
+        "n": 10,
+        "mean": 0.84419,
+        "se": 0.0005854627799157398
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.04026999999999999,
+        "se": 0.0012215700280104045,
+        "z": 32.96577279780558
+      }
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 250,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "encoder_strategy": "receptive_field",
+      "P": 8000,
+      "criterion": "obs_oneshot",
+      "test": {
+        "n": 10,
+        "mean": 0.8195,
+        "se": 0.001090973062097422
+      },
+      "vs_random": {
+        "n": 10,
+        "mean": 0.015579999999999993,
+        "se": 0.0014263239463740394,
+        "z": 10.923184764307598
+      }
+    }
+  ],
+  "growth": [],
+  "contrasts": [
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "panel": "prune",
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "contrast": "obs \u2212 random",
+      "n": 10,
+      "mean": 0.01165999999999997,
+      "se": 0.000543691088762728,
+      "t": 21.446001674470164,
+      "p_one_sided": 2.450693378208192e-09,
+      "lower_95": 0.010663352833819063
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "panel": "prune",
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "contrast": "obs \u2212 random",
+      "n": 10,
+      "mean": 0.018110000000000015,
+      "se": 0.0011521429309479378,
+      "t": 15.718535880873583,
+      "p_one_sided": 3.754475615687197e-08,
+      "lower_95": 0.015997991893010887
+    }
+  ],
+  "diagnostics": [],
+  "contrasts_loop": [
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "panel": "prune",
+      "encoder_strategy": "hypersphere",
+      "P": 4000,
+      "contrast": "obs \u2212 random",
+      "n": 10,
+      "mean": 0.011899999999999999,
+      "se": 0.0005672545969648683,
+      "t": 20.978234576981315,
+      "p_one_sided": 2.9781611782967837e-09,
+      "lower_95": 0.010860158262194998
+    },
+    {
+      "dataset": "FashionMNIST",
+      "k": 1000,
+      "val_size": 10000,
+      "fit_limit": null,
+      "exploratory": false,
+      "panel": "prune",
+      "encoder_strategy": "receptive_field",
+      "P": 4000,
+      "contrast": "obs \u2212 random",
+      "n": 10,
+      "mean": 0.01854999999999999,
+      "se": 0.0010947602477255037,
+      "t": 16.944349266005823,
+      "p_one_sided": 1.94880079583779e-08,
+      "lower_95": 0.016543180831736424
+    }
+  ],
+  "eig_failures": []
+}
